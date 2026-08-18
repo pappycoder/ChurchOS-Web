@@ -135,4 +135,326 @@
   body {
     @apply bg-background text-foreground;
   }
+  h1, h2, h3, h4, h5, h6 {
+    color: #202C4B;
+  }
+}
+
+/* ========================
+   SmartHR Auth Theme Variables
+   ======================== */
+:root {
+  --auth-gradient-start: #2563EB;
+  --auth-gradient-end: #1E3A5F;
+  --auth-overlay-bg: rgba(240, 245, 255, 0.25);
+}
+
+.theme-orange {
+  --auth-gradient-start: #FF7B3D;
+  --auth-gradient-end: #5C260C;
+  --auth-overlay-bg: rgba(255, 247, 243, 0.25);
+  --primary: oklch(0.669 0.198 27.358); /* #F26522 */
+}
+
+/* ========================
+   SmartHR Login Page
+   ======================== */
+.login-background {
+  position: relative;
+}
+
+.login-background::before {
+  content: "";
+  background: linear-gradient(180deg, var(--auth-gradient-start) 0%, var(--auth-gradient-end) 100%);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  backdrop-filter: blur(6px);
+}
+
+/* Decorative background images */
+.bg-overlay-img {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bg-overlay-img .bg-img-1 {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.bg-overlay-img .bg-img-2 {
+  position: absolute;
+  left: 60px;
+  bottom: 0;
+  z-index: 1;
+  max-width: 100px;
+}
+
+.bg-overlay-img .bg-img-3 {
+  position: absolute;
+  top: 40%;
+  right: 30%;
+  z-index: 1;
+}
+
+/* Glassmorphism card on left panel */
+.authen-overlay-item {
+  background: var(--auth-overlay-bg);
+  border-radius: 15px;
+  padding: 40px;
+  position: relative;
+  backdrop-filter: blur(26px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* ========================
+   SmartHR Form Elements
+   ======================== */
+.smart-input-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.smart-input-group input {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 0;
+}
+
+.smart-input-group .input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.625rem;
+  background-color: #fff;
+  border: 1px solid #ededed;
+  border-left: 0;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  color: #6B7280;
+  min-height: 40px;
+}
+
+/* Password toggle */
+.pass-group {
+  position: relative;
+}
+
+.pass-group input {
+  padding-right: 2.5rem;
+}
+
+.toggle-password {
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  color: #111827;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.toggle-password:hover {
+  color: var(--primary);
+}
+
+/* Form controls matching SmartHR */
+.smart-form-control {
+  border-color: #ededed;
+  color: #111827;
+  background-color: #ffffff;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  border-radius: 5px;
+  padding: 0.5rem 0.625rem;
+  height: 40px;
+  width: 100%;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.smart-form-control:focus {
+  box-shadow: 0 0 0 2px var(--primary);
+  border-color: var(--primary);
+}
+
+.smart-form-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202C4B;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* ========================
+   SmartHR Button Styles
+   ======================== */
+.smart-btn {
+  border-radius: 5px;
+  padding: 0.5rem 0.85rem;
+  font-size: 14px;
+  transition: all 0.3s;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.smart-btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.smart-btn-primary:hover {
+  opacity: 0.9;
+  color: #fff;
+}
+
+.smart-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========================
+   "Or" Divider
+   ======================== */
+.login-or {
+  text-align: center;
+  font-size: 15px;
+  color: #374151;
+  font-weight: 500;
+  margin: 5px 0;
+  padding: 10px 0;
+  position: relative;
+}
+
+.login-or::after {
+  width: 100%;
+  content: "";
+  border-top: 1px solid #ededed;
+  position: absolute;
+  top: 50%;
+  right: 0;
+}
+
+.login-or::before {
+  width: 100%;
+  content: "";
+  border-top: 1px solid #ededed;
+  position: absolute;
+  top: 50%;
+  left: 0;
+}
+
+.login-or .span-or {
+  background-color: #fff;
+  padding: 0 10px;
+  z-index: 9;
+  position: relative;
+}
+
+/* ========================
+   Social Login Buttons
+   ======================== */
+.social-btn {
+  border-radius: 10px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+
+.social-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+/* ========================
+   Animated Link Underline
+   ======================== */
+.hover-a {
+  position: relative;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.hover-a::after {
+  content: "";
+  height: 2px;
+  width: 100%;
+  background: var(--primary);
+  transform: scale(0);
+  transition: all 0.3s ease;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+}
+
+.hover-a:hover::after {
+  transform: scale(1);
+}
+
+.hover-a:hover {
+  color: var(--primary);
+}
+
+/* ========================
+   Checkbox SmartHR style
+   ======================== */
+.smart-checkbox {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 4px;
+  border-color: #ededed;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.smart-checkbox-label {
+  font-size: 0.95rem;
+  color: #374151;
+  margin-left: 0.5rem;
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+/* ========================
+   Auth Footer
+   ======================== */
+.auth-footer {
+  margin-top: 3rem;
+  padding-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-footer p {
+  margin-bottom: 0;
+  color: #111827;
+  font-size: 14px;
 }

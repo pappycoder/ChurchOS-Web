@@ -1,17 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { QueryProvider } from "@/components/providers/query-provider";
+import { Providers } from "@/components/providers/providers";
 
 export const metadata: Metadata = {
   title: "ChurchOS - Church Management Platform",
@@ -47,16 +41,26 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        geistSans.variable,
-        geistMono.variable,
+        GeistSans.className,
+        GeistMono.className,
         "h-full antialiased"
       )}
+      suppressHydrationWarning
     >
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <Providers>{children}</Providers>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
