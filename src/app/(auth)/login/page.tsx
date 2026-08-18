@@ -25,25 +25,23 @@ export default function LoginPage() {
   };
 
   return (
-    <AuthFormWrapper
-      heading="Sign In"
-      subtitle="Please enter your details to sign in"
-    >
+    <AuthFormWrapper heading="Sign In" subtitle="Please enter your details to sign in">
       <form onSubmit={handleSubmit}>
         {/* Email */}
         <div className="mb-3">
           <label className="smart-form-label">Email Address</label>
-          <div className="smart-input-group">
+          <div className="flex items-stretch">
             <input
               type="text"
-              className="smart-form-control"
+              className="smart-form-control flex-1"
+              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <span className="input-icon">
-              <Mail className="h-4 w-4" />
+            <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
+              <Mail className="w-4 h-4" />
             </span>
           </div>
         </div>
@@ -54,7 +52,7 @@ export default function LoginPage() {
           <div className="pass-group">
             <input
               type={showPassword ? "text" : "password"}
-              className="smart-form-control"
+              className="smart-form-control pr-10"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -65,54 +63,40 @@ export default function LoginPage() {
               className="toggle-password"
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
+              {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
             </button>
           </div>
         </div>
 
         {/* Remember Me + Forgot Password */}
-        <div className="d-flex align-items-center justify-content-between mb-3">
-          <div className="d-flex align-items-center">
+        <div className="flex items-center justify-between mb-3">
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
-              id="remember_me"
               className="smart-checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
             />
-            <label htmlFor="remember_me" className="smart-checkbox-label mb-0">
-              Remember Me
-            </label>
-          </div>
-          <div className="text-end">
-            <Link
-              href="/forgot-password"
-              style={{ color: "#E70D0D", fontSize: 14 }}
-            >
-              Forgot Password?
-            </Link>
-          </div>
+            <span className="smart-checkbox-label">Remember Me</span>
+          </label>
+          <Link href="/forgot-password" className="text-sm" style={{ color: "#E70D0D" }}>
+            Forgot Password?
+          </Link>
         </div>
 
         {/* Sign In Button */}
         <div className="mb-3">
-          <button
-            type="submit"
-            className="smart-btn smart-btn-primary w-100"
-            disabled={loading}
-          >
+          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </div>
 
         {/* Create Account */}
         <div className="text-center">
-          <h6 className="fw-normal mb-0" style={{ color: "#202C4B", fontSize: 14 }}>
+          <p className="text-sm" style={{ color: "#202C4B" }}>
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="hover-a">
-              Create Account
-            </Link>
-          </h6>
+            <Link href="/register" className="hover-a">Create Account</Link>
+          </p>
         </div>
 
         {/* Or Divider */}
@@ -122,55 +106,16 @@ export default function LoginPage() {
 
         {/* Social Login Buttons */}
         <div className="mt-2">
-          <div className="d-flex align-items-center justify-content-center flex-wrap">
-            <div className="text-center me-2 flex-fill">
-              <button
-                type="button"
-                className="social-btn w-100"
-                style={{ backgroundColor: "#1B84FF", borderColor: "#1B84FF" }}
-              >
-                <Image
-                  src="/auth/facebook-logo.svg"
-                  alt="Facebook"
-                  width={24}
-                  height={24}
-                  className="m-1"
-                />
-              </button>
-            </div>
-            <div className="text-center me-2 flex-fill">
-              <button
-                type="button"
-                className="social-btn w-100"
-                style={{
-                  backgroundColor: "transparent",
-                  border: "1px solid #F8F9FA",
-                }}
-              >
-                <Image
-                  src="/auth/google-logo.svg"
-                  alt="Google"
-                  width={24}
-                  height={24}
-                  className="m-1"
-                />
-              </button>
-            </div>
-            <div className="text-center flex-fill">
-              <button
-                type="button"
-                className="social-btn w-100"
-                style={{ backgroundColor: "#212529", borderColor: "#212529" }}
-              >
-                <Image
-                  src="/auth/apple-logo.svg"
-                  alt="Apple"
-                  width={24}
-                  height={24}
-                  className="m-1"
-                />
-              </button>
-            </div>
+          <div className="flex items-center justify-center flex-wrap gap-2">
+            <button type="button" className="social-btn flex-1" style={{ backgroundColor: "#1B84FF", borderColor: "#1B84FF" }}>
+              <Image src="/auth/facebook-logo.svg" alt="Facebook" width={24} height={24} />
+            </button>
+            <button type="button" className="social-btn flex-1" style={{ backgroundColor: "transparent", border: "1px solid #F8F9FA" }}>
+              <Image src="/auth/google-logo.svg" alt="Google" width={24} height={24} />
+            </button>
+            <button type="button" className="social-btn flex-1" style={{ backgroundColor: "#212529", borderColor: "#212529" }}>
+              <Image src="/auth/apple-logo.svg" alt="Apple" width={24} height={24} />
+            </button>
           </div>
         </div>
       </form>

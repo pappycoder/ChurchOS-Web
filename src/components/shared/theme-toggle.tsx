@@ -22,7 +22,6 @@ export function ThemeToggle() {
 
   const applyTheme = (themeId: string) => {
     const html = document.documentElement;
-    // Remove all theme classes
     html.classList.remove("theme-orange", "theme-green", "theme-purple");
     if (themeId) {
       html.classList.add(themeId);
@@ -49,27 +48,27 @@ export function ThemeToggle() {
           cursor: "pointer",
         }}
       >
-        <Settings className="h-5 w-5" />
+        <Settings className="w-5 h-5" />
       </button>
 
       {/* Color Swatches Panel */}
       {open && (
         <div
-          className="absolute bottom-16 right-0 p-3 rounded-lg shadow-xl border"
-          style={{ backgroundColor: "#fff", minWidth: 160 }}
+          className="absolute bottom-16 right-0 p-3 rounded-lg shadow-xl border bg-white"
+          style={{ minWidth: 160 }}
         >
           <p
-            className="mb-2 fw-semibold"
-            style={{ fontSize: 12, color: "#374151", textTransform: "uppercase", letterSpacing: "0.05em" }}
+            className="mb-2 font-semibold text-xs uppercase tracking-wider"
+            style={{ color: "#374151" }}
           >
             Theme Color
           </p>
-          <div className="d-flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
             {themes.map((theme) => (
               <button
                 key={theme.id}
                 onClick={() => handleSelect(theme.id)}
-                className="d-flex align-items-center justify-content-center"
+                className="flex items-center justify-center"
                 style={{
                   width: 32,
                   height: 32,
