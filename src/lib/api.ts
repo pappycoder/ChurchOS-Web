@@ -9,10 +9,32 @@ function getToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-function getErrorMessage(status: number, data: Record<string, unknown>): string {
-  const raw = (data.message || data.error || "") as string;
-  const msg = Array.isArray(raw) ? raw[0] : raw;
+interface BackendErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: unknown;
+    timestamp: string;
+    path: string;
+    method: string;
+  };
+}
 
+interface BackendSuccessResponse<T> {
+  success: true;
+  data: T;
+  meta: {
+    timestamp: string;
+    path: string;
+    requestId?: string;
+  };
+}
+
+type BackendResponse<T> = BackendSuccessResponse<T> | BackendErrorResponse;
+
+function getErrorMessage(status: number, body: BackendErrorResponse): string {
+  const msg = body.error?.message || "";
   switch (status) {
     case 400:
       return msg || "Invalid request. Please check your input.";
@@ -75,21 +97,30 @@ class ApiClient {
       throw error;
     }
 
-    if (!res.ok) {
-      let errorData: Record<string, unknown>;
-      try {
-        errorData = await res.json();
-      } catch {
-        errorData = {};
-      }
+    let json: BackendResponse<T>;
+    try {
+      json = await res.json();
+    } catch {
       const error: AuthError = {
-        message: getErrorMessage(res.status, errorData),
+        message: `Request failed (${res.status}). Please try again.`,
         statusCode: res.status,
       };
       throw error;
     }
 
-    return res.json();
+    // Handle error responses (both HTTP errors and 200-wrapped errors)
+    if (!res.ok || (json && !json.success)) {
+      const errorBody = json as BackendErrorResponse;
+      const error: AuthError = {
+        message: getErrorMessage(res.status, errorBody),
+        statusCode: res.status,
+      };
+      throw error;
+    }
+
+    // Unwrap the data envelope: { success: true, data: T, meta: ... } → T
+    const successBody = json as BackendSuccessResponse<T>;
+    return successBody.data;
   }
 
   get<T>(path: string, options?: { skipAuth?: boolean }) {
