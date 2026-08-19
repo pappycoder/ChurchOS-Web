@@ -3,21 +3,16 @@
 import * as React from "react";
 import Link from "next/link";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
+import { useForgotPassword } from "@/hooks/use-auth";
 import { Mail } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState("");
-  const [loading, setLoading] = React.useState(false);
-  const [sent, setSent] = React.useState(false);
+  const forgotPasswordMutation = useForgotPassword();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // TODO: Implement Supabase forgot password
-    setTimeout(() => {
-      setSent(true);
-      setLoading(false);
-    }, 1000);
+    forgotPasswordMutation.mutate({ email });
   };
 
   return (
@@ -25,7 +20,7 @@ export default function ForgotPasswordPage() {
       heading="Forgot Password?"
       subtitle="If you forgot your password, well, then we'll email you instructions to reset your password."
     >
-      {sent ? (
+      {forgotPasswordMutation.isSuccess ? (
         <div className="text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
             <Mail className="w-8 h-8" style={{ color: "var(--primary)" }} />
@@ -48,9 +43,10 @@ export default function ForgotPasswordPage() {
             <label className="smart-form-label">Email Address</label>
             <div className="flex items-stretch">
               <input
-                type="text"
+                type="email"
                 className="smart-form-control flex-1"
                 style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
+                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -61,9 +57,16 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
 
+          {/* Error message */}
+          {forgotPasswordMutation.isError && (
+            <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
+              {(forgotPasswordMutation.error as { message: string })?.message || "Something went wrong. Please try again."}
+            </div>
+          )}
+
           <div className="mb-3">
-            <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loading}>
-              {loading ? "Sending..." : "Submit"}
+            <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={forgotPasswordMutation.isPending}>
+              {forgotPasswordMutation.isPending ? "Sending..." : "Submit"}
             </button>
           </div>
 

@@ -2,26 +2,21 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
+import { useLogin } from "@/hooks/use-auth";
 import { Eye, EyeOff, Mail } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const loginMutation = useLogin();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    // TODO: Implement Supabase login
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1000);
+    loginMutation.mutate({ email, password });
   };
 
   return (
@@ -32,7 +27,7 @@ export default function LoginPage() {
           <label className="smart-form-label">Email Address</label>
           <div className="flex items-stretch">
             <input
-              type="text"
+              type="email"
               className="smart-form-control flex-1"
               style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
               placeholder="Enter your email"
@@ -84,10 +79,17 @@ export default function LoginPage() {
           </Link>
         </div>
 
+        {/* Error message */}
+        {loginMutation.isError && (
+          <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
+            {(loginMutation.error as { message: string })?.message || "Invalid email or password."}
+          </div>
+        )}
+
         {/* Sign In Button */}
         <div className="mb-3">
-          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loading}>
-            {loading ? "Signing in..." : "Sign In"}
+          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? "Signing in..." : "Sign In"}
           </button>
         </div>
 

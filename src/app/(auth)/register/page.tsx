@@ -5,16 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
-import { Eye, EyeOff, Mail, User } from "lucide-react";
+import { useRegister } from "@/hooks/use-auth";
+import { Eye, EyeOff, Mail, User, Building2, Phone, MapPin } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [fullName, setFullName] = React.useState("");
+  const registerMutation = useRegister();
+  const [firstName, setFirstName] = React.useState("");
+  const [lastName, setLastName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [churchName, setChurchName] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [denomination, setDenomination] = React.useState("");
+  const [churchAddress, setChurchAddress] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
+  const [showOptional, setShowOptional] = React.useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,27 +29,58 @@ export default function RegisterPage() {
       alert("Passwords do not match");
       return;
     }
-    setLoading(true);
-    // TODO: Implement Supabase register
-    setTimeout(() => {
-      router.push("/login");
-    }, 1000);
+    registerMutation.mutate(
+      {
+        firstName,
+        lastName,
+        email,
+        password,
+        churchName,
+        phone: phone || undefined,
+        denomination: denomination || undefined,
+        churchAddress: churchAddress || undefined,
+      },
+      {
+        onSuccess: () => {
+          router.push("/login");
+        },
+      }
+    );
   };
 
   return (
     <AuthFormWrapper heading="Create Account" subtitle="Please enter your details to sign up">
       <form onSubmit={handleSubmit}>
-        {/* Full Name */}
+        {/* First Name */}
         <div className="mb-3">
-          <label className="smart-form-label">Full Name</label>
+          <label className="smart-form-label">First Name</label>
           <div className="flex items-stretch">
             <input
               type="text"
               className="smart-form-control flex-1"
               style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
-              placeholder="Enter your full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              placeholder="Enter your first name"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              required
+            />
+            <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
+              <User className="w-4 h-4" />
+            </span>
+          </div>
+        </div>
+
+        {/* Last Name */}
+        <div className="mb-3">
+          <label className="smart-form-label">Last Name</label>
+          <div className="flex items-stretch">
+            <input
+              type="text"
+              className="smart-form-control flex-1"
+              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
+              placeholder="Enter your last name"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
               required
             />
             <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
@@ -56,7 +94,7 @@ export default function RegisterPage() {
           <label className="smart-form-label">Email Address</label>
           <div className="flex items-stretch">
             <input
-              type="text"
+              type="email"
               className="smart-form-control flex-1"
               style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
               placeholder="Enter your email"
@@ -66,6 +104,25 @@ export default function RegisterPage() {
             />
             <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
               <Mail className="w-4 h-4" />
+            </span>
+          </div>
+        </div>
+
+        {/* Church Name */}
+        <div className="mb-3">
+          <label className="smart-form-label">Church Name</label>
+          <div className="flex items-stretch">
+            <input
+              type="text"
+              className="smart-form-control flex-1"
+              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
+              placeholder="Enter your church name"
+              value={churchName}
+              onChange={(e) => setChurchName(e.target.value)}
+              required
+            />
+            <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
+              <Building2 className="w-4 h-4" />
             </span>
           </div>
         </div>
@@ -106,10 +163,87 @@ export default function RegisterPage() {
           </div>
         </div>
 
+        {/* Optional Fields Toggle */}
+        <div className="mb-3">
+          <button
+            type="button"
+            onClick={() => setShowOptional(!showOptional)}
+            className="text-sm font-medium flex items-center gap-1"
+            style={{ color: "var(--primary)" }}
+          >
+            <span className={`transition-transform ${showOptional ? "rotate-90" : ""}`}>▸</span>
+            Additional Information (Optional)
+          </button>
+        </div>
+
+        {/* Optional Fields */}
+        {showOptional && (
+          <div className="mb-3 space-y-3 p-3 rounded-lg" style={{ backgroundColor: "#F8F9FA", border: "1px solid #ededed" }}>
+            {/* Phone */}
+            <div>
+              <label className="smart-form-label">Phone Number</label>
+              <div className="flex items-stretch">
+                <input
+                  type="tel"
+                  className="smart-form-control flex-1"
+                  style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
+                  placeholder="+234 800 000 0000"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
+                <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
+                  <Phone className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+
+            {/* Denomination */}
+            <div>
+              <label className="smart-form-label">Denomination</label>
+              <input
+                type="text"
+                className="smart-form-control"
+                placeholder="e.g. Pentecostal, Baptist, Anglican"
+                value={denomination}
+                onChange={(e) => setDenomination(e.target.value)}
+              />
+            </div>
+
+            {/* Church Address */}
+            <div>
+              <label className="smart-form-label">Church Address</label>
+              <div className="flex items-stretch">
+                <input
+                  type="text"
+                  className="smart-form-control flex-1"
+                  style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
+                  placeholder="Enter church address"
+                  value={churchAddress}
+                  onChange={(e) => setChurchAddress(e.target.value)}
+                />
+                <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
+                  <MapPin className="w-4 h-4" />
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error message */}
+        {registerMutation.isError && (
+          <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
+            {(registerMutation.error as { message: string })?.message || "Registration failed. Please try again."}
+          </div>
+        )}
+
         {/* Submit */}
         <div className="mb-3">
-          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loading}>
-            {loading ? "Creating account..." : "Create Account"}
+          <button
+            type="submit"
+            className="smart-btn smart-btn-primary w-full"
+            disabled={registerMutation.isPending}
+          >
+            {registerMutation.isPending ? "Creating account..." : "Create Account"}
           </button>
         </div>
 

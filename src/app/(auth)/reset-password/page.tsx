@@ -1,17 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
-import { Eye, EyeOff } from "lucide-react";
+import { useResetPassword } from "@/hooks/use-auth";
+import { Eye, EyeOff, CheckCircle } from "lucide-react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
+  const resetPasswordMutation = useResetPassword();
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
 
   const getPasswordStrength = (pw: string): { level: number; label: string } => {
     let level = 0;
@@ -26,18 +31,68 @@ export default function ResetPasswordPage() {
 
   const strength = getPasswordStrength(password);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
       alert("Passwords do not match");
       return;
     }
-    setLoading(true);
-    // TODO: Implement Supabase password reset
-    setTimeout(() => {
-      router.push("/login");
-    }, 1000);
+    if (!token) {
+      alert("No reset token found. Please request a new reset link.");
+      return;
+    }
+    resetPasswordMutation.mutate(
+      { token, newPassword: password },
+      {
+        onSuccess: () => {
+          router.push("/login");
+        },
+      }
+    );
   };
+
+  if (!token) {
+    return (
+      <AuthFormWrapper heading="Reset Password" subtitle="Invalid or missing reset token">
+        <div className="text-center">
+          <p className="mb-4" style={{ color: "#6B7280", fontSize: 14 }}>
+            The password reset link is invalid or has expired. Please request a new one.
+          </p>
+          <Link href="/forgot-password">
+            <button type="button" className="smart-btn smart-btn-primary w-full">
+              Request New Reset Link
+            </button>
+          </Link>
+          <div className="mt-3 text-center">
+            <Link href="/login" className="text-sm hover-a">Back to Sign In</Link>
+          </div>
+        </div>
+      </AuthFormWrapper>
+    );
+  }
+
+  if (resetPasswordMutation.isSuccess) {
+    return (
+      <AuthFormWrapper heading="Reset Password" subtitle="Your password has been reset successfully">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "rgba(34, 197, 94, 0.1)" }}>
+            <CheckCircle className="w-8 h-8" style={{ color: "#22C55E" }} />
+          </div>
+          <h3 className="font-semibold mb-2" style={{ color: "#202C4B", fontSize: 18 }}>
+            Password Reset Complete
+          </h3>
+          <p className="mb-6" style={{ color: "#6B7280", fontSize: 14 }}>
+            You can now sign in with your new password.
+          </p>
+          <Link href="/login">
+            <button type="button" className="smart-btn smart-btn-primary w-full">
+              Sign In
+            </button>
+          </Link>
+        </div>
+      </AuthFormWrapper>
+    );
+  }
 
   return (
     <AuthFormWrapper
@@ -73,14 +128,12 @@ export default function ResetPasswordPage() {
             <span className={strength.level >= 4 ? "active" : ""} data-level="heavy" />
           </div>
 
-          {/* Strength Label */}
           {password.length > 0 && (
             <p className="password-info mt-1 mb-2" style={{ color: "#6B7280", fontSize: 12 }}>
               {strength.label}
             </p>
           )}
 
-          {/* Helper Text */}
           <p className="mt-1" style={{ color: "#6B7280", fontSize: 12 }}>
             Use 8 or more characters with a mix of letters, numbers &amp; symbols.
           </p>
@@ -107,13 +160,28 @@ export default function ResetPasswordPage() {
           </div>
         </div>
 
+        {/* Error message */}
+        {resetPasswordMutation.isError && (
+          <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
+            {(resetPasswordMutation.error as { message: string })?.message || "Failed to reset password. The token may have expired."}
+          </div>
+        )}
+
         {/* Submit */}
         <div className="mb-3">
-          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loading}>
-            {loading ? "Resetting..." : "Submit"}
+          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={resetPasswordMutation.isPending}>
+            {resetPasswordMutation.isPending ? "Resetting..." : "Submit"}
           </button>
         </div>
       </form>
     </AuthFormWrapper>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
