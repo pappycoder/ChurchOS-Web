@@ -1,3 +1,4 @@
+import * as React from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -32,14 +33,16 @@ export function PageHeader({ title, breadcrumbs, action }: PageHeaderProps) {
               </BreadcrumbLink>
             </BreadcrumbItem>
             {breadcrumbs.map((item, i) => (
-              <BreadcrumbItem key={i}>
+              <React.Fragment key={i}>
                 <BreadcrumbSeparator />
-                {item.href ? (
-                  <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
-                ) : (
-                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                )}
-              </BreadcrumbItem>
+                <BreadcrumbItem>
+                  {item.href ? (
+                    <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+              </React.Fragment>
             ))}
           </BreadcrumbList>
         </Breadcrumb>

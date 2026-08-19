@@ -3,142 +3,168 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-import { SearchInput } from "@/components/shared/search-input";
+import { useSidebar } from "@/contexts/sidebar-context";
 import {
   Bell,
   Settings,
   LogOut,
   User,
   ChevronLeft,
-  Menu,
+  MessageSquare,
 } from "lucide-react";
 
-interface HeaderProps {
-  sidebarCollapsed: boolean;
-  onToggleSidebar: () => void;
-}
-
-export function Header({ sidebarCollapsed, onToggleSidebar }: HeaderProps) {
+export function Header() {
   const router = useRouter();
+  const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } = useSidebar();
 
   const handleLogout = async () => {
-    // TODO: Implement Supabase logout
     router.push("/login");
   };
 
+  const handleMobileToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (mobileOpen) {
+      closeMobile();
+      document.documentElement.classList.remove("menu-opened");
+    } else {
+      openMobile();
+      document.documentElement.classList.add("menu-opened");
+    }
+  };
+
   return (
-    <header
-      className={cn(
-        "fixed top-0 right-0 z-30 h-[52px] bg-white border-b border-border flex items-center justify-between px-4 transition-all duration-300",
-        sidebarCollapsed ? "left-[70px]" : "left-[252px]"
-      )}
-    >
-      {/* Left side */}
-      <div className="flex items-center gap-2">
-        {/* Mobile menu toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={onToggleSidebar}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+    <header className="header">
+      <div className="main-header">
+        <div className="header-left">
+          <a href="#" className="mobile_btn" onClick={handleMobileToggle}>
+            <span className="bar-icon">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </a>
+        </div>
 
-        {/* Sidebar toggle (desktop) */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="hidden lg:flex"
-          onClick={onToggleSidebar}
-        >
-          <ChevronLeft
-            className={cn(
-              "h-5 w-5 transition-transform",
-              sidebarCollapsed && "rotate-180"
-            )}
-          />
-        </Button>
+        <div className="header-user">
+          <div className="user-menu">
+            <div style={{ marginRight: "auto", display: "flex", alignItems: "center", gap: "8px" }}>
+              <a
+                id="toggle_btn"
+                href="#"
+                className="btn-menubar"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleCollapse();
+                }}
+              >
+                <ChevronLeft
+                  style={{
+                    transform: collapsed ? "rotate(180deg)" : "none",
+                    transition: "transform 0.3s",
+                  }}
+                />
+              </a>
 
-        {/* Global search */}
-        <SearchInput
-          placeholder="Search in ChurchOS"
-          shortcut
-          className="hidden md:block w-64"
-        />
-      </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-1">
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary" />
-        </Button>
-
-        {/* Settings */}
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/admin/settings">
-            <Settings className="h-5 w-5" />
-          </Link>
-        </Button>
-
-        {/* User menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarImage src="" alt="User" />
-                <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                  AD
-                </AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end">
-            <div className="flex items-center gap-2 p-2">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src="" alt="User" />
-                <AvatarFallback className="bg-primary/10 text-primary">
-                  AD
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col space-y-0.5">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-muted-foreground">admin@church.com</p>
+              <div className="input-group">
+                <input type="text" className="form-control" placeholder="Search in ChurchOS" />
+                <span className="input-group-text">
+                  <kbd style={{ fontSize: 11 }}>CTRL + /</kbd>
+                </span>
               </div>
+
+              <Link href="/admin/settings" className="btn-menubar">
+                <Settings />
+              </Link>
             </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/admin/settings" className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                My Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/admin/settings" className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+              <div style={{ marginRight: 4 }}>
+                <Link href="/chat" className="btn-menubar" style={{ position: "relative" }}>
+                  <MessageSquare />
+                  <span className="msg-status-dot"></span>
+                </Link>
+              </div>
+
+              <div style={{ marginRight: 4, position: "relative" }}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="btn-menubar" style={{ position: "relative" }}>
+                      <Bell />
+                      <span className="notification-status-dot"></span>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="notification-dropdown" align="end">
+                    <div style={{ padding: 16 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", paddingBottom: 12, marginBottom: 12 }}>
+                        <h5 style={{ fontSize: 16, margin: 0 }}>Notifications</h5>
+                        <button className="btn-menubar" style={{ fontSize: 12, color: "var(--primary)" }}>
+                          Mark all as read
+                        </button>
+                      </div>
+                      <div style={{ maxHeight: 300, overflowY: "auto" }}>
+                        <div style={{ padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+                          <p style={{ fontSize: 13, margin: 0, color: "var(--foreground)" }}>
+                            <strong>Welcome</strong> to ChurchOS Admin Dashboard
+                          </p>
+                          <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Just now</span>
+                        </div>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="btn-menubar" style={{ padding: 0, width: "auto" }}>
+                    <Avatar style={{ width: 36, height: 36, border: "2px solid var(--border)" }}>
+                      <AvatarImage src="" alt="User" />
+                      <AvatarFallback style={{ fontSize: 12, fontWeight: 600 }}>AD</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="profile-dropdown" align="end" style={{ minWidth: 240 }}>
+                  <div style={{ padding: 16, borderBottom: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      <Avatar style={{ width: 44, height: 44 }}>
+                        <AvatarImage src="" alt="User" />
+                        <AvatarFallback style={{ fontSize: 14, fontWeight: 600 }}>AD</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p style={{ fontWeight: 600, margin: 0, fontSize: 14 }}>Admin User</p>
+                        <p style={{ color: "var(--muted-foreground)", margin: 0, fontSize: 12 }}>admin@church.com</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ padding: "8px 16px" }}>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--foreground)", textDecoration: "none" }}>
+                        <User size={16} /> My Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/settings" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--foreground)", textDecoration: "none" }}>
+                        <Settings size={16} /> Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  </div>
+                  <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border)" }}>
+                    <DropdownMenuItem onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--destructive)", cursor: "pointer" }}>
+                      <LogOut size={16} /> Logout
+                    </DropdownMenuItem>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
       </div>
     </header>
   );

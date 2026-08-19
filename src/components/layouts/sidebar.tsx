@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useSidebar } from "@/contexts/sidebar-context";
 import {
   LayoutDashboard,
   Users,
@@ -14,11 +15,8 @@ import {
   Heart,
   Settings,
   UserCog,
-  ChevronDown,
-  ChevronLeft,
   Home,
 } from "lucide-react";
-import { SearchInput } from "@/components/shared/search-input";
 
 interface NavItem {
   title: string;
@@ -32,11 +30,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
   {
     section: "MAIN MENU",
     items: [
-      {
-        title: "Dashboard",
-        href: "/dashboard",
-        icon: LayoutDashboard,
-      },
+      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       {
         title: "Members",
         href: "/members",
@@ -75,16 +69,8 @@ const navItems: { section: string; items: NavItem[] }[] = [
           { title: "All Events", href: "/events/list" },
         ],
       },
-      {
-        title: "Media",
-        href: "/media",
-        icon: Film,
-      },
-      {
-        title: "Pastoral Care",
-        href: "/pastoral",
-        icon: Heart,
-      },
+      { title: "Media", href: "/media", icon: Film },
+      { title: "Pastoral Care", href: "/pastoral", icon: Heart },
     ],
   },
   {
@@ -99,147 +85,168 @@ const navItems: { section: string; items: NavItem[] }[] = [
           { title: "Roles & Permissions", href: "/admin/roles" },
         ],
       },
-      {
-        title: "Settings",
-        href: "/admin/settings",
-        icon: Settings,
-      },
+      { title: "Settings", href: "/admin/settings", icon: Settings },
     ],
   },
 ];
 
-interface SidebarProps {
-  collapsed: boolean;
-  onToggle: () => void;
-}
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Dashboard: LayoutDashboard,
+  Members: Users,
+  Attendance: CalendarCheck,
+  Giving: HandCoins,
+  Events: Calendar,
+  Media: Film,
+  "Pastoral Care": Heart,
+  "User Management": UserCog,
+  Settings: Settings,
+};
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar() {
   const pathname = usePathname();
+  const { collapsed, mobileOpen, closeMobile } = useSidebar();
   const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
+  const [hoverExpand, setHoverExpand] = React.useState(false);
+  const sidebarRef = React.useRef<HTMLElement>(null);
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
   const toggleMenu = (title: string) => {
     setOpenMenus((prev) => ({ ...prev, [title]: !prev[title] }));
   };
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  React.useEffect(() => {
+    const expanded: Record<string, boolean> = {};
+    navItems.forEach((group) => {
+      group.items.forEach((item) => {
+        if (item.children && item.children.some((child) => pathname === child.href || pathname.startsWith(child.href + "/"))) {
+          expanded[item.title] = true;
+        }
+      });
+    });
+    setOpenMenus((prev) => ({ ...prev, ...expanded }));
+  }, [pathname]);
+
+  const handleMouseEnter = React.useCallback(() => {
+    if (!collapsed) return;
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setHoverExpand(true);
+  }, [collapsed]);
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (!collapsed) return;
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoverExpand(false);
+    }, 100);
+  }, [collapsed]);
 
   return (
-    <aside
-      className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-white border-r border-border transition-all duration-300",
-        collapsed ? "w-[70px]" : "w-[252px]"
+    <>
+      {mobileOpen && (
+        <div
+          className="sidebar-overlay opened"
+          onClick={closeMobile}
+        />
       )}
-    >
-      {/* Logo */}
-      <div className="flex items-center h-[52px] px-4 border-b border-border">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <Home className="w-5 h-5 text-primary-foreground" />
-          </div>
-          {!collapsed && (
-            <span className="text-lg font-semibold text-foreground">ChurchOS</span>
-          )}
-        </Link>
-      </div>
 
-      {/* Search */}
-      {!collapsed && (
-        <div className="p-3">
-          <SearchInput placeholder="Search in ChurchOS" shortcut />
+      <aside
+        ref={sidebarRef}
+        className={cn(
+          "sidebar",
+          collapsed && "mini-sidebar",
+          collapsed && hoverExpand && "expand-menu",
+          mobileOpen && "slide-nav"
+        )}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div className="sidebar-logo">
+          <Link href="/dashboard" className="logo logo-normal">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Home className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-bold text-foreground">ChurchOS</span>
+            </div>
+          </Link>
+          <Link href="/dashboard" className="logo-small">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
+              <Home className="w-5 h-5 text-primary-foreground" />
+            </div>
+          </Link>
         </div>
-      )}
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 pb-4">
-        {navItems.map((group) => (
-          <div key={group.section} className="mt-4">
-            {!collapsed && (
-              <p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {group.section}
-              </p>
-            )}
-            <ul className="space-y-0.5">
-              {group.items.map((item) => (
-                <li key={item.title}>
-                  {item.children ? (
-                    <>
-                      <button
-                        onClick={() => toggleMenu(item.title)}
-                        className={cn(
-                          "flex items-center w-full gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                          isActive(item.href)
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        )}
-                      >
-                        <item.icon className="h-5 w-5 shrink-0" />
-                        {!collapsed && (
-                          <>
-                            <span className="flex-1 text-left">{item.title}</span>
-                            <ChevronDown
-                              className={cn(
-                                "h-4 w-4 shrink-0 transition-transform",
-                                openMenus[item.title] && "rotate-180"
-                              )}
-                            />
-                          </>
-                        )}
-                      </button>
-                      {!collapsed && openMenus[item.title] && (
-                        <ul className="ml-4 mt-0.5 space-y-0.5 border-l border-border pl-3">
-                          {item.children.map((child) => (
-                            <li key={child.href}>
+        <div className="sidebar-inner">
+          <div className="sidebar-menu" id="sidebar-menu">
+            <ul>
+              {navItems.map((group) => (
+                <React.Fragment key={group.section}>
+                  <li className="menu-title">
+                    <span>{group.section}</span>
+                  </li>
+                  <li>
+                    <ul>
+                      {group.items.map((item) => {
+                        const Icon = ICON_MAP[item.title] || item.icon;
+                        const hasChildren = !!item.children?.length;
+                        const active = hasChildren ? item.children!.some((child) => isActive(child.href)) : isActive(item.href);
+                        const open = openMenus[item.title];
+
+                        return (
+                          <li
+                            key={item.title}
+                            className={cn(hasChildren && "submenu")}
+                          >
+                            {hasChildren ? (
+                              <>
+                                <a
+                                  href="#"
+                                  className={cn(active && "active", open && "subdrop")}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    toggleMenu(item.title);
+                                  }}
+                                >
+                                  <Icon className="ti" />
+                                  <span>{item.title}</span>
+                                  <span className="menu-arrow" />
+                                </a>
+                                <ul>
+                                  {item.children!.map((child) => (
+                                    <li key={child.href}>
+                                      <Link
+                                        href={child.href}
+                                        className={cn(isActive(child.href) && "active")}
+                                        onClick={closeMobile}
+                                      >
+                                        {child.title}
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </>
+                            ) : (
                               <Link
-                                href={child.href}
-                                className={cn(
-                                  "flex items-center px-3 py-1.5 rounded-lg text-sm transition-colors",
-                                  pathname === child.href
-                                    ? "bg-primary/10 text-primary font-medium"
-                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )}
+                                href={item.href}
+                                className={cn(active && "active")}
+                                onClick={closeMobile}
                               >
-                                {child.title}
+                                <Icon className="ti" />
+                                <span>{item.title}</span>
                               </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                        isActive(item.href)
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </Link>
-                  )}
-                </li>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </li>
+                </React.Fragment>
               ))}
             </ul>
           </div>
-        ))}
-      </nav>
-
-      {/* Collapse Toggle */}
-      <div className="absolute top-[52px] -right-3 z-50">
-        <button
-          onClick={onToggle}
-          className="flex items-center justify-center w-6 h-6 rounded-full bg-white border border-border shadow-sm hover:bg-muted transition-colors"
-        >
-          <ChevronLeft
-            className={cn(
-              "h-3 w-3 transition-transform",
-              collapsed && "rotate-180"
-            )}
-          />
-        </button>
-      </div>
-    </aside>
+        </div>
+      </aside>
+    </>
   );
 }
