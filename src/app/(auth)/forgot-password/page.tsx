@@ -21,16 +21,19 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <AuthFormWrapper heading="Forgot Password?" subtitle="No worries, we'll send you reset instructions">
+    <AuthFormWrapper
+      heading="Forgot Password?"
+      subtitle="If you forgot your password, well, then we'll email you instructions to reset your password."
+    >
       {sent ? (
         <div className="text-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
             <Mail className="w-8 h-8" style={{ color: "var(--primary)" }} />
           </div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: "#202C4B" }}>
+          <h3 className="font-semibold mb-2" style={{ color: "#202C4B", fontSize: 18 }}>
             Check your email
           </h3>
-          <p className="mb-6" style={{ color: "#6B7280" }}>
+          <p className="mb-6" style={{ color: "#6B7280", fontSize: 14 }}>
             We&apos;ve sent a password reset link to <strong>{email}</strong>
           </p>
           <Link href="/login">
@@ -48,7 +51,6 @@ export default function ForgotPasswordPage() {
                 type="text"
                 className="smart-form-control flex-1"
                 style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
-                placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -61,14 +63,15 @@ export default function ForgotPasswordPage() {
 
           <div className="mb-3">
             <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loading}>
-              {loading ? "Sending..." : "Reset Password"}
+              {loading ? "Sending..." : "Submit"}
             </button>
           </div>
 
           <div className="text-center">
-            <Link href="/login" className="text-sm" style={{ color: "#6B7280" }}>
-              &larr; Back to Sign In
-            </Link>
+            <h6 className="font-normal mb-0" style={{ color: "#202C4B", fontSize: 14 }}>
+              Return to{" "}
+              <Link href="/login" className="hover-a">Sign In</Link>
+            </h6>
           </div>
         </form>
       )}

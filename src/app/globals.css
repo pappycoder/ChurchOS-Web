@@ -467,3 +467,42 @@
   color: #111827;
   font-size: 14px;
 }
+
+/* ========================
+   Password Strength Indicator
+   ======================== */
+.password-strength {
+  display: flex;
+  gap: 4px;
+}
+
+.password-strength span {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #ededed;
+  transition: background-color 0.3s ease;
+}
+
+.password-strength span.active[data-level="poor"] {
+  background-color: #EF4444;
+}
+
+.password-strength span.active[data-level="weak"] {
+  background-color: #F59E0B;
+}
+
+.password-strength span.active[data-level="strong"] {
+  background-color: #10B981;
+}
+
+.password-strength span.active[data-level="heavy"] {
+  background-color: #10B981;
+}
+
+.password-info {
+  font-size: 12px;
+  color: #6B7280;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
