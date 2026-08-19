@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useForgotPassword } from "@/hooks/use-auth";
 import { Mail } from "lucide-react";
@@ -12,7 +13,16 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    forgotPasswordMutation.mutate({ email });
+    forgotPasswordMutation.mutate(
+      { email },
+      {
+        onError: (error) => {
+          toast.error("Failed to send reset link", {
+            description: (error as { message: string })?.message || "Please try again.",
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -56,13 +66,6 @@ export default function ForgotPasswordPage() {
               </span>
             </div>
           </div>
-
-          {/* Error message */}
-          {forgotPasswordMutation.isError && (
-            <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
-              {(forgotPasswordMutation.error as { message: string })?.message || "Something went wrong. Please try again."}
-            </div>
-          )}
 
           <div className="mb-3">
             <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={forgotPasswordMutation.isPending}>

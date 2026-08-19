@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { toast } from "sonner";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useLogin } from "@/hooks/use-auth";
 import { Eye, EyeOff, Mail } from "lucide-react";
@@ -16,7 +17,16 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate({ email, password });
+    loginMutation.mutate(
+      { email, password },
+      {
+        onError: (error) => {
+          toast.error("Sign in failed", {
+            description: (error as { message: string })?.message || "Invalid email or password.",
+          });
+        },
+      }
+    );
   };
 
   return (
@@ -78,13 +88,6 @@ export default function LoginPage() {
             Forgot Password?
           </Link>
         </div>
-
-        {/* Error message */}
-        {loginMutation.isError && (
-          <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
-            {(loginMutation.error as { message: string })?.message || "Invalid email or password."}
-          </div>
-        )}
 
         {/* Sign In Button */}
         <div className="mb-3">

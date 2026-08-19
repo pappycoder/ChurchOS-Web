@@ -9,6 +9,33 @@ function getToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function getErrorMessage(status: number, data: Record<string, unknown>): string {
+  const raw = (data.message || data.error || "") as string;
+  const msg = Array.isArray(raw) ? raw[0] : raw;
+
+  switch (status) {
+    case 400:
+      return msg || "Invalid request. Please check your input.";
+    case 401:
+      return msg || "Invalid email or password.";
+    case 403:
+      return "You don't have permission to perform this action.";
+    case 404:
+      return "The requested resource was not found.";
+    case 409:
+      return msg || "An account with this email already exists.";
+    case 429:
+      return "Too many attempts. Please try again later.";
+    case 500:
+      return "Server error. Please try again later.";
+    case 502:
+    case 503:
+      return "Service temporarily unavailable. Please try again later.";
+    default:
+      return msg || `Request failed (${status}). Please try again.`;
+  }
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -33,27 +60,33 @@ class ApiClient {
       }
     }
 
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      method,
-      headers,
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${this.baseUrl}${path}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      const error: AuthError = {
+        message: "Network error. Please check your connection.",
+        statusCode: 0,
+      };
+      throw error;
+    }
 
     if (!res.ok) {
-      let errorData: AuthError;
+      let errorData: Record<string, unknown>;
       try {
-        const data = await res.json();
-        errorData = {
-          message: data.message || data.error || "An error occurred",
-          statusCode: res.status,
-        };
+        errorData = await res.json();
       } catch {
-        errorData = {
-          message: `Request failed with status ${res.status}`,
-          statusCode: res.status,
-        };
+        errorData = {};
       }
-      throw errorData;
+      const error: AuthError = {
+        message: getErrorMessage(res.status, errorData),
+        statusCode: res.status,
+      };
+      throw error;
     }
 
     return res.json();

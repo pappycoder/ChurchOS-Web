@@ -3,13 +3,13 @@
 import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useResetPassword } from "@/hooks/use-auth";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 
 function ResetPasswordForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const resetPasswordMutation = useResetPassword();
@@ -17,6 +17,7 @@ function ResetPasswordForm() {
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [clientError, setClientError] = React.useState<string | null>(null);
 
   const getPasswordStrength = (pw: string): { level: number; label: string } => {
     let level = 0;
@@ -33,19 +34,33 @@ function ResetPasswordForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setClientError(null);
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setClientError("Passwords do not match.");
+      return;
+    }
+    if (password.length < 8) {
+      setClientError("Password must be at least 8 characters.");
       return;
     }
     if (!token) {
-      alert("No reset token found. Please request a new reset link.");
+      setClientError("No reset token found. Please request a new reset link.");
       return;
     }
+
     resetPasswordMutation.mutate(
       { token, newPassword: password },
       {
         onSuccess: () => {
-          router.push("/login");
+          toast.success("Password reset complete!", {
+            description: "You can now sign in with your new password.",
+          });
+        },
+        onError: (error) => {
+          toast.error("Password reset failed", {
+            description: (error as { message: string })?.message || "The token may have expired. Please request a new link.",
+          });
         },
       }
     );
@@ -160,10 +175,10 @@ function ResetPasswordForm() {
           </div>
         </div>
 
-        {/* Error message */}
-        {resetPasswordMutation.isError && (
+        {/* Client-side error */}
+        {clientError && (
           <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
-            {(resetPasswordMutation.error as { message: string })?.message || "Failed to reset password. The token may have expired."}
+            {clientError}
           </div>
         )}
 

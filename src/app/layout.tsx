@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Providers } from "@/components/providers/providers";
+import { Toaster } from "sonner";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -67,6 +68,7 @@ export default function RootLayout({
         >
           <QueryProvider>
             <Providers>{children}</Providers>
+            <Toaster position="top-right" richColors closeButton />
           </QueryProvider>
         </ThemeProvider>
       </body>

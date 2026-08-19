@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type {
   LoginInput,
@@ -101,6 +102,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: res.email,
         profile: res.profile,
       });
+      toast.success("Welcome back!", {
+        description: `Signed in as ${res.email}`,
+      });
       router.push("/dashboard");
     },
     [router]
@@ -123,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setTokenState(null);
     setUser(null);
     queryClient.clear();
+    toast.success("Logged out successfully");
     router.push("/login");
   }, [router, queryClient]);
 

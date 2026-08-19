@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { toast } from "sonner";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useRegister } from "@/hooks/use-auth";
 import { Eye, EyeOff, Mail, User, Building2, Phone, MapPin } from "lucide-react";
@@ -23,13 +24,21 @@ export default function RegisterPage() {
   const [churchAddress, setChurchAddress] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [showOptional, setShowOptional] = React.useState(false);
+  const [clientError, setClientError] = React.useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setClientError(null);
+
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setClientError("Passwords do not match.");
       return;
     }
+    if (password.length < 8) {
+      setClientError("Password must be at least 8 characters.");
+      return;
+    }
+
     registerMutation.mutate(
       {
         firstName,
@@ -43,7 +52,15 @@ export default function RegisterPage() {
       },
       {
         onSuccess: () => {
+          toast.success("Account created!", {
+            description: "Please sign in with your new account.",
+          });
           router.push("/login");
+        },
+        onError: (error) => {
+          toast.error("Registration failed", {
+            description: (error as { message: string })?.message || "Please try again.",
+          });
         },
       }
     );
@@ -224,10 +241,10 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Error message */}
-        {registerMutation.isError && (
+        {/* Client-side error */}
+        {clientError && (
           <div className="mb-3 p-3 rounded-lg text-sm" style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626" }}>
-            {(registerMutation.error as { message: string })?.message || "Registration failed. Please try again."}
+            {clientError}
           </div>
         )}
 
