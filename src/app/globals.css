@@ -40,7 +40,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-roboto), "Roboto", sans-serif;
   --font-mono: var(--font-geist-mono);
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
@@ -137,6 +137,7 @@
   }
   h1, h2, h3, h4, h5, h6 {
     color: #202C4B;
+    font-family: "Roboto", sans-serif;
   }
 }
 
@@ -276,7 +277,7 @@
 
 /* Form controls matching SmartHR */
 .smart-form-control {
-  border-color: #ededed;
+  border: 1px solid #ededed;
   color: #111827;
   background-color: #ffffff;
   font-size: 14px;
