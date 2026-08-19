@@ -11,22 +11,116 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSidebar } from "@/contexts/sidebar-context";
+import { useSettings } from "@/contexts/settings-context";
+import { cn } from "@/lib/utils";
 import {
-  Bell,
-  Settings,
-  LogOut,
-  User,
-  MessageSquare,
-  Maximize,
-  Minimize,
-  Mail,
-  MoreVertical,
-  ArrowLeftToLine,
-} from "lucide-react";
+  IconArrowBarToLeft,
+  IconSearch,
+  IconLayoutGrid,
+  IconSettingsCog,
+  IconSparkles,
+  IconMaximize,
+  IconMinimize,
+  IconMessage,
+  IconMail,
+  IconBell,
+  IconUser,
+  IconSettings,
+  IconCircleArrowUp,
+  IconQuestionMark,
+  IconLogout,
+  IconCalendar,
+  IconBrandHipchat,
+  IconTimeline,
+  IconLayoutKanban,
+  IconCreditCard,
+  IconChecklist,
+  IconNotes,
+  IconFolder,
+  IconChevronDown,
+  IconArrowRight,
+  IconMenu2,
+  IconX,
+} from "@tabler/icons-react";
+
+const CRM_LINKS = [
+  { title: "Contacts", href: "/contacts", icon: IconUser },
+  { title: "Companies", href: "/companies", icon: IconLayoutGrid },
+  { title: "Deals", href: "/deals", icon: IconTimeline },
+  { title: "Leads", href: "/leads", icon: IconChecklist },
+  { title: "Pipeline", href: "/pipeline", icon: IconTimeline },
+  { title: "Activities", href: "/activity", icon: IconChecklist },
+];
+
+const APP_LINKS = [
+  { title: "Calendar", href: "/calendar", icon: IconCalendar },
+  { title: "Chat", href: "/chat", icon: IconBrandHipchat },
+  { title: "Notes", href: "/notes", icon: IconNotes },
+  { title: "Files", href: "/files", icon: IconFolder },
+  { title: "Kanban", href: "/kanban", icon: IconLayoutKanban },
+  { title: "Invoices", href: "/invoices", icon: IconCreditCard },
+];
+
+const AI_LINKS = [
+  { title: "AI Dashboard", href: "/ai-dashboard" },
+  { title: "AI Configuration", href: "/ai-configuration" },
+  { title: "AI Attendance", href: "/ai-attendance" },
+  { title: "AI Hiring Forecast", href: "/ai-hiring" },
+];
+
+const HORIZONTAL_NAV = [
+  {
+    title: "Dashboard",
+    href: "/dashboard",
+  },
+  {
+    title: "Members",
+    href: "#",
+    children: [
+      { title: "All Members", href: "/members" },
+      { title: "Add Member", href: "/members/new" },
+    ],
+  },
+  {
+    title: "Attendance",
+    href: "#",
+    children: [
+      { title: "Dashboard", href: "/attendance" },
+      { title: "Records", href: "/attendance/records" },
+      { title: "Reports", href: "/attendance/reports" },
+    ],
+  },
+  {
+    title: "Giving",
+    href: "#",
+    children: [
+      { title: "Dashboard", href: "/giving" },
+      { title: "Records", href: "/giving/records" },
+      { title: "Reports", href: "/giving/reports" },
+    ],
+  },
+  {
+    title: "Events",
+    href: "#",
+    children: [
+      { title: "Calendar", href: "/events" },
+      { title: "All Events", href: "/events/list" },
+    ],
+  },
+  {
+    title: "Media",
+    href: "/media",
+  },
+  {
+    title: "Pastoral Care",
+    href: "/pastoral",
+  },
+];
 
 export function Header() {
   const router = useRouter();
   const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } = useSidebar();
+  const { settings } = useSettings();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const handleLogout = async () => {
@@ -54,10 +148,13 @@ export function Header() {
     }
   };
 
+  const isHorizontal = ["horizontal", "horizontal-single", "horizontal-overlay", "horizontal-sidemenu"].includes(
+    settings.layout
+  );
+
   return (
     <header className="header">
       <div className="main-header">
-
         {/* Logo — hidden on desktop via CSS, visible on mobile */}
         <div className="header-left">
           <Link href="/dashboard" className="logo">
@@ -78,7 +175,7 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile hamburger — SIBLING of header-left, not child */}
+        {/* Mobile hamburger */}
         <a id="mobile_btn" className="mobile_btn" href="#sidebar" onClick={handleMobileToggle}>
           <span className="bar-icon">
             <span></span>
@@ -87,12 +184,11 @@ export function Header() {
           </span>
         </a>
 
-        {/* header-user with display:contents — flattens to main-header children */}
+        {/* header-user with display:contents */}
         <div className="header-user">
           <div className="nav user-menu nav-list">
-
-            {/* LEFT-ALIGNED group: toggle, search, settings */}
-            <div className="me-auto" id="header-search">
+            {/* LEFT-ALIGNED group: toggle, search, CRM, settings */}
+            <div className="me-auto flex items-center" id="header-search">
               <a
                 id="toggle_btn"
                 href="#"
@@ -102,66 +198,164 @@ export function Header() {
                   toggleCollapse();
                 }}
               >
-                <ArrowLeftToLine
+                <IconArrowBarToLeft
                   style={{
                     transform: collapsed ? "rotate(180deg)" : "none",
                     transition: "transform 0.3s",
                   }}
+                  size={18}
                 />
               </a>
 
-              <div className="input-group input-group-flat d-inline-flex me-2">
-                <input type="text" className="form-control" placeholder="Search in ChurchOS" />
-                <span className="input-group-text">
-                  <kbd>CTRL + /</kbd>
+              <div className="input-group input-group-flat inline-flex me-2">
+                <span className="input-icon-addon">
+                  <IconSearch size={14} />
                 </span>
+                <input type="text" className="form-control" placeholder="Search in ChurchOS" />
               </div>
 
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <a href="#" className="btn-menubar me-2">
+                    <IconLayoutGrid size={18} />
+                  </a>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="crm-dropdown p-0" align="start">
+                  <div className="card mb-0 border-0 shadow-none">
+                    <div className="card-header">
+                      <h4 className="text-base font-semibold m-0">CRM</h4>
+                    </div>
+                    <div className="card-body pb-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        {CRM_LINKS.map((link) => (
+                          <Link key={link.href} href={link.href} className="crm-link">
+                            <span className="flex items-center gap-2">
+                              <link.icon size={16} />
+                              {link.title}
+                            </span>
+                            <IconArrowRight size={14} />
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Link href="/admin/settings" className="btn-menubar">
-                <Settings />
+                <IconSettingsCog size={18} />
               </Link>
             </div>
 
-            {/* RIGHT-ALIGNED group: fullscreen, chat, email, bell, profile */}
-            <div className="d-flex align-items-center">
+            {/* Horizontal Single Menu */}
+            {isHorizontal && (
+              <div className="sidebar sidebar-horizontal" id="horizontal-single">
+                <div className="sidebar-menu">
+                  <div className="main-menu">
+                    <ul className="nav-menu">
+                      {HORIZONTAL_NAV.map((item) => (
+                        <li
+                          key={item.title}
+                          className={cn(item.children && "submenu")}
+                        >
+                          {item.children ? (
+                            <>
+                              <a href="#">
+                                {item.title}
+                                <span className="menu-arrow"></span>
+                              </a>
+                              <ul>
+                                {item.children.map((child) => (
+                                  <li key={child.href}>
+                                    <Link href={child.href}>{child.title}</Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </>
+                          ) : (
+                            <Link href={item.href}>{item.title}</Link>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* RIGHT-ALIGNED group */}
+            <div className="header-right flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <a href="#" className="btn-primary-gradient me-1">
+                    <IconSparkles size={16} />
+                    AI Center
+                    <IconChevronDown size={14} />
+                  </a>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="app-launcher" align="end">
+                  {AI_LINKS.map((link) => (
+                    <Link key={link.href} href={link.href} className="app-launcher-item">
+                      {link.title}
+                    </Link>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <div className="me-2">
                 <button className="btn-menubar btnFullscreen" onClick={toggleFullscreen}>
-                  {isFullscreen ? <Minimize /> : <Maximize />}
+                  {isFullscreen ? <IconMinimize size={18} /> : <IconMaximize size={18} />}
                 </button>
               </div>
 
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <a href="#" className="btn-menubar me-2">
+                    <IconLayoutGrid size={18} />
+                  </a>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="app-launcher" align="end">
+                  {APP_LINKS.map((link) => (
+                    <Link key={link.href} href={link.href} className="app-launcher-item">
+                      <link.icon size={18} />
+                      {link.title}
+                    </Link>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <div className="me-2">
-                <Link href="/chat" className="btn-menubar position-relative">
-                  <MessageSquare />
+                <Link href="/chat" className="btn-menubar relative">
+                  <IconMessage size={18} />
                   <span className="msg-status-dot"></span>
                 </Link>
               </div>
 
               <div className="me-2">
                 <Link href="/email" className="btn-menubar">
-                  <Mail />
+                  <IconMail size={18} />
                 </Link>
               </div>
 
               <div className="me-2 notification_item">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <a href="#" className="btn-menubar position-relative me-1" id="notification_popup">
-                      <Bell />
+                    <a href="#" className="btn-menubar relative me-1" id="notification_popup">
+                      <IconBell size={18} />
                       <span className="notification-status-dot"></span>
                     </a>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="notification-dropdown p-4" align="end">
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", paddingBottom: 12, marginBottom: 12 }}>
-                      <h4 style={{ fontSize: 16, margin: 0 }}>Notifications (2)</h4>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <button style={{ fontSize: 13, color: "var(--primary)", background: "none", border: "none", cursor: "pointer" }}>
+                    <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
+                      <h4 className="text-base font-semibold m-0">Notifications (2)</h4>
+                      <div className="flex items-center gap-3">
+                        <button className="text-sm text-primary bg-transparent border-0 cursor-pointer">
                           Mark all as read
                         </button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <button style={{ fontSize: 12, color: "var(--foreground)", background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
-                              Today ▼
+                            <button className="text-xs text-foreground bg-transparent border-0 cursor-pointer flex items-center gap-1">
+                              Today <IconChevronDown size={12} />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -173,58 +367,56 @@ export function Header() {
                       </div>
                     </div>
                     <div className="noti-content">
-                      <div style={{ display: "flex", flexDirection: "column" }}>
-                        <div style={{ borderBottom: "1px solid var(--border)", marginBottom: 12, paddingBottom: 12 }}>
-                          <a href="#" style={{ display: "flex", textDecoration: "none" }}>
-                            <Avatar style={{ width: 40, height: 40, marginRight: 8, flexShrink: 0 }}>
+                      <div className="flex flex-col">
+                        <div className="border-b border-border mb-3 pb-3">
+                          <a href="#" className="flex no-underline">
+                            <Avatar className="w-10 h-10 mr-2 flex-shrink-0">
                               <AvatarImage src="" alt="Profile" />
-                              <AvatarFallback style={{ fontSize: 12 }}>SH</AvatarFallback>
+                              <AvatarFallback className="text-xs">SH</AvatarFallback>
                             </Avatar>
-                            <div style={{ flex: 1 }}>
-                              <p style={{ margin: "0 0 4px 0", fontSize: 13, color: "var(--foreground)" }}>
-                                <span style={{ fontWeight: 600 }}>Shawn</span> performance in Math is below the threshold.
+                            <div className="flex-1">
+                              <p className="m-0 mb-1 text-sm text-foreground">
+                                <span className="font-semibold">Shawn</span> performance in Math is below the threshold.
                               </p>
-                              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Just Now</span>
+                              <span className="text-xs text-muted-foreground">Just Now</span>
                             </div>
                           </a>
                         </div>
-                        <div style={{ borderBottom: "1px solid var(--border)", marginBottom: 12, paddingBottom: 12 }}>
-                          <a href="#" style={{ display: "flex", textDecoration: "none", paddingBottom: 0 }}>
-                            <Avatar style={{ width: 40, height: 40, marginRight: 8, flexShrink: 0 }}>
+                        <div className="border-b border-border mb-3 pb-3">
+                          <a href="#" className="flex no-underline pb-0">
+                            <Avatar className="w-10 h-10 mr-2 flex-shrink-0">
                               <AvatarImage src="" alt="Profile" />
-                              <AvatarFallback style={{ fontSize: 12 }}>SV</AvatarFallback>
+                              <AvatarFallback className="text-xs">SV</AvatarFallback>
                             </Avatar>
-                            <div style={{ flex: 1 }}>
-                              <p style={{ margin: "0 0 4px 0", fontSize: 13, color: "var(--foreground)" }}>
-                                <span style={{ fontWeight: 600 }}>Sylvia</span> added appointment on 02:00 PM
+                            <div className="flex-1">
+                              <p className="m-0 mb-1 text-sm text-foreground">
+                                <span className="font-semibold">Sylvia</span> added appointment on 02:00 PM
                               </p>
-                              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>10 mins ago</span>
-                              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                <span style={{ padding: "4px 12px", borderRadius: 4, background: "#F3F4F6", fontSize: 12, cursor: "pointer" }}>Deny</span>
-                                <span style={{ padding: "4px 12px", borderRadius: 4, background: "var(--primary)", color: "#fff", fontSize: 12, cursor: "pointer" }}>Approve</span>
+                              <span className="text-xs text-muted-foreground">10 mins ago</span>
+                              <div className="flex gap-2 mt-2">
+                                <span className="px-3 py-1 rounded text-xs cursor-pointer bg-muted">Deny</span>
+                                <span className="px-3 py-1 rounded text-xs cursor-pointer bg-primary text-primary-foreground">
+                                  Approve
+                                </span>
                               </div>
-                            </div>
-                          </a>
-                        </div>
-                        <div style={{ borderBottom: "1px solid var(--border)", marginBottom: 12, paddingBottom: 12 }}>
-                          <a href="#" style={{ display: "flex", textDecoration: "none" }}>
-                            <Avatar style={{ width: 40, height: 40, marginRight: 8, flexShrink: 0 }}>
-                              <AvatarImage src="" alt="Profile" />
-                              <AvatarFallback style={{ fontSize: 12 }}>GR</AvatarFallback>
-                            </Avatar>
-                            <div style={{ flex: 1 }}>
-                              <p style={{ margin: "0 0 4px 0", fontSize: 13, color: "var(--foreground)" }}>
-                                New student record <span style={{ fontWeight: 600 }}>George</span> is created by <span style={{ fontWeight: 600 }}>Teressa</span>
-                              </p>
-                              <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>2 hrs ago</span>
                             </div>
                           </a>
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: "flex", gap: 8, paddingTop: 8 }}>
-                      <a href="#" style={{ flex: 1, padding: "8px 0", borderRadius: 4, border: "1px solid var(--border)", background: "#F3F4F6", fontSize: 13, textAlign: "center", textDecoration: "none", color: "var(--foreground)" }}>Cancel</a>
-                      <a href="/activity" style={{ flex: 1, padding: "8px 0", borderRadius: 4, border: "none", background: "var(--primary)", color: "#fff", fontSize: 13, textAlign: "center", textDecoration: "none" }}>View All</a>
+                    <div className="flex gap-2 pt-2">
+                      <a
+                        href="#"
+                        className="flex-1 py-2 rounded border border-border bg-muted text-sm text-center no-underline text-foreground"
+                      >
+                        Cancel
+                      </a>
+                      <a
+                        href="/activity"
+                        className="flex-1 py-2 rounded border-0 bg-primary text-primary-foreground text-sm text-center no-underline"
+                      >
+                        View All
+                      </a>
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -233,89 +425,96 @@ export function Header() {
               <div className="dropdown profile-dropdown">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <a href="#" className="dropdown-toggle d-flex align-items-center">
+                    <a href="#" className="dropdown-toggle flex items-center">
                       <span className="avatar avatar-md online">
-                        <Avatar style={{ width: 36, height: 36, border: "2px solid var(--border)" }}>
+                        <Avatar className="w-9 h-9 border-2 border-border">
                           <AvatarImage src="" alt="User" />
-                          <AvatarFallback style={{ fontSize: 12, fontWeight: 600 }}>AD</AvatarFallback>
+                          <AvatarFallback className="text-xs font-semibold">AD</AvatarFallback>
                         </Avatar>
                       </span>
                     </a>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="dropdown-menu shadow-none" align="end" style={{ minWidth: 240 }}>
-                    <div style={{ padding: 16, borderBottom: "1px solid var(--border)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <span className="avatar avatar-lg me-2 avatar-rounded">
-                          <Avatar style={{ width: 44, height: 44 }}>
-                            <AvatarImage src="" alt="User" />
-                            <AvatarFallback style={{ fontSize: 14, fontWeight: 600 }}>AD</AvatarFallback>
-                          </Avatar>
-                        </span>
-                        <div>
-                          <h5 style={{ fontWeight: 600, margin: 0, fontSize: 14 }}>Admin User</h5>
-                          <p style={{ color: "var(--muted-foreground)", margin: 0, fontSize: 12, fontWeight: 500 }}>admin@church.com</p>
+                  <DropdownMenuContent className="dropdown-menu shadow-none p-0" align="end" style={{ minWidth: 240 }}>
+                    <div className="card mb-0 border-0 shadow-none">
+                      <div className="card-header">
+                        <div className="flex items-center gap-3">
+                          <span className="avatar avatar-lg avatar-rounded">
+                            <Avatar className="w-11 h-11">
+                              <AvatarImage src="" alt="User" />
+                              <AvatarFallback className="text-sm font-semibold">AD</AvatarFallback>
+                            </Avatar>
+                          </span>
+                          <div>
+                            <h5 className="font-semibold m-0 text-sm">Admin User</h5>
+                            <p className="text-muted-foreground m-0 text-xs font-medium">admin@church.com</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div style={{ padding: "8px 16px" }}>
-                      <DropdownMenuItem asChild>
-                        <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--foreground)", textDecoration: "none" }}>
-                          <User size={16} /> My Profile
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin/settings" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--foreground)", textDecoration: "none" }}>
-                          <Settings size={16} /> Settings
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin/account" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--foreground)", textDecoration: "none" }}>
-                          <User size={16} /> My Account
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/knowledge-base" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "var(--foreground)", textDecoration: "none" }}>
-                          <Settings size={16} /> Knowledge Base
-                        </Link>
-                      </DropdownMenuItem>
-                    </div>
-                    <div style={{ padding: "8px 16px", borderTop: "1px solid var(--border)" }}>
-                      <DropdownMenuItem onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "#E70D0D", cursor: "pointer" }}>
-                        <LogOut size={16} /> Logout
-                      </DropdownMenuItem>
+                      <div className="card-body py-2">
+                        <DropdownMenuItem asChild>
+                          <Link href="/profile" className="dropdown-item py-2">
+                            <IconUser size={16} /> My Profile
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/settings" className="dropdown-item py-2">
+                            <IconSettings size={16} /> Settings
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/admin/account" className="dropdown-item py-2">
+                            <IconCircleArrowUp size={16} /> My Account
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href="/knowledge-base" className="dropdown-item py-2">
+                            <IconQuestionMark size={16} /> Knowledge Base
+                          </Link>
+                        </DropdownMenuItem>
+                      </div>
+                      <div className="card-footer py-2">
+                        <DropdownMenuItem
+                          onClick={handleLogout}
+                          className="dropdown-item py-2 text-destructive"
+                        >
+                          <IconLogout size={16} /> Logout
+                        </DropdownMenuItem>
+                      </div>
                     </div>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-
-              {/* Mobile 3-dot menu */}
-              <div className="mobile-user-menu">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <a href="#" style={{ color: "var(--foreground)", fontSize: 20 }}>
-                      <MoreVertical />
-                    </a>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" style={{ minWidth: 200, top: 44, right: 20 }}>
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, textDecoration: "none" }}>
-                        <User size={16} /> My Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/settings" style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, textDecoration: "none" }}>
-                        <Settings size={16} /> Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", fontSize: 14, color: "#E70D0D", cursor: "pointer" }}>
-                      <LogOut size={16} /> Logout
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
             </div>
           </div>
+        </div>
+
+        {/* Mobile 3-dot menu */}
+        <div className="mobile-user-menu">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <a href="#" className="text-foreground text-xl">
+                {mobileOpen ? <IconX size={20} /> : <IconMenu2 size={20} />}
+              </a>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" style={{ minWidth: 200 }}>
+              <DropdownMenuItem asChild>
+                <Link href="/profile" className="dropdown-item">
+                  <IconUser size={16} /> My Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin/settings" className="dropdown-item">
+                  <IconSettings size={16} /> Settings
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleLogout}
+                className="dropdown-item text-destructive"
+              >
+                <IconLogout size={16} /> Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
