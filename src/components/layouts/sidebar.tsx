@@ -363,9 +363,6 @@ export function Sidebar() {
               <Search size={14} />
             </span>
             <input type="text" className="form-control" placeholder="Search in ChurchOS" />
-            <span className="input-group-text">
-              <kbd>CTRL + /</kbd>
-            </span>
           </div>
 
           <div className="flex items-center justify-between menu-item mb-3">
@@ -397,23 +394,6 @@ export function Sidebar() {
         </div>
 
         <div className="sidebar-inner slimscroll">
-          <div className="sidebar-search">
-            <div style={{ position: "relative" }}>
-              <Search
-                style={{
-                  position: "absolute",
-                  left: 10,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  width: 14,
-                  height: 14,
-                  color: "var(--muted-foreground)",
-                }}
-              />
-              <input type="text" placeholder="Search in ChurchOS" style={{ paddingLeft: 30 }} />
-            </div>
-          </div>
-
           <div className="sidebar-menu" id="sidebar-menu">
             <ul>
               {navItems.map((group) => (
