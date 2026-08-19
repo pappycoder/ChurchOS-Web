@@ -7,6 +7,7 @@ import Image from "next/image";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useRegister } from "@/hooks/use-auth";
 import { Eye, EyeOff, Mail, User, Building2, Phone, MapPin } from "lucide-react";
+import { DenominationCombobox } from "@/components/shared/denomination-combobox";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -200,13 +201,7 @@ export default function RegisterPage() {
             {/* Denomination */}
             <div>
               <label className="smart-form-label">Denomination</label>
-              <input
-                type="text"
-                className="smart-form-control"
-                placeholder="e.g. Pentecostal, Baptist, Anglican"
-                value={denomination}
-                onChange={(e) => setDenomination(e.target.value)}
-              />
+              <DenominationCombobox value={denomination} onChange={setDenomination} />
             </div>
 
             {/* Church Address */}
