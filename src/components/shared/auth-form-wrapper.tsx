@@ -26,7 +26,7 @@ export function AuthFormWrapper({
       {/* Form content in middle */}
       <div className="flex-grow flex flex-col justify-center">
         <div className="text-center mb-3">
-          <h2 className="mb-2 font-bold" style={{ color: "#202C4B" }}>
+          <h2 className="mb-2 font-bold text-2xl" style={{ color: "#202C4B", fontSize: "24px" }}>
             {heading}
           </h2>
           <p className="mb-0 text-sm" style={{ color: "#6B7280" }}>

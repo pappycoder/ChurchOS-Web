@@ -25,13 +25,13 @@ export default function AuthLayout({
               {/* Content card */}
               <div className="authentication-card w-full relative z-[2] px-10 py-10">
                 <div className="authen-overlay-item w-full">
-                  <h1 className="text-white font-bold text-center" style={{ fontSize: "clamp(26px, 3vw, 40px)", lineHeight: 1.3 }}>
+                  <h1 className="text-white font-bold text-center" style={{ fontSize: "40px", lineHeight: 1.3 }}>
                     Empowering people <br /> through seamless church <br /> management.
                   </h1>
                   <div className="my-4 mx-auto text-center max-w-[400px]">
                     <Image src="/auth/authentication-bg-01.png" alt="Church Management" width={400} height={250} className="w-full h-auto" priority />
                   </div>
-                  <p className="text-white font-semibold text-center" style={{ fontSize: "clamp(16px, 1.5vw, 20px)" }}>
+                  <p className="text-white font-semibold text-center" style={{ fontSize: "20px" }}>
                     Efficiently manage your congregation, streamline <br /> operations effortlessly.
                   </p>
                 </div>
