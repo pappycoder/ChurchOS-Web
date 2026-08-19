@@ -10,8 +10,16 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="min-h-screen">
+      {loading && <div className="page-loader" />}
       <Sidebar />
       <Header />
       <SettingsPanel />

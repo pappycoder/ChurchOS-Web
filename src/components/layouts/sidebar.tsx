@@ -16,6 +16,7 @@ import {
   Settings,
   UserCog,
   Home,
+  Search,
 } from "lucide-react";
 
 interface NavItem {
@@ -109,6 +110,7 @@ export function Sidebar() {
   const [hoverExpand, setHoverExpand] = React.useState(false);
   const sidebarRef = React.useRef<HTMLElement>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const submenuRefs = React.useRef<Record<string, HTMLUListElement | null>>({});
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
 
@@ -140,6 +142,21 @@ export function Sidebar() {
       setHoverExpand(false);
     }, 100);
   }, [collapsed]);
+
+  const getSubmenuStyle = (title: string, open: boolean): React.CSSProperties => {
+    const el = submenuRefs.current[title];
+    if (!el) return { maxHeight: open ? "none" : "0px" };
+    if (open) {
+      return { maxHeight: el.scrollHeight + "px" };
+    }
+    return { maxHeight: "0px" };
+  };
+
+  const onTransitionEnd = (title: string, open: boolean, el: HTMLUListElement) => {
+    if (open) {
+      el.style.maxHeight = "none";
+    }
+  };
 
   return (
     <>
@@ -175,9 +192,24 @@ export function Sidebar() {
               <Home className="w-5 h-5 text-primary-foreground" />
             </div>
           </Link>
+          <Link href="/dashboard" className="logo dark-logo">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                <Home className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="text-lg font-bold text-foreground">ChurchOS</span>
+            </div>
+          </Link>
         </div>
 
         <div className="sidebar-inner">
+          <div className="sidebar-search">
+            <div style={{ position: "relative" }}>
+              <Search style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", width: 14, height: 14, color: "var(--muted-foreground)" }} />
+              <input type="text" placeholder="Search in ChurchOS" style={{ paddingLeft: 30 }} />
+            </div>
+          </div>
+
           <div className="sidebar-menu" id="sidebar-menu">
             <ul>
               {navItems.map((group) => (
@@ -208,13 +240,21 @@ export function Sidebar() {
                                     toggleMenu(item.title);
                                   }}
                                 >
-                                  <Icon className="ti" />
+                                  <Icon />
                                   <span>{item.title}</span>
                                   <span className="menu-arrow" />
                                 </a>
-                                <ul>
+                                <ul
+                                  ref={(el) => { submenuRefs.current[item.title] = el; }}
+                                  style={getSubmenuStyle(item.title, open)}
+                                  onTransitionEnd={(e) => {
+                                    if (e.propertyName === "max-height") {
+                                      onTransitionEnd(item.title, open, e.currentTarget as HTMLUListElement);
+                                    }
+                                  }}
+                                >
                                   {item.children!.map((child) => (
-                                    <li key={child.href}>
+                                    <li key={child.href} className="submenu-item">
                                       <Link
                                         href={child.href}
                                         className={cn(isActive(child.href) && "active")}
@@ -232,7 +272,7 @@ export function Sidebar() {
                                 className={cn(active && "active")}
                                 onClick={closeMobile}
                               >
-                                <Icon className="ti" />
+                                <Icon />
                                 <span>{item.title}</span>
                               </Link>
                             )}
