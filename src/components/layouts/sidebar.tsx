@@ -23,6 +23,32 @@ import {
   MessageSquare,
   Bell,
   Mail,
+  BookOpen,
+  Upload,
+  FolderOpen,
+  ClipboardList,
+  Building2,
+  Package,
+  Wrench,
+  Handshake,
+  FileBarChart,
+  Megaphone,
+  UserPlus,
+  GitBranch,
+  BellRing,
+  Webhook,
+  SlidersHorizontal,
+  BarChart3,
+  ClipboardCheck,
+  Ticket,
+  Repeat,
+  HeartHandshake,
+  AlertTriangle,
+  Activity,
+  Download,
+  FileText,
+  UsersRound,
+  Eye,
 } from "lucide-react";
 
 interface NavItem {
@@ -32,13 +58,26 @@ interface NavItem {
   badge?: string;
   badgeVariant?: "danger" | "info" | "success" | "warning" | "primary";
   children?: NavItem[];
+  roles?: string[];
 }
 
 const navItems: { section: string; items: NavItem[] }[] = [
   {
     section: "MAIN MENU",
     items: [
-      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      {
+        title: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        children: [
+          { title: "Admin Dashboard", href: "/dashboard/admin", roles: ["super_admin", "church_admin"] },
+          { title: "Pastor Dashboard", href: "/dashboard/pastor", roles: ["senior_pastor", "branch_pastor"] },
+          { title: "Secretary Dashboard", href: "/dashboard/secretary", roles: ["secretary"] },
+          { title: "Treasurer Dashboard", href: "/dashboard/treasurer", roles: ["treasurer"] },
+          { title: "Department Dashboard", href: "/dashboard/department", roles: ["department_head"] },
+          { title: "My Dashboard", href: "/dashboard", roles: ["member"] },
+        ],
+      },
       {
         title: "Members",
         href: "/members",
@@ -46,6 +85,8 @@ const navItems: { section: string; items: NavItem[] }[] = [
         children: [
           { title: "All Members", href: "/members" },
           { title: "Add Member", href: "/members/new" },
+          { title: "Import Members", href: "/members/import" },
+          { title: "Families", href: "/members/families" },
         ],
       },
       {
@@ -54,6 +95,8 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: CalendarCheck,
         children: [
           { title: "Dashboard", href: "/attendance" },
+          { title: "Services", href: "/attendance/services" },
+          { title: "Check-In", href: "/attendance/check-in" },
           { title: "Records", href: "/attendance/records" },
           { title: "Reports", href: "/attendance/reports" },
         ],
@@ -64,8 +107,10 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: HandCoins,
         children: [
           { title: "Dashboard", href: "/giving" },
+          { title: "Categories", href: "/giving/categories" },
           { title: "Records", href: "/giving/records" },
           { title: "Reports", href: "/giving/reports" },
+          { title: "Recurring Giving", href: "/giving/recurring" },
         ],
       },
       {
@@ -75,10 +120,116 @@ const navItems: { section: string; items: NavItem[] }[] = [
         children: [
           { title: "Calendar", href: "/events" },
           { title: "All Events", href: "/events/list" },
+          { title: "Registrations", href: "/events/registrations" },
+          { title: "Tickets", href: "/events/tickets" },
         ],
       },
-      { title: "Media", href: "/media", icon: Film },
-      { title: "Pastoral Care", href: "/pastoral", icon: Heart },
+      {
+        title: "Sermons",
+        href: "/sermons",
+        icon: BookOpen,
+        children: [
+          { title: "All Sermons", href: "/sermons" },
+          { title: "Add Sermon", href: "/sermons/new" },
+          { title: "Series", href: "/sermons/series" },
+          { title: "Speakers", href: "/sermons/speakers" },
+        ],
+      },
+      {
+        title: "Media",
+        href: "/media",
+        icon: Film,
+        children: [
+          { title: "Library", href: "/media" },
+          { title: "Upload", href: "/media/upload" },
+          { title: "Folders", href: "/media/folders" },
+        ],
+      },
+      {
+        title: "Pastoral Care",
+        href: "/pastoral",
+        icon: HeartHandshake,
+        children: [
+          { title: "Notes", href: "/pastoral" },
+          { title: "Life Events", href: "/pastoral/life-events" },
+          { title: "Risk Scores", href: "/pastoral/risk-scores" },
+          { title: "Engagement", href: "/pastoral/engagement" },
+        ],
+      },
+      {
+        title: "Visitors",
+        href: "/visitors",
+        icon: UserPlus,
+        children: [
+          { title: "All Visitors", href: "/visitors" },
+          { title: "Add Visitor", href: "/visitors/new" },
+          { title: "Follow-Up", href: "/visitors/follow-up" },
+        ],
+      },
+    ],
+  },
+  {
+    section: "COMMUNICATION",
+    items: [
+      {
+        title: "Templates",
+        href: "/communication/templates",
+        icon: FileText,
+      },
+      {
+        title: "Broadcasts",
+        href: "/communication/broadcasts",
+        icon: Megaphone,
+      },
+      {
+        title: "Messages",
+        href: "/communication/messages",
+        icon: MessageSquare,
+      },
+    ],
+  },
+  {
+    section: "OPERATIONS",
+    items: [
+      {
+        title: "Departments",
+        href: "/departments",
+        icon: Building2,
+        children: [
+          { title: "All Departments", href: "/departments" },
+          { title: "Cell Groups", href: "/departments/cell-groups" },
+        ],
+      },
+      {
+        title: "Assets",
+        href: "/assets",
+        icon: Package,
+        children: [
+          { title: "All Assets", href: "/assets" },
+          { title: "Categories", href: "/assets/categories" },
+          { title: "Maintenance", href: "/assets/maintenance" },
+          { title: "Loans", href: "/assets/loans" },
+        ],
+      },
+      {
+        title: "Forms",
+        href: "/forms",
+        icon: ClipboardList,
+        children: [
+          { title: "All Forms", href: "/forms" },
+          { title: "Submissions", href: "/forms/submissions" },
+        ],
+      },
+      {
+        title: "Reports",
+        href: "/reports",
+        icon: FileBarChart,
+        children: [
+          { title: "Financial", href: "/reports/financial" },
+          { title: "Attendance", href: "/reports/attendance" },
+          { title: "Members", href: "/reports/members" },
+        ],
+      },
     ],
   },
   {
@@ -93,7 +244,29 @@ const navItems: { section: string; items: NavItem[] }[] = [
           { title: "Roles & Permissions", href: "/admin/roles" },
         ],
       },
-      { title: "Settings", href: "/admin/settings", icon: Settings },
+      {
+        title: "Church Settings",
+        href: "/admin/settings",
+        icon: Settings,
+        children: [
+          { title: "General", href: "/admin/settings" },
+          { title: "Branches", href: "/admin/branches" },
+          { title: "Notifications", href: "/admin/notifications" },
+          { title: "Webhooks", href: "/admin/webhooks" },
+          { title: "Custom Fields", href: "/admin/custom-fields" },
+        ],
+      },
+      {
+        title: "Analytics",
+        href: "/analytics",
+        icon: BarChart3,
+        children: [
+          { title: "Overview", href: "/analytics" },
+          { title: "Giving", href: "/analytics/giving" },
+          { title: "Attendance", href: "/analytics/attendance" },
+          { title: "Members", href: "/analytics/members" },
+        ],
+      },
     ],
   },
 ];
@@ -105,9 +278,63 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Giving: HandCoins,
   Events: Calendar,
   Media: Film,
-  "Pastoral Care": Heart,
+  "Pastoral Care": HeartHandshake,
   "User Management": UserCog,
   Settings: Settings,
+  Sermons: BookOpen,
+  Visitors: UserPlus,
+  Templates: FileText,
+  Broadcasts: Megaphone,
+  Messages: MessageSquare,
+  Departments: Building2,
+  Assets: Package,
+  Forms: ClipboardList,
+  Reports: FileBarChart,
+  "Church Settings": Settings,
+  Analytics: BarChart3,
+  Families: Users,
+  Services: CalendarCheck,
+  "Check-In": ClipboardCheck,
+  Records: FileBarChart,
+  Categories: SlidersHorizontal,
+  "Recurring Giving": Repeat,
+  Calendar: Calendar,
+  Tickets: Ticket,
+  Registrations: Ticket,
+  Series: BookOpen,
+  Speakers: Users,
+  Library: Film,
+  Upload: Upload,
+  Folders: FolderOpen,
+  Notes: HeartHandshake,
+  "Life Events": Heart,
+  "Risk Scores": AlertTriangle,
+  Engagement: Activity,
+  "Follow-Up": UserPlus,
+  "All Members": Users,
+  "Add Member": UserPlus,
+  "Import Members": Download,
+  "All Events": Calendar,
+  "All Sermons": BookOpen,
+  "Add Sermon": BookOpen,
+  "All Visitors": UserPlus,
+  "Add Visitor": UserPlus,
+  "All Departments": Building2,
+  "Cell Groups": UsersRound,
+  "All Assets": Package,
+  Maintenance: Wrench,
+  Loans: Handshake,
+  "All Forms": ClipboardList,
+  Submissions: Eye,
+  Financial: FileBarChart,
+  Users: UserCog,
+  "Roles & Permissions": SlidersHorizontal,
+  General: Settings,
+  Branches: GitBranch,
+  Notifications: BellRing,
+  Webhooks: Webhook,
+  "Custom Fields": SlidersHorizontal,
+  Overview: BarChart3,
 };
 
 function MenuArrow({ open, level }: { open: boolean; level: number }) {

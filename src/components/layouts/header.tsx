@@ -40,6 +40,7 @@ import {
   IconChevronDown,
   IconArrowRight,
   IconMenu2,
+  IconDotsVertical,
   IconX,
 } from "@tabler/icons-react";
 
@@ -493,7 +494,7 @@ export function Header() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <a href="#" className="text-foreground text-xl">
-                {mobileOpen ? <IconX size={20} /> : <IconMenu2 size={20} />}
+                <IconDotsVertical size={20} />
               </a>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" style={{ minWidth: 200 }}>

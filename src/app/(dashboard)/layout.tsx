@@ -45,7 +45,7 @@ export default function DashboardLayout({
       <SettingsPanel />
 
       <main className="page-wrapper">
-        <div className="p-6">{children}</div>
+        <div className="px-4 pt-4 pb-0 md:px-6 md:pt-6 md:pb-6">{children}</div>
       </main>
     </div>
   );

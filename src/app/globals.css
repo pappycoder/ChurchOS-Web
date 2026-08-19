@@ -958,9 +958,14 @@
   .sidebar {
     margin-left: -575px;
     z-index: 1041;
+    transition: all 0.4s ease;
   }
 
-  .slide-nav .sidebar {
+  .sidebar .sidebar-logo {
+    display: none;
+  }
+
+  .sidebar.slide-nav {
     margin-left: 0;
   }
 
@@ -969,7 +974,7 @@
     margin-left: -575px;
   }
 
-  .slide-nav .mini-sidebar .sidebar {
+  .sidebar.slide-nav.mini-sidebar {
     margin-left: 0;
   }
 
@@ -979,9 +984,8 @@
   }
 
   .mini-sidebar .sidebar .sidebar-menu > ul > li .menu-title {
-    font-size: 12px;
-    padding: 16px 16px 8px;
-    height: auto;
+    font-size: 9px;
+    padding: 0;
     display: flex;
   }
 
@@ -1022,6 +1026,14 @@
   .expand-menu.mini-sidebar .header {
     left: 252px;
   }
+
+  .mini-sidebar .page-wrapper {
+    margin-left: 72px;
+  }
+
+  .expand-menu.mini-sidebar .page-wrapper {
+    margin-left: 252px;
+  }
 }
 
 @media (max-width: 991.98px) {
@@ -1056,9 +1068,29 @@
   align-items: center;
 }
 
+.header-left .dark-logo {
+  display: none;
+}
+
+[data-theme="dark"] .header-left .logo {
+  display: none;
+}
+
+[data-theme="dark"] .header-left .dark-logo {
+  display: flex;
+}
+
 @media (max-width: 991.98px) {
   .header-left {
     display: flex;
+    position: absolute;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .mobile_btn {
+    position: relative;
+    z-index: 2;
   }
 }
 
@@ -1070,7 +1102,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 24px;
   height: 100%;
   width: 100%;
   border-bottom: 0;
@@ -1124,7 +1155,6 @@
   height: 50px;
   line-height: 50px;
   width: 50px;
-  padding: 0 20px;
   z-index: 10;
   text-align: center;
   text-decoration: none;
@@ -1135,7 +1165,6 @@
 @media (max-width: 991.98px) {
   .mobile_btn {
     display: flex;
-    align-items: center;
     order: -1;
   }
 }
@@ -1159,21 +1188,6 @@
 
 .bar-icon span:nth-child(2) {
   width: 16px;
-}
-
-/* Hamburger → X animation */
-.menu-opened .bar-icon span:first-child {
-  position: relative;
-  top: 10px;
-  transform: rotate(45deg);
-}
-
-.menu-opened .bar-icon span:nth-child(2) {
-  display: none;
-}
-
-.menu-opened .bar-icon span:last-child {
-  transform: rotate(135deg);
 }
 
 /* Header menubar buttons */
@@ -1714,23 +1728,18 @@
    ======================== */
 
 .page-wrapper {
-  margin-left: 252px;
+  margin: 0 0 0 252px;
   padding-top: 52px;
   min-height: 100vh;
+  position: relative;
+  left: 0;
   transition: margin-left 0.5s ease;
-}
-
-.mini-sidebar .page-wrapper {
-  margin-left: 72px;
-}
-
-.expand-menu.mini-sidebar .page-wrapper {
-  margin-left: 252px;
 }
 
 @media (max-width: 991.98px) {
   .page-wrapper {
-    margin-left: 0;
+    margin: 0;
+    padding-top: 52px;
   }
 }
 
