@@ -138,6 +138,10 @@ class ApiClient {
   put<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }) {
     return this.request<T>("PUT", path, body, options);
   }
+
+  delete<T>(path: string, options?: { skipAuth?: boolean }) {
+    return this.request<T>("DELETE", path, undefined, options);
+  }
 }
 
 export const api = new ApiClient();
