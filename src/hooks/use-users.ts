@@ -134,7 +134,7 @@ export function useDeactivateUser() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (profileId: string) =>
-      api.delete<{ success: boolean }>(`/profiles/${profileId}`),
+      api.post<{ deactivated: boolean }>(`/profiles/${profileId}/deactivate`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
     },

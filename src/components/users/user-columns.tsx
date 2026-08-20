@@ -4,6 +4,7 @@ import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,19 +12,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Shield, KeyRound, LogOut, UserX, UserCheck, ShieldCheck } from "lucide-react";
+import {
+  Pencil,
+  ShieldCheck,
+  ShieldOff,
+  MoreHorizontal,
+  KeyRound,
+  LogOut,
+} from "lucide-react";
 import type { UserProfile } from "@/hooks/use-users";
 import { getRoleLabel } from "@/hooks/use-users";
 import { format } from "date-fns";
-
-interface UserActionsCellProps {
-  user: UserProfile;
-  onEditRole: (user: UserProfile) => void;
-  onDeactivate: (user: UserProfile) => void;
-  onReactivate: (user: UserProfile) => void;
-  onResetPassword: (user: UserProfile) => void;
-  onForceSignout: (user: UserProfile) => void;
-}
 
 function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -41,6 +40,31 @@ function getRoleBadgeVariant(role: string): "default" | "secondary" | "outline" 
   }
 }
 
+export function UserCheckboxCell({
+  checked,
+  onCheckedChange,
+}: {
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  return (
+    <Checkbox
+      checked={checked}
+      onCheckedChange={(v) => onCheckedChange(!!v)}
+      aria-label="Select row"
+    />
+  );
+}
+
+interface UserActionsCellProps {
+  user: UserProfile;
+  onEditRole: (user: UserProfile) => void;
+  onDeactivate: (user: UserProfile) => void;
+  onReactivate: (user: UserProfile) => void;
+  onResetPassword: (user: UserProfile) => void;
+  onForceSignout: (user: UserProfile) => void;
+}
+
 export function UserActionsCell({
   user,
   onEditRole,
@@ -50,40 +74,57 @@ export function UserActionsCell({
   onForceSignout,
 }: UserActionsCellProps) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <MoreHorizontal className="h-4 w-4" />
-          <span className="sr-only">Actions</span>
+    <div className="flex items-center justify-end gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={() => onEditRole(user)}
+        title="Edit Role"
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      {user.status === "active" ? (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          onClick={() => onDeactivate(user)}
+          title="Deactivate"
+        >
+          <ShieldOff className="h-4 w-4" />
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onEditRole(user)}>
-          <Shield className="mr-2 h-4 w-4" />
-          Change Role
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onResetPassword(user)}>
-          <KeyRound className="mr-2 h-4 w-4" />
-          Reset Password
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onForceSignout(user)}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Force Sign Out
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {user.status === "active" ? (
-          <DropdownMenuItem onClick={() => onDeactivate(user)} variant="destructive">
-            <UserX className="mr-2 h-4 w-4" />
-            Deactivate
+      ) : (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-green-600 hover:text-green-700"
+          onClick={() => onReactivate(user)}
+          title="Activate"
+        >
+          <ShieldCheck className="h-4 w-4" />
+        </Button>
+      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreHorizontal className="h-4 w-4" />
+            <span className="sr-only">More actions</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onResetPassword(user)}>
+            <KeyRound className="mr-2 h-4 w-4" />
+            Reset Password
           </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={() => onReactivate(user)}>
-            <UserCheck className="mr-2 h-4 w-4" />
-            Activate
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => onForceSignout(user)}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Force Sign Out
           </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
@@ -95,12 +136,7 @@ export function UserNameCell({ user }: { user: UserProfile }) {
         <AvatarFallback>{getInitials(user.firstName, user.lastName)}</AvatarFallback>
       </Avatar>
       <div>
-        <div className="flex items-center gap-1.5">
-          <p className="font-medium">{`${user.firstName} ${user.lastName}`}</p>
-          {user.mfaEnabled && (
-            <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
-          )}
-        </div>
+        <p className="font-medium">{`${user.firstName} ${user.lastName}`}</p>
         {user.email && (
           <p className="text-sm text-muted-foreground">{user.email}</p>
         )}
