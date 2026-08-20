@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +11,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import {
   IconArrowBarToLeft,
@@ -119,13 +119,14 @@ const HORIZONTAL_NAV = [
 ];
 
 export function Header() {
-  const router = useRouter();
   const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } = useSidebar();
   const { settings } = useSettings();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
+  const { logout } = useAuth();
+
   const handleLogout = async () => {
-    router.push("/login");
+    await logout();
   };
 
   const handleMobileToggle = (e: React.MouseEvent) => {
