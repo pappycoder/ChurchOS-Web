@@ -14,6 +14,17 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **2026-08-23** — My Profile follow-ups: editable email + full-width layout.
+  - **Email is now editable** in Basic Information (backend `PATCH /profiles/me` accepts it and syncs Supabase Auth — see backend changelog): zod email validation, included in the dirty-field-only PATCH; the previous disabled "managed by your sign-in account" note removed. `UpdateCurrentProfileInput` gains `email?`.
+  - **Width fix**: removed the `max-w-5xl` cap from the `/profile` container so the page fills the desktop content area like other dashboard pages.
+  - Scoped eslint clean; build passes.
+
+- **2026-08-22** — My Profile page (`/profile`) — view, edit, photo, password.
+  - **New hooks** `src/hooks/use-profile.ts`: `useCurrentProfile()` (GET `/profiles/me`, key `["current-profile"]`), `useUpdateCurrentProfile()` (PATCH, cache-set on success), `useUploadAvatar()` (multipart POST `/profiles/me/photo`), `useChangePassword()` (PUT `/auth/password`). `src/lib/api.ts` now passes `FormData` bodies raw (browser sets the multipart boundary) instead of JSON-stringifying.
+  - **Page** follows the SmartHR profile grammar — section cards with bordered headers and right-aligned Cancel/Save: identity card (avatar/initials, name, status + MFA badges, role labels incl. blue Custom via `resolveRoleLabel`, email/phone/branch/church/joined info rows); **Basic Information** card toggles read rows ↔ RHF+zod inline form editing First/Last/Phone only (email disabled — auth-managed), dirty-field-only PATCH; **Profile Photo** card with client-side validation (image MIME, ≤5 MB) + Replace/Upload button; **Security** card with MFA status row and a Change Password dialog (current/new ≥8/confirm match, SmartHR-style eye toggles).
+  - **Wiring**: `/profile` added to `protectedPaths` in `middleware.ts` (the header's "My Profile" links existed but the route didn't); header dropdown + mobile menu now render real avatar/initials/name/email from `useCurrentProfile()` instead of hardcoded "AD" / "Admin User".
+  - Deferred: email changes (Supabase-managed) and self-service MFA enable/disable flows (status display only). Scoped eslint clean; build passes.
+
 - **2026-08-22** — GitHub Actions CI/CD (`.github/workflows/ci.yml`).
   - Runs on every push to any branch plus PRs to `main`; concurrency group cancels superseded runs on the same ref.
   - **Jobs**: `lint` (npm run lint) → parallel `typecheck` (`npx tsc --noEmit`) + `build` (next build, telemetry disabled); independent informational `audit` job (`npm audit --omit=dev`, continue-on-error). Mirrors the backend workflow conventions (Node 22, npm cache, actions v4).

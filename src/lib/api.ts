@@ -71,9 +71,13 @@ class ApiClient {
     body?: unknown,
     options?: { skipAuth?: boolean }
   ): Promise<T> {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
+    const headers: Record<string, string> = {};
+
+    // FormData bodies must not carry a JSON content-type — the browser
+    // sets the multipart boundary itself.
+    if (!(body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
 
     if (!options?.skipAuth) {
       const token = getToken();
@@ -87,7 +91,8 @@ class ApiClient {
       res = await fetch(`${this.baseUrl}${path}`, {
         method,
         headers,
-        body: body ? JSON.stringify(body) : undefined,
+        body:
+          body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
       });
     } catch {
       const error: AuthError = {

@@ -44,6 +44,7 @@ export function middleware(request: NextRequest) {
     "/media",
     "/pastoral",
     "/admin",
+    "/profile",
   ];
   const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
 

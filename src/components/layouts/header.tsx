@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { useAuth } from "@/hooks/use-auth";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { cn } from "@/lib/utils";
 import {
   IconArrowBarToLeft,
@@ -124,6 +125,15 @@ export function Header() {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const { logout } = useAuth();
+  const { data: currentProfile } = useCurrentProfile();
+
+  const displayName =
+    [currentProfile?.firstName, currentProfile?.lastName]
+      .filter(Boolean)
+      .join(" ") || "My Account";
+  const initials = `${currentProfile?.firstName?.charAt(0) ?? ""}${
+    currentProfile?.lastName?.charAt(0) ?? ""
+  }`.toUpperCase() || "U";
 
   const handleLogout = async () => {
     await logout();
@@ -430,8 +440,11 @@ export function Header() {
                     <a href="#" className="dropdown-toggle flex items-center">
                       <span className="avatar avatar-md online">
                         <Avatar className="w-9 h-9 border-2 border-border">
-                          <AvatarImage src="" alt="User" />
-                          <AvatarFallback className="text-xs font-semibold">AD</AvatarFallback>
+                          <AvatarImage
+                            src={currentProfile?.avatarUrl}
+                            alt={displayName}
+                          />
+                          <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
                         </Avatar>
                       </span>
                     </a>
@@ -442,13 +455,18 @@ export function Header() {
                         <div className="flex items-center gap-3">
                           <span className="avatar avatar-lg avatar-rounded">
                             <Avatar className="w-11 h-11">
-                              <AvatarImage src="" alt="User" />
-                              <AvatarFallback className="text-sm font-semibold">AD</AvatarFallback>
+                              <AvatarImage
+                                src={currentProfile?.avatarUrl}
+                                alt={displayName}
+                              />
+                              <AvatarFallback className="text-sm font-semibold">{initials}</AvatarFallback>
                             </Avatar>
                           </span>
                           <div>
-                            <h5 className="font-semibold m-0 text-sm">Admin User</h5>
-                            <p className="text-muted-foreground m-0 text-xs font-medium">admin@church.com</p>
+                            <h5 className="font-semibold m-0 text-sm">{displayName}</h5>
+                            <p className="text-muted-foreground m-0 text-xs font-medium">
+                              {currentProfile?.email || "—"}
+                            </p>
                           </div>
                         </div>
                       </div>
