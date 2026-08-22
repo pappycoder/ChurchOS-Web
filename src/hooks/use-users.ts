@@ -3,12 +3,44 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
+export interface RoleInfo {
+  name: string;
+  description?: string;
+}
+
+export interface EffectivePermission {
+  name: string;
+  resource: string;
+  action: string;
+  grantedBy: string[];
+}
+
+export interface LinkedMemberSummary {
+  memberId: string;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  photoUrl?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  address?: string;
+  status: string;
+}
+
 export interface UserProfile {
   profileId: string;
   userId: string;
   churchId: string;
   branchId?: string;
-  role: string;
+  /** All roles held by the user, ordered by rank descending (first = primary) */
+  role: string[];
+  /** Assigned roles with descriptions (populated on detail responses) */
+  roles?: RoleInfo[];
+  /** Permissions accumulated across all assigned roles */
+  effectivePermissions?: EffectivePermission[];
+  lastSignInAt?: string;
+  member?: LinkedMemberSummary;
   firstName: string;
   lastName: string;
   email?: string;
@@ -61,8 +93,24 @@ export interface InviteUserInput {
   branchId?: string;
 }
 
-export interface UpdateRoleInput {
-  role: string;
+export interface UpdateUserInput {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  branchId?: string;
+  status?: "active" | "inactive";
+}
+
+export interface BranchOption {
+  branchId: string;
+  name: string;
+  isHeadquarters: boolean;
+}
+
+interface BranchListResponse {
+  data: BranchOption[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
 }
 
 export const VALID_ROLES = [
@@ -78,6 +126,22 @@ export const VALID_ROLES = [
 
 export function getRoleLabel(role: string): string {
   return VALID_ROLES.find((r) => r.value === role)?.label ?? role;
+}
+
+export function getRoleLabels(roles: string[]): string {
+  if (!roles || roles.length === 0) return "Member";
+  return roles.map(getRoleLabel).join(", ");
+}
+
+export function useBranches() {
+  return useQuery({
+    queryKey: ["branches"],
+    queryFn: async () => {
+      const res = await api.get<BranchListResponse>("/branches?limit=100");
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
 export function useUsers(params: ListUsersParams = {}) {
@@ -119,13 +183,40 @@ export function useInviteUser() {
   });
 }
 
+/** Admin edit of a user's basic details, branch, and status. */
+export function useUpdateUser(profileId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateUserInput) =>
+      api.patch<UserProfile>(`/profiles/${profileId}`, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user", profileId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+}
+
+/** Replaces the full set of roles on a user. Permissions accumulate across roles. */
+export function useUpdateUserRoles(profileId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (roles: string[]) =>
+      api.patch<UserProfile>(`/profiles/${profileId}/roles`, { roles }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-user", profileId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+    },
+  });
+}
+
 export function useUpdateUserRole() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ profileId, role }: { profileId: string } & UpdateRoleInput) =>
+    mutationFn: ({ profileId, role }: { profileId: string; role: string }) =>
       api.patch<UserProfile>(`/profiles/${profileId}/role`, { role }),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", variables.profileId] });
     },
   });
 }
@@ -135,8 +226,9 @@ export function useDeactivateUser() {
   return useMutation({
     mutationFn: (profileId: string) =>
       api.post<{ deactivated: boolean }>(`/profiles/${profileId}/deactivate`),
-    onSuccess: () => {
+    onSuccess: (_data, profileId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", profileId] });
     },
   });
 }
@@ -146,8 +238,9 @@ export function useReactivateUser() {
   return useMutation({
     mutationFn: (profileId: string) =>
       api.post<UserProfile>(`/profiles/${profileId}/activate`),
-    onSuccess: () => {
+    onSuccess: (_data, profileId) => {
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-user", profileId] });
     },
   });
 }

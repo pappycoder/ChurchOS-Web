@@ -145,8 +145,17 @@ export function UserNameCell({ user }: { user: UserProfile }) {
   );
 }
 
-export function UserRoleCell({ role }: { role: string }) {
-  return <Badge variant={getRoleBadgeVariant(role)}>{getRoleLabel(role)}</Badge>;
+export function UserRoleCell({ roles }: { roles: string[] }) {
+  const roleList = roles?.length ? roles : ["member"];
+  return (
+    <div className="flex flex-wrap gap-1">
+      {roleList.map((role) => (
+        <Badge key={role} variant={getRoleBadgeVariant(role)}>
+          {getRoleLabel(role)}
+        </Badge>
+      ))}
+    </div>
+  );
 }
 
 export function UserStatusCell({ status }: { status: string }) {

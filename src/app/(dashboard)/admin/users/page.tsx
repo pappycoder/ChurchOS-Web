@@ -48,7 +48,7 @@ import {
   useResetPassword,
   useForceSignout,
   VALID_ROLES,
-  getRoleLabel,
+  getRoleLabels,
   type UserProfile,
   type ListUsersParams,
 } from "@/hooks/use-users";
@@ -270,7 +270,7 @@ export default function UsersPage() {
     name: `${u.firstName} ${u.lastName}`,
     email: u.email || "",
     createdAt: u.createdAt,
-    role: getRoleLabel(u.role),
+    role: getRoleLabels(u.role),
     status: u.status,
   }));
 
@@ -455,7 +455,7 @@ export default function UsersPage() {
                             <UserCreatedCell createdAt={user.createdAt} />
                           </TableCell>
                           <TableCell>
-                            <UserRoleCell role={user.role} />
+                            <UserRoleCell roles={user.role} />
                           </TableCell>
                           <TableCell>
                             <UserStatusCell status={user.status} />

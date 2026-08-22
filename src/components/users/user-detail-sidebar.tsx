@@ -2,7 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { getRoleLabel, type UserProfile } from "@/hooks/use-users";
+import {
+  getRoleLabel,
+  type UserProfile,
+} from "@/hooks/use-users";
 import {
   Mail,
   Phone,
@@ -25,6 +28,15 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
         <p className="text-sm font-medium">{value}</p>
       </div>
     </div>
+  );
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const variant = role === "super_admin" ? "destructive" : "secondary";
+  return (
+    <Badge variant={variant} className="text-xs">
+      {getRoleLabel(role)}
+    </Badge>
   );
 }
 
@@ -51,11 +63,21 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <InfoRow
-          icon={<Shield className="h-4 w-4" />}
-          label="Role"
-          value={getRoleLabel(user.role)}
-        />
+        <div>
+          <div className="flex items-start gap-3">
+            <span className="text-muted-foreground mt-0.5">
+              <Shield className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-sm text-muted-foreground">Roles</p>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {(user.role?.length ? user.role : ["member"]).map((role) => (
+                  <RoleBadge key={role} role={role} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
         {user.email && (
           <InfoRow
             icon={<Mail className="h-4 w-4" />}

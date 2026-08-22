@@ -80,20 +80,20 @@ export function UserFormDialog({
   const updateRoleForm = useForm<UpdateRoleFormValues>({
     resolver: zodResolver(updateRoleSchema),
     defaultValues: {
-      role: user?.role || "member",
+      role: user?.role?.[0] || "member",
     },
   });
 
   React.useEffect(() => {
     if (mode === "edit-role" && user) {
-      updateRoleForm.reset({ role: user.role });
+      updateRoleForm.reset({ role: user.role?.[0] || "member" });
     }
   }, [mode, user, updateRoleForm]);
 
   React.useEffect(() => {
     if (!open) {
       inviteForm.reset();
-      updateRoleForm.reset({ role: user?.role || "member" });
+      updateRoleForm.reset({ role: user?.role?.[0] || "member" });
     }
   }, [open, inviteForm, updateRoleForm, user]);
 
