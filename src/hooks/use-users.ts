@@ -5,6 +5,8 @@ import { api } from "@/lib/api";
 
 export interface RoleInfo {
   name: string;
+  /** Human-friendly display label (custom roles) */
+  label?: string;
   description?: string;
 }
 

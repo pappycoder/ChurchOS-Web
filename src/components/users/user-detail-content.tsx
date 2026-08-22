@@ -27,15 +27,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  getRoleLabel,
-  getRoleLabels,
-  VALID_ROLES,
   useBranches,
   useUpdateUser,
   useUpdateUserRoles,
   type EffectivePermission,
   type UserProfile,
 } from "@/hooks/use-users";
+import { useAssignableRoles, useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
 import {
   User,
   Shield,
@@ -297,6 +295,7 @@ function PermissionMatrix({
   rows: PermissionRow[];
   actions: string[];
 }) {
+  const roleLabels = useRoleLabelMap();
   return (
     <div className="text-sm">
       <div className="flex items-center border-b pb-1 mb-1">
@@ -342,7 +341,8 @@ function PermissionMatrix({
                   </p>
                   {perm.grantedBy?.length > 0 && (
                     <p className="text-muted-foreground">
-                      Granted by {getRoleLabels(perm.grantedBy)}
+                      Granted by{" "}
+                      {perm.grantedBy.map((r) => resolveRoleLabel(r, roleLabels)).join(", ")}
                     </p>
                   )}
                 </TooltipContent>
@@ -362,6 +362,8 @@ interface RolePermissionsTabProps {
 function RolePermissionsTab({ user }: RolePermissionsTabProps) {
   const currentRoles = new Set(user.role ?? []);
   const [selected, setSelected] = React.useState<Set<string>>(currentRoles);
+  const assignableRoles = useAssignableRoles();
+  const roleLabels = useRoleLabelMap();
   const updateUserRoles = useUpdateUserRoles(user.profileId);
 
   React.useEffect(() => {
@@ -440,7 +442,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
             highest-ranked role takes precedence.
           </p>
           <div className="flex flex-wrap gap-2">
-            {VALID_ROLES.map((role) => {
+            {assignableRoles.map((role) => {
               const active = selected.has(role.value);
               return (
                 <Badge
@@ -463,7 +465,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
                 <div className="flex flex-wrap gap-1.5">
                   {[...selected].map((role) => (
                     <Badge key={role} variant="secondary" className="text-xs">
-                      {getRoleLabel(role)}
+                      {resolveRoleLabel(role, roleLabels)}
                     </Badge>
                   ))}
                 </div>

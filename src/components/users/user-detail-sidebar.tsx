@@ -3,9 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
-  getRoleLabel,
   type UserProfile,
 } from "@/hooks/use-users";
+import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
 import {
   Mail,
   Phone,
@@ -31,11 +31,11 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
   );
 }
 
-function RoleBadge({ role }: { role: string }) {
+function RoleBadge({ role, labels }: { role: string; labels: Map<string, string> }) {
   const variant = role === "super_admin" ? "destructive" : "secondary";
   return (
     <Badge variant={variant} className="text-xs">
-      {getRoleLabel(role)}
+      {resolveRoleLabel(role, labels)}
     </Badge>
   );
 }
@@ -45,6 +45,7 @@ interface UserDetailSidebarProps {
 }
 
 export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
+  const labels = useRoleLabelMap();
   return (
     <Card>
       <CardHeader className="text-center">
@@ -72,7 +73,7 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
               <p className="text-sm text-muted-foreground">Roles</p>
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {(user.role?.length ? user.role : ["member"]).map((role) => (
-                  <RoleBadge key={role} role={role} />
+                  <RoleBadge key={role} role={role} labels={labels} />
                 ))}
               </div>
             </div>

@@ -30,7 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useInviteUser, useUpdateUserRole, VALID_ROLES } from "@/hooks/use-users";
+import { useInviteUser, useUpdateUserRole } from "@/hooks/use-users";
+import { useAssignableRoles } from "@/hooks/use-roles";
 import type { UserProfile } from "@/hooks/use-users";
 
 const inviteSchema = z.object({
@@ -64,6 +65,7 @@ export function UserFormDialog({
 }: UserFormDialogProps) {
   const inviteMutation = useInviteUser();
   const updateRoleMutation = useUpdateUserRole();
+  const assignableRoles = useAssignableRoles();
 
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
@@ -221,7 +223,7 @@ export function UserFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {VALID_ROLES.map((role) => (
+                        {assignableRoles.map((role) => (
                           <SelectItem key={role.value} value={role.value}>
                             {role.label}
                           </SelectItem>
@@ -267,7 +269,7 @@ export function UserFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {VALID_ROLES.map((role) => (
+                        {assignableRoles.map((role) => (
                           <SelectItem key={role.value} value={role.value}>
                             {role.label}
                           </SelectItem>

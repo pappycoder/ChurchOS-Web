@@ -47,11 +47,10 @@ import {
   useReactivateUser,
   useResetPassword,
   useForceSignout,
-  VALID_ROLES,
-  getRoleLabels,
   type UserProfile,
   type ListUsersParams,
 } from "@/hooks/use-users";
+import { useAssignableRoles, useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
 import {
   UserCheckboxCell,
   UserActionsCell,
@@ -155,6 +154,8 @@ export default function UsersPage() {
   const reactivateMutation = useReactivateUser();
   const resetPasswordMutation = useResetPassword();
   const forceSignoutMutation = useForceSignout();
+  const roleLabels = useRoleLabelMap();
+  const assignableRoles = useAssignableRoles();
 
   const users = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
@@ -270,7 +271,9 @@ export default function UsersPage() {
     name: `${u.firstName} ${u.lastName}`,
     email: u.email || "",
     createdAt: u.createdAt,
-    role: getRoleLabels(u.role),
+    role: (u.role?.length ? u.role : ["member"])
+      .map((r) => resolveRoleLabel(r, roleLabels))
+      .join(", "),
     status: u.status,
   }));
 
@@ -339,7 +342,7 @@ export default function UsersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
-                    {VALID_ROLES.map((role) => (
+                    {assignableRoles.map((role) => (
                       <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
                     ))}
                   </SelectContent>

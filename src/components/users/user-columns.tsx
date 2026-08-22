@@ -21,7 +21,7 @@ import {
   LogOut,
 } from "lucide-react";
 import type { UserProfile } from "@/hooks/use-users";
-import { getRoleLabel } from "@/hooks/use-users";
+import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
 import { format } from "date-fns";
 
 function getInitials(firstName: string, lastName: string): string {
@@ -146,12 +146,13 @@ export function UserNameCell({ user }: { user: UserProfile }) {
 }
 
 export function UserRoleCell({ roles }: { roles: string[] }) {
+  const labels = useRoleLabelMap();
   const roleList = roles?.length ? roles : ["member"];
   return (
     <div className="flex flex-wrap gap-1">
       {roleList.map((role) => (
         <Badge key={role} variant={getRoleBadgeVariant(role)}>
-          {getRoleLabel(role)}
+          {resolveRoleLabel(role, labels)}
         </Badge>
       ))}
     </div>
