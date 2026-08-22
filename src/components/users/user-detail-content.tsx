@@ -2,10 +2,21 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +28,12 @@ import {
 } from "@/components/ui/select";
 import {
   getRoleLabel,
+  getRoleLabels,
   VALID_ROLES,
   useBranches,
   useUpdateUser,
   useUpdateUserRoles,
+  type EffectivePermission,
   type UserProfile,
 } from "@/hooks/use-users";
 import {
@@ -32,7 +45,14 @@ import {
   Save,
   Loader2,
   IdCard,
+  Check,
+  Minus,
 } from "lucide-react";
+
+/** Canonical action column order for the permission matrix; extras are appended. */
+const PERMISSION_ACTIONS = ["create", "read", "update", "delete"];
+
+type PermissionRow = [resource: string, actions: Map<string, EffectivePermission>];
 
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -270,6 +290,71 @@ function AccountInfoTab({ user }: AccountInfoTabProps) {
   );
 }
 
+function PermissionMatrix({
+  rows,
+  actions,
+}: {
+  rows: PermissionRow[];
+  actions: string[];
+}) {
+  return (
+    <div className="text-sm">
+      <div className="flex items-center border-b pb-1 mb-1">
+        <span className="flex-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Resource
+        </span>
+        {actions.map((action) => (
+          <span
+            key={action}
+            className="w-14 text-center text-[11px] font-medium text-muted-foreground capitalize"
+          >
+            {action}
+          </span>
+        ))}
+      </div>
+      {rows.map(([resource, perms]) => (
+        <div
+          key={resource}
+          className="flex items-center py-0.5 px-1 -mx-1 rounded hover:bg-muted/40"
+        >
+          <span className="flex-1 truncate capitalize">
+            {resource.replace(/_/g, " ")}
+          </span>
+          {actions.map((action) => {
+            const perm = perms.get(action);
+            if (!perm) {
+              return (
+                <span key={action} className="w-14 flex justify-center">
+                  <Minus className="h-3.5 w-3.5 text-muted-foreground/30" />
+                </span>
+              );
+            }
+            return (
+              <Tooltip key={action}>
+                <TooltipTrigger asChild>
+                  <span className="w-14 flex justify-center cursor-default">
+                    <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="font-medium">
+                    {resource.replace(/_/g, " ")}: {action}
+                  </p>
+                  {perm.grantedBy?.length > 0 && (
+                    <p className="text-muted-foreground">
+                      Granted by {getRoleLabels(perm.grantedBy)}
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface RolePermissionsTabProps {
   user: UserProfile;
 }
@@ -309,17 +394,29 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
     });
   };
 
-  const permissionGroups = React.useMemo(() => {
-    const groups = new Map<string, UserProfile["effectivePermissions"]>();
+  const permissionMatrix = React.useMemo(() => {
+    const groups = new Map<string, Map<string, EffectivePermission>>();
     for (const perm of user.effectivePermissions ?? []) {
-      const list = groups.get(perm.resource) ?? [];
-      list.push(perm);
-      groups.set(perm.resource, list);
+      const actions = groups.get(perm.resource) ?? new Map();
+      actions.set(perm.action, perm);
+      groups.set(perm.resource, actions);
     }
     return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
   }, [user.effectivePermissions]);
 
+  const permissionActions = React.useMemo(() => {
+    const extras = new Set<string>();
+    for (const perm of user.effectivePermissions ?? []) {
+      if (!PERMISSION_ACTIONS.includes(perm.action)) extras.add(perm.action);
+    }
+    return [...PERMISSION_ACTIONS, ...extras];
+  }, [user.effectivePermissions]);
+
   const isSuperAdmin = (user.role ?? []).includes("super_admin");
+  const grantedCount = user.effectivePermissions?.length ?? 0;
+  const half = Math.ceil(permissionMatrix.length / 2);
+  const leftRows = permissionMatrix.slice(0, half);
+  const rightRows = permissionMatrix.slice(half);
 
   return (
     <div className="space-y-4">
@@ -379,32 +476,29 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Effective Permissions</CardTitle>
+          {!isSuperAdmin && permissionMatrix.length > 0 && (
+            <CardDescription>
+              {grantedCount} permission{grantedCount === 1 ? "" : "s"} across{" "}
+              {permissionMatrix.length} resource
+              {permissionMatrix.length === 1 ? "" : "s"}
+            </CardDescription>
+          )}
         </CardHeader>
         <CardContent>
           {isSuperAdmin ? (
             <p className="text-sm text-muted-foreground">
               Super admins have every permission in the system.
             </p>
-          ) : permissionGroups.length === 0 ? (
+          ) : permissionMatrix.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No explicit permissions resolved for the assigned roles.
             </p>
           ) : (
-            <div className="space-y-3">
-              {permissionGroups.map(([resource, perms]) => (
-                <div key={resource}>
-                  <p className="text-sm font-medium capitalize mb-1.5">
-                    {resource.replace(/_/g, " ")}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(perms ?? []).map((perm) => (
-                      <Badge key={perm.name} variant="outline" className="text-xs">
-                        {perm.action}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
+            <div className="grid gap-x-10 gap-y-4 lg:grid-cols-2">
+              <PermissionMatrix rows={leftRows} actions={permissionActions} />
+              {rightRows.length > 0 && (
+                <PermissionMatrix rows={rightRows} actions={permissionActions} />
+              )}
             </div>
           )}
         </CardContent>

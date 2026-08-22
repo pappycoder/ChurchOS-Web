@@ -14,6 +14,12 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **2026-08-22** — Compact permission matrix on user detail page.
+  - **Role & Permissions tab redesign**: the Effective Permissions card no longer renders ~90 outline badges under per-resource headings. It now shows a dense permission matrix — one thin row per resource, four fixed columns (`create`/`read`/`update`/`delete`, extras appended if ever added), `Check` icon when granted, dimmed `Minus` otherwise. Two side-by-side matrices split alphabetically in a `lg:grid-cols-2` grid (stacks on mobile); header row labels each column.
+  - **grantedBy tooltips**: hovering a ✓ cell (app-wide `TooltipProvider` from `providers.tsx`) shows "Resource: action" plus "Granted by <roles>" via `getRoleLabels(perm.grantedBy)` — previously-unused API data.
+  - **Summary line**: CardDescription reads "<n> permissions across <m> resources" (hidden for super_admin, which keeps its short-circuit text; empty state unchanged).
+  - New local `PermissionMatrix` component + `PERMISSION_ACTIONS` constant in `user-detail-content.tsx`; data memo reshaped to `Map<resource, Map<action, EffectivePermission>>`. Lint clean, build passes.
+
 - **2026-08-22** — Multi-role users + editable user detail page.
   - **`UserProfile.role` is now `string[]`** (all roles, highest rank first; `role[0]` = primary). Added `roles?` (name + description), `effectivePermissions?`, `lastSignInAt?`, and `member?` (linked member summary) to the detail payload. `getRoleLabels()` joins all roles for display.
   - **New hooks**: `useUser`, `useUpdateUser(profileId)` (PATCH `/profiles/:id` — names, email, phone, branch, status), `useUpdateUserRoles(profileId)` (PATCH `/profiles/:id/roles` — full role set, permissions accumulate across roles), and `useBranches()` for the branch selector.
