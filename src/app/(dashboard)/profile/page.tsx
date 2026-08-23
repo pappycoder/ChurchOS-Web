@@ -168,7 +168,6 @@ function IdentityCard({ profile }: { profile: CurrentProfile }) {
 const basicInfoSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
 });
 
@@ -183,7 +182,6 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
     defaultValues: {
       firstName: profile.firstName,
       lastName: profile.lastName,
-      email: profile.email ?? "",
       phone: profile.phone ?? "",
     },
   });
@@ -193,7 +191,6 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
       form.reset({
         firstName: profile.firstName,
         lastName: profile.lastName,
-        email: profile.email ?? "",
         phone: profile.phone ?? "",
       });
     }
@@ -204,7 +201,6 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
     const payload: Record<string, string> = {};
     if (values.firstName !== profile.firstName) payload.firstName = values.firstName;
     if (values.lastName !== profile.lastName) payload.lastName = values.lastName;
-    if (values.email !== (profile.email ?? "")) payload.email = values.email;
     if ((values.phone ?? "") !== (profile.phone ?? "")) payload.phone = values.phone ?? "";
 
     if (Object.keys(payload).length === 0) {
@@ -281,23 +277,15 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="you@church.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input value={profile.email ?? ""} disabled />
+                  </FormControl>
+                  <p className="text-sm text-muted-foreground">
+                    Managed by your church admin in Settings.
+                  </p>
+                </FormItem>
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
                 <Button

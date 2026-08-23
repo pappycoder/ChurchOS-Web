@@ -14,6 +14,23 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **2026-08-23** — Unified email model + header IA cleanup.
+  - **Email is admin-managed in one place**: `/profile` shows Email read-only again ("Managed by your church admin in Settings") — schema/payload/hook types dropped it; `UpdateCurrentProfileInput` no longer has `email`. `/admin/settings` gains an **Email card** (Mail icon, Edit dialog, zod) calling new `useUpdateChurchEmail()` → `PATCH /church/email`, which updates sign-in credential + profile record + church contact together and invalidates both `["church"]` and `["current-profile"]` caches (header identity follows instantly). Church Information form no longer has its own Email input.
+  - **Header dropdown** (desktop + mobile): "Account Settings" → back to **My Profile** (`/profile`); "Settings" → **Account Settings** (`/admin/settings`); removed the dead **"My Account"** item (no such route) and its unused icon import. Dropdown now: My Profile · Account Settings · Knowledge Base · Logout.
+  - **Fix**: the read-only Email note on `/profile` renders as a plain muted `<p>` — `FormMessage` outside a `<FormField>` dereferences an undefined field context (`ui/form.tsx`) and would crash the edit form at runtime.
+  - Backend suite 513 passing; frontend scoped eslint clean, build passes.
+
+- **2026-08-23** — Church Settings page (`/admin/settings`) + Account Settings relabel.
+  - **New hooks** `src/hooks/use-church.ts`: `useChurch()` / `useUpdateChurch()` (key `["church"]`, cache-set), `useChurchConfig()` / `useUpdateChurchConfig()` (key `["church-config"]`, merge-set on save), and `uploadChurchLogo()` (multipart POST `/media/upload/image`, folder `churches`).
+  - **Page grammar** mirrors the SmartHR settings pages — breadcrumb "Settings", sectioned cards with bordered headers, right-aligned saves, read-only when the viewer isn't church_admin/super_admin (roles normalized from the auth profile):
+    - **Branding**: logo preview (placeholder tile when unset) with Upload/Replace (image/* ≤5 MB) → optimized WebP URL saved via dirty-only-style PATCH.
+    - **Church Information**: view ↔ edit toggle (Name*, Denomination, Email, Phone, Website, Address, City, State, Country) — RHF+zod inline form, generic per-field diff against defaults sends only changed keys.
+    - **Preferences**: Timezone (Africa/Lagos default) + Currency (NGN default) selects persisted as config keys in one `PATCH /church/config { config }`; Save enabled only when dirty.
+    - Header row shows member/branch count badges; skeleton loading + retry error state.
+  - **This lights up every previously-dead settings link**: sidebar "Church Settings → General", header gear icon, dropdown/mobile "Settings" entries all point here now. Sibling children (Branches/Notifications/Webhooks/Custom Fields) remain 404 until built.
+  - **Account Settings relabel**: header dropdown + mobile menu "My Profile" → "Account Settings" (href stays `/profile`), matching the chosen IA of one account page covering personal info, photo and security.
+  - Scoped eslint clean (only pre-existing header warnings); build passes (`/admin/settings` registered).
+
 - **2026-08-23** — My Profile follow-ups: editable email + full-width layout.
   - **Email is now editable** in Basic Information (backend `PATCH /profiles/me` accepts it and syncs Supabase Auth — see backend changelog): zod email validation, included in the dirty-field-only PATCH; the previous disabled "managed by your sign-in account" note removed. `UpdateCurrentProfileInput` gains `email?`.
   - **Width fix**: removed the `max-w-5xl` cap from the `/profile` container so the page fills the desktop content area like other dashboard pages.

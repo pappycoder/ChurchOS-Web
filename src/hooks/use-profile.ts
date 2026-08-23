@@ -37,11 +37,10 @@ export interface CurrentProfile {
   };
 }
 
-/** Fields the self-service PATCH endpoint accepts (email is synced to auth). */
+/** Fields the self-service PATCH endpoint accepts (email is admin-managed). */
 export interface UpdateCurrentProfileInput {
   firstName?: string;
   lastName?: string;
-  email?: string;
   phone?: string;
 }
 

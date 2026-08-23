@@ -27,7 +27,6 @@ import {
   IconBell,
   IconUser,
   IconSettings,
-  IconCircleArrowUp,
   IconQuestionMark,
   IconLogout,
   IconCalendar,
@@ -478,12 +477,7 @@ export function Header() {
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/admin/settings" className="dropdown-item py-2">
-                            <IconSettings size={16} /> Settings
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link href="/admin/account" className="dropdown-item py-2">
-                            <IconCircleArrowUp size={16} /> My Account
+                            <IconSettings size={16} /> Account Settings
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
@@ -524,7 +518,7 @@ export function Header() {
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/admin/settings" className="dropdown-item">
-                  <IconSettings size={16} /> Settings
+                  <IconSettings size={16} /> Account Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
