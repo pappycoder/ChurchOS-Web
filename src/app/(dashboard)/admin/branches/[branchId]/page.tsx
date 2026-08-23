@@ -28,7 +28,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useBranch, type Branch } from "@/hooks/use-branches";
-import { useCanManageChurch } from "@/hooks/use-church";
+import { usePermissions } from "@/hooks/use-permissions";
 import { BranchFormDialog } from "@/components/branches/branch-form-dialog";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
 
@@ -61,7 +61,8 @@ export default function BranchDetailPage({
 }) {
   const { branchId } = React.use(params);
   const router = useRouter();
-  const canManage = useCanManageChurch();
+  const { can } = usePermissions();
+  const canManage = can("branches", "update") || can("branches", "create") || can("branches", "delete");
   const { data: branch, isLoading, error } = useBranch(branchId);
 
   const [editOpen, setEditOpen] = React.useState(false);

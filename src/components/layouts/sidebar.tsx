@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
+import { usePermissions } from "@/hooks/use-permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
@@ -58,7 +59,10 @@ interface NavItem {
   badge?: string;
   badgeVariant?: "danger" | "info" | "success" | "warning" | "primary";
   children?: NavItem[];
+  /** Legacy any-of role gate (no dedicated permission resource). */
   roles?: string[];
+  /** Required `resource:action` permission, e.g. "members:read". */
+  permission?: string;
 }
 
 const navItems: { section: string; items: NavItem[] }[] = [
@@ -82,88 +86,96 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Members",
         href: "/members",
         icon: Users,
+        permission: "members:read",
         children: [
-          { title: "All Members", href: "/members" },
-          { title: "Add Member", href: "/members/new" },
-          { title: "Import Members", href: "/members/import" },
-          { title: "Families", href: "/members/families" },
+          { title: "All Members", href: "/members", permission: "members:read" },
+          { title: "Add Member", href: "/members/new", permission: "members:create" },
+          { title: "Import Members", href: "/members/import", permission: "members:create" },
+          { title: "Families", href: "/members/families", permission: "families:read" },
         ],
       },
       {
         title: "Attendance",
         href: "/attendance",
         icon: CalendarCheck,
+        permission: "attendance:read",
         children: [
-          { title: "Dashboard", href: "/attendance" },
-          { title: "Services", href: "/attendance/services" },
-          { title: "Check-In", href: "/attendance/check-in" },
-          { title: "Records", href: "/attendance/records" },
-          { title: "Reports", href: "/attendance/reports" },
+          { title: "Dashboard", href: "/attendance", permission: "attendance:read" },
+          { title: "Services", href: "/attendance/services", permission: "attendance:read" },
+          { title: "Check-In", href: "/attendance/check-in", permission: "attendance:read" },
+          { title: "Records", href: "/attendance/records", permission: "attendance:read" },
+          { title: "Reports", href: "/attendance/reports", permission: "attendance:read" },
         ],
       },
       {
         title: "Giving",
         href: "/giving",
         icon: HandCoins,
+        permission: "giving:read",
         children: [
-          { title: "Dashboard", href: "/giving" },
-          { title: "Categories", href: "/giving/categories" },
-          { title: "Records", href: "/giving/records" },
-          { title: "Reports", href: "/giving/reports" },
-          { title: "Recurring Giving", href: "/giving/recurring" },
+          { title: "Dashboard", href: "/giving", permission: "giving:read" },
+          { title: "Categories", href: "/giving/categories", permission: "giving:read" },
+          { title: "Records", href: "/giving/records", permission: "giving:read" },
+          { title: "Reports", href: "/giving/reports", permission: "giving:read" },
+          { title: "Recurring Giving", href: "/giving/recurring", permission: "giving:read" },
         ],
       },
       {
         title: "Events",
         href: "/events",
         icon: Calendar,
+        permission: "events:read",
         children: [
-          { title: "Calendar", href: "/events" },
-          { title: "All Events", href: "/events/list" },
-          { title: "Registrations", href: "/events/registrations" },
-          { title: "Tickets", href: "/events/tickets" },
+          { title: "Calendar", href: "/events", permission: "events:read" },
+          { title: "All Events", href: "/events/list", permission: "events:read" },
+          { title: "Registrations", href: "/events/registrations", permission: "events:read" },
+          { title: "Tickets", href: "/events/tickets", permission: "events:read" },
         ],
       },
       {
         title: "Sermons",
         href: "/sermons",
         icon: BookOpen,
+        permission: "sermons:read",
         children: [
-          { title: "All Sermons", href: "/sermons" },
-          { title: "Add Sermon", href: "/sermons/new" },
-          { title: "Series", href: "/sermons/series" },
-          { title: "Speakers", href: "/sermons/speakers" },
+          { title: "All Sermons", href: "/sermons", permission: "sermons:read" },
+          { title: "Add Sermon", href: "/sermons/new", permission: "sermons:create" },
+          { title: "Series", href: "/sermons/series", permission: "sermons:read" },
+          { title: "Speakers", href: "/sermons/speakers", permission: "sermons:read" },
         ],
       },
       {
         title: "Media",
         href: "/media",
         icon: Film,
+        permission: "media:read",
         children: [
-          { title: "Library", href: "/media" },
-          { title: "Upload", href: "/media/upload" },
-          { title: "Folders", href: "/media/folders" },
+          { title: "Library", href: "/media", permission: "media:read" },
+          { title: "Upload", href: "/media/upload", permission: "media:create" },
+          { title: "Folders", href: "/media/folders", permission: "media:read" },
         ],
       },
       {
         title: "Pastoral Care",
         href: "/pastoral",
         icon: HeartHandshake,
+        permission: "pastoral:read",
         children: [
-          { title: "Notes", href: "/pastoral" },
-          { title: "Life Events", href: "/pastoral/life-events" },
-          { title: "Risk Scores", href: "/pastoral/risk-scores" },
-          { title: "Engagement", href: "/pastoral/engagement" },
+          { title: "Notes", href: "/pastoral", permission: "pastoral:read" },
+          { title: "Life Events", href: "/pastoral/life-events", permission: "pastoral:read" },
+          { title: "Risk Scores", href: "/pastoral/risk-scores", permission: "pastoral:read" },
+          { title: "Engagement", href: "/pastoral/engagement", permission: "pastoral:read" },
         ],
       },
       {
         title: "Visitors",
         href: "/visitors",
         icon: UserPlus,
+        permission: "visitors:read",
         children: [
-          { title: "All Visitors", href: "/visitors" },
-          { title: "Add Visitor", href: "/visitors/new" },
-          { title: "Follow-Up", href: "/visitors/follow-up" },
+          { title: "All Visitors", href: "/visitors", permission: "visitors:read" },
+          { title: "Add Visitor", href: "/visitors/new", permission: "visitors:create" },
+          { title: "Follow-Up", href: "/visitors/follow-up", permission: "visitors:update" },
         ],
       },
     ],
@@ -175,16 +187,19 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Templates",
         href: "/communication/templates",
         icon: FileText,
+        permission: "templates:read",
       },
       {
         title: "Broadcasts",
         href: "/communication/broadcasts",
         icon: Megaphone,
+        permission: "broadcasts:read",
       },
       {
         title: "Messages",
         href: "/communication/messages",
         icon: MessageSquare,
+        permission: "whatsapp:read",
       },
     ],
   },
@@ -195,39 +210,43 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Departments",
         href: "/departments",
         icon: Building2,
+        permission: "departments:read",
         children: [
-          { title: "All Departments", href: "/departments" },
-          { title: "Cell Groups", href: "/departments/cell-groups" },
+          { title: "All Departments", href: "/departments", permission: "departments:read" },
+          { title: "Cell Groups", href: "/departments/cell-groups", permission: "cell_groups:read" },
         ],
       },
       {
         title: "Assets",
         href: "/assets",
         icon: Package,
+        permission: "assets:read",
         children: [
-          { title: "All Assets", href: "/assets" },
-          { title: "Categories", href: "/assets/categories" },
-          { title: "Maintenance", href: "/assets/maintenance" },
-          { title: "Loans", href: "/assets/loans" },
+          { title: "All Assets", href: "/assets", permission: "assets:read" },
+          { title: "Categories", href: "/assets/categories", permission: "assets:read" },
+          { title: "Maintenance", href: "/assets/maintenance", permission: "assets:read" },
+          { title: "Loans", href: "/assets/loans", permission: "assets:read" },
         ],
       },
       {
         title: "Forms",
         href: "/forms",
         icon: ClipboardList,
+        permission: "forms:read",
         children: [
-          { title: "All Forms", href: "/forms" },
-          { title: "Submissions", href: "/forms/submissions" },
+          { title: "All Forms", href: "/forms", permission: "forms:read" },
+          { title: "Submissions", href: "/forms/submissions", permission: "forms:read" },
         ],
       },
       {
         title: "Reports",
         href: "/reports",
         icon: FileBarChart,
+        permission: "reports:read",
         children: [
-          { title: "Financial", href: "/reports/financial" },
-          { title: "Attendance", href: "/reports/attendance" },
-          { title: "Members", href: "/reports/members" },
+          { title: "Financial", href: "/reports/financial", permission: "reports:read" },
+          { title: "Attendance", href: "/reports/attendance", permission: "reports:read" },
+          { title: "Members", href: "/reports/members", permission: "reports:read" },
         ],
       },
     ],
@@ -239,29 +258,36 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "User Management",
         href: "/admin/users",
         icon: UserCog,
+        permission: "users:read",
         children: [
-          { title: "Users", href: "/admin/users" },
-          { title: "Roles & Permissions", href: "/admin/roles" },
+          { title: "Users", href: "/admin/users", permission: "users:read" },
+          {
+            title: "Roles & Permissions",
+            href: "/admin/roles",
+            roles: ["church_admin", "super_admin"],
+          },
         ],
       },
       {
         title: "Church Settings",
         href: "/admin/settings",
         icon: Settings,
+        permission: "church_settings:update",
         children: [
-          { title: "General", href: "/admin/settings" },
-          { title: "Branches", href: "/admin/branches" },
+          { title: "General", href: "/admin/settings", permission: "church_settings:update" },
+          { title: "Branches", href: "/admin/branches", permission: "branches:read" },
         ],
       },
       {
         title: "Analytics",
         href: "/analytics",
         icon: BarChart3,
+        permission: "analytics:read",
         children: [
-          { title: "Overview", href: "/analytics" },
-          { title: "Giving", href: "/analytics/giving" },
-          { title: "Attendance", href: "/analytics/attendance" },
-          { title: "Members", href: "/analytics/members" },
+          { title: "Overview", href: "/analytics", permission: "analytics:read" },
+          { title: "Giving", href: "/analytics/giving", permission: "analytics:read" },
+          { title: "Attendance", href: "/analytics/attendance", permission: "analytics:read" },
+          { title: "Members", href: "/analytics/members", permission: "analytics:read" },
         ],
       },
     ],
@@ -444,12 +470,45 @@ export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, mobileOpen, closeMobile } = useSidebar();
   const { settings } = useSettings();
+  const { ready, can, hasRole } = usePermissions();
   const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
   const [hoverExpand, setHoverExpand] = React.useState(false);
   const sidebarRef = React.useRef<HTMLElement>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const isModern = settings.layout === "modern";
+
+  // Permission-filtered nav: items without a gate stay visible; gated items
+  // require their permission (or legacy role). Parents survive only when at
+  // least one child survives; empty sections are dropped. Fail-closed while
+  // the profile loads.
+  const visibleNav = React.useMemo(() => {
+    if (!ready) return [];
+    const itemAllowed = (item: NavItem): boolean => {
+      if (item.permission) {
+        const [resource, action] = item.permission.split(":");
+        if (!can(resource, action as Parameters<typeof can>[1])) return false;
+      }
+      if (item.roles?.length && !hasRole(...item.roles)) return false;
+      return true;
+    };
+    const filterItem = (item: NavItem): NavItem | null => {
+      if (!itemAllowed(item)) return null;
+      if (!item.children) return item;
+      const children = item.children
+        .map(filterItem)
+        .filter((c): c is NavItem => c !== null);
+      return children.length > 0 ? { ...item, children } : null;
+    };
+    return navItems
+      .map((group) => ({
+        ...group,
+        items: group.items
+          .map(filterItem)
+          .filter((i): i is NavItem => i !== null),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [ready, can, hasRole]);
 
   React.useEffect(() => {
     const expanded: Record<string, boolean> = {};
@@ -620,7 +679,7 @@ export function Sidebar() {
         <div className="sidebar-inner slimscroll">
           <div className="sidebar-menu" id="sidebar-menu">
             <ul>
-              {navItems.map((group) => (
+              {visibleNav.map((group) => (
                 <React.Fragment key={group.section}>
                   <li className="menu-title">
                     <span>{group.section}</span>

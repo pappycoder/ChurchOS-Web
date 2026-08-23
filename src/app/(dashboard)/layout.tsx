@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
 import { SettingsPanel } from "@/components/layouts/settings-panel";
 import { useSettings } from "@/contexts/settings-context";
+import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
 
 export default function DashboardLayout({
   children,
@@ -45,7 +46,9 @@ export default function DashboardLayout({
       <SettingsPanel />
 
       <main className="page-wrapper">
-        <div className="px-4 pt-4 pb-0 md:px-6 md:pt-6 md:pb-6">{children}</div>
+        <div className="px-4 pt-4 pb-0 md:px-6 md:pt-6 md:pb-6">
+          <PermissionRouteGate>{children}</PermissionRouteGate>
+        </div>
       </main>
     </div>
   );

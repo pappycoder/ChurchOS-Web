@@ -52,7 +52,7 @@ import {
   useBranchesList,
   type Branch,
 } from "@/hooks/use-branches";
-import { useCanManageChurch } from "@/hooks/use-church";
+import { usePermissions } from "@/hooks/use-permissions";
 import { BranchFormDialog } from "@/components/branches/branch-form-dialog";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
 
@@ -122,7 +122,8 @@ function TableSkeleton() {
 
 export default function BranchesPage() {
   const router = useRouter();
-  const canManage = useCanManageChurch();
+  const { can } = usePermissions();
+  const canManage = can("branches", "update") || can("branches", "create") || can("branches", "delete");
 
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<TypeFilter>("all");

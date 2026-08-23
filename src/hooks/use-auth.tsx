@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { fetchCurrentProfile } from "@/hooks/use-profile";
 import type {
   LoginInput,
   LoginResponse,
@@ -105,9 +106,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast.success("Welcome back!", {
         description: `Signed in as ${res.email}`,
       });
+      // Prime the session cache (profile + permissions) before navigating so
+      // permission gates render instantly instead of flashing skeletons.
+      try {
+        await queryClient.ensureQueryData({
+          queryKey: ["current-profile"],
+          queryFn: fetchCurrentProfile,
+        });
+      } catch {
+        // Non-fatal: the dashboard will fetch on mount if priming fails.
+      }
       router.push("/dashboard");
     },
-    [router]
+    [router, queryClient]
   );
 
   const register = React.useCallback(async (input: RegisterInput) => {

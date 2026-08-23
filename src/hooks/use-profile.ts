@@ -15,6 +15,8 @@ export interface CurrentProfile {
   branchId?: string;
   /** All roles held by the user, ordered by rank descending (first = primary) */
   role: string[];
+  /** Flat permission names (resource:action) granted across all roles */
+  permissions?: string[];
   firstName: string;
   lastName: string;
   email?: string;
@@ -44,11 +46,20 @@ export interface UpdateCurrentProfileInput {
   phone?: string;
 }
 
+/** Shared fetcher so the login flow can prime the same cache entry. */
+export function fetchCurrentProfile(): Promise<CurrentProfile> {
+  return api.get<CurrentProfile>("/profiles/me");
+}
+
 export function useCurrentProfile() {
   return useQuery({
     queryKey: ["current-profile"],
-    queryFn: () => api.get<CurrentProfile>("/profiles/me"),
+    queryFn: fetchCurrentProfile,
     staleTime: 60 * 1000,
+    // Live-session permission updates: role changes made by admins are
+    // picked up the next time the user returns to the tab.
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
