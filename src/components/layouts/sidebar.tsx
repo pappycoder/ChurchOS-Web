@@ -251,9 +251,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         children: [
           { title: "General", href: "/admin/settings" },
           { title: "Branches", href: "/admin/branches" },
-          { title: "Notifications", href: "/admin/notifications" },
-          { title: "Webhooks", href: "/admin/webhooks" },
-          { title: "Custom Fields", href: "/admin/custom-fields" },
         ],
       },
       {

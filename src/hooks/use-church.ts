@@ -7,6 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface ChurchProfile {
   churchId: string;
@@ -103,4 +104,19 @@ export async function uploadChurchLogo(file: File): Promise<string> {
   formData.append("folder", "churches");
   const res = await api.post<{ url: string }>("/media/upload/image", formData);
   return res.url;
+}
+
+/**
+ * True when the signed-in user holds a church-management role
+ * (church_admin or super_admin). Roles may arrive as string | string[].
+ */
+export function useCanManageChurch(): boolean {
+  const { user } = useAuth();
+  const roles =
+    user?.profile?.role === undefined
+      ? []
+      : Array.isArray(user.profile.role)
+        ? user.profile.role
+        : [user.profile.role];
+  return roles.includes("church_admin") || roles.includes("super_admin");
 }
