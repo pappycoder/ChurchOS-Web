@@ -18,6 +18,8 @@ import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { TablePagination } from "@/components/shared/table-pagination";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -84,11 +86,14 @@ export default function FamiliesPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const queryParams: ListFamiliesParams = {
-    page,
-    limit: perPage,
-    search: search || undefined,
-  };
+  const queryParams: ListFamiliesParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      search: search || undefined,
+    }),
+    [page, perPage, search]
+  );
 
   const { data, isLoading, error } = useFamiliesList(queryParams);
 
@@ -143,13 +148,26 @@ export default function FamiliesPage() {
   ];
 
   const exportSource = someSelected ? selectedFamilies : families;
-  const exportData = exportSource.map((f) => ({
-    name: f.name,
-    head: headOfFamily(f),
-    memberCount: String(f.members.length),
-    memberNames: f.members.map((m) => `${m.firstName} ${m.lastName}`).join("; "),
-    createdAt: format(new Date(f.createdAt), "yyyy-MM-dd"),
-  }));
+  const buildExportRows = React.useCallback(
+    (rows: Family[]) =>
+      rows.map((f) => ({
+        name: f.name,
+        head: headOfFamily(f),
+        memberCount: String(f.members.length),
+        memberNames: f.members.map((m) => `${m.firstName} ${m.lastName}`).join("; "),
+        createdAt: format(new Date(f.createdAt), "yyyy-MM-dd"),
+      })),
+    []
+  );
+  const exportData = buildExportRows(exportSource);
+
+  // "Export all": walks every page of the current filter server-side.
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<Family>((p) =>
+      api.get(listUrl("/families", { ...queryParams, page: p, limit: 100 }))
+    );
+    return buildExportRows(rows);
+  }, [queryParams, buildExportRows]);
 
   if (error) {
     return (
@@ -187,6 +205,7 @@ export default function FamiliesPage() {
             <ExportDropdown
               columns={exportColumns}
               data={exportData}
+              fetchAllRows={fetchAllExportRows}
               title={someSelected ? `Families (${selectedFamilies.length} selected)` : "Families"}
               filename="families-export"
               disabled={exportSource.length === 0}

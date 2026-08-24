@@ -19,6 +19,8 @@ import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { TablePagination } from "@/components/shared/table-pagination";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -137,15 +139,18 @@ export default function UsersPage() {
   const [deleteTargets, setDeleteTargets] = React.useState<UserProfile[] | null>(null);
   const [selectedUser, setSelectedUser] = React.useState<UserProfile | null>(null);
 
-  const queryParams: ListUsersParams = {
-    page,
-    limit: perPage,
-    search: search || undefined,
-    role: roleFilter === "all" ? undefined : roleFilter,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    sortBy,
-    sortOrder,
-  };
+  const queryParams: ListUsersParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      search: search || undefined,
+      role: roleFilter === "all" ? undefined : roleFilter,
+      status: statusFilter === "all" ? undefined : statusFilter,
+      sortBy,
+      sortOrder,
+    }),
+    [page, perPage, search, roleFilter, statusFilter, sortBy, sortOrder]
+  );
 
   const { data, isLoading, error } = useUsers(queryParams);
   const updateRoleMutation = useUpdateUserRole();
@@ -249,15 +254,28 @@ export default function UsersPage() {
     { key: "status", label: "Status" },
   ];
 
-  const exportData = users.map((u) => ({
-    name: `${u.firstName} ${u.lastName}`,
-    email: u.email || "",
-    createdAt: u.createdAt,
-    role: (u.role?.length ? u.role : ["member"])
-      .map((r) => resolveRoleLabel(r, roleLabels))
-      .join(", "),
-    status: u.status,
-  }));
+  const buildExportRows = React.useCallback(
+    (rows: UserProfile[]) =>
+      rows.map((u) => ({
+        name: `${u.firstName} ${u.lastName}`,
+        email: u.email || "",
+        createdAt: u.createdAt,
+        role: (u.role?.length ? u.role : ["member"])
+          .map((r) => resolveRoleLabel(r, roleLabels))
+          .join(", "),
+        status: u.status,
+      })),
+    [roleLabels]
+  );
+  const exportData = buildExportRows(users);
+
+  // "Export all": walks every page of the current filter/sort server-side.
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<UserProfile>((p) =>
+      api.get(listUrl("/profiles", { ...queryParams, page: p, limit: 100 }))
+    );
+    return buildExportRows(rows);
+  }, [queryParams, buildExportRows]);
 
   if (error) {
     return (
@@ -285,6 +303,7 @@ export default function UsersPage() {
             <ExportDropdown
               columns={exportColumns}
               data={exportData}
+              fetchAllRows={fetchAllExportRows}
               title="User Management"
               filename="users-export"
               disabled={users.length === 0}

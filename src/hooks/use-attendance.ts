@@ -107,7 +107,13 @@ export interface CreateServiceInput {
   isActive?: boolean;
 }
 
-export type UpdateServiceInput = Partial<CreateServiceInput>;
+export interface UpdateServiceInput
+  extends Partial<Omit<CreateServiceInput, "dayOfWeek" | "startTime" | "endTime">> {
+  /** Explicit `null` clears the stored value; `undefined` leaves it unchanged. */
+  dayOfWeek?: number | null;
+  startTime?: string | null;
+  endTime?: string | null;
+}
 
 export interface RecordAttendanceInput {
   serviceId: string;
@@ -240,7 +246,9 @@ export function useAttendanceSummary(params: { startDate?: string; endDate?: str
   });
 }
 
-export function useAttendanceTrends(params: { days?: number } = {}) {
+export function useAttendanceTrends(
+  params: { days?: number; startDate?: string; endDate?: string } = {}
+) {
   return useQuery({
     queryKey: ["attendance-trends", params],
     queryFn: () =>

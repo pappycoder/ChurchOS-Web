@@ -20,6 +20,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -203,18 +205,38 @@ export default function BranchesPage() {
   ];
 
   const exportSource = someSelected ? selectedBranches : branches;
-  const exportData = exportSource.map((b) => ({
-    name: b.name,
-    email: b.email || "",
-    phone: b.phone || "",
-    address: b.address || "",
-    city: b.city || "",
-    state: b.state || "",
-    country: b.country || "",
-    isHeadquarters: b.isHeadquarters ? "Yes" : "No",
-    memberCount: b.memberCount,
-    createdAt: b.createdAt,
-  }));
+  const buildExportRows = React.useCallback(
+    (rows: Branch[]) =>
+      rows.map((b) => ({
+        name: b.name,
+        email: b.email || "",
+        phone: b.phone || "",
+        address: b.address || "",
+        city: b.city || "",
+        state: b.state || "",
+        country: b.country || "",
+        isHeadquarters: b.isHeadquarters ? "Yes" : "No",
+        memberCount: b.memberCount,
+        createdAt: b.createdAt,
+      })),
+    []
+  );
+  const exportData = buildExportRows(exportSource);
+
+  // "Export all": walks every page server-side (type filter is client-side,
+  // so the fetch mirrors it in memory before mapping).
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<Branch>((p) =>
+      api.get(listUrl("/branches", { page: p, limit: 100, search: search || undefined, sortBy, sortOrder }))
+    );
+    const filtered =
+      typeFilter === "headquarters"
+        ? rows.filter((b) => b.isHeadquarters)
+        : typeFilter === "branches"
+          ? rows.filter((b) => !b.isHeadquarters)
+          : rows;
+    return buildExportRows(filtered);
+  }, [search, sortBy, sortOrder, typeFilter, buildExportRows]);
 
   if (error) {
     return (
@@ -242,6 +264,7 @@ export default function BranchesPage() {
             <ExportDropdown
               columns={exportColumns}
               data={exportData}
+              fetchAllRows={fetchAllExportRows}
               title={someSelected ? `Branches (${selectedBranches.length} selected)` : "Branches"}
               filename="branches-export"
               disabled={exportSource.length === 0}

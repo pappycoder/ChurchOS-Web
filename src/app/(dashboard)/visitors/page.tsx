@@ -19,6 +19,8 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TablePagination } from "@/components/shared/table-pagination";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
@@ -143,14 +145,17 @@ export default function VisitorsPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const queryParams: ListVisitorsParams = {
-    page,
-    limit: perPage,
-    search: search || undefined,
-    followUpStatus: statusFilter === "all" ? undefined : statusFilter,
-    sortBy,
-    sortOrder,
-  };
+  const queryParams: ListVisitorsParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      search: search || undefined,
+      followUpStatus: statusFilter === "all" ? undefined : statusFilter,
+      sortBy,
+      sortOrder,
+    }),
+    [page, perPage, search, statusFilter, sortBy, sortOrder]
+  );
 
   const { data, isLoading, error } = useVisitorsList(queryParams);
 
@@ -226,17 +231,30 @@ export default function VisitorsPage() {
   ];
 
   const exportSource = someSelected ? selectedVisitors : visitors;
-  const exportData = exportSource.map((v) => ({
-    name: displayName(v),
-    gender: v.gender || "",
-    email: v.email || "",
-    phone: v.phone || "",
-    whatsappNumber: v.whatsappNumber || "",
-    firstVisitDate: format(new Date(v.firstVisitDate), "yyyy-MM-dd"),
-    status: statusLabel(v.followUpStatus),
-    assignedTo: v.assignedToId ? assigneeNames.get(v.assignedToId) || "" : "",
-    converted: v.convertedMemberId ? "Yes" : "No",
-  }));
+  const buildExportRows = React.useCallback(
+    (rows: Visitor[]) =>
+      rows.map((v) => ({
+        name: displayName(v),
+        gender: v.gender || "",
+        email: v.email || "",
+        phone: v.phone || "",
+        whatsappNumber: v.whatsappNumber || "",
+        firstVisitDate: format(new Date(v.firstVisitDate), "yyyy-MM-dd"),
+        status: statusLabel(v.followUpStatus),
+        assignedTo: v.assignedToId ? assigneeNames.get(v.assignedToId) || "" : "",
+        converted: v.convertedMemberId ? "Yes" : "No",
+      })),
+    [assigneeNames]
+  );
+  const exportData = buildExportRows(exportSource);
+
+  // "Export all": walks every page of the current filter/sort server-side.
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<Visitor>((p) =>
+      api.get(listUrl("/visitors", { ...queryParams, page: p, limit: 200 }))
+    );
+    return buildExportRows(rows);
+  }, [queryParams, buildExportRows]);
 
   if (error) {
     return (
@@ -266,6 +284,7 @@ export default function VisitorsPage() {
             <ExportDropdown
               columns={exportColumns}
               data={exportData}
+              fetchAllRows={fetchAllExportRows}
               title={
                 someSelected ? `Visitors (${selectedVisitors.length} selected)` : "Visitors"
               }

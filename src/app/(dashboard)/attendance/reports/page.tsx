@@ -11,6 +11,8 @@ import {
 import { AlertTriangle, CalendarRange, PieChart } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,7 @@ import {
   useAttendanceTrends,
   useAttendanceRecords,
   SERVICE_CATEGORIES,
+  type AttendanceRecord,
 } from "@/hooks/use-attendance";
 
 const trendConfig = {
@@ -47,7 +50,11 @@ export default function AttendanceReportsPage() {
     startDate: startDate || undefined,
     endDate: endDate || undefined,
   });
-  const trendsQuery = useAttendanceTrends({ days: 30 });
+  const trendsQuery = useAttendanceTrends({
+    days: 30,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
+  });
   const recordsQuery = useAttendanceRecords({
     limit: 200,
     startDate: startDate || undefined,
@@ -70,20 +77,40 @@ export default function AttendanceReportsPage() {
       .slice(0, 8);
   }, [recordsQuery.data]);
 
-  const exportData = React.useMemo(() => {
-    const rows = recordsQuery.data?.data ?? [];
-    return rows.map((r) => ({
-      date: format(new Date(r.checkInAt), "yyyy-MM-dd"),
-      time: format(new Date(r.checkInAt), "HH:mm"),
-      name: r.memberName || r.visitorName || "",
-      type: r.memberId ? "Member" : "Visitor",
-      service: r.serviceName || "",
-      category:
-        SERVICE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))?.label ??
-        "Adult",
-      source: r.source,
-    }));
-  }, [recordsQuery.data]);
+  const buildExportRows = React.useCallback(
+    (rows: AttendanceRecord[]) =>
+      rows.map((r) => ({
+        date: format(new Date(r.checkInAt), "yyyy-MM-dd"),
+        time: format(new Date(r.checkInAt), "HH:mm"),
+        name: r.memberName || r.visitorName || "",
+        type: r.memberId ? "Member" : "Visitor",
+        service: r.serviceName || "",
+        category:
+          SERVICE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))?.label ??
+          "Adult",
+        source: r.source,
+      })),
+    []
+  );
+  const exportData = React.useMemo(
+    () => buildExportRows(recordsQuery.data?.data ?? []),
+    [recordsQuery.data, buildExportRows]
+  );
+
+  // Export walks every page of the selected range server-side.
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<AttendanceRecord>((p) =>
+      api.get(
+        listUrl("/attendance", {
+          page: p,
+          limit: 200,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+        })
+      )
+    );
+    return buildExportRows(rows);
+  }, [startDate, endDate, buildExportRows]);
 
   if (summaryQuery.error || trendsQuery.error) {
     return (
@@ -128,6 +155,7 @@ export default function AttendanceReportsPage() {
               { key: "source", label: "Source" },
             ]}
             data={exportData}
+            fetchAllRows={fetchAllExportRows}
             title="Attendance Report"
             filename={`attendance-report-${format(new Date(), "yyyyMMdd")}`}
             disabled={exportData.length === 0}
@@ -192,7 +220,9 @@ export default function AttendanceReportsPage() {
         {/* Trend */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Daily Trend (30 days)</CardTitle>
+            <CardTitle className="text-sm font-semibold">
+              Daily Trend {startDate || endDate ? "(selected range)" : "(last 30 days)"}
+            </CardTitle>
             <CardDescription>Members vs visitors over time.</CardDescription>
           </CardHeader>
           <CardContent>

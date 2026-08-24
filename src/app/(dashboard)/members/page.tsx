@@ -22,6 +22,8 @@ import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { TablePagination } from "@/components/shared/table-pagination";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -130,15 +132,18 @@ export default function MembersPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const queryParams: ListMembersParams = {
-    page,
-    limit: perPage,
-    search: search || undefined,
-    status: statusFilter === "all" ? undefined : statusFilter,
-    branchId: branchFilter === "all" ? undefined : branchFilter,
-    sortBy,
-    sortOrder,
-  };
+  const queryParams: ListMembersParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      search: search || undefined,
+      status: statusFilter === "all" ? undefined : statusFilter,
+      branchId: branchFilter === "all" ? undefined : branchFilter,
+      sortBy,
+      sortOrder,
+    }),
+    [page, perPage, search, statusFilter, branchFilter, sortBy, sortOrder]
+  );
 
   const { data, isLoading, error } = useMembersList(queryParams);
   const restoreMutation = useRestoreMember();
@@ -200,19 +205,32 @@ export default function MembersPage() {
   ];
 
   const exportSource = someSelected ? selectedMembers : members;
-  const exportData = exportSource.map((m) => ({
-    name: `${m.firstName} ${m.lastName}`,
-    email: m.email || "",
-    phone: m.phone || "",
-    whatsappNumber: m.whatsappNumber || "",
-    gender: m.gender || "",
-    address: m.address || "",
-    city: m.city || "",
-    state: m.state || "",
-    branch: m.branchId ? branchNames.get(m.branchId) || "" : "",
-    status: m.status,
-    memberSince: m.memberSince,
-  }));
+  const buildExportRows = React.useCallback(
+    (rows: Member[]) =>
+      rows.map((m) => ({
+        name: `${m.firstName} ${m.lastName}`,
+        email: m.email || "",
+        phone: m.phone || "",
+        whatsappNumber: m.whatsappNumber || "",
+        gender: m.gender || "",
+        address: m.address || "",
+        city: m.city || "",
+        state: m.state || "",
+        branch: m.branchId ? branchNames.get(m.branchId) || "" : "",
+        status: m.status,
+        memberSince: m.memberSince,
+      })),
+    [branchNames]
+  );
+  const exportData = buildExportRows(exportSource);
+
+  // "Export all": walks every page of the current filter/sort server-side.
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<Member>((p) =>
+      api.get(listUrl("/members", { ...queryParams, page: p, limit: 100 }))
+    );
+    return buildExportRows(rows);
+  }, [queryParams, buildExportRows]);
 
   if (error) {
     return (
@@ -242,6 +260,7 @@ export default function MembersPage() {
             <ExportDropdown
               columns={exportColumns}
               data={exportData}
+              fetchAllRows={fetchAllExportRows}
               title={someSelected ? `Members (${selectedMembers.length} selected)` : "Members"}
               filename="members-export"
               disabled={exportSource.length === 0}

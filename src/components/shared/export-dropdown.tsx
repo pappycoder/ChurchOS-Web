@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
 import { Download, FileText, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,12 @@ interface ExportDropdownProps {
   title: string;
   filename: string;
   disabled?: boolean;
+  /**
+   * When provided and no rows are selected client-side, exports EVERY
+   * matching row by paging through the list endpoint. Errors surface as
+   * a toast and fall back to the passed-in `data`.
+   */
+  fetchAllRows?: () => Promise<Record<string, unknown>[]>;
 }
 
 export function ExportDropdown({
@@ -25,13 +32,31 @@ export function ExportDropdown({
   title,
   filename,
   disabled,
+  fetchAllRows,
 }: ExportDropdownProps) {
   const [loading, setLoading] = React.useState<"csv" | "pdf" | "xlsx" | null>(null);
 
-  const handleCSV = () => {
+  const resolveRows = async (): Promise<Record<string, unknown>[]> => {
+    if (fetchAllRows) {
+      try {
+        const rows = await fetchAllRows();
+        return rows.length > 0 ? rows : data;
+      } catch (error) {
+        toast.error("Could not load all rows for export", {
+          description:
+            error instanceof Error
+              ? error.message
+              : "Exporting the loaded rows instead.",
+        });
+      }
+    }
+    return data;
+  };
+
+  const handleCSV = async () => {
     setLoading("csv");
     try {
-      exportCSV(data, columns, filename);
+      exportCSV(await resolveRows(), columns, filename);
     } finally {
       setLoading(null);
     }
@@ -40,7 +65,7 @@ export function ExportDropdown({
   const handlePDF = async () => {
     setLoading("pdf");
     try {
-      await exportPDF(title, columns, data, filename);
+      await exportPDF(title, columns, await resolveRows(), filename);
     } finally {
       setLoading(null);
     }
@@ -49,7 +74,7 @@ export function ExportDropdown({
   const handleExcel = async () => {
     setLoading("xlsx");
     try {
-      await exportExcel([{ name: title, data }], filename);
+      await exportExcel([{ name: title, data: await resolveRows() }], filename);
     } finally {
       setLoading(null);
     }

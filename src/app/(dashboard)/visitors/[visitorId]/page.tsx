@@ -23,6 +23,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -35,6 +43,10 @@ import {
   FOLLOW_UP_STATUSES,
   type FollowUpStatus,
 } from "@/hooks/use-visitors";
+import {
+  useAttendanceRecords,
+  SERVICE_CATEGORIES,
+} from "@/hooks/use-attendance";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { VisitorFormDialog } from "@/components/visitors/visitor-form-dialog";
@@ -84,6 +96,14 @@ export default function VisitorDetailPage({
   const { data: visitor, isLoading, error } = useVisitor(visitorId);
   const updateMutation = useUpdateVisitor(visitorId);
   const usersQuery = useUsers({ limit: 100, status: "active" });
+  // Check-ins linked to this visitor via attendance.visitor_id.
+  const visitsQuery = useAttendanceRecords({
+    visitorId,
+    limit: 5,
+    sortBy: "checkinAt",
+    sortOrder: "desc",
+  });
+  const totalVisits = useAttendanceRecords({ visitorId, limit: 1 });
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [convertOpen, setConvertOpen] = React.useState(false);
@@ -304,6 +324,67 @@ export default function VisitorDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Visit history */}
+      <Card>
+        <CardHeader className="pb-2 flex flex-row items-center justify-between">
+          <CardTitle className="text-sm font-semibold">Visit History</CardTitle>
+          <span className="text-xs text-muted-foreground">
+            {(totalVisits.data?.meta.total ?? 0) === 0
+              ? visitsQuery.isLoading
+                ? ""
+                : "No check-ins yet"
+              : `${totalVisits.data?.meta.total ?? 0} check-in(s)`}
+          </span>
+        </CardHeader>
+        <CardContent className="p-0 pb-4">
+          {visitsQuery.isLoading ? (
+            <div className="px-6 space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (visitsQuery.data?.data.length ?? 0) === 0 ? (
+            <p className="px-6 text-sm text-muted-foreground">
+              No check-ins recorded for this visitor yet.
+            </p>
+          ) : (
+            <div className="overflow-x-auto px-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Service</TableHead>
+                    <TableHead>Checked In</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Source</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(visitsQuery.data?.data ?? []).map((visit) => (
+                    <TableRow key={visit.attendanceId}>
+                      <TableCell className="font-medium">
+                        {visit.serviceName || "-"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {format(new Date(visit.checkInAt), "MMM d, yyyy · HH:mm")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">
+                          {SERVICE_CATEGORIES.find(
+                            (c) => c.value === (visit.category ?? "adult")
+                          )?.label ?? "Adult"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground capitalize">
+                        {visit.source}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Custom fields */}
       {display.customFields && Object.keys(display.customFields).length > 0 && (

@@ -12,6 +12,9 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TablePagination } from "@/components/shared/table-pagination";
+import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import {
   Dialog,
   DialogContent,
@@ -69,16 +72,19 @@ export default function AttendanceRecordsPage() {
 
   const servicesQuery = useAttendanceServices({ limit: 100 });
 
-  const queryParams = {
-    page,
-    limit: perPage,
-    serviceId: serviceId === "all" ? undefined : serviceId,
-    category: category === "all" ? undefined : category,
-    startDate: startDate || undefined,
-    endDate: endDate || undefined,
-    sortBy: "checkinAt" as const,
-    sortOrder: "desc" as const,
-  };
+  const queryParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      serviceId: serviceId === "all" ? undefined : serviceId,
+      category: category === "all" ? undefined : category,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+      sortBy: "checkinAt" as const,
+      sortOrder: "desc" as const,
+    }),
+    [page, perPage, serviceId, category, startDate, endDate]
+  );
 
   const { data, isLoading, error } = useAttendanceRecords(queryParams);
   const deleteMutation = useDeleteAttendance();
@@ -91,6 +97,30 @@ export default function AttendanceRecordsPage() {
     record.memberName ||
     record.visitorName ||
     (record.visitorId ? "Linked visitor" : "Unknown");
+
+  const buildExportRows = React.useCallback(
+    (rows: AttendanceRecord[]) =>
+      rows.map((r) => ({
+        date: format(new Date(r.checkInAt), "yyyy-MM-dd"),
+        time: format(new Date(r.checkInAt), "HH:mm"),
+        name: r.memberName || r.visitorName || "",
+        type: r.memberId ? "Member" : "Visitor",
+        service: r.serviceName || "",
+        category:
+          SERVICE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))
+            ?.label ?? "Adult",
+        source: r.source,
+      })),
+    []
+  );
+
+  // Export walks every page of the current filter set server-side.
+  const fetchAllExportRows = React.useCallback(async () => {
+    const rows = await fetchAllPages<AttendanceRecord>((p) =>
+      api.get(listUrl("/attendance", { ...queryParams, page: p, limit: 200 }))
+    );
+    return buildExportRows(rows);
+  }, [queryParams, buildExportRows]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -137,6 +167,24 @@ export default function AttendanceRecordsPage() {
           { label: "Attendance", href: "/attendance" },
           { label: "Records" },
         ]}
+        action={
+          <ExportDropdown
+            columns={[
+              { key: "date", label: "Date" },
+              { key: "time", label: "Time" },
+              { key: "name", label: "Name" },
+              { key: "type", label: "Type" },
+              { key: "service", label: "Service" },
+              { key: "category", label: "Category" },
+              { key: "source", label: "Source" },
+            ]}
+            data={buildExportRows(records)}
+            fetchAllRows={fetchAllExportRows}
+            title="Attendance Records"
+            filename="attendance-records"
+            disabled={records.length === 0}
+          />
+        }
       />
 
       <Card>

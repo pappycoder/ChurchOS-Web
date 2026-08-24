@@ -101,9 +101,11 @@ export default function CheckInPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // Roster loads progressively — "Load more" widens the server-side window.
+  const [rosterLimit, setRosterLimit] = React.useState(50);
   const rosterQuery = useMembersList({
     page: 1,
-    limit: 50,
+    limit: rosterLimit,
     status: "active",
   });
   const searchQuery = useSearchMembers(search, 50);
@@ -112,6 +114,9 @@ export default function CheckInPage() {
   const members: Member[] = searching
     ? (searchQuery.data?.data ?? [])
     : (rosterQuery.data?.data ?? []);
+  const rosterTotal = searching ? members.length : (rosterQuery.data?.meta?.total ?? 0);
+  const hasMoreRoster =
+    !searching && rosterTotal > rosterLimit && !rosterQuery.isLoading;
 
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const bulkMutation = useRecordBulkAttendance();
@@ -424,6 +429,18 @@ export default function CheckInPage() {
                     </label>
                   );
                 })}
+              </div>
+            )}
+            {hasMoreRoster && (
+              <div className="flex items-center justify-center pt-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRosterLimit((n) => n + 50)}
+                >
+                  Load more ({rosterTotal - rosterLimit} remaining)
+                </Button>
               </div>
             )}
           </CardContent>

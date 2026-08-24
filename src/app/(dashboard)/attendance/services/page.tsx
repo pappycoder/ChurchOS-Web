@@ -159,23 +159,33 @@ export default function AttendanceServicesPage() {
   };
 
   const onSubmit = async (values: ServiceFormValues) => {
-    const payload = {
-      name: values.name.trim(),
-      category: values.category as ServiceCategory,
-      dayOfWeek:
-        values.dayOfWeek && values.dayOfWeek !== "none"
-          ? Number(values.dayOfWeek)
-          : undefined,
-      startTime: values.startTime || undefined,
-      endTime: values.endTime || undefined,
-      isActive: values.isActive,
-    };
     try {
       if (editing) {
-        await updateMutation.mutateAsync(payload);
+        // Explicit nulls so cleared Day/Time fields persist as "no value".
+        await updateMutation.mutateAsync({
+          name: values.name.trim(),
+          category: values.category as ServiceCategory,
+          dayOfWeek:
+            values.dayOfWeek && values.dayOfWeek !== "none"
+              ? Number(values.dayOfWeek)
+              : null,
+          startTime: values.startTime || null,
+          endTime: values.endTime || null,
+          isActive: values.isActive,
+        });
         toast.success("Service updated");
       } else {
-        await createMutation.mutateAsync(payload);
+        await createMutation.mutateAsync({
+          name: values.name.trim(),
+          category: values.category as ServiceCategory,
+          dayOfWeek:
+            values.dayOfWeek && values.dayOfWeek !== "none"
+              ? Number(values.dayOfWeek)
+              : undefined,
+          startTime: values.startTime || undefined,
+          endTime: values.endTime || undefined,
+          isActive: values.isActive,
+        });
         toast.success("Service created");
       }
       setDialogOpen(false);
