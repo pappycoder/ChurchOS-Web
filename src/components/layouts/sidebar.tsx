@@ -382,6 +382,7 @@ function NavLink({
   level = 1,
   openMenus,
   toggleMenu,
+  isLinkActive,
 }: {
   item: NavItem;
   pathname: string;
@@ -389,6 +390,7 @@ function NavLink({
   level?: number;
   openMenus: Record<string, boolean>;
   toggleMenu: (key: string) => void;
+  isLinkActive: (href?: string) => boolean;
 }) {
   const Icon = item.icon || ICON_MAP[item.title];
   const hasChildren = !!item.children?.length;
@@ -440,9 +442,9 @@ function NavLink({
               level={level + 1}
               openMenus={openMenus}
               toggleMenu={toggleMenu}
+              isLinkActive={isLinkActive}
             />
-          ))}
-        </ul>
+          ))}        </ul>
       </li>
     );
   }
@@ -451,7 +453,7 @@ function NavLink({
     <li>
       <Link
         href={item.href || "#"}
-        className={cn("flex items-center gap-2", isActive(item.href) && "active")}
+        className={cn("flex items-center gap-2", isLinkActive(item.href) && "active")}
         onClick={closeMobile}
       >
         {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
@@ -535,6 +537,31 @@ export function Sidebar() {
   const toggleMenu = (key: string) => {
     setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Every leaf link's href in the (permission-filtered) tree.
+  const leafHrefs = React.useMemo(() => {
+    const out: string[] = [];
+    const walk = (items: NavItem[]) =>
+      items.forEach((i) => {
+        if (i.children?.length) walk(i.children);
+        else if (i.href) out.push(i.href);
+      });
+    visibleNav.forEach((g) => walk(g.items));
+    return out;
+  }, [visibleNav]);
+
+  // Longest matching href wins, so an index link ("/members") doesn't stay
+  // lit on its own subpages ("/members/import", "/members/families", ...).
+  const isLinkActive = React.useCallback(
+    (href?: string) => {
+      if (!href) return false;
+      const matches = (candidate?: string) =>
+        !!candidate && (pathname === candidate || pathname.startsWith(candidate + "/"));
+      if (!matches(href)) return false;
+      return !leafHrefs.some((other) => other !== href && other.length > href.length && matches(other));
+    },
+    [pathname, leafHrefs]
+  );
 
   const handleMouseEnter = React.useCallback(() => {
     if (!collapsed) return;
@@ -694,6 +721,7 @@ export function Sidebar() {
                           closeMobile={closeMobile}
                           openMenus={openMenus}
                           toggleMenu={toggleMenu}
+                          isLinkActive={isLinkActive}
                         />
                       ))}
                     </ul>
