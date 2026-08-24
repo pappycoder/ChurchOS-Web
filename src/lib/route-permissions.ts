@@ -30,6 +30,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/members", permission: "members:read" },
 
   // Attendance · Giving · Events
+  { prefix: "/attendance/check-in", permission: "attendance:create" },
+  { prefix: "/attendance/services", permission: "attendance:read" },
   { prefix: "/attendance", permission: "attendance:read" },
   { prefix: "/giving", permission: "giving:read" },
   { prefix: "/events", permission: "events:read" },
