@@ -572,7 +572,7 @@ export default function VisitorsPage() {
       <ConvertVisitorDialog
         open={!!convertVisitor}
         onOpenChange={(open) => !open && setConvertVisitor(null)}
-        visitor={convertVisitor!}
+        visitor={convertVisitor}
       />
       <DeleteVisitorDialog
         open={!!deleteTargets}

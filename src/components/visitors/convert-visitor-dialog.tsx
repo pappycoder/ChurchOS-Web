@@ -52,28 +52,29 @@ export function ConvertVisitorDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  visitor: Visitor;
+  /** Target visitor; nullable so the dialog can stay mounted while closed. */
+  visitor?: Visitor | null;
   /** Called after a successful conversion with the new member's ID. */
   onConverted?: (memberId: string) => void;
 }) {
   const router = useRouter();
-  const convertMutation = useConvertVisitor(visitor.id);
+  const convertMutation = useConvertVisitor(visitor?.id ?? "");
   const branchesQuery = useBranchesList({ limit: 100 });
   const [pending, setPending] = React.useState(false);
 
   const form = useForm<ConvertFormValues>({
     resolver: zodResolver(convertSchema),
     defaultValues: {
-      firstName: visitor.firstName,
-      lastName: visitor.lastName ?? "",
-      email: visitor.email ?? "",
-      phone: visitor.phone ?? "",
+      firstName: visitor?.firstName ?? "",
+      lastName: visitor?.lastName ?? "",
+      email: visitor?.email ?? "",
+      phone: visitor?.phone ?? "",
       branchId: "",
     },
   });
 
   React.useEffect(() => {
-    if (open) {
+    if (open && visitor) {
       form.reset({
         firstName: visitor.firstName,
         lastName: visitor.lastName ?? "",
@@ -83,6 +84,9 @@ export function ConvertVisitorDialog({
       });
     }
   }, [open, visitor, form]);
+
+  // Render nothing while closed with no target — all hooks above stay mounted.
+  if (!visitor) return null;
 
   const onSubmit = async (values: ConvertFormValues) => {
     setPending(true);
