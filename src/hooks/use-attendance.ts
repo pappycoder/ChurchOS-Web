@@ -23,6 +23,8 @@ export interface ChurchService {
   startTime?: string;
   endTime?: string;
   isActive: boolean;
+  /** All-time check-in count (populated by list/detail endpoints). */
+  attendanceCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -162,6 +164,14 @@ export function useAttendanceServices(params: ListServicesParams = {}) {
     queryKey: ["attendance-services", params],
     queryFn: () =>
       api.get<PaginatedResponse<ChurchService>>(`/services${buildQuery({ ...params })}`),
+  });
+}
+
+export function useService(serviceId: string) {
+  return useQuery({
+    queryKey: ["attendance-service", serviceId],
+    queryFn: () => api.get<ChurchService>(`/services/${serviceId}`),
+    enabled: !!serviceId,
   });
 }
 

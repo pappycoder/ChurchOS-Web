@@ -147,6 +147,51 @@ class ApiClient {
   delete<T>(path: string, options?: { skipAuth?: boolean }) {
     return this.request<T>("DELETE", path, undefined, options);
   }
+
+  /**
+   * GETs a raw binary response (e.g. PDF receipts). Returns the parsed
+   * body as JSON when the server replies with an error envelope.
+   */
+  async getBlob(path: string): Promise<Blob> {
+    const headers: Record<string, string> = {};
+    const token = getToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${this.baseUrl}${path}`, { headers });
+    if (!res.ok) {
+      let message = `Request failed (${res.status}). Please try again.`;
+      try {
+        const json = (await res.json()) as BackendErrorResponse;
+        message = getErrorMessage(res.status, json);
+      } catch {
+        // Non-JSON error body — keep the generic message.
+      }
+      throw { message, statusCode: res.status } as AuthError;
+    }
+    return res.blob();
+  }
+
+  /**
+   * POSTs a JSON body expecting a binary response (none currently — kept
+   * symmetric with getBlob for future exports).
+   */
+  async postForBlob(path: string, body: unknown): Promise<Blob> {
+    const token = getToken();
+    const res = await fetch(`${this.baseUrl}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      throw new Error(`Request failed (${res.status})`);
+    }
+    return res.blob();
+  }
 }
 
 export const api = new ApiClient();

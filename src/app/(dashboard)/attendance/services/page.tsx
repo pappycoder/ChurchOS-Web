@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -116,6 +117,7 @@ function toFormValues(service?: ChurchService | null): ServiceFormValues {
 }
 
 export default function AttendanceServicesPage() {
+  const router = useRouter();
   const { can } = usePermissions();
   const canCreate = can("attendance", "create");
   const canUpdate = can("attendance", "update");
@@ -280,13 +282,18 @@ export default function AttendanceServicesPage() {
                     <TableHead>Day</TableHead>
                     <TableHead>Time</TableHead>
                     <TableHead>Category</TableHead>
+                    <TableHead>Attendance</TableHead>
                     <TableHead>Status</TableHead>
                     {canManage && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {services.map((service) => (
-                    <TableRow key={service.serviceId}>
+                    <TableRow
+                      key={service.serviceId}
+                      className="cursor-pointer"
+                      onClick={() => router.push(`/attendance/services/${service.serviceId}`)}
+                    >
                       <TableCell className="font-medium">{service.name}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {dayLabel(service.dayOfWeek)}
@@ -306,6 +313,9 @@ export default function AttendanceServicesPage() {
                           )?.label) ?? "Adult"}
                         </Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {(service.attendanceCount ?? 0).toLocaleString()}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={service.isActive ? "default" : "secondary"}>
                           <span
@@ -317,7 +327,10 @@ export default function AttendanceServicesPage() {
                         </Badge>
                       </TableCell>
                       {canManage && (
-                        <TableCell className="text-right">
+                        <TableCell
+                          className="text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8">
