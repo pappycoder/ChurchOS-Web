@@ -10,8 +10,6 @@ import {
   ArrowUpDown,
   SortAsc,
   SortDesc,
-  ChevronLeft,
-  ChevronRight,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,6 +18,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -131,7 +130,7 @@ export default function UsersPage() {
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
-  const perPage = 15;
+  const [perPage, setPerPage] = React.useState(15);
 
   const [inviteDialogOpen, setInviteDialogOpen] = React.useState(false);
   const [editRoleDialogOpen, setEditRoleDialogOpen] = React.useState(false);
@@ -163,7 +162,6 @@ export default function UsersPage() {
 
   const users = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
-  const totalPages = data?.meta?.totalPages ?? Math.ceil(total / perPage);
 
   const activeUsers = users.filter((u) => u.status === "active").length;
   const inactiveUsers = users.filter((u) => u.status === "inactive").length;
@@ -478,21 +476,17 @@ export default function UsersPage() {
             </CardContent>
           </Card>
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm text-muted-foreground">
-                Showing {(page - 1) * perPage + 1}–{Math.min(page * perPage, total)} of {total} users
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-                  <ChevronLeft className="h-4 w-4" /> Previous
-                </Button>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
-                  Next <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
+          <TablePagination
+            page={page}
+            perPage={perPage}
+            total={total}
+            itemName="users"
+            onPageChange={setPage}
+            onPerPageChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+          />
         </>
       )}
 

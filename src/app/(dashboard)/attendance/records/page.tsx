@@ -11,6 +11,7 @@ import {
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { TablePagination } from "@/components/shared/table-pagination";
 import {
   Dialog,
   DialogContent,
@@ -64,7 +65,7 @@ export default function AttendanceRecordsPage() {
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
   const [page, setPage] = React.useState(1);
-  const perPage = 15;
+  const [perPage, setPerPage] = React.useState(15);
 
   const servicesQuery = useAttendanceServices({ limit: 100 });
 
@@ -294,32 +295,17 @@ export default function AttendanceRecordsPage() {
         </CardContent>
       </Card>
 
-      {meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(meta.page - 1) * meta.limit + 1}–
-            {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} records
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= meta.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        itemName="records"
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      />
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

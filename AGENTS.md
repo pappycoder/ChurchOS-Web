@@ -14,6 +14,8 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **Unified table pagination with rows-per-page selector** across every paginated table. New shared `src/components/shared/table-pagination.tsx` ("Showing X–Y of Z {item}" + Rows-per-page select 10/15/25/50 + "Page p of N" + Prev/Next, hidden when empty) replaces the six hand-rolled Previous/Next footers — members, families, visitors, attendance services & records, and users. Each page swaps its fixed `perPage` const for state wired through the existing `limit` query param; changing the page size resets to page 1. No backend changes (limits already supported). Branches intentionally untouched (single-fetch, no footer today). Users page dropped three now-dead imports/vars in the swap. Scoped eslint clean (only the 4 pre-existing users-page warnings); tsc clean; build passes.
+
 - **Attendance module (`/attendance`) — dashboard, services CRUD, check-in, records, reports.** Backend counterpart (paginated `GET /attendance`, `DELETE /services/:id` with attendance-conflict guard, `DELETE /attendance/:id`) shipped same round — see backend changelog.
   - **New hooks** `src/hooks/use-attendance.ts`: `ChurchService`/`AttendanceRecord`/summary/trend types mirroring the DTOs, `SERVICE_CATEGORIES` label map, services list/create/update/delete, `useAttendanceRecords(params)` (key `["attendance-records", params]`), record single/bulk mutations + `useDeleteAttendance` invalidating the records/summary/trends cache family, and summary/trends/by-service analytics queries.
   - **Route gates added**: `/attendance/check-in` → `attendance:create`; `/attendance/services` → `attendance:read`; `/attendance` → read (pre-wired).

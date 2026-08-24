@@ -17,6 +17,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
+import { TablePagination } from "@/components/shared/table-pagination";
 import {
   Dialog,
   DialogContent,
@@ -122,7 +123,7 @@ export default function AttendanceServicesPage() {
   const canManage = canCreate || canUpdate || canDelete;
 
   const [page, setPage] = React.useState(1);
-  const perPage = 20;
+  const [perPage, setPerPage] = React.useState(20);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
@@ -371,32 +372,17 @@ export default function AttendanceServicesPage() {
         </CardContent>
       </Card>
 
-      {meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(meta.page - 1) * meta.limit + 1}–
-            {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} services
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= meta.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        itemName="services"
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      />
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

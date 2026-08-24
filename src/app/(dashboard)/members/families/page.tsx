@@ -17,6 +17,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { TablePagination } from "@/components/shared/table-pagination";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
@@ -67,7 +68,7 @@ export default function FamiliesPage() {
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
-  const perPage = 15;
+  const [perPage, setPerPage] = React.useState(15);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
 
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
@@ -371,27 +372,17 @@ export default function FamiliesPage() {
         </CardContent>
       </Card>
 
-      {meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">
-            Showing {(meta.page - 1) * meta.limit + 1}–
-            {Math.min(meta.page * meta.limit, meta.total)} of {meta.total} families
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= meta.totalPages}
-              onClick={() => setPage(page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        itemName="families"
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      />
 
       <FamilyFormDialog
         open={createDialogOpen}
