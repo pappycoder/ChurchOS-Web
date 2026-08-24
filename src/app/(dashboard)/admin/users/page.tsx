@@ -51,6 +51,7 @@ import {
   type ListUsersParams,
 } from "@/hooks/use-users";
 import { useAssignableRoles, useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   UserCheckboxCell,
   UserActionsCell,
@@ -156,6 +157,11 @@ export default function UsersPage() {
   const forceSignoutMutation = useForceSignout();
   const roleLabels = useRoleLabelMap();
   const assignableRoles = useAssignableRoles();
+  const { can } = usePermissions();
+  const canCreateUsers = can("users", "create");
+  const canDeleteUsers = can("users", "delete");
+  const canUpdateUsers = can("users", "update");
+  const canManageUsers = canUpdateUsers || canDeleteUsers;
 
   const users = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
@@ -307,10 +313,12 @@ export default function UsersPage() {
               filename="users-export"
               disabled={users.length === 0}
             />
-            <Button onClick={() => setInviteDialogOpen(true)}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add User
-            </Button>
+            {canCreateUsers && (
+              <Button onClick={() => setInviteDialogOpen(true)}>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
+            )}
           </div>
         }
       />
@@ -381,7 +389,7 @@ export default function UsersPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              {someSelected && (
+              {someSelected && canDeleteUsers && (
                 <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
                   <span className="text-sm font-medium">{selectedIds.size} selected</span>
                   <Button
@@ -429,7 +437,9 @@ export default function UsersPage() {
                         <TableHead>Created Date</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        {canManageUsers && (
+                          <TableHead className="text-right">Actions</TableHead>
+                        )}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -463,19 +473,21 @@ export default function UsersPage() {
                           <TableCell>
                             <UserStatusCell status={user.status} />
                           </TableCell>
-                          <TableCell
-                            className="text-right"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <UserActionsCell
-                              user={user}
-                              onEditRole={handleEditRole}
-                              onDeactivate={handleDeactivate}
-                              onReactivate={handleReactivate}
-                              onResetPassword={handleResetPassword}
-                              onForceSignout={handleForceSignout}
-                            />
-                          </TableCell>
+                          {canManageUsers && (
+                            <TableCell
+                              className="text-right"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <UserActionsCell
+                                user={user}
+                                onEditRole={handleEditRole}
+                                onDeactivate={handleDeactivate}
+                                onReactivate={handleReactivate}
+                                onResetPassword={handleResetPassword}
+                                onForceSignout={handleForceSignout}
+                              />
+                            </TableCell>
+                          )}
                         </TableRow>
                       ))}
                     </TableBody>

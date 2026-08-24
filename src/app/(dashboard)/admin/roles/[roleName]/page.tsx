@@ -35,6 +35,7 @@ import {
 } from "@/hooks/use-roles";
 import { PermissionMatrixEditor } from "@/components/roles/permission-matrix-editor";
 import { ResetRoleDialog } from "@/components/roles/reset-role-dialog";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export default function RoleDetailPage({
   params,
@@ -61,6 +62,10 @@ export default function RoleDetailPage({
 
   const isSuperAdmin = roleName === "super_admin";
   const isChurchOwned = role?.isChurchOwned ?? false;
+  // Role CRUD has no dedicated permission resource — restricted to
+  // church-level admins by legacy role assignment.
+  const { hasRole } = usePermissions();
+  const canManageRoles = hasRole("church_admin", "super_admin");
   const displayLabel = role?.label || getRoleLabel(roleName);
 
   const permissionIdByName = React.useMemo(
@@ -87,6 +92,7 @@ export default function RoleDetailPage({
   const isDirty = addedCount > 0 || removedCount > 0;
 
   const handleToggle = (perm: Permission, next: boolean) => {
+    if (!canManageRoles) return;
     setSelectedIds((prev) => {
       const nextSet = new Set(prev);
       if (next) {
@@ -233,7 +239,7 @@ export default function RoleDetailPage({
                   {role.description || "No description"}
                 </p>
               </div>
-              {!isSuperAdmin && !isChurchOwned && (
+              {!isSuperAdmin && !isChurchOwned && canManageRoles && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -299,7 +305,7 @@ export default function RoleDetailPage({
             </>
           )}
 
-          {isDirty && (
+          {isDirty && canManageRoles && (
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-20 w-[calc(100%-2rem)] max-w-2xl">
               <div className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3 shadow-lg">
                 <span className="text-sm font-medium tabular-nums">

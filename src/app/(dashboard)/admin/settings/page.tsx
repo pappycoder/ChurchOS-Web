@@ -21,12 +21,14 @@ import {
 } from "@/components/settings/settings-nav";
 import { GeneralSettingsTab } from "@/components/settings/general-settings-tab";
 import { SecuritySettingsTab } from "@/components/settings/security-settings-tab";
-import { useChurch, useCanManageChurch } from "@/hooks/use-church";
+import { useChurch } from "@/hooks/use-church";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export default function ChurchSettingsPage() {
   const [activeTabId, setActiveTabId] = React.useState<SettingsTabId>("general");
   const churchQuery = useChurch();
-  const canManage = useCanManageChurch();
+  // Editing church settings requires the church_settings:update permission.
+  const canManage = usePermissions().can("church_settings", "update");
 
   const sections = getSettingsSections(activeTabId);
   const activeSection = useScrollSpy();

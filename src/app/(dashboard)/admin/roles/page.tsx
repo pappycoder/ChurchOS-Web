@@ -35,6 +35,7 @@ import {
   type RoleWithPermissions,
 } from "@/hooks/use-roles";
 import { CreateRoleDialog } from "@/components/roles/create-role-dialog";
+import { usePermissions } from "@/hooks/use-permissions";
 
 function RoleStatusBadge({ role }: { role: RoleWithPermissions }) {
   if (role.roleName === "super_admin") {
@@ -102,6 +103,10 @@ export default function RolesPage() {
   ).length;
   const totalPermissions = allPermissions?.length ?? 0;
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
+  // Role CRUD has no dedicated permission resource — restricted to
+  // church-level admins by legacy role assignment.
+  const { hasRole } = usePermissions();
+  const canManageRoles = hasRole("church_admin", "super_admin");
 
   if (error) {
     return (
@@ -169,10 +174,12 @@ export default function RolesPage() {
                   Church-level changes are added on top of each role&apos;s global
                   defaults.
                 </p>
-                <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-1.5" />
-                  Add Role
-                </Button>
+                {canManageRoles && (
+                  <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-1.5" />
+                    Add Role
+                  </Button>
+                )}
               </div>
             </CardHeader>
             <CardContent className="p-0">

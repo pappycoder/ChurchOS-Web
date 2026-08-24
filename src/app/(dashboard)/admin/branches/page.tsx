@@ -123,7 +123,11 @@ function TableSkeleton() {
 export default function BranchesPage() {
   const router = useRouter();
   const { can } = usePermissions();
-  const canManage = can("branches", "update") || can("branches", "create") || can("branches", "delete");
+  const canCreateBranches = can("branches", "create");
+  const canUpdateBranches = can("branches", "update");
+  const canDeleteBranches = can("branches", "delete");
+  // Coarse flag for admin-flavored empty-state copy.
+  const canManage = canCreateBranches || canUpdateBranches || canDeleteBranches;
 
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<TypeFilter>("all");
@@ -242,7 +246,7 @@ export default function BranchesPage() {
               filename="branches-export"
               disabled={exportSource.length === 0}
             />
-            {canManage && (
+            {canCreateBranches && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Branch
@@ -307,7 +311,7 @@ export default function BranchesPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              {someSelected && canManage && (
+              {someSelected && canDeleteBranches && (
                 <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
                   <span className="text-sm font-medium">{selectedIds.size} selected</span>
                   <Button
@@ -416,7 +420,7 @@ export default function BranchesPage() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <div className="flex items-center justify-end gap-1">
-                              {canManage && (
+                              {canUpdateBranches && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -439,20 +443,26 @@ export default function BranchesPage() {
                                     <Eye className="mr-2 h-4 w-4" />
                                     View Details
                                   </DropdownMenuItem>
-                                  {canManage && (
+                                  {(canUpdateBranches || canDeleteBranches) && (
                                     <>
-                                      <DropdownMenuItem onClick={() => setEditBranch(branch)}>
-                                        <Pencil className="mr-2 h-4 w-4" />
-                                        Edit Branch
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={() => setDeleteTargets([branch])}
-                                      >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete Branch
-                                      </DropdownMenuItem>
+                                      {canUpdateBranches && (
+                                        <DropdownMenuItem onClick={() => setEditBranch(branch)}>
+                                          <Pencil className="mr-2 h-4 w-4" />
+                                          Edit Branch
+                                        </DropdownMenuItem>
+                                      )}
+                                      {canUpdateBranches && canDeleteBranches && (
+                                        <DropdownMenuSeparator />
+                                      )}
+                                      {canDeleteBranches && (
+                                        <DropdownMenuItem
+                                          className="text-destructive focus:text-destructive"
+                                          onClick={() => setDeleteTargets([branch])}
+                                        >
+                                          <Trash2 className="mr-2 h-4 w-4" />
+                                          Delete Branch
+                                        </DropdownMenuItem>
+                                      )}
                                     </>
                                   )}
                                 </DropdownMenuContent>

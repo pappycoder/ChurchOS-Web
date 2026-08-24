@@ -43,10 +43,12 @@ import {
   useUpdateChurch,
   useUpdateChurchConfig,
   useUpdateChurchEmail,
-  useCanManageChurch,
   uploadChurchLogo,
   type ChurchProfile,
 } from "@/hooks/use-church";
+import { usePermissions } from "@/hooks/use-permissions";
+
+const useCanManageChurchSettings = () => usePermissions().can("church_settings", "update");
 
 const TIMEZONES = [
   { value: "Africa/Lagos", label: "(GMT+1) Lagos" },
@@ -106,7 +108,7 @@ function churchDefaults(church: ChurchProfile): ChurchFormValues {
 }
 
 function LogoTile({ church }: { church: ChurchProfile }) {
-  const canManage = useCanManageChurch();
+  const canManage = useCanManageChurchSettings();
   const inputRef = React.useRef<HTMLInputElement>(null);
   const updateMutation = useUpdateChurch();
 
@@ -192,7 +194,7 @@ function LogoTile({ church }: { church: ChurchProfile }) {
 }
 
 function ChurchSection({ church }: { church: ChurchProfile }) {
-  const canManage = useCanManageChurch();
+  const canManage = useCanManageChurchSettings();
   const updateMutation = useUpdateChurch();
 
   const form = useForm<ChurchFormValues>({
@@ -334,7 +336,7 @@ const churchEmailSchema = z.object({
 type ChurchEmailFormValues = z.infer<typeof churchEmailSchema>;
 
 function EmailSection({ church }: { church: ChurchProfile }) {
-  const canManage = useCanManageChurch();
+  const canManage = useCanManageChurchSettings();
   const [open, setOpen] = React.useState(false);
   const updateMutation = useUpdateChurchEmail();
 
@@ -439,7 +441,7 @@ function EmailSection({ church }: { church: ChurchProfile }) {
 // ─── Preferences ────────────────────────────────────────────
 
 function PreferencesSection() {
-  const canManage = useCanManageChurch();
+  const canManage = useCanManageChurchSettings();
   const configQuery = useChurchConfig();
   const updateMutation = useUpdateChurchConfig();
 

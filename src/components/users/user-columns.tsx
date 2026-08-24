@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { UserProfile } from "@/hooks/use-users";
 import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
+import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
 
 function getInitials(firstName: string, lastName: string): string {
@@ -73,18 +74,33 @@ export function UserActionsCell({
   onResetPassword,
   onForceSignout,
 }: UserActionsCellProps) {
+  const { can } = usePermissions();
+  const canUpdate = can("users", "update");
+  const canDelete = can("users", "delete");
+  const canEditRole = canUpdate;
+  const canToggleStatus = canDelete;
+  const canResetPassword = canUpdate;
+  const canForceSignout = canUpdate;
+
+  // Nothing actionable for this viewer — render an empty cell.
+  if (!canEditRole && !canToggleStatus && !canResetPassword && !canForceSignout) {
+    return <div className="flex items-center justify-end" />;
+  }
+
   return (
     <div className="flex items-center justify-end gap-1">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => onEditRole(user)}
-        title="Edit Role"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
-      {user.status === "active" ? (
+      {canEditRole && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onEditRole(user)}
+          title="Edit Role"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
+      {canToggleStatus && (user.status === "active" ? (
         <Button
           variant="ghost"
           size="icon"
@@ -104,26 +120,32 @@ export function UserActionsCell({
         >
           <ShieldCheck className="h-4 w-4" />
         </Button>
+      ))}
+      {(canResetPassword || canForceSignout) && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">More actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {canResetPassword && (
+              <DropdownMenuItem onClick={() => onResetPassword(user)}>
+                <KeyRound className="mr-2 h-4 w-4" />
+                Reset Password
+              </DropdownMenuItem>
+            )}
+            {canResetPassword && canForceSignout && <DropdownMenuSeparator />}
+            {canForceSignout && (
+              <DropdownMenuItem onClick={() => onForceSignout(user)}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Force Sign Out
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">More actions</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onResetPassword(user)}>
-            <KeyRound className="mr-2 h-4 w-4" />
-            Reset Password
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onForceSignout(user)}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Force Sign Out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
     </div>
   );
 }

@@ -62,7 +62,8 @@ export default function BranchDetailPage({
   const { branchId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
-  const canManage = can("branches", "update") || can("branches", "create") || can("branches", "delete");
+  const canUpdateBranches = can("branches", "update");
+  const canDeleteBranches = can("branches", "delete");
   const { data: branch, isLoading, error } = useBranch(branchId);
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -156,20 +157,24 @@ export default function BranchDetailPage({
                 </p>
               </div>
             </div>
-            {canManage && display && (
+            {(canUpdateBranches || canDeleteBranches) && display && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-                <Button onClick={() => setEditOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit Branch
-                </Button>
+                {canDeleteBranches && (
+                  <Button
+                    variant="outline"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setDeleteOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                )}
+                {canUpdateBranches && (
+                  <Button onClick={() => setEditOpen(true)}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit Branch
+                  </Button>
+                )}
               </div>
             )}
           </div>
