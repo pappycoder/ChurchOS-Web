@@ -1,0 +1,708 @@
+"use client";
+
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Upload,
+  Download,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertTriangle,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/shared/page-header";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { api } from "@/lib/api";
+import { useBranchesList } from "@/hooks/use-branches";
+
+type ImportStep = "upload" | "map" | "review" | "done";
+
+interface ParsedRow {
+  rowNumber: number;
+  raw: Record<string, string>;
+}
+
+interface ImportError {
+  row: number;
+  message: string;
+}
+
+interface ImportResult {
+  created: number;
+  errors: ImportError[];
+}
+
+/** Target fields the importer can fill on each member record. */
+const TARGET_FIELDS: Array<{
+  key: string;
+  label: string;
+  required?: boolean;
+  aliases: string[];
+}> = [
+  { key: "firstName", label: "First Name *", required: true, aliases: ["firstname", "first", "givenname", "forename"] },
+  { key: "lastName", label: "Last Name *", required: true, aliases: ["lastname", "last", "surname", "familyname"] },
+  { key: "email", label: "Email", aliases: ["email", "emailaddress"] },
+  { key: "phone", label: "Phone", aliases: ["phone", "phonenumber", "mobile", "telephone", "tel"] },
+  { key: "whatsappNumber", label: "WhatsApp Number", aliases: ["whatsapp", "whatsappnumber", "whatsappno"] },
+  { key: "gender", label: "Gender", aliases: ["gender", "sex"] },
+  { key: "dateOfBirth", label: "Date of Birth", aliases: ["dateofbirth", "dob", "birthday"] },
+  { key: "address", label: "Address", aliases: ["address", "streetaddress", "residentialaddress"] },
+  { key: "city", label: "City", aliases: ["city", "town"] },
+  { key: "state", label: "State", aliases: ["state", "region", "province"] },
+  { key: "branch", label: "Branch (by name)", aliases: ["branch", "branchname", "campus"] },
+  { key: "status", label: "Status", aliases: ["status", "membershipstatus"] },
+  { key: "notes", label: "Notes", aliases: ["notes", "note", "comments"] },
+];
+
+const VALID_STATUSES = new Set(["active", "inactive", "suspended", "transferred"]);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function normalizeHeader(header: string): string {
+  return header.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function autoMap(headers: string[]): Record<string, string> {
+  const mapping: Record<string, string> = {};
+  const used = new Set<string>();
+  for (const field of TARGET_FIELDS) {
+    const match = headers.find(
+      (h) => !used.has(h) && field.aliases.includes(normalizeHeader(h))
+    );
+    if (match) {
+      mapping[field.key] = match;
+      used.add(match);
+    }
+  }
+  return mapping;
+}
+
+export default function MemberImportPage() {
+  const router = useRouter();
+  const branchesQuery = useBranchesList({ limit: 100 });
+
+  const [step, setStep] = React.useState<ImportStep>("upload");
+  const [fileName, setFileName] = React.useState("");
+  const [rows, setRows] = React.useState<ParsedRow[]>([]);
+  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [mapping, setMapping] = React.useState<Record<string, string>>({});
+  const [parsing, setParsing] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [dryRunning, setDryRunning] = React.useState(false);
+  const [importing, setImporting] = React.useState(false);
+  const [dryRunResult, setDryRunResult] = React.useState<ImportResult | null>(null);
+  const [finalResult, setFinalResult] = React.useState<ImportResult | null>(null);
+
+  // Branch name → id resolution for the mapped "branch" column.
+  const branchIdByName = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const b of branchesQuery.data?.data ?? []) {
+      map.set(b.name.trim().toLowerCase(), b.branchId);
+    }
+    return map;
+  }, [branchesQuery.data]);
+
+  /** Reject anything that is not a .csv / .xlsx / .xls before parsing. */
+  const validateFile = (file: File): string | null => {
+    const name = file.name.toLowerCase();
+    const ext = name.slice(name.lastIndexOf("."));
+    const allowedExtensions = [".csv", ".xlsx", ".xls"];
+    if (!allowedExtensions.includes(ext)) {
+      return "Unsupported file type. Please upload a .csv, .xlsx, or .xls file.";
+    }
+    return null;
+  };
+
+  const handleFileSelected = (file: File) => {
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast.error("File rejected", { description: validationError });
+      return;
+    }
+    void handleFile(file);
+  };
+
+  const handleFile = async (file: File) => {
+    setParsing(true);
+    try {
+      const XLSX = await import("xlsx");
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      if (!sheetName) throw new Error("The file has no sheets.");
+      const sheet = workbook.Sheets[sheetName];
+      const jsonRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
+        defval: "",
+        raw: false,
+      });
+      if (jsonRows.length === 0) throw new Error("No data rows found in the file.");
+
+      const headerSet = new Set<string>();
+      for (const r of jsonRows.slice(0, 50)) {
+        Object.keys(r).forEach((k) => k.trim() && headerSet.add(k.trim()));
+      }
+      const cols = Array.from(headerSet);
+
+      const parsed: ParsedRow[] = jsonRows.map((r, i) => {
+        const clean: Record<string, string> = {};
+        for (const [k, v] of Object.entries(r)) {
+          clean[k.trim()] = String(v ?? "").trim();
+        }
+        return { rowNumber: i + 2, raw: clean }; // +2 accounts for the header row
+      });
+
+      setFileName(file.name);
+      setHeaders(cols);
+      setMapping(autoMap(cols));
+      setRows(parsed);
+      setDryRunResult(null);
+      setFinalResult(null);
+      setStep("map");
+    } catch (error) {
+      toast.error("Could not parse file", {
+        description:
+          error instanceof Error ? error.message : "Use a .csv or .xlsx file.",
+      });
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const downloadTemplate = async () => {
+    const XLSX = await import("xlsx");
+    const aoa = [
+      TARGET_FIELDS.map((f) => f.label.replace(/ \*$/, "").replace(/ \(.*\)$/, "")),
+      ["Chioma", "Eze", "chioma@example.com", "+234 803 456 7890", "", "female", "1995-04-12", "12 Awolowo Road", "Lagos", "Lagos", "Main Campus", "active", ""],
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Members");
+    XLSX.writeFile(wb, "member-import-template.xlsx");
+  };
+
+  /** Client-side mirror of the server's per-row validation. */
+  const validateRows = (): ImportError[] => {
+    const errors: ImportError[] = [];
+    const missingRequired = TARGET_FIELDS.filter((f) => f.required && !mapping[f.key]);
+    for (const f of missingRequired) {
+      errors.push({ row: 0, message: `Map a column for ${f.label}.` });
+    }
+    if (missingRequired.length > 0) return errors;
+
+    for (const r of rows) {
+      const get = (key: string) => (mapping[key] ? r.raw[mapping[key]] || "" : "");
+      if (!get("firstName")) errors.push({ row: r.rowNumber, message: "First name is empty." });
+      if (!get("lastName")) errors.push({ row: r.rowNumber, message: "Last name is empty." });
+
+      const email = get("email");
+      if (email && !EMAIL_RE.test(email)) {
+        errors.push({ row: r.rowNumber, message: `Invalid email "${email}".` });
+      }
+
+      const status = get("status").toLowerCase();
+      if (status && !VALID_STATUSES.has(status)) {
+        errors.push({
+          row: r.rowNumber,
+          message: `Unknown status "${status}" (use active, inactive, suspended, or transferred).`,
+        });
+      }
+
+      const branchName = get("branch");
+      if (branchName && !branchIdByName.has(branchName.toLowerCase())) {
+        errors.push({
+          row: r.rowNumber,
+          message: `Branch "${branchName}" does not match any of your branches.`,
+        });
+      }
+    }
+    return errors;
+  };
+
+  const buildPayload = () =>
+    rows.map((r) => {
+      const get = (key: string) => (mapping[key] ? r.raw[mapping[key]] || "" : "");
+      const branchName = get("branch");
+      return {
+        firstName: get("firstName"),
+        lastName: get("lastName"),
+        ...(get("email") ? { email: get("email") } : {}),
+        ...(get("phone") ? { phone: get("phone") } : {}),
+        ...(get("whatsappNumber") ? { whatsappNumber: get("whatsappNumber") } : {}),
+        ...(get("gender") ? { gender: get("gender").toLowerCase() } : {}),
+        ...(get("dateOfBirth") ? { dateOfBirth: get("dateOfBirth").slice(0, 10) } : {}),
+        ...(get("address") ? { address: get("address") } : {}),
+        ...(get("city") ? { city: get("city") } : {}),
+        ...(get("state") ? { state: get("state") } : {}),
+        ...(branchName ? { branchId: branchIdByName.get(branchName.toLowerCase()) } : {}),
+        ...(VALID_STATUSES.has(get("status").toLowerCase())
+          ? { status: get("status").toLowerCase() }
+          : {}),
+        ...(get("notes") ? { notes: get("notes") } : {}),
+      };
+    });
+
+  const callBulkImport = async (dryRun: boolean): Promise<ImportResult> => {
+    const payload = { members: buildPayload(), dryRun };
+    const result = await api.post<{ created: number; errors: Array<{ row: number; message: string }>; dryRun: boolean }>(
+      "/members/bulk-import",
+      payload
+    );
+    return { created: result.created, errors: result.errors };
+  };
+
+  const handleDryRun = async () => {
+    const clientErrors = validateRows();
+    if (clientErrors.some((e) => e.row === 0)) {
+      toast.error("Finish the column mapping first", {
+        description: clientErrors.find((e) => e.row === 0)?.message,
+      });
+      return;
+    }
+    if (clientErrors.length > 0) {
+      setDryRunResult({ created: 0, errors: clientErrors });
+      setStep("review");
+      return;
+    }
+
+    setDryRunning(true);
+    try {
+      const result = await callBulkImport(true);
+      setDryRunResult(result);
+      setStep("review");
+    } catch (error) {
+      toast.error("Dry run failed", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setDryRunning(false);
+    }
+  };
+
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      const result = await callBulkImport(false);
+      setFinalResult(result);
+      setStep("done");
+    } catch (error) {
+      toast.error("Import failed", {
+        description: error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const resetAll = () => {
+    setStep("upload");
+    setFileName("");
+    setRows([]);
+    setHeaders([]);
+    setMapping({});
+    setDryRunResult(null);
+    setFinalResult(null);
+  };
+
+  const clientErrors = step === "map" || step === "review" ? validateRows() : [];
+  const blockingClientErrors = clientErrors.filter((e) => e.row === 0);
+  const rowIssues = clientErrors.filter((e) => e.row > 0);
+
+  return (
+    <div className="space-y-4">
+      <PageHeader
+        title="Import Members"
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Members", href: "/members" },
+          { label: "Import" },
+        ]}
+        action={
+          <Button variant="outline" onClick={() => router.push("/members")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Members
+          </Button>
+        }
+      />
+
+      {/* Step indicator */}
+      <div className="flex items-center gap-2 text-sm">
+        {(["upload", "map", "review", "done"] as ImportStep[]).map((s, i) => (
+          <React.Fragment key={s}>
+            {i > 0 && <span className="text-muted-foreground">→</span>}
+            <span
+              className={
+                step === s
+                  ? "font-medium text-foreground"
+                  : "text-muted-foreground capitalize"
+              }
+            >
+              {i + 1}. {s === "upload" ? "Upload" : s.charAt(0).toUpperCase() + s.slice(1)}
+            </span>
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Step 1: Upload */}
+      {step === "upload" && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Dropzone */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Upload your file</CardTitle>
+              <CardDescription>
+                The first row must contain column headers. You&apos;ll map them to
+                member fields in the next step.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <label
+                className={cn(
+                  "flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed py-16 cursor-pointer transition-colors",
+                  isDragging
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:bg-muted/40"
+                )}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setIsDragging(false);
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleFileSelected(file);
+                }}
+              >
+                <div
+                  className={cn(
+                    "flex h-14 w-14 items-center justify-center rounded-full transition-colors",
+                    isDragging ? "bg-primary/10" : "bg-muted"
+                  )}
+                >
+                  {parsing ? (
+                    <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" />
+                  ) : (
+                    <Upload
+                      className={cn(
+                        "h-7 w-7",
+                        isDragging ? "text-primary" : "text-muted-foreground"
+                      )}
+                    />
+                  )}
+                </div>
+                <div className="text-center px-4">
+                  <p className="font-medium text-base">
+                    {parsing
+                      ? "Parsing file..."
+                      : isDragging
+                        ? "Drop your file to start"
+                        : "Drag & drop your file here"}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1.5">
+                    or{" "}
+                    <span className="font-medium underline underline-offset-2">
+                      click to browse your computer
+                    </span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {["CSV", "XLSX", "XLS"].map((fmt) => (
+                    <Badge key={fmt} variant="secondary" className="font-mono text-[11px]">
+                      .{fmt.toLowerCase()}
+                    </Badge>
+                  ))}
+                </div>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  className="hidden"
+                  disabled={parsing}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleFileSelected(file);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                Only spreadsheet files (.csv, .xlsx, .xls) are accepted — other
+                formats are rejected automatically.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Template card */}
+          <Card className="flex flex-col">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5 text-primary" />
+                Need a template?
+              </CardTitle>
+              <CardDescription>
+                Start from our ready-made spreadsheet with all supported columns
+                and a sample row.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="mt-auto space-y-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  Supported columns
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {TARGET_FIELDS.map((f) => (
+                    <Badge
+                      key={f.key}
+                      variant={f.required ? "default" : "outline"}
+                    >
+                      {f.label.replace(/ \*$/, "").replace(/ \(.*\)$/, "")}
+                      {f.required ? " *" : ""}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <Button className="w-full" onClick={() => void downloadTemplate()}>
+                <Download className="h-4 w-4 mr-2" />
+                Download Template
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Step 2: Map columns */}
+      {step === "map" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Map columns</CardTitle>
+            <CardDescription>
+              Match the columns in {fileName || "your file"} to member fields. Required
+              fields must be mapped.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {TARGET_FIELDS.map((field) => (
+                <div key={field.key}>
+                  <label className="text-sm font-medium mb-1.5 block">
+                    {field.label}
+                  </label>
+                  <Select
+                    value={mapping[field.key] ?? "__none__"}
+                    onValueChange={(v) =>
+                      setMapping((prev) => ({
+                        ...prev,
+                        [field.key]: v === "__none__" ? "" : v,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Skip this field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">-- Skip --</SelectItem>
+                      {headers.map((h) => (
+                        <SelectItem key={h} value={h}>
+                          {h}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ))}
+            </div>
+
+            {blockingClientErrors.length > 0 && (
+              <p className="text-sm text-destructive">{blockingClientErrors.map((e) => e.message).join(" ")}</p>
+            )}
+            {rowIssues.length > 0 && (
+              <div className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950 p-3 text-sm">
+                <p className="font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                  <AlertTriangle className="h-4 w-4" />
+                  {rowIssues.length} row(s) have data issues
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  Problem rows are reported during the preview step and will be skipped.
+                </p>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="outline" onClick={resetAll}>
+                Choose Another File
+              </Button>
+              <Button onClick={() => void handleDryRun()} disabled={dryRunning}>
+                {dryRunning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Validating...
+                  </>
+                ) : (
+                  <>
+                    Preview Import
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 3: Review */}
+      {step === "review" && dryRunResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Preview</CardTitle>
+            <CardDescription>
+              {fileName} — {rows.length} data row(s) parsed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-md border p-4">
+                <p className="flex items-center gap-2 font-medium text-green-600 dark:text-green-400">
+                  <CheckCircle2 className="h-5 w-5" />
+                  {Math.max(rows.length - dryRunResult.errors.length, 0)} ready to import
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Rows without issues will be created as new members.
+                </p>
+              </div>
+              <div className="rounded-md border p-4">
+                <p className="flex items-center gap-2 font-medium text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  {dryRunResult.errors.length} row(s) with problems
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  These rows will be skipped; everything else imports normally.
+                </p>
+              </div>
+            </div>
+
+            {dryRunResult.errors.length > 0 && (
+              <div className="rounded-md border overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-20">Row</TableHead>
+                      <TableHead>Problem</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {dryRunResult.errors.slice(0, 25).map((err, i) => (
+                      <TableRow key={`${err.row}-${i}`}>
+                        <TableCell>
+                          {err.row > 0 ? (
+                            <Badge variant="secondary">Row {err.row}</Badge>
+                          ) : (
+                            <Badge variant="destructive">Setup</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>{err.message}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {dryRunResult.errors.length > 25 && (
+                  <p className="px-4 py-2 text-xs text-muted-foreground border-t">
+                    Showing the first 25 of {dryRunResult.errors.length} problems.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2">
+              <Button variant="outline" onClick={() => setStep("map")}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Mapping
+              </Button>
+              <Button
+                onClick={() => void handleImport()}
+                disabled={
+                  importing ||
+                  Math.max(rows.length - dryRunResult.errors.length, 0) === 0
+                }
+              >
+                {importing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    Import Members
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Step 4: Done */}
+      {step === "done" && finalResult && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+            <CheckCircle2 className="h-14 w-14 text-green-500" />
+            <div className="text-center">
+              <p className="text-lg font-semibold">Import finished</p>
+              <p className="text-muted-foreground mt-1">
+                {finalResult.created} member(s) were created.
+                {finalResult.errors.length > 0 &&
+                  ` ${finalResult.errors.length} row(s) were skipped.`}
+              </p>
+            </div>
+            {finalResult.errors.length > 0 && (
+              <ul className="max-w-lg space-y-1 text-sm text-muted-foreground max-h-48 overflow-y-auto">
+                {finalResult.errors.slice(0, 15).map((err, i) => (
+                  <li key={i}>
+                    Row {err.row}: {err.message}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={resetAll}>
+                Import Another File
+              </Button>
+              <Button onClick={() => router.push("/members")}>Go to Members</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

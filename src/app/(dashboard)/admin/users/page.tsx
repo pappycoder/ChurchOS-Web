@@ -43,7 +43,6 @@ import {
   useUsers,
   useInviteUser,
   useUpdateUserRole,
-  useDeactivateUser,
   useReactivateUser,
   useResetPassword,
   useForceSignout,
@@ -136,7 +135,7 @@ export default function UsersPage() {
 
   const [inviteDialogOpen, setInviteDialogOpen] = React.useState(false);
   const [editRoleDialogOpen, setEditRoleDialogOpen] = React.useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deleteTargets, setDeleteTargets] = React.useState<UserProfile[] | null>(null);
   const [selectedUser, setSelectedUser] = React.useState<UserProfile | null>(null);
 
   const queryParams: ListUsersParams = {
@@ -151,7 +150,6 @@ export default function UsersPage() {
 
   const { data, isLoading, error } = useUsers(queryParams);
   const updateRoleMutation = useUpdateUserRole();
-  const deactivateMutation = useDeactivateUser();
   const reactivateMutation = useReactivateUser();
   const resetPasswordMutation = useResetPassword();
   const forceSignoutMutation = useForceSignout();
@@ -203,33 +201,13 @@ export default function UsersPage() {
     router.push(`/admin/users/${profileId}`);
   };
 
-  const handleBatchDeactivate = () => {
-    const ids = Array.from(selectedIds);
-    let completed = 0;
-    ids.forEach((id) => {
-      deactivateMutation.mutate(id, {
-        onSuccess: () => {
-          completed++;
-          if (completed === ids.length) {
-            toast.success(`${completed} user(s) deactivated`);
-            setSelectedIds(new Set());
-          }
-        },
-        onError: () => {
-          completed++;
-        },
-      });
-    });
-  };
-
   const handleEditRole = (user: UserProfile) => {
     setSelectedUser(user);
     setEditRoleDialogOpen(true);
   };
 
   const handleDeactivate = (user: UserProfile) => {
-    setSelectedUser(user);
-    setDeleteDialogOpen(true);
+    setDeleteTargets([user]);
   };
 
   const handleReactivate = (user: UserProfile) => {
@@ -395,8 +373,11 @@ export default function UsersPage() {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={handleBatchDeactivate}
-                    disabled={deactivateMutation.isPending}
+                    onClick={() =>
+                      setDeleteTargets(
+                        users.filter((u) => selectedIds.has(u.profileId))
+                      )
+                    }
                   >
                     <Trash2 className="h-4 w-4 mr-1.5" />
                     Deactivate Selected
@@ -522,20 +503,19 @@ export default function UsersPage() {
       />
 
       {selectedUser && (
-        <>
-          <UserFormDialog
-            open={editRoleDialogOpen}
-            onOpenChange={(open) => { setEditRoleDialogOpen(open); if (!open) setSelectedUser(null); }}
-            mode="edit-role"
-            user={selectedUser}
-          />
-          <DeleteUserDialog
-            open={deleteDialogOpen}
-            onOpenChange={(open) => { setDeleteDialogOpen(open); if (!open) setSelectedUser(null); }}
-            user={selectedUser}
-          />
-        </>
+        <UserFormDialog
+          open={editRoleDialogOpen}
+          onOpenChange={(open) => { setEditRoleDialogOpen(open); if (!open) setSelectedUser(null); }}
+          mode="edit-role"
+          user={selectedUser}
+        />
       )}
+      <DeleteUserDialog
+        open={!!deleteTargets}
+        onOpenChange={(open) => !open && setDeleteTargets(null)}
+        users={deleteTargets ?? []}
+        onDeactivated={() => setSelectedIds(new Set())}
+      />
     </div>
   );
 }

@@ -62,6 +62,7 @@ export interface CreateMemberInput {
   state?: string;
   branchId?: string;
   notes?: string;
+  customFields?: Record<string, unknown>;
 }
 
 export type UpdateMemberInput = Partial<CreateMemberInput> & {

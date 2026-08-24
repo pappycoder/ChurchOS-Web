@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,72 +12,68 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useDeactivateUser } from "@/hooks/use-users";
-import type { UserProfile } from "@/hooks/use-users";
-import { AlertTriangle } from "lucide-react";
+import { useDeleteFamily, type Family } from "@/hooks/use-families";
 
-interface DeleteUserDialogProps {
+interface DeleteFamilyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** One or more users to deactivate. */
-  users: UserProfile[];
-  /** Called after all deactivations finish (even with partial failures). */
-  onDeactivated?: () => void;
+  families: Family[];
+  /** Called after all deletions finish (even with partial failures). */
+  onDeleted?: () => void;
 }
 
-export function DeleteUserDialog({
+export function DeleteFamilyDialog({
   open,
   onOpenChange,
-  users,
-  onDeactivated,
-}: DeleteUserDialogProps) {
-  const deactivateMutation = useDeactivateUser();
+  families,
+  onDeleted,
+}: DeleteFamilyDialogProps) {
+  const deleteMutation = useDeleteFamily();
   const [pendingCount, setPendingCount] = React.useState(0);
 
-  const single = users.length === 1 ? users[0] : null;
-  const displayName = (u: UserProfile) => `${u.firstName} ${u.lastName}`;
+  const single = families.length === 1 ? families[0] : null;
 
-  const handleDeactivate = () => {
-    if (users.length === 0) return;
-    setPendingCount(users.length);
+  const handleDelete = () => {
+    if (families.length === 0) return;
+    setPendingCount(families.length);
 
     let failed = 0;
     let done = 0;
     let succeeded = 0;
 
-    users.forEach((user) => {
-      deactivateMutation.mutate(user.profileId, {
+    families.forEach((family) => {
+      deleteMutation.mutate(family.familyId, {
         onSuccess: () => {
           succeeded++;
         },
         onError: (error) => {
           failed++;
-          if (single || users.length <= 3) {
-            toast.error(`Failed to deactivate ${displayName(user)}`, {
+          if (single || families.length <= 3) {
+            toast.error(`Failed to delete ${family.name}`, {
               description: error?.message || "Please try again.",
             });
           }
         },
         onSettled: () => {
           done++;
-          setPendingCount(users.length - done);
-          if (done === users.length) {
-            if (!single && users.length > 3 && failed > 0) {
+          setPendingCount(families.length - done);
+          if (done === families.length) {
+            if (!single && families.length > 3 && failed > 0) {
               toast.warning(
-                `Deactivated ${succeeded} of ${users.length} users`,
+                `Deleted ${succeeded} of ${families.length} families`,
                 {
                   description:
-                    "Some users could not be deactivated. Please try again.",
+                    "Some families could not be deleted. Please try again.",
                 }
               );
             } else if (!single && succeeded > 0) {
-              toast.success(`${succeeded} user(s) deactivated`);
+              toast.success(`${succeeded} family(ies) deleted`);
             }
             setPendingCount(0);
             // Single deletes stay open on failure so the error stays visible.
-            if (!single || succeeded === users.length) {
+            if (!single || succeeded === families.length) {
               onOpenChange(false);
-              if (succeeded > 0) onDeactivated?.();
+              if (succeeded > 0) onDeleted?.();
             }
           }
         },
@@ -86,7 +83,7 @@ export function DeleteUserDialog({
 
   React.useEffect(() => {
     if (!open) {
-      deactivateMutation.reset();
+      deleteMutation.reset();
       setPendingCount(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,24 +97,24 @@ export function DeleteUserDialog({
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
           <DialogTitle className="text-center">
-            {single ? "Deactivate User" : `Deactivate ${users.length} Users`}
+            {single ? "Delete Family" : `Delete ${families.length} Families`}
           </DialogTitle>
           <DialogDescription className="text-center">
             {single ? (
               <>
-                Are you sure you want to deactivate{" "}
-                <span className="font-medium text-foreground">
-                  {displayName(single)}
-                </span>
-                ? They will no longer be able to sign in.
+                Are you sure you want to delete{" "}
+                <span className="font-medium text-foreground">{single.name}</span>?
+                The family group and its member associations are removed. Member
+                records themselves are not deleted.
               </>
             ) : (
               <>
-                Are you sure you want to deactivate{" "}
+                Are you sure you want to delete{" "}
                 <span className="font-medium text-foreground">
-                  {users.length} users
+                  {families.length} families
                 </span>
-                ? They will no longer be able to sign in.
+                ? The family groups and their member associations are removed.
+                Member records themselves are not deleted.
               </>
             )}
           </DialogDescription>
@@ -126,10 +123,10 @@ export function DeleteUserDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pendingCount > 0}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDeactivate} disabled={pendingCount > 0}>
+          <Button variant="destructive" onClick={handleDelete} disabled={pendingCount > 0}>
             {pendingCount > 0
-              ? `Deactivating... (${users.length - pendingCount}/${users.length})`
-              : "Deactivate"}
+              ? `Deleting... (${families.length - pendingCount}/${families.length})`
+              : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -14,6 +14,7 @@ import {
   HandCoins,
   CalendarCheck,
   StickyNote,
+  Tag,
   AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -245,6 +246,25 @@ export default function MemberDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Custom fields */}
+      {display.customFields && Object.keys(display.customFields).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              Custom Fields
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="divide-y">
+            {Object.entries(display.customFields)
+              .filter(([, value]) => value !== null && value !== undefined)
+              .map(([key, value]) => (
+                <DataRow key={key} label={key} value={String(value)} />
+              ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Giving history */}
       <Card>

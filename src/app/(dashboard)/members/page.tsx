@@ -246,10 +246,16 @@ export default function MembersPage() {
               disabled={exportSource.length === 0}
             />
             {canCreateMembers && (
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Member
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Quick Add
+                </Button>
+                <Button onClick={() => router.push("/members/new")}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Member
+                </Button>
+              </div>
             )}
           </div>
         }

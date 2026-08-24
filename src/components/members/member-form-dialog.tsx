@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -38,6 +38,11 @@ import {
   type MemberStatus,
 } from "@/hooks/use-members";
 import { useBranchesList } from "@/hooks/use-branches";
+import {
+  CustomFieldsEditor,
+  customFieldsToRows,
+  rowsToCustomFields,
+} from "@/components/members/custom-fields-editor";
 
 const memberSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -57,6 +62,7 @@ const memberSchema = z.object({
   branchId: z.string().optional(),
   status: z.string().optional(),
   notes: z.string().optional(),
+  customFields: z.array(z.object({ key: z.string(), value: z.string() })),
 });
 
 type MemberFormValues = z.infer<typeof memberSchema>;
@@ -91,6 +97,7 @@ function toFormValues(member?: Member | null): MemberFormValues {
     branchId: member?.branchId ?? "",
     status: member?.status ?? "active",
     notes: member?.notes ?? "",
+    customFields: customFieldsToRows(member?.customFields),
   };
 }
 
@@ -109,6 +116,8 @@ export function MemberFormDialog({
     resolver: zodResolver(memberSchema),
     defaultValues: toFormValues(member),
   });
+
+  const customFieldsArray = useFieldArray({ control: form.control, name: "customFields" });
 
   React.useEffect(() => {
     if (open) {
@@ -133,9 +142,19 @@ export function MemberFormDialog({
     };
 
     const mutation = isEdit ? updateMutation : createMutation;
-    const payload = isEdit
-      ? { ...base, status: values.status as MemberStatus | undefined }
-      : base;
+
+    // Edit always sends the record (even {}) so removing every row clears
+    // stored fields; create only includes it when something was entered.
+    const customFieldsRecord = rowsToCustomFields(values.customFields);
+    const payload = {
+      ...base,
+      ...(isEdit ? { status: values.status as MemberStatus | undefined } : {}),
+      ...(isEdit
+        ? { customFields: customFieldsRecord ?? {} }
+        : customFieldsRecord
+          ? { customFields: customFieldsRecord }
+          : {}),
+    };
 
     mutation.mutate(payload as never, {
       onSuccess: (saved) => {
@@ -392,6 +411,21 @@ export function MemberFormDialog({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Custom Fields</p>
+              <p className="text-xs text-muted-foreground">
+                Track anything specific to your church (occupation, baptism
+                date...). Removing all rows clears saved fields.
+              </p>
+              <CustomFieldsEditor
+                rows={customFieldsArray.fields}
+                onChange={(rows) =>
+                  form.setValue("customFields", rows, { shouldDirty: true })
+                }
+                disabled={pending}
+              />
+            </div>
 
             <DialogFooter className="pt-2">
               <Button
