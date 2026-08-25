@@ -41,7 +41,8 @@ export interface ListServicesParams {
 export interface AttendanceRecord {
   attendanceId: string;
   churchId: string;
-  serviceId: string;
+  serviceId?: string;
+  eventId?: string;
   memberId?: string;
   visitorId?: string;
   visitorName?: string;
@@ -51,6 +52,7 @@ export interface AttendanceRecord {
   createdAt: string;
   memberName?: string;
   serviceName?: string;
+  eventName?: string;
 }
 
 export interface ListAttendanceParams {
@@ -118,7 +120,8 @@ export interface UpdateServiceInput
 }
 
 export interface RecordAttendanceInput {
-  serviceId: string;
+  serviceId?: string;
+  eventId?: string;
   memberId?: string;
   visitorId?: string;
   visitorName?: string;
@@ -127,7 +130,8 @@ export interface RecordAttendanceInput {
 }
 
 export interface RecordBulkAttendanceInput {
-  serviceId: string;
+  serviceId?: string;
+  eventId?: string;
   records: Array<{
     memberId?: string;
     visitorId?: string;

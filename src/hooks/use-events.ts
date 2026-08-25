@@ -1,24 +1,312 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-
-/** Minimal event shape used by link-to-event pickers. */
-export interface EventSummary {
-  eventId: string;
-  churchId: string;
-  title: string;
-  startDate: string;
+export interface EventsListResponse {
+  data: EventItem[];
+  total: number;
 }
 
-export function useEventsList(params: { limit?: number } = {}) {
-  const searchParams = new URLSearchParams();
-  if (params.limit) searchParams.set("limit", String(params.limit));
-  const qs = searchParams.toString();
+// ─── Types ───────────────────────────────────────────────
 
+export type EventType = "service" | "conference" | "lifecycle" | "training" | "social";
+
+export const EVENT_TYPES: { value: EventType; label: string }[] = [
+  { value: "service", label: "Service" },
+  { value: "conference", label: "Conference" },
+  { value: "lifecycle", label: "Lifecycle" },
+  { value: "training", label: "Training" },
+  { value: "social", label: "Social" },
+];
+
+export const EVENT_TYPE_MAP: Record<EventType, string> = {
+  service: "Service",
+  conference: "Conference",
+  lifecycle: "Lifecycle",
+  training: "Training",
+  social: "Social",
+};
+
+/** Shape returned by GET /events (EventResponseDto). */
+export interface EventItem {
+  eventId: string;
+  churchId: string;
+  branchId?: string;
+  title: string;
+  description?: string;
+  type: EventType;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+  capacity?: number;
+  isFree: boolean;
+  price?: number;
+  registrationCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Shape returned by GET /events/:eventId/registrations (RegistrationResponseDto). */
+export interface EventRegistration {
+  registrationId: string;
+  eventId: string;
+  memberId: string;
+  customData?: Record<string, unknown>;
+  paymentStatus: string;
+  ticketCode?: string;
+  tierName?: string;
+  quantity: number;
+  checkedIn: boolean;
+  authorizationUrl?: string;
+  paymentReference?: string;
+  createdAt: string;
+  /** Client-resolved member name (enriched in hooks). */
+  memberName?: string;
+}
+
+/** Shape returned by GET /events/:eventId/attendance (AttendanceResponseDto). */
+export interface EventAttendanceRecord {
+  attendanceId: string;
+  churchId: string;
+  serviceId?: string;
+  eventId?: string;
+  memberId?: string;
+  visitorId?: string;
+  visitorName?: string;
+  category?: string;
+  checkInAt: string;
+  source: string;
+  createdAt: string;
+  memberName?: string;
+  serviceName?: string;
+  eventName?: string;
+}
+
+export interface EventStats {
+  registered: number;
+  attended: number;
+  noShows: number;
+  walkIns: number;
+}
+
+export interface ListEventsParams {
+  page?: number;
+  limit?: number;
+  type?: string;
+  status?: string;
+  search?: string;
+  sortBy?: "startDate" | "createdAt" | "title";
+  sortOrder?: "asc" | "desc";
+}
+
+export interface CreateEventInput {
+  title: string;
+  description?: string;
+  type: EventType;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+  capacity?: number;
+  isFree?: boolean;
+  price?: number;
+}
+
+export type UpdateEventInput = Partial<CreateEventInput>;
+
+export interface BulkCheckInInput {
+  memberIds: string[];
+}
+
+export interface WalkInCheckInInput {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email?: string;
+  gender?: string;
+}
+
+// ─── Helpers ─────────────────────────────────────────────
+
+function buildQuery(params: Record<string, unknown>): string {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  }
+  const qs = searchParams.toString();
+  return qs ? `?${qs}` : "";
+}
+
+function invalidateEventCaches(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ["events-list"] });
+  qc.invalidateQueries({ queryKey: ["events-summary"] });
+}
+
+// ─── Event Summary (for dashboard / link-to pickers) ─────
+
+export function useEventsSummary() {
+  return useQuery({
+    queryKey: ["events-summary"],
+    queryFn: () => api.get<{ data: EventItem[]; total: number }>("/events?limit=100"),
+  });
+}
+
+// ─── Events list (paginated) ─────────────────────────────
+
+export function useEventsList(params: ListEventsParams = {}) {
   return useQuery({
     queryKey: ["events-list", params],
     queryFn: () =>
-      api.get<{ data: EventSummary[]; total: number }>(`/events${qs ? `?${qs}` : ""}`),
+      api.get<EventsListResponse>(`/events${buildQuery({ ...params })}`),
+  });
+}
+
+// ─── Single event ────────────────────────────────────────
+
+export function useEvent(eventId: string) {
+  return useQuery({
+    queryKey: ["events-detail", eventId],
+    queryFn: () => api.get<EventItem>(`/events/${eventId}`),
+    enabled: !!eventId,
+  });
+}
+
+// ─── Event registrations ─────────────────────────────────
+
+export function useEventRegistrations(eventId: string) {
+  return useQuery({
+    queryKey: ["events-registrations", eventId],
+    queryFn: () =>
+      api.get<EventRegistration[]>(`/events/${eventId}/registrations`),
+    enabled: !!eventId,
+  });
+}
+
+// ─── Event attendance ────────────────────────────────────
+
+export function useEventAttendance(eventId: string) {
+  return useQuery({
+    queryKey: ["events-attendance", eventId],
+    queryFn: () =>
+      api.get<EventAttendanceRecord[]>(`/events/${eventId}/attendance`),
+    enabled: !!eventId,
+  });
+}
+
+// ─── Event stats (derived from registrations + attendance) ─
+
+export function useEventStats(eventId: string) {
+  const regs = useEventRegistrations(eventId);
+  const att = useEventAttendance(eventId);
+
+  const registered = regs.data?.length ?? 0;
+  const attended = att.data?.length ?? 0;
+  const walkIns = att.data?.filter((r) => !r.memberId && r.visitorName).length ?? 0;
+  const noShows = registered - (att.data?.filter((a) => a.memberId).length ?? 0);
+
+  return {
+    data: { registered, attended, noShows: noShows > 0 ? noShows : 0, walkIns },
+    isLoading: regs.isLoading || att.isLoading,
+  } as const;
+}
+
+// ─── CRUD mutations ──────────────────────────────────────
+
+export function useCreateEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateEventInput) =>
+      api.post<EventItem>("/events", input),
+    onSuccess: () => invalidateEventCaches(qc),
+  });
+}
+
+export function useUpdateEvent(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateEventInput) =>
+      api.patch<EventItem>(`/events/${eventId}`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+      invalidateEventCaches(qc);
+    },
+  });
+}
+
+export function useDeleteEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      api.delete<void>(`/events/${eventId}`),
+    onSuccess: () => invalidateEventCaches(qc),
+  });
+}
+
+// ─── Registration mutations ──────────────────────────────
+
+export function useRegisterForEvent(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { memberId: string; tierId?: string; quantity?: number }) =>
+      api.post<EventRegistration>(`/events/${eventId}/register`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-registrations", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+    },
+  });
+}
+
+export function useCancelRegistration(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (memberId: string) =>
+      api.delete<void>(`/events/${eventId}/register/${memberId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-registrations", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+    },
+  });
+}
+
+// ─── Check-in mutations ──────────────────────────────────
+
+export function useBulkCheckIn(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: BulkCheckInInput) =>
+      api.post<{ checkedIn: number; skipped: number }>(
+        `/events/${eventId}/check-in`,
+        input,
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-attendance", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-registrations", eventId] });
+    },
+  });
+}
+
+export function useWalkInCheckIn(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: WalkInCheckInInput) =>
+      api.post<EventAttendanceRecord>(
+        `/events/${eventId}/check-in/walk-in`,
+        input,
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-attendance", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-registrations", eventId] });
+    },
+  });
+}
+
+export function useValidateTicket(eventId: string) {
+  return useMutation({
+    mutationFn: (code: string) =>
+      api.post<{ valid: boolean; registration?: EventRegistration; message: string }>(
+        `/events/${eventId}/tickets/validate`,
+        { code },
+      ),
   });
 }
