@@ -293,6 +293,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
       },
     ],
   },
+  {
+    section: "SUPPORT",
+    items: [
+      {
+        title: "Help & Documentation",
+        href: "/docs",
+        icon: BookOpen,
+      },
+    ],
+  },
 ];
 
 const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
