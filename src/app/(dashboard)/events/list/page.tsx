@@ -67,6 +67,7 @@ const SORT_OPTIONS: { value: ListEventsParams["sortBy"]; label: string }[] = [
 export default function EventsListPage() {
   const router = useRouter();
   const { can } = usePermissions();
+  const canCreate = can("events", "create");
   const canUpdate = can("events", "update");
   const canDelete = can("events", "delete");
   const canManage = canUpdate || canDelete;
@@ -200,10 +201,12 @@ export default function EventsListPage() {
               filename="events-export"
               disabled={events.length === 0}
             />
-            <Button onClick={() => router.push("/events/new")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Event
-            </Button>
+            {canCreate && (
+              <Button onClick={() => router.push("/events/new")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Event
+              </Button>
+            )}
           </div>
         }
       />

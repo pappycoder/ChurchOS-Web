@@ -43,6 +43,7 @@ import {
   EVENT_TYPES,
   type EventType,
 } from "@/hooks/use-events";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const editEventSchema = z
   .object({
@@ -82,6 +83,9 @@ function toDatetimeLocal(iso: string): string {
 }
 
 export default function EditEventPage() {
+  const { can } = usePermissions();
+  const canUpdate = can("events", "update");
+
   const router = useRouter();
   const params = useParams();
   const eventId = params.eventId as string;
@@ -178,6 +182,26 @@ export default function EditEventPage() {
             { label: "Not Found" },
           ]}
         />
+      </div>
+    );
+  }
+
+  if (!canUpdate) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="Edit Event"
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Events", href: "/events" },
+            { label: "Edit" },
+          ]}
+        />
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <p className="text-muted-foreground">
+            You do not have permission to edit events.
+          </p>
+        </div>
       </div>
     );
   }

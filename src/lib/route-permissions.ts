@@ -37,6 +37,10 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/events/check-in", permission: "events:update" },
   { prefix: "/events/new", permission: "events:create" },
   { prefix: "/events/management", permission: "events:read" },
+  { prefix: "/events/list", permission: "events:read" },
+  { prefix: "/events/registrations", permission: "events:read" },
+  { prefix: "/events/[eventId]/edit", permission: "events:update" },
+  { prefix: "/events/[eventId]/tiers", permission: "events:update" },
   { prefix: "/events", permission: "events:read" },
 
   // Sermons

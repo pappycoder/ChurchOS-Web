@@ -51,6 +51,7 @@ import {
   useDeleteTier,
   type EventTicketTier,
 } from "@/hooks/use-events";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface TierFormData {
   name: string;
@@ -67,6 +68,11 @@ const defaultFormData: TierFormData = {
 };
 
 export default function EventTiersPage() {
+  const { can } = usePermissions();
+  const canCreate = can("events", "create");
+  const canUpdate = can("events", "update");
+  const canDelete = can("events", "delete");
+
   const router = useRouter();
   const params = useParams();
   const eventId = params.eventId as string;
@@ -198,10 +204,12 @@ export default function EventTiersPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <Button onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Tier
-            </Button>
+            {canCreate && (
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Tier
+              </Button>
+            )}
           </div>
         }
       />
@@ -226,10 +234,12 @@ export default function EventTiersPage() {
             <div className="text-center py-8 text-muted-foreground">
               <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No ticket tiers yet.</p>
-              <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Tier
-              </Button>
+              {canCreate && (
+                <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Tier
+                </Button>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -241,7 +251,9 @@ export default function EventTiersPage() {
                     <TableHead>Price</TableHead>
                     <TableHead>Capacity</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    {(canUpdate || canDelete) && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -270,26 +282,32 @@ export default function EventTiersPage() {
                       <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                         {tier.description || "-"}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => openEdit(tier)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:text-destructive"
-                            onClick={() => setDeleteTarget(tier)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                      {(canUpdate || canDelete) && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {canUpdate && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => openEdit(tier)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => setDeleteTarget(tier)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

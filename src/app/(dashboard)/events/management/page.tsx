@@ -69,6 +69,7 @@ import {
 import { MemberCombobox } from "@/components/members/member-combobox";
 import { VisitorCombobox } from "@/components/visitors/visitor-combobox";
 import { useCreateVisitor } from "@/hooks/use-visitors";
+import { usePermissions } from "@/hooks/use-permissions";
 import { TablePagination } from "@/components/shared/table-pagination";
 import { generateTicketPDF } from "@/lib/ticket-pdf";
 
@@ -138,6 +139,11 @@ const defaultTierForm: TierFormData = {
 };
 
 function TicketTypesTab() {
+  const { can } = usePermissions();
+  const canCreate = can("events", "create");
+  const canUpdate = can("events", "update");
+  const canDelete = can("events", "delete");
+
   const eventsQuery = useEventsSummary();
   const events = eventsQuery.data?.data ?? [];
 
@@ -241,10 +247,12 @@ function TicketTypesTab() {
               Create and manage ticket types (inventory) for your events.
             </CardDescription>
           </div>
-          <Button onClick={openCreate} disabled={!selectedEventId}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Ticket Type
-          </Button>
+          {canCreate && (
+            <Button onClick={openCreate} disabled={!selectedEventId}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Ticket Type
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -281,10 +289,12 @@ function TicketTypesTab() {
           <div className="text-center py-8 text-muted-foreground">
             <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No ticket types yet.</p>
-            <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add First Type
-            </Button>
+            {canCreate && (
+              <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Type
+              </Button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -295,7 +305,9 @@ function TicketTypesTab() {
                   <TableHead>Price</TableHead>
                   <TableHead>Capacity</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  {(canUpdate || canDelete) && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -321,26 +333,32 @@ function TicketTypesTab() {
                     <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
                       {tier.description || "-"}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openEdit(tier)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteTarget(tier)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    {(canUpdate || canDelete) && (
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {canUpdate && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => openEdit(tier)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                              onClick={() => setDeleteTarget(tier)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -452,6 +470,9 @@ function TicketTypesTab() {
 // ─── Tab 2: Assigned Tickets ──────────────────────────────
 
 function AssignedTicketsTab() {
+  const { can } = usePermissions();
+  const canCreate = can("events", "create");
+
   const [eventFilter, setEventFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -495,10 +516,12 @@ function AssignedTicketsTab() {
               View and manage individual tickets assigned to members.
             </CardDescription>
           </div>
-          <Button onClick={() => setAssignOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Assign Ticket
-          </Button>
+          {canCreate && (
+            <Button onClick={() => setAssignOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Assign Ticket
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -707,6 +730,9 @@ function AssignTicketDialog({
   onOpenChange: (open: boolean) => void;
   events: EventItem[];
 }) {
+  const { can } = usePermissions();
+  const canCreateVisitor = can("visitors", "create");
+
   const [selectedEventId, setSelectedEventId] = React.useState("");
   const [selectedTierId, setSelectedTierId] = React.useState("");
   const [assigneeType, setAssigneeType] = React.useState<"member" | "visitor">("member");
@@ -916,15 +942,17 @@ function AssignTicketDialog({
                     selectedName={selectedVisitorName}
                     placeholder="Search for a visitor..."
                   />
-                  <Button
-                    type="button"
-                    variant="link"
-                    size="sm"
-                    className="h-auto p-0 text-xs"
-                    onClick={() => setShowNewVisitor(true)}
-                  >
-                    + Register new visitor
-                  </Button>
+                  {canCreateVisitor && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-xs"
+                      onClick={() => setShowNewVisitor(true)}
+                    >
+                      + Register new visitor
+                    </Button>
+                  )}
                 </>
               ) : (
                 <>
