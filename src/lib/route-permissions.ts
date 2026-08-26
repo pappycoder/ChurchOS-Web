@@ -34,7 +34,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/attendance/services", permission: "attendance:read" },
   { prefix: "/attendance", permission: "attendance:read" },
   { prefix: "/giving", permission: "giving:read" },
-  { prefix: "/events/check-in", permission: "events:update" },
+  { prefix: "/events/check-in", permission: "events:create" },
   { prefix: "/events/new", permission: "events:create" },
   { prefix: "/events/management", permission: "events:read" },
   { prefix: "/events/list", permission: "events:read" },

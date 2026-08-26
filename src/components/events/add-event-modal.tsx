@@ -37,6 +37,7 @@ import {
   type CreateEventInput,
   type EventType,
 } from "@/hooks/use-events";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface AddEventModalProps {
   open: boolean;
@@ -69,6 +70,9 @@ function buildDefaults(defaultDate?: Date): AddEventFormValues {
 }
 
 export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModalProps) {
+  const { can } = usePermissions();
+  const canCreate = can("events", "create");
+
   const createMutation = useCreateEvent();
   const [pending, setPending] = React.useState(false);
 
@@ -244,7 +248,7 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={pending}>
+              <Button type="submit" disabled={pending || !canCreate}>
                 {pending ? "Creating..." : "Create Event"}
               </Button>
             </DialogFooter>

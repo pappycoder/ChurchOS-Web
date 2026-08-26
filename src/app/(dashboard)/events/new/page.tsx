@@ -42,6 +42,7 @@ import {
   type CreateEventInput,
   type EventType,
 } from "@/hooks/use-events";
+import { usePermissions } from "@/hooks/use-permissions";
 
 const newEventSchema = z
   .object({
@@ -74,6 +75,9 @@ const newEventSchema = z
 type NewEventFormValues = z.infer<typeof newEventSchema>;
 
 export default function CreateEventPage() {
+  const { can } = usePermissions();
+  const canCreate = can("events", "create");
+
   const router = useRouter();
   const createMutation = useCreateEvent();
   const [saving, setSaving] = React.useState(false);
@@ -122,6 +126,26 @@ export default function CreateEventPage() {
       setSaving(false);
     }
   };
+
+  if (!canCreate) {
+    return (
+      <div className="space-y-4">
+        <PageHeader
+          title="Create Event"
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Events", href: "/events" },
+            { label: "Create" },
+          ]}
+        />
+        <div className="flex flex-col items-center justify-center py-20 gap-4">
+          <p className="text-muted-foreground">
+            You do not have permission to create events.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
