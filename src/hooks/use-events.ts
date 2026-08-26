@@ -310,3 +310,153 @@ export function useValidateTicket(eventId: string) {
       ),
   });
 }
+
+// ─── Ticket tier types & hooks ────────────────────────
+
+export interface EventTicketTier {
+  id: string;
+  event_id: string;
+  name: string;
+  price: number;
+  capacity: number | null;
+  description: string | null;
+  display_order: number;
+  created_at: string;
+}
+
+export interface CreateTierInput {
+  name: string;
+  price: number;
+  capacity?: number;
+  description?: string;
+}
+
+export interface UpdateTierInput {
+  name?: string;
+  price?: number;
+  capacity?: number | null;
+  description?: string | null;
+  displayOrder?: number;
+}
+
+export function useEventTiers(eventId: string) {
+  return useQuery({
+    queryKey: ["events-tiers", eventId],
+    queryFn: () =>
+      api.get<EventTicketTier[]>(`/events/${eventId}/tiers`),
+    enabled: !!eventId,
+  });
+}
+
+export function useCreateTier(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateTierInput) =>
+      api.post<{ tierId: string }>(`/events/${eventId}/tiers`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-tiers", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+    },
+  });
+}
+
+export function useUpdateTier(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ tierId, input }: { tierId: string; input: UpdateTierInput }) =>
+      api.patch<EventTicketTier>(`/events/${eventId}/tiers/${tierId}`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-tiers", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+    },
+  });
+}
+
+export function useDeleteTier(eventId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (tierId: string) =>
+      api.delete<void>(`/events/${eventId}/tiers/${tierId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-tiers", eventId] });
+      qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+    },
+  });
+}
+
+// ─── Management: all tickets ─────────────────────────
+
+export interface AllTicketItem {
+  ticketId: string;
+  code: string;
+  eventId: string;
+  eventName: string;
+  eventDate: string;
+  eventLocation: string | null;
+  eventType: EventType;
+  memberId: string | null;
+  memberName: string | null;
+  visitorId: string | null;
+  visitorName: string | null;
+  registrationId: string | null;
+  tierName: string | null;
+  pricePaid: number | null;
+  status: "reserved" | "paid" | "cancelled" | "refunded";
+  isUsed: boolean;
+  usedAt: string | null;
+  createdAt: string;
+}
+
+export interface AllTicketsResponse {
+  data: AllTicketItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ListAllTicketsParams {
+  eventId?: string;
+  status?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export function useAllTickets(params: ListAllTicketsParams = {}) {
+  return useQuery({
+    queryKey: ["events-all-tickets", params],
+    queryFn: () =>
+      api.get<AllTicketsResponse>(`/events/management/tickets${buildQuery({ ...params })}`),
+  });
+}
+
+// ─── Create ticket (admin manual) ────────────────────────
+
+export interface CreateTicketInput {
+  memberId?: string;
+  visitorId?: string;
+  tierId?: string;
+}
+
+export interface CreatedTicket {
+  ticketId: string;
+  code: string;
+  eventId: string;
+  memberId: string | null;
+  visitorId: string | null;
+  tierName: string;
+  pricePaid: number;
+  status: string;
+}
+
+export function useCreateTicket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, input }: { eventId: string; input: CreateTicketInput }) =>
+      api.post<CreatedTicket>(`/events/${eventId}/tickets`, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events-all-tickets"] });
+    },
+  });
+}

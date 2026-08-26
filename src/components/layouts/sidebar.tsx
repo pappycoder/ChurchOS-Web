@@ -130,7 +130,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           { title: "All Events", href: "/events/list", permission: "events:read" },
           { title: "Check-In", href: "/events/check-in", permission: "events:update" },
           { title: "Registrations", href: "/events/registrations", permission: "events:read" },
-          { title: "Tickets", href: "/events/tickets", permission: "events:read" },
+          { title: "Tickets", href: "/events/management", permission: "events:read" },
         ],
       },
       {

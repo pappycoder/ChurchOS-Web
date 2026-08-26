@@ -1,17 +1,24 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format, isSameDay } from "date-fns";
+import { toast } from "sonner";
+import { Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
-import { EventItem, EVENT_TYPE_MAP } from "@/hooks/use-events";
+import { EventItem, EVENT_TYPE_MAP, useDeleteEvent } from "@/hooks/use-events";
+import { usePermissions } from "@/hooks/use-permissions";
 import { EVENT_TYPE_COLORS } from "./calendar-sidebar";
 
 const BADGE_TEXT_CLASSES: Record<string, string> = {
@@ -50,14 +57,37 @@ export function EventDetailModal({
   onOpenChange,
   event,
 }: EventDetailModalProps) {
+  const router = useRouter();
+  const { can } = usePermissions();
+  const canUpdate = can("events", "update");
+  const canDelete = can("events", "delete");
+  const deleteMutation = useDeleteEvent();
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
   if (!event) return null;
 
   const colorClass = EVENT_TYPE_COLORS[event.type];
   const badgeClasses = BADGE_TEXT_CLASSES[colorClass] ?? "";
   const timeRange = formatTimeRange(event.startDate, event.endDate);
 
+  const handleDelete = () => {
+    deleteMutation.mutate(event.eventId, {
+      onSuccess: () => {
+        toast.success("Event deleted");
+        onOpenChange(false);
+        setDeleteOpen(false);
+      },
+      onError: (err) => {
+        toast.error("Failed to delete event", {
+          description: err?.message || "Please try again.",
+        });
+      },
+    });
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md p-0 overflow-hidden">
         <DialogHeader className="bg-gray-900 text-white px-6 py-5">
           <DialogTitle className="text-white text-xl leading-tight">
@@ -122,11 +152,61 @@ export function EventDetailModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
+          {canUpdate && (
+            <Button
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false);
+                router.push(`/events/${event.eventId}/edit`);
+              }}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              variant="destructive"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          )}
           <Button asChild>
             <Link href={`/events/${event.eventId}`}>View Details</Link>
           </Button>
         </div>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Delete Event</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete &quot;{event.title}&quot;? This action cannot be
+            undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setDeleteOpen(false)}
+            disabled={deleteMutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

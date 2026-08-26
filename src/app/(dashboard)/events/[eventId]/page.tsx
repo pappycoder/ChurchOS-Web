@@ -13,6 +13,7 @@ import {
   UserX,
   Footprints,
   AlertTriangle,
+  Ticket,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -175,7 +176,11 @@ export default function EventDetailPage({
           {(canUpdate || canDelete) && (
             <div className="flex items-center gap-2 mt-4">
               {canUpdate && (
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/events/${eventId}/edit`)}
+                >
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
@@ -189,6 +194,16 @@ export default function EventDetailPage({
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
+                </Button>
+              )}
+              {!event.isFree && canUpdate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/events/${eventId}/tiers`)}
+                >
+                  <Ticket className="h-4 w-4 mr-2" />
+                  Manage Tiers
                 </Button>
               )}
             </div>

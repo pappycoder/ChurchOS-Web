@@ -116,6 +116,17 @@ export function useVisitorsList(params: ListVisitorsParams = {}) {
   });
 }
 
+export function useSearchVisitors(searchTerm: string, limit = 20) {
+  return useQuery({
+    queryKey: ["visitors-search", searchTerm, limit],
+    queryFn: () =>
+      api.get<VisitorListResponse>(
+        `/visitors?search=${encodeURIComponent(searchTerm)}&limit=${limit}`
+      ),
+    enabled: searchTerm.trim().length >= 2,
+  });
+}
+
 export function useVisitor(visitorId: string) {
   return useQuery({
     queryKey: ["visitor", visitorId],
