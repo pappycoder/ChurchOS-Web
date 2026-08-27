@@ -1061,6 +1061,85 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Reports ──────────────────────────────────── */}
+      <Section id="reports" title="Reports">
+        <Card>
+          <CardHeader>
+            <CardTitle>Reports Module</CardTitle>
+            <CardDescription>
+              Aggregated, date-filterable reports for funding, attendance and
+              membership — each with a monthly trend chart and CSV export.
+              Server-side data is cached for 5-10 minutes. Access is split by
+              report: financial reports are restricted to church admins, senior
+              pastors and the treasurer; attendance reports to church admins,
+              senior pastors and branch pastors; members reports additionally to
+              secretaries.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Financial", "/reports/financial", "Giving totals, transaction count, average gift, by-category breakdown, monthly trend. Church admins, senior pastors & treasurers"],
+                ["Attendance", "/reports/attendance", "Total check-ins, services held, average per service, by-service breakdown, monthly trend. Church admins, senior pastors & branch pastors"],
+                ["Members", "/reports/members", "Total, new-in-period and active members, by-status and by-gender breakdown, monthly growth. Adds secretaries"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                [
+                  "View Financial Report",
+                  "Requires the treasurer role group — church_admin / senior_pastor / treasurer",
+                  "reports:read",
+                ],
+                [
+                  "View Attendance Report",
+                  "Requires the branch-pastor role group — church_admin / senior_pastor / branch_pastor",
+                  "reports:read",
+                ],
+                [
+                  "View Members Report",
+                  "Requires the secretary role group — church_admin / senior_pastor / branch_pastor / secretary",
+                  "reports:read",
+                ],
+                [
+                  "Export CSV",
+                  "Downloads the visible report's breakdown rows as CSV — same access as viewing that report",
+                  "reports:read",
+                ],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Date Range", "All time / This month / Last 30 days / This quarter / Year to date presets plus custom start/end dates"],
+                ["Branch", "All branches or a specific branch — Financial & Attendance only (Members is church-wide)"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>

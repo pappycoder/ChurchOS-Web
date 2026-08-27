@@ -245,9 +245,21 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: FileBarChart,
         permission: "reports:read",
         children: [
-          { title: "Financial", href: "/reports/financial", permission: "reports:read" },
-          { title: "Attendance", href: "/reports/attendance", permission: "reports:read" },
-          { title: "Members", href: "/reports/members", permission: "reports:read" },
+          {
+            title: "Financial",
+            href: "/reports/financial",
+            roles: ["church_admin", "senior_pastor", "treasurer"],
+          },
+          {
+            title: "Attendance",
+            href: "/reports/attendance",
+            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+          },
+          {
+            title: "Members",
+            href: "/reports/members",
+            roles: ["church_admin", "senior_pastor", "branch_pastor", "secretary"],
+          },
         ],
       },
     ],
