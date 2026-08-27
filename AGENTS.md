@@ -14,6 +14,12 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **Sermons + media permission-gating completion.** Audit close-out ensuring every sermons action button/page is permission-guarded:
+  - **Backend counterparts**: all 7 sermons routes now carry `@RequirePermissions` (`sermons:create/read/update/delete`), `media:create` granted to `branch_pastor` in the permissions seed — see backend changelog.
+  - **`media-upload-field.tsx` now gates the upload affordance**: it reads `can("media", "create")` via `usePermissions()` and hides the **Upload File** pill (only **Paste Link** remains) when the caller can't upload — uploading creates a MediaAsset, which is a `media:create` action. Existing saved-URL rows and the Remove button stay visible either way; `route-permissions.ts` already declared `/media/upload` → `media:create`.
+  - Verified gating remaining unchanged: list Add/Edit/Delete (`sermons:create/update/delete`), new/edit full-page guards, detail Edit button (`sermons:update`), hidden Actions column for read-only viewers. Bookmark/player affordances remain member-level (any `sermons:read` holder).
+  - Scoped eslint clean (0 errors, only pre-existing users/header warnings); tsc clean; build registers all 6 sermon routes; 558 backend tests pass.
+
 - **Sermon media attachments: audio/video file upload + external URL paste.** Sermons now support both self-hosted media (uploaded to Supabase Storage via `/media/upload`, saved as a MediaAsset) and external links (YouTube, SoundCloud, podcasts).
   - **Backend counterparts**: `sermons.video_url` column (migration `20260827100000_sermon_video_url`), media upload widened to audio/video MIME types with a 50MB cap, `videoUrl` on all sermon DTOs — see backend changelog.
   - **New component** `src/components/sermons/media-upload-field.tsx`: two modes toggled by pill buttons — **Upload File** (file picker filtered by `accept`, file name/size display, upload progress bar → `POST /media/upload` folder `sermons` → URL saved to sermon) and **Paste Link** (text input for external URLs saved directly to the sermon, no upload). Renders a "Saved: <url>" row with a Remove button once a value exists.

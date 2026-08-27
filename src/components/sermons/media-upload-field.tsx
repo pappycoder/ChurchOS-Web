@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface MediaUploadFieldProps {
   label: string;
@@ -33,6 +34,9 @@ export function MediaUploadField({
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
+  const { can } = usePermissions();
+  const canUpload = can("media", "create");
+  const effectiveMode: Mode = canUpload ? mode : "url";
   const Icon = mediaType === "audio" ? FileAudio : FileVideo;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,22 +124,24 @@ export function MediaUploadField({
 
       {/* Mode toggle */}
       <div className="flex gap-1 rounded-md border p-0.5 w-fit">
+        {canUpload && (
+          <button
+            type="button"
+            className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+              effectiveMode === "upload"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setMode("upload")}
+          >
+            <Upload className="h-3 w-3" />
+            Upload File
+          </button>
+        )}
         <button
           type="button"
           className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-            mode === "upload"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => setMode("upload")}
-        >
-          <Upload className="h-3 w-3" />
-          Upload File
-        </button>
-        <button
-          type="button"
-          className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-            mode === "url"
+            effectiveMode === "url"
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
@@ -146,7 +152,7 @@ export function MediaUploadField({
         </button>
       </div>
 
-      {mode === "upload" ? (
+      {effectiveMode === "upload" ? (
         <div className="space-y-2">
           <input
             ref={fileRef}
