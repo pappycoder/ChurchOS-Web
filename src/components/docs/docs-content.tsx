@@ -1140,6 +1140,81 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Assets ─────────────────────────────────────── */}
+      <Section id="assets" title="Assets">
+        <Card>
+          <CardHeader>
+            <CardTitle>Assets Module</CardTitle>
+            <CardDescription>
+              Track church-owned physical assets — an asset register with
+              categories, QR codes, condition/status tracking, maintenance
+              scheduling, lending (loans), and depreciation schedules. Reads are
+              available to any assets:read holder; registering, editing and moving
+              assets through their lifecycle require the treasurer/branch-pastor
+              role group; deleting assets and running the depreciation schedule is
+              restricted to church admins and treasurers.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Asset Register", "/assets", "Searchable, filterable register of all assets with stats (total / purchase value / current value), QR codes, depreciation, maintenance and loan records per asset"],
+                ["Categories", "/assets/categories", "Manage asset categories (name + description)"],
+                ["Maintenance", "/assets/maintenance", "Assets currently in maintenance; open any asset to schedule or record maintenance"],
+                ["Loans", "/assets/loans", "Search the register and loan assets out / record returns from the loan drawer"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                ["Register Asset", "Opens the create dialog to add an asset to the register", "assets:create"],
+                ["Edit Asset", "Updates asset details inline via the edit dialog", "assets:update"],
+                ["Delete Asset", "Permanently removes the asset (admin + treasurer only — other viewers see the toast error)", "assets:delete"],
+                ["Add Category", "Creates a new asset category", "assets:create"],
+                ["Edit Category", "Renames / re-describes a category", "assets:update"],
+                ["Delete Category", "Permanently removes an unused category", "assets:delete"],
+                ["Generate / Refresh QR", "Creates or refreshes the printable QR code for an asset", "assets:create"],
+                ["Schedule Maintenance", "Creates a maintenance record (type, scheduled date, status, cost, who performed it)", "assets:create"],
+                ["Loan Out", "Loans an asset to a member or named borrower with an expected return date", "assets:create"],
+                ["Record Return", "Closes a loan with an actual return date and after-condition", "assets:update"],
+                ["Export CSV", "Downloads the visible register rows", "assets:read"],
+                ["View Details", "Opens the detail drawer (overview, QR, maintenance, loans, depreciation)", "assets:read"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Search", "Debounced server search by name, asset tag or serial number (register)"],
+                ["Status", "active / maintenance / retired / lost / disposed"],
+                ["Condition", "new / good / fair / poor / damaged"],
+                ["Category", "Any registered asset category"],
+                ["Branch", "All branches or a specific branch"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>
@@ -1476,6 +1551,7 @@ export function DocsContent() {
                     { resource: "Roles", prefix: "roles" },
                     { resource: "Analytics", prefix: "analytics" },
                     { resource: "Reports", prefix: "reports" },
+                    { resource: "Assets", prefix: "assets" },
                   ].map((r) => (
                     <tr key={r.prefix} className="border-b last:border-0">
                       <td className="py-2.5 pr-4 font-medium">{r.resource}</td>
