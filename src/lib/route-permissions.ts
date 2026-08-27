@@ -45,6 +45,9 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
 
   // Sermons
   { prefix: "/sermons/new", permission: "sermons:create" },
+  { prefix: "/sermons/series", permission: "sermons:read" },
+  { prefix: "/sermons/speakers", permission: "sermons:read" },
+  { prefix: "/sermons/[sermonId]/edit", permission: "sermons:update" },
   { prefix: "/sermons", permission: "sermons:read" },
 
   // Media
