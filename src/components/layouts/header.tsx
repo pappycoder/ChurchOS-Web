@@ -13,6 +13,7 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import {
   IconArrowBarToLeft,
@@ -69,7 +70,14 @@ const AI_LINKS = [
   { title: "AI Hiring Forecast", href: "/ai-hiring" },
 ];
 
-const HORIZONTAL_NAV = [
+interface HorizontalNavItem {
+  title: string;
+  href: string;
+  children?: { title: string; href: string }[];
+  permission?: string;
+}
+
+const HORIZONTAL_NAV: HorizontalNavItem[] = [
   {
     title: "Dashboard",
     href: "/dashboard",
@@ -111,6 +119,7 @@ const HORIZONTAL_NAV = [
   {
     title: "Media",
     href: "/media",
+    permission: "media:read",
   },
   {
     title: "Pastoral Care",
@@ -125,6 +134,12 @@ export function Header() {
 
   const { logout } = useAuth();
   const { data: currentProfile } = useCurrentProfile();
+  const { canAny } = usePermissions();
+
+  const visibleNav = React.useMemo(
+    () => HORIZONTAL_NAV.filter((item) => !item.permission || canAny(item.permission)),
+    [canAny],
+  );
 
   const displayName =
     [currentProfile?.firstName, currentProfile?.lastName]
@@ -264,7 +279,7 @@ export function Header() {
                 <div className="sidebar-menu">
                   <div className="main-menu">
                     <ul className="nav-menu">
-                      {HORIZONTAL_NAV.map((item) => (
+                      {visibleNav.map((item) => (
                         <li
                           key={item.title}
                           className={cn(item.children && "submenu")}
