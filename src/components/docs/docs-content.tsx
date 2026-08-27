@@ -155,7 +155,7 @@ export function DocsContent() {
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
             <p>
-              <strong>Main Menu</strong> — Members, Attendance, Giving, Events, Sermons, Media, Visitors
+              <strong>Main Menu</strong> — Members, Attendance, Giving, Events, Sermons, Media, Pastoral Care, Visitors
               (and more as they are built)
             </p>
             <p>
@@ -968,6 +968,99 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Pastoral Care ─────────────────────────────── */}
+      <Section id="pastoral" title="Pastoral Care">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pastoral Care Module</CardTitle>
+            <CardDescription>
+              Track pastoral follow-up for members — private notes with
+              confidentiality levels, life events (birthdays, weddings, deaths...),
+              and automated risk/engagement scoring to spot disengagement early.
+              Note content is encrypted at rest and filtered by your
+              confidentiality clearance.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Notes", "/pastoral", "Paginated pastoral notes — confidentiality filter, tags, content preview, author & date. Add/Edit/Delete actions"],
+                ["Life Events", "/pastoral/life-events", "Member milestones — type filter (birthday/wedding/death...), 'Upcoming only' toggle, notified/pending status"],
+                ["Risk Scores", "/pastoral/risk-scores", "Disengagement risk by level (low/medium/high/critical) — member search, level filter, sort by score. Row click opens factor breakdown + suggested follow-ups"],
+                ["Engagement", "/pastoral/engagement", "Member engagement distribution (highly/moderately/low/disengaged) with bucket filter and score-based table. Row click opens factor breakdown"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                [
+                  "Add Note",
+                  "Records a pastoral note about a member — member picker, confidentiality level, tags, content",
+                  "pastoral:create",
+                ],
+                [
+                  "Edit Note",
+                  "Updates note content, confidentiality, and tags (row menu)",
+                  "pastoral:update",
+                ],
+                [
+                  "Delete Note / Life Event",
+                  "Permanently deletes the record (confirmation required)",
+                  "pastoral:delete",
+                ],
+                [
+                  "Add Life Event",
+                  "Records a member milestone — type, date, optional notes",
+                  "pastoral:create",
+                ],
+                [
+                  "Recalculate Scores",
+                  "Recomputes risk and engagement scores for all members from recent activity",
+                  "pastoral:update",
+                ],
+                [
+                  "View Member Scoring",
+                  "Opens a member's risk/engagement factors and suggested follow-ups (row click on Risk/Engagement pages)",
+                  "pastoral:read",
+                ],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Notes — Confidentiality", "Standard / Confidential / Restricted"],
+                ["Life Events — Type", "birthday / wedding / death / dedication / baptism / anniversary / other"],
+                ["Life Events — Upcoming only", "Shows future events sorted ascending by date"],
+                ["Risk Scores — Level", "critical / high / medium / low"],
+                ["Engagement — Bucket", "highly_engaged / moderately_engaged / low_engagement / disengaged"],
+                ["Search", "Server-side search by member name (Risk Scores & Engagement)"],
+                ["Sort by", "Risk/Engagement Score or Date Calculated (+ asc/desc toggle)"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>
@@ -1297,6 +1390,7 @@ export function DocsContent() {
                     { resource: "Events", prefix: "events" },
                     { resource: "Sermons", prefix: "sermons" },
                     { resource: "Media", prefix: "media" },
+                    { resource: "Pastoral Care", prefix: "pastoral" },
                     { resource: "Users", prefix: "users" },
                     { resource: "Branches", prefix: "branches" },
                     { resource: "Church Settings", prefix: "church_settings" },

@@ -18,6 +18,7 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { id: "events", label: "Events" },
   { id: "sermons", label: "Sermons" },
   { id: "media", label: "Media" },
+  { id: "pastoral", label: "Pastoral Care" },
   { id: "admin-users", label: "Admin — Users" },
   { id: "admin-roles", label: "Admin — Roles" },
   { id: "admin-settings", label: "Admin — Settings" },
