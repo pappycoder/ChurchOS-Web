@@ -155,7 +155,7 @@ export function DocsContent() {
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
             <p>
-              <strong>Main Menu</strong> — Members, Attendance, Giving, Events, Sermons, Visitors
+              <strong>Main Menu</strong> — Members, Attendance, Giving, Events, Sermons, Media, Visitors
               (and more as they are built)
             </p>
             <p>
@@ -884,6 +884,84 @@ export function DocsContent() {
                 ["Search", "Server-side search by title, speaker, or scripture"],
                 ["Sort by", "Preached Date, Title, Date Added (+ asc/desc toggle)"],
                 ["Speaker / Series", "Deep links from the Series and Speakers pages pre-filter the list by that speaker or series"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
+      {/* ─── Media ─────────────────────────────────────── */}
+      <Section id="media" title="Media">
+        <Card>
+          <CardHeader>
+            <CardTitle>Media Library Module</CardTitle>
+            <CardDescription>
+              Store and manage church files — images, audio, video, and documents —
+              in folders with per-file access controls. Uploaded sermon audio/video,
+              profile photos, and church logos live here.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Library", "/media", "Card grid of files — folder/type/permission filters, debounced search, sort, pagination, image preview, row actions (Copy URL/Change Permissions/Delete)"],
+                ["Upload", "/media/upload", "Drag-and-drop upload with folder selection — images optimized to WebP (≤5 MB), other files kept as-is (≤50 MB), per-file status + session history"],
+                ["Folders", "/media/folders", "Folder overview — file count and newest file per folder, \"View files\" links pre-filter the library"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                [
+                  "Upload File",
+                  "Uploads a file into the library (Upload page or sermon media field)",
+                  "media:create",
+                ],
+                [
+                  "Copy URL",
+                  "Copies the file's public URL to the clipboard for sharing or reuse",
+                  "media:read",
+                ],
+                [
+                  "Change Permissions",
+                  "Switches the file between Public, Members, and Leadership visibility (also church-admin role)",
+                  "media:update",
+                ],
+                [
+                  "Delete File",
+                  "Permanently deletes the file and its storage record (also church-admin role)",
+                  "media:delete",
+                ],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Type", "All / Images / Audio / Video / Documents"],
+                ["Folder", "All folders or a specific folder"],
+                ["Permissions", "Public / Members / Leadership"],
+                ["Search", "Server-side search by filename"],
+                ["Sort by", "Date Added, Name, Size (+ asc/desc toggle)"],
               ]}
             />
           </CardContent>

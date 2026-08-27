@@ -52,6 +52,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
 
   // Media
   { prefix: "/media/upload", permission: "media:create" },
+  { prefix: "/media/folders", permission: "media:read" },
   { prefix: "/media", permission: "media:read" },
 
   // Pastoral care · Visitors
