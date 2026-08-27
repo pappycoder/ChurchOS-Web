@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   AlertTriangle,
@@ -70,7 +71,7 @@ function formatDuration(seconds?: number | null): string {
   return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
-export default function SermonsListPage() {
+function SermonsListContent() {
   const router = useRouter();
   const { can } = usePermissions();
   const canCreate = can("sermons", "create");
@@ -86,6 +87,16 @@ export default function SermonsListPage() {
   const [perPage, setPerPage] = React.useState(15);
   const [deleteTarget, setDeleteTarget] = React.useState<Sermon | null>(null);
 
+  const searchParams = useSearchParams();
+  const [speaker, setSpeaker] = React.useState(searchParams.get("speaker") ?? "");
+  const [series, setSeries] = React.useState(searchParams.get("series") ?? "");
+
+  const clearDeepLinkFilters = () => {
+    setSpeaker("");
+    setSeries("");
+    setPage(1);
+  };
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -99,10 +110,12 @@ export default function SermonsListPage() {
       page,
       limit: perPage,
       search: search || undefined,
+      speaker: speaker || undefined,
+      series: series || undefined,
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, sortBy, sortOrder]
+    [page, perPage, search, sortBy, sortOrder, speaker, series]
   );
 
   const { data, isLoading, error } = useSermonsList(queryParams);
@@ -219,6 +232,29 @@ export default function SermonsListPage() {
 
       <Card>
         <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          {(speaker || series) && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-muted-foreground">Filtered by:</span>
+              {speaker && (
+                <Badge variant="secondary" className="gap-1">
+                  Speaker: {speaker}
+                </Badge>
+              )}
+              {series && (
+                <Badge variant="secondary" className="gap-1">
+                  Series: {series}
+                </Badge>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                onClick={clearDeepLinkFilters}
+              >
+                Clear
+              </Button>
+            </div>
+          )}
           <SearchInput
             value={searchInput}
             onChange={(v) => setSearchInput(v)}
@@ -415,5 +451,13 @@ export default function SermonsListPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function SermonsListPage() {
+  return (
+    <Suspense fallback={null}>
+      <SermonsListContent />
+    </Suspense>
   );
 }

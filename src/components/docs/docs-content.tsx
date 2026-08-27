@@ -155,7 +155,7 @@ export function DocsContent() {
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground space-y-1">
             <p>
-              <strong>Main Menu</strong> — Members, Attendance, Giving, Events, Visitors
+              <strong>Main Menu</strong> — Members, Attendance, Giving, Events, Sermons, Visitors
               (and more as they are built)
             </p>
             <p>
@@ -802,6 +802,94 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Sermons ─────────────────────────────────── */}
+      <Section id="sermons" title="Sermons">
+        <Card>
+          <CardHeader>
+            <CardTitle>Sermons Module</CardTitle>
+            <CardDescription>
+              Maintain a searchable archive of church sermons with audio and video
+              playback, member bookmarking, and aggregated series and speaker lists.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Sermon List", "/sermons", "Stats cards, debounced server search, sort controls, paginated table, CSV export, row actions (View/Edit/Delete)"],
+                ["Add Sermon", "/sermons/new", "Full-page form — title, speaker, date, scripture; series & tags; media (audio/video upload or link); duration & description"],
+                ["Sermon Detail", "/sermons/[sermonId]", "Inline audio player + video player (YouTube embed for YouTube links), bookmark toggle, info card, description"],
+                ["Edit Sermon", "/sermons/[sermonId]/edit", "Edit form pre-filled with existing sermon data"],
+                ["Series", "/sermons/series", "Aggregated series list — series name, sermon count, last preached date, \"View Sermons\" link"],
+                ["Speakers", "/sermons/speakers", "Aggregated speaker list — speaker name, sermon count, last spoke date, \"View Sermons\" link"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                [
+                  "Add Sermon",
+                  "Navigates to the full-page create form to add a new sermon",
+                  "sermons:create",
+                ],
+                [
+                  "Edit Sermon",
+                  "Opens the edit form pre-filled with sermon data (list row action or detail button)",
+                  "sermons:update",
+                ],
+                [
+                  "Delete Sermon",
+                  "Permanently deletes the sermon (confirmation required)",
+                  "sermons:delete",
+                ],
+                [
+                  "Upload Audio / Video File",
+                  "Uploads a file to the media library and saves its URL on the sermon (Upload File mode)",
+                  "media:create",
+                ],
+                [
+                  "Paste Media Link",
+                  "Saves an external audio/video URL on the sermon without creating a media asset (Paste Link mode)",
+                  "sermons:create",
+                ],
+                [
+                  "Export CSV",
+                  "Downloads the visible sermons as a CSV file",
+                  "sermons:read",
+                ],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Search", "Server-side search by title, speaker, or scripture"],
+                ["Sort by", "Preached Date, Title, Date Added (+ asc/desc toggle)"],
+                ["Speaker / Series", "Deep links from the Series and Speakers pages pre-filter the list by that speaker or series"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>
@@ -1129,6 +1217,8 @@ export function DocsContent() {
                     { resource: "Attendance", prefix: "attendance" },
                     { resource: "Giving", prefix: "giving" },
                     { resource: "Events", prefix: "events" },
+                    { resource: "Sermons", prefix: "sermons" },
+                    { resource: "Media", prefix: "media" },
                     { resource: "Users", prefix: "users" },
                     { resource: "Branches", prefix: "branches" },
                     { resource: "Church Settings", prefix: "church_settings" },

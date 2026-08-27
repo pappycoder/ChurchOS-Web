@@ -14,6 +14,12 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **Docs page gains the Sermons module + sermon list deep-link filtering.**
+  - **`docs-nav.tsx`**: `DOCS_SECTIONS` registers `{ id: "sermons", label: "Sermons" }` (between Events and the Admin group) so the docs sidebar and scrollspy track it.
+  - **`docs-content.tsx`**: new Sermons section (overview card; 6-row pages table — List/New/Detail/Edit/Series/Speakers; actions table — Add/Edit/Delete `sermons:create|update|delete`, Upload Audio-Video File `media:create`, Paste Media Link `sermons:create`, Export CSV `sermons:read`; filters-sort table — server search by title/speaker/scripture, sort by date/title/date-added, speaker/series deep-link filters). Permissions Matrix gains **Sermons** (`sermons`) and **Media** (`media`) rows; Getting Started Navigation card Main Menu line now lists Sermons.
+  - **`/sermons` list-page deep-link fix**: arriving via `?speaker=` / `?series=` (from the Series/Speakers "View Sermons" links) now actually filters the table — the page shell wraps the content in `<Suspense>` (required by `useSearchParams` during static prerender) and the inner component seeds `speaker`/`series` state from the query, passes both into `useSermonsList`, and shows active-filter badges with a Clear button. `/sermons` still prerenders statically (`○`).
+  - Scoped eslint clean (0 errors, only pre-existing users/header warnings); tsc clean; build registers all routes.
+
 - **Sermons + media permission-gating completion.** Audit close-out ensuring every sermons action button/page is permission-guarded:
   - **Backend counterparts**: all 7 sermons routes now carry `@RequirePermissions` (`sermons:create/read/update/delete`), `media:create` granted to `branch_pastor` in the permissions seed — see backend changelog.
   - **`media-upload-field.tsx` now gates the upload affordance**: it reads `can("media", "create")` via `usePermissions()` and hides the **Upload File** pill (only **Paste Link** remains) when the caller can't upload — uploading creates a MediaAsset, which is a `media:create` action. Existing saved-URL rows and the Remove button stay visible either way; `route-permissions.ts` already declared `/media/upload` → `media:create`.
