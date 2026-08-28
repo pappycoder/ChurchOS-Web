@@ -152,6 +152,21 @@ export function useUpdateVisitor(visitorId: string) {
   });
 }
 
+export interface UpdateVisitorByIdArgs {
+  visitorId: string;
+  input: UpdateVisitorInput;
+}
+
+/** Mutates a single visitor whose ID is supplied per call (keeps PATCH URLs well-formed). */
+export function useUpdateVisitorById() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ visitorId, input }: UpdateVisitorByIdArgs) =>
+      api.patch<Visitor>(`/visitors/${visitorId}`, input),
+    onSuccess: (_data, { visitorId }) => invalidateVisitorCaches(queryClient, visitorId),
+  });
+}
+
 export function useDeleteVisitor() {
   const queryClient = useQueryClient();
   return useMutation({

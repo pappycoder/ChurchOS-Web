@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/select";
 import {
   useVisitorsList,
-  useUpdateVisitor,
+  useUpdateVisitorById,
   FOLLOW_UP_STATUSES,
   type Visitor,
   type FollowUpStatus,
@@ -168,7 +168,7 @@ export default function FollowUpBoardPage() {
     if (data?.data) setVisitors(data.data);
   }, [data]);
 
-  const updateMutation = useUpdateVisitor("");
+  const updateMutation = useUpdateVisitorById();
   const [movingId, setMovingId] = React.useState<string | null>(null);
   const [activeId, setActiveId] = React.useState<string | null>(null);
 
@@ -200,7 +200,7 @@ export default function FollowUpBoardPage() {
           ) ?? null
       );
       updateMutation.mutate(
-        { followUpStatus: nextStatus },
+        { visitorId: visitor.id, input: { followUpStatus: nextStatus } },
         {
           onError: (err) => {
             // Re-sync from server cache on failure.

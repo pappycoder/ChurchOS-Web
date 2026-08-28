@@ -145,6 +145,14 @@ export function AssetDetailDrawer({
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4 pt-4">
+                {asset.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={asset.imageUrl}
+                    alt={asset.name}
+                    className="max-h-48 w-full rounded-lg border object-cover"
+                  />
+                )}
                 <div className="rounded-lg border p-4">
                   <InfoRow label="Category" value={asset.categoryName} />
                   <InfoRow label="Department" value={asset.departmentName} />

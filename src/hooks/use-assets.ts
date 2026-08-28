@@ -17,6 +17,7 @@ export interface Asset {
   assetTag: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   categoryId?: string;
   categoryName?: string;
   serialNumber?: string;
@@ -133,6 +134,7 @@ export interface CreateAssetInput {
   assetTag: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   categoryId?: string;
   serialNumber?: string;
   brand?: string;

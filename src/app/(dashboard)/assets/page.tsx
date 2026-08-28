@@ -353,11 +353,27 @@ export default function AssetsPage() {
                     assets.map((asset) => (
                       <TableRow key={asset.id} className="cursor-pointer">
                         <TableCell onClick={() => openDetail(asset)}>
-                          <p className="font-medium">{asset.name}</p>
-                          <p className="text-xs text-muted-foreground font-mono">
-                            {asset.assetTag}
-                            {asset.serialNumber ? ` · ${asset.serialNumber}` : ""}
-                          </p>
+                          <div className="flex items-center gap-3">
+                            {asset.imageUrl ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={asset.imageUrl}
+                                alt={asset.name}
+                                className="h-9 w-9 shrink-0 rounded-md border object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-muted">
+                                <Boxes className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="font-medium">{asset.name}</p>
+                              <p className="text-xs text-muted-foreground font-mono">
+                                {asset.assetTag}
+                                {asset.serialNumber ? ` · ${asset.serialNumber}` : ""}
+                              </p>
+                            </div>
+                          </div>
                         </TableCell>
                         <TableCell onClick={() => openDetail(asset)}>
                           {asset.categoryName ?? "—"}

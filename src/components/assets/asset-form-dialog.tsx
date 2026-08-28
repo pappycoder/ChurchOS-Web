@@ -55,6 +55,7 @@ const assetSchema = z.object({
   assetTag: z.string().min(1, "Asset tag is required").max(50),
   name: z.string().min(1, "Asset name is required").max(200),
   description: z.string().optional(),
+  imageUrl: z.string().optional(),
   categoryId: z.string().optional(),
   serialNumber: z.string().optional(),
   brand: z.string().optional(),
@@ -111,6 +112,7 @@ function toFormValues(asset?: Asset | null): AssetFormValues {
     assetTag: asset?.assetTag ?? "",
     name: asset?.name ?? "",
     description: asset?.description ?? "",
+    imageUrl: asset?.imageUrl ?? "",
     categoryId: asset?.categoryId ?? "",
     serialNumber: asset?.serialNumber ?? "",
     brand: asset?.brand ?? "",
@@ -165,6 +167,7 @@ export function AssetFormDialog({
       assetTag: values.assetTag.trim(),
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
+      imageUrl: values.imageUrl?.trim() || undefined,
       categoryId: values.categoryId || undefined,
       serialNumber: values.serialNumber?.trim() || undefined,
       brand: values.brand?.trim() || undefined,
@@ -568,6 +571,24 @@ export function AssetFormDialog({
                     <Textarea
                       placeholder="Short description of the asset"
                       rows={2}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Image URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/assets/mixer.jpg"
                       {...field}
                     />
                   </FormControl>

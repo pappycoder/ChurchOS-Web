@@ -269,7 +269,7 @@ export function CellGroupFormDialog({
                   <FormControl>
                     <Input placeholder="e.g. 14 Opebi Road, Ikeja, Lagos" {...field} />
                   </FormControl>
-                  <FormDescription>Where the group meets (free text).</FormDescription>
+                  <FormDescription>Where the group meets.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
