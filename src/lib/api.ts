@@ -102,26 +102,27 @@ class ApiClient {
       throw error;
     }
 
-    let json: BackendResponse<T>;
+    let json: BackendResponse<T> | undefined;
     try {
-      json = await res.json();
+      json = (await res.json()) as BackendResponse<T>;
     } catch {
+      // Empty body — e.g. 204 No Content deletes resolve to undefined.
+      json = undefined;
+    }
+
+    // Handle error responses (both HTTP errors and 200-wrapped errors)
+    if (!res.ok || (json && !json.success)) {
+      const errorBody = json as BackendErrorResponse | undefined;
       const error: AuthError = {
-        message: `Request failed (${res.status}). Please try again.`,
+        message: errorBody
+          ? getErrorMessage(res.status, errorBody)
+          : `Request failed (${res.status}). Please try again.`,
         statusCode: res.status,
       };
       throw error;
     }
 
-    // Handle error responses (both HTTP errors and 200-wrapped errors)
-    if (!res.ok || (json && !json.success)) {
-      const errorBody = json as BackendErrorResponse;
-      const error: AuthError = {
-        message: getErrorMessage(res.status, errorBody),
-        statusCode: res.status,
-      };
-      throw error;
-    }
+    if (!json) return undefined as T;
 
     // Unwrap the data envelope: { success: true, data: T, meta: ... } → T
     const successBody = json as BackendSuccessResponse<T>;

@@ -1215,6 +1215,77 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Departments ─────────────────────────────── */}
+      <Section id="departments" title="Departments">
+        <Card>
+          <CardHeader>
+            <CardTitle>Departments &amp; Cell Groups</CardTitle>
+            <CardDescription>
+              Organize the church into ministry departments and small community cell
+              groups. Departments hold member rosters with roles (member /
+              leader / assistant leader); cell groups add geolocation, a home branch,
+              and per-meeting attendance — recorded for members or visitors, with
+              walk-in visitors saved inline as real visitor records. Cell group reads
+              are also available to department heads and cell leaders; attendance
+              recording additionally includes secretaries.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Departments", "/departments", "Searchable list of all departments with member counts; open any department to manage its members"],
+                ["Cell Groups", "/departments/cell-groups", "Searchable list of all cell groups with branch, leader and meeting schedule"],
+                ["Cell Group Detail", "/departments/cell-groups/[groupId]", "Header, stats, member roster, attendance records (with meeting-date filter), and nearby cell groups"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                ["Add Department", "Creates a department (optional parent for hierarchy + description)", "departments:create"],
+                ["Edit Department", "Updates name, parent or description", "departments:update"],
+                ["Delete Department", "Removes the department record — assigned members are kept", "departments:delete"],
+                ["Add Member", "Adds a member to a department roster with a role", "departments:update"],
+                ["Remove Member", "Removes a member from a department roster", "departments:update"],
+                ["Add Cell Group", "Creates a cell group with optional branch, leader, meeting day/time and coordinates", "cell_groups:create"],
+                ["Edit Cell Group", "Updates the cell group details", "cell_groups:update"],
+                ["Delete Cell Group", "Permanently removes the group, its members and attendance", "cell_groups:delete"],
+                ["Add Group Member", "Adds a member to a cell group with a role (leader / assistant leader / member)", "cell_groups:create"],
+                ["Remove Group Member", "Removes a member from a cell group", "cell_groups:update"],
+                ["Record Attendance", "Checks in a member, an existing visitor, or a new walk-in visitor (created on the fly)", "cell_groups:create"],
+                ["View Detail", "Opens the cell group detail page", "cell_groups:read"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Search", "Debounced local search by department name/description, or cell group name/leader/branch"],
+                ["Meeting Date", "Attendance records can be narrowed to a single meeting date"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>
@@ -1552,6 +1623,8 @@ export function DocsContent() {
                     { resource: "Analytics", prefix: "analytics" },
                     { resource: "Reports", prefix: "reports" },
                     { resource: "Assets", prefix: "assets" },
+                    { resource: "Departments", prefix: "departments" },
+                    { resource: "Cell Groups", prefix: "cell_groups" },
                   ].map((r) => (
                     <tr key={r.prefix} className="border-b last:border-0">
                       <td className="py-2.5 pr-4 font-medium">{r.resource}</td>
