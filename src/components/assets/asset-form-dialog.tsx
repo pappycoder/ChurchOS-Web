@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MemberCombobox } from "@/components/members/member-combobox";
+import { AssetImageField } from "@/components/assets/asset-image-field";
 import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
 import {
@@ -579,22 +580,14 @@ export function AssetFormDialog({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/assets/mixer.jpg"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <AssetImageField
+              value={form.watch("imageUrl")}
+              onChange={(url) =>
+                form.setValue("imageUrl", url ?? "", {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
             />
 
             <FormField
