@@ -1223,7 +1223,8 @@ export function DocsContent() {
             <CardDescription>
               Organize the church into ministry departments and small community cell
               groups. Departments hold member rosters with roles (member /
-              leader / assistant leader); cell groups add geolocation, a home branch,
+              leader / assistant leader); cell groups add an address, geolocation,
+              a home branch,
               and per-meeting attendance — recorded for members or visitors, with
               walk-in visitors saved inline as real visitor records. Cell group reads
               are also available to department heads and cell leaders; attendance
@@ -1240,7 +1241,7 @@ export function DocsContent() {
             <PageTable
               rows={[
                 ["Departments", "/departments", "Searchable list of all departments with member counts; open any department to manage its members"],
-                ["Cell Groups", "/departments/cell-groups", "Searchable list of all cell groups with branch, leader and meeting schedule"],
+                ["Cell Groups", "/departments/cell-groups", "Searchable list of all cell groups with branch, address, leader and meeting schedule"],
                 ["Cell Group Detail", "/departments/cell-groups/[groupId]", "Header, stats, member roster, attendance records (with meeting-date filter), and nearby cell groups"],
               ]}
             />
@@ -1259,7 +1260,7 @@ export function DocsContent() {
                 ["Delete Department", "Removes the department record — assigned members are kept", "departments:delete"],
                 ["Add Member", "Adds a member to a department roster with a role", "departments:update"],
                 ["Remove Member", "Removes a member from a department roster", "departments:update"],
-                ["Add Cell Group", "Creates a cell group with optional branch, leader, meeting day/time and coordinates", "cell_groups:create"],
+                ["Add Cell Group", "Creates a cell group with optional branch, leader, address, meeting day/time and coordinates", "cell_groups:create"],
                 ["Edit Cell Group", "Updates the cell group details", "cell_groups:update"],
                 ["Delete Cell Group", "Permanently removes the group, its members and attendance", "cell_groups:delete"],
                 ["Add Group Member", "Adds a member to a cell group with a role (leader / assistant leader / member)", "cell_groups:create"],
@@ -1278,7 +1279,7 @@ export function DocsContent() {
           <CardContent>
             <FilterTable
               rows={[
-                ["Search", "Debounced local search by department name/description, or cell group name/leader/branch"],
+                ["Search", "Debounced local search by department name/description, or cell group name/leader/branch/address"],
                 ["Meeting Date", "Attendance records can be narrowed to a single meeting date"],
               ]}
             />

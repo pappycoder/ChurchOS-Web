@@ -61,7 +61,8 @@ export default function CellGroupsPage() {
       (g) =>
         g.name.toLowerCase().includes(q) ||
         `${g.leaderFirstName ?? ""} ${g.leaderLastName ?? ""}`.toLowerCase().includes(q) ||
-        (g.branchName ?? "").toLowerCase().includes(q)
+        (g.branchName ?? "").toLowerCase().includes(q) ||
+        (g.address ?? "").toLowerCase().includes(q)
     );
   }, [groups, search]);
 
@@ -149,6 +150,7 @@ export default function CellGroupsPage() {
             <TableRow>
               <TableHead>Group</TableHead>
               <TableHead>Branch</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>Meeting</TableHead>
               <TableHead className="text-right">Date Added</TableHead>
               {canUpdate || canDelete ? <TableHead className="text-right">Actions</TableHead> : null}
@@ -158,14 +160,14 @@ export default function CellGroupsPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={canUpdate || canDelete ? 5 : 4}>
+                  <TableCell colSpan={canUpdate || canDelete ? 6 : 5}>
                     <Skeleton className="h-5 w-full" />
                   </TableCell>
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center">
+                <TableCell colSpan={6} className="h-32 text-center">
                   <p className="text-muted-foreground">
                     {search
                       ? "No cell groups match your search."
@@ -196,6 +198,16 @@ export default function CellGroupsPage() {
                       <Badge variant="secondary">{group.branchName}</Badge>
                     ) : (
                       <span className="text-xs text-muted-foreground">Unassigned</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {group.address ? (
+                      <span className="text-sm flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="line-clamp-1">{group.address}</span>
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">No address</span>
                     )}
                   </TableCell>
                   <TableCell>

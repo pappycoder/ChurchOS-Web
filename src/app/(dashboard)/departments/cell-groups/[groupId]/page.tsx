@@ -180,6 +180,12 @@ export default function CellGroupDetailPage({
                       )}
                     </span>
                   )}
+                  {group.address && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {group.address}
+                    </span>
+                  )}
                   {group.latitude != null && group.longitude != null && (
                     <span className="inline-flex items-center gap-1" title="Has location coordinates">
                       <MapPin className="h-3.5 w-3.5" />

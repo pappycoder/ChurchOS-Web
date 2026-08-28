@@ -44,6 +44,7 @@ const cellGroupSchema = z.object({
   name: z.string().min(1, "Cell group name is required").max(100),
   branchId: z.string().optional(),
   leaderId: z.string().optional(),
+  address: z.string().max(200, "Address must be 200 characters or less").optional(),
   meetingDay: z.string().optional(),
   meetingTime: z.string().optional(),
   latitude: z
@@ -74,6 +75,7 @@ function toFormValues(group?: CellGroup | null): CellGroupFormValues {
     name: group?.name ?? "",
     branchId: group?.branchId ?? "",
     leaderId: group?.leaderId ?? "",
+    address: group?.address ?? "",
     meetingDay: group?.meetingDay ?? "",
     meetingTime: group?.meetingTime ?? "",
     latitude: group?.latitude != null ? String(group.latitude) : "",
@@ -113,6 +115,7 @@ export function CellGroupFormDialog({
       name: values.name.trim(),
       branchId: values.branchId?.trim() || undefined,
       leaderId: values.leaderId?.trim() || undefined,
+      address: values.address?.trim() || undefined,
       meetingDay: values.meetingDay?.trim() || undefined,
       meetingTime: values.meetingTime?.trim() || undefined,
       latitude: values.latitude ? Number(values.latitude) : undefined,
@@ -256,6 +259,21 @@ export function CellGroupFormDialog({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. 14 Opebi Road, Ikeja, Lagos" {...field} />
+                  </FormControl>
+                  <FormDescription>Where the group meets (free text).</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField

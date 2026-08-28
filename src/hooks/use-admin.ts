@@ -35,6 +35,7 @@ export interface CellGroup {
   branchName?: string;
   latitude?: number;
   longitude?: number;
+  address?: string;
   meetingDay?: string;
   meetingTime?: string;
   createdAt: string;
@@ -86,6 +87,7 @@ export interface CreateCellGroupInput {
   leaderId?: string;
   latitude?: number;
   longitude?: number;
+  address?: string;
   meetingDay?: string;
   meetingTime?: string;
 }
