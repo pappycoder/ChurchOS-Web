@@ -17,10 +17,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { TablePagination } from "@/components/shared/table-pagination";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -48,6 +46,7 @@ import {
 } from "@/hooks/use-families";
 import { usePermissions } from "@/hooks/use-permissions";
 import { FamilyFormDialog } from "@/components/families/family-form-dialog";
+import { TableCard } from "@/components/shared/table-card";
 import { DeleteFamilyDialog } from "@/components/families/delete-family-dialog";
 
 const STATS_FETCH_LIMIT = 200;
@@ -239,8 +238,18 @@ export default function FamiliesPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <TableCard
+        title="All Families"
+        itemName="families"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+        toolbar={
           <SearchInput
             value={searchInput}
             onChange={(v) => {
@@ -249,8 +258,8 @@ export default function FamiliesPage() {
             placeholder="Search family name..."
             className="w-full sm:w-64"
           />
-        </CardHeader>
-        <CardContent className="p-0">
+        }
+      >
           {someSelected && canDeleteFamilies && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
               <span className="text-sm font-medium">{selectedIds.size} selected</span>
@@ -388,20 +397,7 @@ export default function FamiliesPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="families"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <FamilyFormDialog
         open={createDialogOpen}

@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -99,7 +100,7 @@ export default function VisitorDetailPage({
   // Check-ins linked to this visitor via attendance.visitor_id.
   const visitsQuery = useAttendanceRecords({
     visitorId,
-    limit: 5,
+    limit: 200,
     sortBy: "checkinAt",
     sortOrder: "desc",
   });
@@ -108,6 +109,17 @@ export default function VisitorDetailPage({
   const [editOpen, setEditOpen] = React.useState(false);
   const [convertOpen, setConvertOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+
+  const [visitPage, setVisitPage] = React.useState(1);
+  const [visitPerPage, setVisitPerPage] = React.useState(15);
+  const visitsRows = React.useMemo(
+    () => visitsQuery.data?.data ?? [],
+    [visitsQuery.data]
+  );
+  const pagedVisits = React.useMemo(
+    () => visitsRows.slice((visitPage - 1) * visitPerPage, visitPage * visitPerPage),
+    [visitsRows, visitPage, visitPerPage]
+  );
 
   // Optimistic display state so edits reflect instantly.
   const [display, setDisplay] = React.useState<typeof visitor>(undefined);
@@ -326,9 +338,9 @@ export default function VisitorDetailPage({
       </div>
 
       {/* Visit history */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold">Visit History</CardTitle>
+      <TableCard
+        title="Visit History"
+        action={
           <span className="text-xs text-muted-foreground">
             {(totalVisits.data?.meta.total ?? 0) === 0
               ? visitsQuery.isLoading
@@ -336,37 +348,45 @@ export default function VisitorDetailPage({
                 : "No check-ins yet"
               : `${totalVisits.data?.meta.total ?? 0} check-in(s)`}
           </span>
-        </CardHeader>
-        <CardContent className="p-0 pb-4">
-          {visitsQuery.isLoading ? (
-            <div className="px-6 space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (visitsQuery.data?.data.length ?? 0) === 0 ? (
-            <p className="px-6 text-sm text-muted-foreground">
-              No check-ins recorded for this visitor yet.
-            </p>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Checked In</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Source</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(visitsQuery.data?.data ?? []).map((visit) => (
-                    <TableRow key={visit.attendanceId}>
-                      <TableCell className="font-medium">
-                        {visit.serviceName || "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(visit.checkInAt), "MMM d, yyyy · HH:mm")}
-                      </TableCell>
+        }
+        itemName="check-ins"
+        page={visitPage}
+        perPage={visitPerPage}
+        total={totalVisits.data?.meta.total ?? visitsRows.length}
+        onPageChange={setVisitPage}
+        onPerPageChange={(n) => {
+          setVisitPerPage(n);
+          setVisitPage(1);
+        }}
+      >
+        {visitsQuery.isLoading ? (
+          <div className="px-6 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : visitsRows.length === 0 ? (
+          <p className="px-6 text-sm text-muted-foreground">
+            No check-ins recorded for this visitor yet.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service</TableHead>
+                <TableHead>Checked In</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Source</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedVisits.map((visit) => (
+                <TableRow key={visit.attendanceId}>
+                  <TableCell className="font-medium">
+                    {visit.serviceName || "-"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(visit.checkInAt), "MMM d, yyyy · HH:mm")}
+                  </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
                           {SERVICE_CATEGORIES.find(
@@ -375,16 +395,14 @@ export default function VisitorDetailPage({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground capitalize">
-                        {visit.source}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                    {visit.source}
+                  </TableCell>
+              </TableRow>
+            ))}
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>
 
       {/* Custom fields */}
       {display.customFields && Object.keys(display.customFields).length > 0 && (

@@ -15,7 +15,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import {
   Table,
   TableBody,
@@ -76,15 +76,13 @@ function TableSkeleton() {
           </div>
         ))}
       </div>
-      <Card>
-        <CardContent className="p-0">
-          <div className="px-6 py-4 space-y-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="rounded-lg border">
+        <div className="px-6 py-4 space-y-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-10 w-full" />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -166,85 +164,77 @@ export default function RolesPage() {
             />
           </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-3">
-              <h5 className="text-lg font-semibold">Roles</h5>
-              <div className="flex items-center gap-3 flex-wrap">
-                <p className="text-sm text-muted-foreground hidden md:block">
-                  Church-level changes are added on top of each role&apos;s global
-                  defaults.
-                </p>
-                {canManageRoles && (
-                  <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1.5" />
-                    Add Role
-                  </Button>
-                )}
+          <TableCard
+            title="Roles"
+            description="Church-level changes are added on top of each role's global defaults."
+            action={
+              canManageRoles && (
+                <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-1.5" />
+                  Add Role
+                </Button>
+              )
+            }
+          >
+            {roles.length === 0 ? (
+              <div className="py-8">
+                <EmptyState
+                  icon={<ShieldCheck className="h-12 w-12" />}
+                  title="No roles found"
+                  description="Run the permissions seed to create the default roles."
+                />
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {roles.length === 0 ? (
-                <div className="py-8">
-                  <EmptyState
-                    icon={<ShieldCheck className="h-12 w-12" />}
-                    title="No roles found"
-                    description="Run the permissions seed to create the default roles."
-                  />
-                </div>
-              ) : (
-                <div className="overflow-x-auto px-4 pb-4">
-                  <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Permissions</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right w-12" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {roles.map((role) => (
-                      <TableRow
-                        key={role.roleName}
-                        className="cursor-pointer"
-                        onClick={() =>
-                          router.push(`/admin/roles/${role.roleName}`)
-                        }
-                      >
-                        <TableCell className="font-medium">
-                          {role.label || getRoleLabel(role.roleName)}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground max-w-md truncate">
-                          {role.description || "-"}
-                        </TableCell>
-                        <TableCell>
-                          {totalPermissions > 0 ? (
-                            <span className="tabular-nums">
-                              {role.permissions.length}
-                              <span className="text-muted-foreground">
-                                {" "}
-                                / {totalPermissions}
-                              </span>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Permissions</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right w-12" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {roles.map((role) => (
+                    <TableRow
+                      key={role.roleName}
+                      className="cursor-pointer"
+                      onClick={() =>
+                        router.push(`/admin/roles/${role.roleName}`)
+                      }
+                    >
+                      <TableCell className="font-medium">
+                        {role.label || getRoleLabel(role.roleName)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground max-w-md truncate">
+                        {role.description || "-"}
+                      </TableCell>
+                      <TableCell>
+                        {totalPermissions > 0 ? (
+                          <span className="tabular-nums">
+                            {role.permissions.length}
+                            <span className="text-muted-foreground">
+                              {" "}
+                              / {totalPermissions}
                             </span>
-                          ) : (
-                            role.permissions.length
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <RoleStatusBadge role={role} />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                          </span>
+                        ) : (
+                          role.permissions.length
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <RoleStatusBadge role={role} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <ChevronRight className="h-4 w-4 ml-auto text-muted-foreground" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </TableCard>
         </>
       )}
 

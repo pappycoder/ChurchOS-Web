@@ -23,7 +23,7 @@ import {
   LIFE_EVENT_TYPE_TEXT,
 } from "@/hooks/use-pastoral";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -51,7 +51,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TablePagination } from "@/components/shared/table-pagination";
 import { LifeEventFormDialog } from "@/components/pastoral/life-event-form-dialog";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
 import { cn } from "@/lib/utils";
@@ -150,94 +149,104 @@ export default function LifeEventsPage() {
         }
       />
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Select
-              value={typeFilter}
-              onValueChange={(v) => {
-                setTypeFilter(v as LifeEventType | "all");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TYPE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={upcomingOnly}
-                onCheckedChange={handleToggleUpcoming}
-                aria-label="Upcoming only"
-              />
-              <span className="text-sm">Upcoming only</span>
+      <TableCard
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-3 flex-wrap">
+              <Select
+                value={typeFilter}
+                onValueChange={(v) => {
+                  setTypeFilter(v as LifeEventType | "all");
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={upcomingOnly}
+                  onCheckedChange={handleToggleUpcoming}
+                  aria-label="Upcoming only"
+                />
+                <span className="text-sm">Upcoming only</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Select
+                value={sortBy}
+                onValueChange={(v) => {
+                  setSortBy(v as "date" | "created_at");
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-36">
+                  <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              >
+                {sortOrder === "asc" ? (
+                  <SortAsc className="h-4 w-4" />
+                ) : (
+                  <SortDesc className="h-4 w-4" />
+                )}
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Select
-              value={sortBy}
-              onValueChange={(v) => {
-                setSortBy(v as "date" | "created_at");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-36">
-                <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            >
-              {sortOrder === "asc" ? (
-                <SortAsc className="h-4 w-4" />
-              ) : (
-                <SortDesc className="h-4 w-4" />
-              )}
-            </Button>
+        }
+        itemName="events"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : events.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<CalendarHeart className="h-12 w-12" />}
-                title="No life events found"
-                description={
-                  typeFilter !== "all" || upcomingOnly
-                    ? "Try adjusting your filters."
-                    : canCreate
-                      ? "Record a birthday, wedding, or baptism to get started."
-                      : "No life events have been recorded yet."
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
+        ) : events.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<CalendarHeart className="h-12 w-12" />}
+              title="No life events found"
+              description={
+                typeFilter !== "all" || upcomingOnly
+                  ? "Try adjusting your filters."
+                  : canCreate
+                    ? "Record a birthday, wedding, or baptism to get started."
+                    : "No life events have been recorded yet."
+              }
+            />
+          </div>
+        ) : (
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Member</TableHead>
@@ -305,22 +314,8 @@ export default function LifeEventsPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="events"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <LifeEventFormDialog open={createOpen} onOpenChange={setCreateOpen} />
       <ConfirmDeleteDialog

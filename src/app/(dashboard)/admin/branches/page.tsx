@@ -20,9 +20,9 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { TableCard } from "@/components/shared/table-card";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -85,15 +85,16 @@ function TableSkeleton() {
           </div>
         ))}
       </div>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <div className="rounded-lg border">
+        <div className="flex items-center justify-between p-5 pb-3">
           <Skeleton className="h-6 w-28" />
           <div className="flex gap-2">
             <Skeleton className="h-9 w-48" />
             <Skeleton className="h-9 w-28" />
+            <Skeleton className="h-9 w-28" />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+        <div className="p-3">
           <Table>
             <TableHeader>
               <TableRow>
@@ -116,8 +117,8 @@ function TableSkeleton() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -140,6 +141,8 @@ export default function BranchesPage() {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [editBranch, setEditBranch] = React.useState<Branch | null>(null);
   const [deleteTargets, setDeleteTargets] = React.useState<Branch[] | null>(null);
+  const [page, setPage] = React.useState(1);
+  const [perPage, setPerPage] = React.useState(15);
 
   // Branches are few per church — fetch one large page so client-side type
   // filtering and stats cover the whole set while search stays server-side.
@@ -162,6 +165,16 @@ export default function BranchesPage() {
         return allBranches;
     }
   }, [allBranches, typeFilter]);
+
+  const pagedBranches = React.useMemo(
+    () => branches.slice((page - 1) * perPage, page * perPage),
+    [branches, page, perPage]
+  );
+
+  const maxPage = Math.max(1, Math.ceil(branches.length / perPage));
+  React.useEffect(() => {
+    if (page > maxPage) setPage(maxPage);
+  }, [page, maxPage]);
 
   const totalMembers = allBranches.reduce((sum, b) => sum + b.memberCount, 0);
   const hqCount = allBranches.filter((b) => b.isHeadquarters).length;
@@ -290,9 +303,9 @@ export default function BranchesPage() {
             <StatsCard title="Locations" value={locationCount} icon={<Building2 className="h-5 w-5 text-purple-600" />} />
           </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-3">
-              <h5 className="text-lg font-semibold">Branches List</h5>
+          <TableCard
+            title="Branches List"
+            toolbar={
               <div className="flex items-center gap-2 flex-wrap">
                 <SearchInput
                   value={search}
@@ -332,44 +345,52 @@ export default function BranchesPage() {
                   </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {someSelected && canDeleteBranches && (
-                <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
-                  <span className="text-sm font-medium">{selectedIds.size} selected</span>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setDeleteTargets(selectedBranches)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1.5" />
-                    Delete Selected
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedIds(new Set())}
-                  >
-                    Clear Selection
-                  </Button>
-                </div>
-              )}
+            }
+            itemName="branches"
+            page={page}
+            perPage={perPage}
+            total={branches.length}
+            onPageChange={setPage}
+            onPerPageChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+          >
+            {someSelected && canDeleteBranches && (
+              <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
+                <span className="text-sm font-medium">{selectedIds.size} selected</span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => setDeleteTargets(selectedBranches)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  Delete Selected
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                >
+                  Clear Selection
+                </Button>
+              </div>
+            )}
 
-              {branches.length === 0 ? (
-                <div className="py-8">
-                  <EmptyState
-                    icon={<Building2 className="h-12 w-12" />}
-                    title="No branches found"
-                    description={search || typeFilter !== "all"
-                      ? "Try adjusting your filters."
-                      : canManage
-                        ? "Add your first branch to get started."
-                        : "No branches have been added yet."}
-                  />
-                </div>
-              ) : (
-                <div className="overflow-x-auto px-4">
-                  <Table>
+            {branches.length === 0 ? (
+              <div className="py-8">
+                <EmptyState
+                  icon={<Building2 className="h-12 w-12" />}
+                  title="No branches found"
+                  description={search || typeFilter !== "all"
+                    ? "Try adjusting your filters."
+                    : canManage
+                      ? "Add your first branch to get started."
+                      : "No branches have been added yet."}
+                />
+              </div>
+            ) : (
+              <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">
@@ -389,7 +410,7 @@ export default function BranchesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {branches.map((branch) => (
+                      {pagedBranches.map((branch) => (
                         <TableRow
                           key={branch.branchId}
                           className="cursor-pointer"
@@ -496,10 +517,8 @@ export default function BranchesPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </TableCard>
         </>
       )}
 

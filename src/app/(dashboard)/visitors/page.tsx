@@ -18,13 +18,12 @@ import {
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -331,8 +330,19 @@ export default function VisitorsPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <TableCard
+        title="All Visitors"
+        itemName="visitors"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <SearchInput
               value={searchInput}
@@ -388,8 +398,9 @@ export default function VisitorsPage() {
               )}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+          </div>
+        }
+      >
           {someSelected && canDeleteVisitors && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
               <span className="text-sm font-medium">{selectedIds.size} selected</span>
@@ -550,20 +561,7 @@ export default function VisitorsPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="visitors"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <VisitorFormDialog
         open={createDialogOpen}

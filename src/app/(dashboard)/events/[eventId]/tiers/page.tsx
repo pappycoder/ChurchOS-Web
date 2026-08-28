@@ -14,13 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -214,49 +208,46 @@ export default function EventTiersPage() {
         }
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pricing Tiers</CardTitle>
-          <CardDescription>
-            {tiers.length === 0
-              ? "No tiers configured. Add a tier to set pricing for this event."
-              : `${tiers.length} tier(s) configured for this event.`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {tiersQuery.isLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : tiers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No ticket tiers yet.</p>
-              {canCreate && (
-                <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add First Tier
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-8" />
-                    <TableHead>Name</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Capacity</TableHead>
-                    <TableHead>Description</TableHead>
-                    {(canUpdate || canDelete) && (
-                      <TableHead className="text-right">Actions</TableHead>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+      <TableCard
+        title="Pricing Tiers"
+        description={
+          tiers.length === 0
+            ? "No tiers configured. Add a tier to set pricing for this event."
+            : `${tiers.length} tier(s) configured for this event.`
+        }
+      >
+        {tiersQuery.isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : tiers.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No ticket tiers yet.</p>
+            {canCreate && (
+              <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Tier
+              </Button>
+            )}
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8" />
+                <TableHead>Name</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Capacity</TableHead>
+                <TableHead>Description</TableHead>
+                {(canUpdate || canDelete) && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
                   {tiers.map((tier) => (
                     <TableRow key={tier.id}>
                       <TableCell>
@@ -310,12 +301,10 @@ export default function EventTiersPage() {
                       )}
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

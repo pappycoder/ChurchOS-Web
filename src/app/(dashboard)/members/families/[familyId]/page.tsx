@@ -16,7 +16,8 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -147,39 +148,35 @@ export default function FamilyDetailPage({
       </Card>
 
       {/* Family members */}
-      <Card>
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>Family Members</CardTitle>
-            <CardDescription>
-              Member records linked to this family.
-            </CardDescription>
-          </div>
-          {canUpdateFamilies && (
+      <TableCard
+        title="Family Members"
+        description="Member records linked to this family."
+        action={
+          canUpdateFamilies && (
             <Button size="sm" onClick={() => setAddMemberOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
               Add Member
             </Button>
-          )}
-        </CardHeader>
-        <CardContent className="p-0">
-          {display.members.length === 0 ? (
-            <div className="py-8">
-              <p className="text-center text-muted-foreground">
-                No members have been linked to this family yet.
-              </p>
-              {canUpdateFamilies && (
-                <div className="flex justify-center mt-3">
-                  <Button variant="outline" size="sm" onClick={() => setAddMemberOpen(true)}>
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add First Member
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-6 pb-5 [&_th]:py-3.5 [&_td]:py-4">
-              <Table>
+          )
+        }
+      >
+        {display.members.length === 0 ? (
+          <div className="py-8">
+            <p className="text-center text-muted-foreground">
+              No members have been linked to this family yet.
+            </p>
+            {canUpdateFamilies && (
+              <div className="flex justify-center mt-3">
+                <Button variant="outline" size="sm" onClick={() => setAddMemberOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add First Member
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="px-6 pb-5 [&_th]:py-3.5 [&_td]:py-4">
+            <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Member</TableHead>
@@ -238,8 +235,7 @@ export default function FamilyDetailPage({
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </TableCard>
 
       <FamilyFormDialog
         open={editOpen}

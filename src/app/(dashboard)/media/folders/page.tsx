@@ -6,7 +6,7 @@ import { AlertTriangle, Folder, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,6 +61,13 @@ function FolderRow({ name }: { name: string }) {
 function MediaFoldersPage() {
   const { data: folders, isLoading, error } = useMediaFolders();
 
+  const [page, setPage] = React.useState(1);
+  const [perPage, setPerPage] = React.useState(15);
+  const pagedFolders = React.useMemo(
+    () => (folders ?? []).slice((page - 1) * perPage, page * perPage),
+    [folders, page, perPage]
+  );
+
   if (error) {
     return (
       <div>
@@ -86,46 +93,51 @@ function MediaFoldersPage() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Media", href: "/media" }, { label: "Folders" }]}
       />
 
-      <Card>
-        <CardHeader className="text-sm text-muted-foreground">
-          Files are organized into folders. Click a folder to browse its files in the library.
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="space-y-3 p-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+      <TableCard
+        title="Media Folders"
+        description="Files are organized into folders. Click a folder to browse its files in the library."
+        itemName="folders"
+        page={page}
+        perPage={perPage}
+        total={folders?.length ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
+        {isLoading ? (
+          <div className="space-y-3 p-4">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : !folders || folders.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<FolderOpen className="h-12 w-12" />}
+              title="No folders yet"
+              description="Upload your first file to create a folder."
+            />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Folder</TableHead>
+                <TableHead>Files</TableHead>
+                <TableHead>Newest File</TableHead>
+                <TableHead className="text-right" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedFolders.map((name) => (
+                <FolderRow key={name} name={name} />
               ))}
-            </div>
-          ) : !folders || folders.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<FolderOpen className="h-12 w-12" />}
-                title="No folders yet"
-                description="Upload your first file to create a folder."
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Folder</TableHead>
-                    <TableHead>Files</TableHead>
-                    <TableHead>Newest File</TableHead>
-                    <TableHead className="text-right" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {folders.map((name) => (
-                    <FolderRow key={name} name={name} />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>
     </div>
   );
 }

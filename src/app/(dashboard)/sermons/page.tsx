@@ -20,7 +20,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
 import {
@@ -31,7 +31,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -230,84 +229,94 @@ function SermonsListContent() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          {(speaker || series) && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-muted-foreground">Filtered by:</span>
-              {speaker && (
-                <Badge variant="secondary" className="gap-1">
-                  Speaker: {speaker}
-                </Badge>
-              )}
-              {series && (
-                <Badge variant="secondary" className="gap-1">
-                  Series: {series}
-                </Badge>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={clearDeepLinkFilters}
+      <TableCard
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            {(speaker || series) && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-muted-foreground">Filtered by:</span>
+                {speaker && (
+                  <Badge variant="secondary" className="gap-1">
+                    Speaker: {speaker}
+                  </Badge>
+                )}
+                {series && (
+                  <Badge variant="secondary" className="gap-1">
+                    Series: {series}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={clearDeepLinkFilters}
+                >
+                  Clear
+                </Button>
+              </div>
+            )}
+            <SearchInput
+              value={searchInput}
+              onChange={(v) => setSearchInput(v)}
+              placeholder="Search sermons..."
+              className="w-full sm:w-64"
+            />
+            <div className="flex items-center gap-2">
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value as ListSermonsParams["sortBy"]);
+                  setPage(1);
+                }}
+                className="h-8 rounded-md border border-input bg-background px-2 text-sm"
               >
-                Clear
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    Sort: {opt.label}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2"
+                onClick={toggleSortOrder}
+              >
+                {sortOrder === "asc" ? "Asc" : "Desc"}
               </Button>
             </div>
-          )}
-          <SearchInput
-            value={searchInput}
-            onChange={(v) => setSearchInput(v)}
-            placeholder="Search sermons..."
-            className="w-full sm:w-64"
-          />
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value as ListSermonsParams["sortBy"]);
-                setPage(1);
-              }}
-              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  Sort: {opt.label}
-                </option>
-              ))}
-            </select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-2"
-              onClick={toggleSortOrder}
-            >
-              {sortOrder === "asc" ? "Asc" : "Desc"}
-            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : sermons.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<BookOpen className="h-12 w-12" />}
-                title="No sermons yet"
-                description={
-                  search
-                    ? "Try adjusting your search."
-                    : "Add your first sermon to get started."
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
+        }
+        itemName="sermons"
+        page={page}
+        perPage={perPage}
+        total={total}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : sermons.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<BookOpen className="h-12 w-12" />}
+              title="No sermons yet"
+              description={
+                search
+                  ? "Try adjusting your search."
+                  : "Add your first sermon to get started."
+              }
+            />
+          </div>
+        ) : (
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>
@@ -399,23 +408,9 @@ function SermonsListContent() {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
-            </div>
+            </Table>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={total}
-        itemName="sermons"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent className="sm:max-w-[420px]">

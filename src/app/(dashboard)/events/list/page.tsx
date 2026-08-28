@@ -18,7 +18,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
 import {
@@ -29,7 +29,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -230,8 +229,19 @@ export default function EventsListPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <TableCard
+        title="All Events"
+        itemName="events"
+        page={page}
+        perPage={perPage}
+        total={total}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <SearchInput
               value={searchInput}
@@ -292,8 +302,9 @@ export default function EventsListPage() {
               {sortOrder === "asc" ? "Asc" : "Desc"}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+          </div>
+        }
+      >
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -402,20 +413,7 @@ export default function EventsListPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={total}
-        itemName="events"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

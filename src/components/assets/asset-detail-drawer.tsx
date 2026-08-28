@@ -101,24 +101,25 @@ export function AssetDetailDrawer({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
+        <SheetHeader className="px-6 pt-6 pb-3">
           <SheetTitle className="flex items-center gap-2">
             <Boxes className="h-5 w-5" />
             Asset Details
           </SheetTitle>
         </SheetHeader>
 
-        {assetQuery.isLoading ? (
-          <div className="space-y-4 py-6">
-            <Skeleton className="h-6 w-1/2" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        ) : !asset ? (
-          <p className="py-6 text-sm text-muted-foreground">Asset not found.</p>
-        ) : (
-          <>
-            <div className="py-4 space-y-1">
+        <div className="px-6 pb-6">
+          {assetQuery.isLoading ? (
+            <div className="space-y-4 pt-4">
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          ) : !asset ? (
+            <p className="pt-4 text-sm text-muted-foreground">Asset not found.</p>
+          ) : (
+            <>
+              <div className="pt-1 space-y-1">
               <p className="text-lg font-semibold">{asset.name}</p>
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <Badge variant="outline" className="font-mono">
@@ -337,6 +338,7 @@ export function AssetDetailDrawer({
             {children && <div className="pt-4">{children}</div>}
           </>
         )}
+        </div>
       </SheetContent>
     </Sheet>
   );

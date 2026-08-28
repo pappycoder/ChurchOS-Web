@@ -18,7 +18,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import {
   Dialog,
   DialogContent,
@@ -44,7 +44,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -253,8 +252,18 @@ export default function AttendanceServicesPage() {
         }
       />
 
-      <Card>
-        <CardContent className="p-0">
+      <TableCard
+        title="Church Services"
+        itemName="services"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3, 4].map((i) => (
@@ -392,20 +401,7 @@ export default function AttendanceServicesPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="services"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

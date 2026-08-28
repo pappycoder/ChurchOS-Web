@@ -19,7 +19,8 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -75,6 +76,20 @@ export default function EventDetailPage({
   const deleteMutation = useDeleteEvent();
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [regPage, setRegPage] = React.useState(1);
+  const [regPerPage, setRegPerPage] = React.useState(15);
+  const [attPage, setAttPage] = React.useState(1);
+  const [attPerPage, setAttPerPage] = React.useState(15);
+
+  const pagedRegistrations = React.useMemo(() => {
+    const rows = registrationsQuery.data ?? [];
+    return rows.slice((regPage - 1) * regPerPage, regPage * regPerPage);
+  }, [registrationsQuery.data, regPage, regPerPage]);
+
+  const pagedAttendance = React.useMemo(() => {
+    const rows = attendanceQuery.data ?? [];
+    return rows.slice((attPage - 1) * attPerPage, attPage * attPerPage);
+  }, [attendanceQuery.data, attPage, attPerPage]);
 
   const isLoading = eventQuery.isLoading || statsQuery.isLoading;
   const event = eventQuery.data;
@@ -252,9 +267,9 @@ export default function EventDetailPage({
       </div>
 
       {/* Registrations tab */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold">Registrations</CardTitle>
+      <TableCard
+        title="Registrations"
+        action={
           <span className="text-xs text-muted-foreground">
             {registrationsQuery.isLoading
               ? ""
@@ -262,8 +277,17 @@ export default function EventDetailPage({
                 ? "No registrations"
                 : `${registrations.length} registration(s)`}
           </span>
-        </CardHeader>
-        <CardContent className="p-0 pb-4">
+        }
+        itemName="registrations"
+        page={regPage}
+        perPage={regPerPage}
+        total={registrations.length}
+        onPageChange={setRegPage}
+        onPerPageChange={(n) => {
+          setRegPerPage(n);
+          setRegPage(1);
+        }}
+      >
           {registrationsQuery.isLoading ? (
             <div className="px-6 space-y-2">
               <Skeleton className="h-10 w-full" />
@@ -274,60 +298,57 @@ export default function EventDetailPage({
               No registrations for this event yet.
             </p>
           ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Payment</TableHead>
-                    <TableHead>Checked In</TableHead>
-                    <TableHead>Registered</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Member</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead>Payment</TableHead>
+                  <TableHead>Checked In</TableHead>
+                  <TableHead>Registered</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pagedRegistrations.map((reg) => (
+                  <TableRow key={reg.registrationId}>
+                    <TableCell className="font-medium">
+                      {reg.memberName || reg.memberId}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {reg.tierName || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          reg.paymentStatus === "success"
+                            ? "default"
+                            : reg.paymentStatus === "failed"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {reg.paymentStatus}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={reg.checkedIn ? "default" : "secondary"}>
+                        {reg.checkedIn ? "Yes" : "No"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {format(new Date(reg.createdAt), "MMM d, yyyy")}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {registrations.map((reg) => (
-                    <TableRow key={reg.registrationId}>
-                      <TableCell className="font-medium">
-                        {reg.memberName || reg.memberId}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {reg.tierName || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            reg.paymentStatus === "success"
-                              ? "default"
-                              : reg.paymentStatus === "failed"
-                                ? "destructive"
-                                : "secondary"
-                          }
-                        >
-                          {reg.paymentStatus}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={reg.checkedIn ? "default" : "secondary"}>
-                          {reg.checkedIn ? "Yes" : "No"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(reg.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </CardContent>
-      </Card>
+      </TableCard>
 
       {/* Attendance tab */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold">Attendance</CardTitle>
+      <TableCard
+        title="Attendance"
+        action={
           <span className="text-xs text-muted-foreground">
             {attendanceQuery.isLoading
               ? ""
@@ -335,8 +356,17 @@ export default function EventDetailPage({
                 ? "No records"
                 : `${attendance.length} record(s)`}
           </span>
-        </CardHeader>
-        <CardContent className="p-0 pb-4">
+        }
+        itemName="records"
+        page={attPage}
+        perPage={attPerPage}
+        total={attendance.length}
+        onPageChange={setAttPage}
+        onPerPageChange={(n) => {
+          setAttPerPage(n);
+          setAttPage(1);
+        }}
+      >
           {attendanceQuery.isLoading ? (
             <div className="px-6 space-y-2">
               <Skeleton className="h-10 w-full" />
@@ -347,39 +377,36 @@ export default function EventDetailPage({
               No attendance records for this event yet.
             </p>
           ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Check-In</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Check-In</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pagedAttendance.map((record) => (
+                  <TableRow key={record.attendanceId}>
+                    <TableCell className="font-medium">
+                      {record.memberName || record.visitorName || "-"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground capitalize">
+                      {record.category || "-"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground capitalize">
+                      {record.source}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {format(new Date(record.checkInAt), "MMM d, yyyy · HH:mm")}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {attendance.map((record) => (
-                    <TableRow key={record.attendanceId}>
-                      <TableCell className="font-medium">
-                        {record.memberName || record.visitorName || "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground capitalize">
-                        {record.category || "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground capitalize">
-                        {record.source}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(record.checkInAt), "MMM d, yyyy · HH:mm")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                ))}
+              </TableBody>
+            </Table>
           )}
-        </CardContent>
-      </Card>
+      </TableCard>
 
       {/* Delete confirmation */}
       {deleteOpen && (

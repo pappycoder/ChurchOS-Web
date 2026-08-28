@@ -21,10 +21,9 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -302,8 +301,19 @@ export default function MembersPage() {
         />
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <TableCard
+        title="All Members"
+        itemName="members"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <SearchInput
               value={searchInput}
@@ -374,9 +384,10 @@ export default function MembersPage() {
               {sortOrder === "asc" ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {someSelected && canDeleteMembers && (
+          </div>
+        }
+      >
+        {someSelected && canDeleteMembers && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
               <span className="text-sm font-medium">{selectedIds.size} selected</span>
               <Button
@@ -548,20 +559,7 @@ export default function MembersPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="members"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <MemberFormDialog
         open={createDialogOpen}

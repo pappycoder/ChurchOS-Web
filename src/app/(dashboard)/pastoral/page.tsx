@@ -21,7 +21,7 @@ import {
   CONFIDENTIALITY_TEXT,
 } from "@/hooks/use-pastoral";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -48,7 +48,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TablePagination } from "@/components/shared/table-pagination";
 import { NoteFormDialog } from "@/components/pastoral/note-form-dialog";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
 import { cn } from "@/lib/utils";
@@ -134,57 +133,67 @@ export default function PastoralNotesPage() {
         }
       />
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Select
-              value={confidentiality}
-              onValueChange={(v) => {
-                setConfidentiality(v as ConfidentialityLevel | "all");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CONFIDENTIALITY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <StickyNote className="h-4 w-4" />
-            {meta?.total ?? 0} notes
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
+      <TableCard
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Select
+                value={confidentiality}
+                onValueChange={(v) => {
+                  setConfidentiality(v as ConfidentialityLevel | "all");
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONFIDENTIALITY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ) : notes.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<StickyNote className="h-12 w-12" />}
-                title="No notes found"
-                description={
-                  confidentiality !== "all"
-                    ? "Try adjusting the confidentiality filter."
-                    : canCreate
-                      ? "Add your first note to start tracking pastoral care."
-                      : "No pastoral notes have been recorded yet."
-                }
-              />
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <StickyNote className="h-4 w-4" />
+              {meta?.total ?? 0} notes
             </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
+          </div>
+        }
+        itemName="notes"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<StickyNote className="h-12 w-12" />}
+              title="No notes found"
+              description={
+                confidentiality !== "all"
+                  ? "Try adjusting the confidentiality filter."
+                  : canCreate
+                    ? "Add your first note to start tracking pastoral care."
+                    : "No pastoral notes have been recorded yet."
+              }
+            />
+          </div>
+        ) : (
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Member</TableHead>
@@ -289,22 +298,8 @@ export default function PastoralNotesPage() {
                   ))}
                 </TableBody>
               </Table>
-            </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="notes"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <NoteFormDialog open={createOpen} onOpenChange={setCreateOpen} />
       <NoteFormDialog

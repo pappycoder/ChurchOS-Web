@@ -18,10 +18,10 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -82,15 +82,15 @@ function TableSkeleton() {
         ))}
       </div>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <div className="flex items-center justify-between p-5 pb-3">
           <Skeleton className="h-6 w-28" />
           <div className="flex gap-2">
             <Skeleton className="h-9 w-48" />
             <Skeleton className="h-9 w-28" />
             <Skeleton className="h-9 w-28" />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+        <div className="p-3">
           <Table>
             <TableHeader>
               <TableRow>
@@ -117,7 +117,7 @@ function TableSkeleton() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
+        </div>
       </Card>
     </div>
   );
@@ -329,9 +329,9 @@ export default function UsersPage() {
             <StatsCard title="New (30d)" value={newJoiners} icon={<UserPlus className="h-5 w-5 text-blue-600" />} />
           </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-3">
-              <h5 className="text-lg font-semibold">Users List</h5>
+          <TableCard
+            title="Users List"
+            toolbar={
               <div className="flex items-center gap-2 flex-wrap">
                 <SearchInput
                   value={search}
@@ -382,46 +382,54 @@ export default function UsersPage() {
                   </Button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              {someSelected && canDeleteUsers && (
-                <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
-                  <span className="text-sm font-medium">{selectedIds.size} selected</span>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() =>
-                      setDeleteTargets(
-                        users.filter((u) => selectedIds.has(u.profileId))
-                      )
-                    }
-                  >
-                    <Trash2 className="h-4 w-4 mr-1.5" />
-                    Deactivate Selected
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedIds(new Set())}
-                  >
-                    Clear Selection
-                  </Button>
-                </div>
-              )}
+            }
+            itemName="users"
+            page={page}
+            perPage={perPage}
+            total={total}
+            onPageChange={setPage}
+            onPerPageChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+          >
+            {someSelected && canDeleteUsers && (
+              <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
+                <span className="text-sm font-medium">{selectedIds.size} selected</span>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() =>
+                    setDeleteTargets(
+                      users.filter((u) => selectedIds.has(u.profileId))
+                    )
+                  }
+                >
+                  <Trash2 className="h-4 w-4 mr-1.5" />
+                  Deactivate Selected
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedIds(new Set())}
+                >
+                  Clear Selection
+                </Button>
+              </div>
+            )}
 
-              {users.length === 0 ? (
-                <div className="py-8">
-                  <EmptyState
-                    icon={<Users className="h-12 w-12" />}
-                    title="No users found"
-                    description={search || roleFilter !== "all" || statusFilter !== "all"
-                      ? "Try adjusting your filters."
-                      : "Invite your first user to get started."}
-                  />
-                </div>
-              ) : (
-                <div className="overflow-x-auto px-4">
-                  <Table>
+            {users.length === 0 ? (
+              <div className="py-8">
+                <EmptyState
+                  icon={<Users className="h-12 w-12" />}
+                  title="No users found"
+                  description={search || roleFilter !== "all" || statusFilter !== "all"
+                    ? "Try adjusting your filters."
+                    : "Invite your first user to get started."}
+                />
+              </div>
+            ) : (
+              <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">
@@ -490,22 +498,8 @@ export default function UsersPage() {
                       ))}
                     </TableBody>
                   </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <TablePagination
-            page={page}
-            perPage={perPage}
-            total={total}
-            itemName="users"
-            onPageChange={setPage}
-            onPerPageChange={(n) => {
-              setPerPage(n);
-              setPage(1);
-            }}
-          />
+            )}
+          </TableCard>
         </>
       )}
 

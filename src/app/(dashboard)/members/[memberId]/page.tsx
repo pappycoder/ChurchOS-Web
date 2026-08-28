@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -91,6 +92,28 @@ export default function MemberDetailPage({
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [noteDraft, setNoteDraft] = React.useState("");
+
+  const [givePage, setGivePage] = React.useState(1);
+  const [givePerPage, setGivePerPage] = React.useState(15);
+  const [attPage, setAttPage] = React.useState(1);
+  const [attPerPage, setAttPerPage] = React.useState(15);
+
+  const givingRows = React.useMemo(
+    () => givingQuery.data?.data ?? [],
+    [givingQuery.data]
+  );
+  const attendanceRows = React.useMemo(
+    () => attendanceQuery.data?.data ?? [],
+    [attendanceQuery.data]
+  );
+  const pagedGiving = React.useMemo(
+    () => givingRows.slice((givePage - 1) * givePerPage, givePage * givePerPage),
+    [givingRows, givePage, givePerPage]
+  );
+  const pagedAttendance = React.useMemo(
+    () => attendanceRows.slice((attPage - 1) * attPerPage, attPage * attPerPage),
+    [attendanceRows, attPage, attPerPage]
+  );
 
   // Optimistic display state so dialog edits reflect instantly.
   const [display, setDisplay] = React.useState<typeof member>(undefined);
@@ -267,104 +290,112 @@ export default function MemberDetailPage({
       )}
 
       {/* Giving history */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+      <TableCard
+        title={
+          <span className="flex items-center gap-2">
             <HandCoins className="h-4 w-4" />
             Giving History
-          </CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {givingQuery.data?.data.length ?? 0} record(s)
           </span>
-        </CardHeader>
-        <CardContent className="p-0 pb-4">
-          {givingQuery.isLoading ? (
-            <div className="px-6 space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (givingQuery.data?.data.length ?? 0) === 0 ? (
-            <p className="px-6 text-sm text-muted-foreground">No giving records yet.</p>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(givingQuery.data?.data ?? []).slice(0, 5).map((tx) => (
-                    <TableRow key={tx.id}>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(tx.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {tx.currency} {Number(tx.amount).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={tx.status === "success" ? "default" : "secondary"}>
-                          {tx.status}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        }
+        action={<span className="text-xs text-muted-foreground">{givingRows.length} record(s)</span>}
+        itemName="records"
+        page={givePage}
+        perPage={givePerPage}
+        total={givingRows.length}
+        onPageChange={setGivePage}
+        onPerPageChange={(n) => {
+          setGivePerPage(n);
+          setGivePage(1);
+        }}
+      >
+        {givingQuery.isLoading ? (
+          <div className="px-6 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : givingRows.length === 0 ? (
+          <p className="px-6 text-sm text-muted-foreground">No giving records yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedGiving.map((tx) => (
+                <TableRow key={tx.id}>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(tx.createdAt), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {tx.currency} {Number(tx.amount).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={tx.status === "success" ? "default" : "secondary"}>
+                      {tx.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>
 
       {/* Attendance history */}
-      <Card>
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+      <TableCard
+        title={
+          <span className="flex items-center gap-2">
             <CalendarCheck className="h-4 w-4" />
             Attendance History
-          </CardTitle>
-          <span className="text-xs text-muted-foreground">
-            {attendanceQuery.data?.data.length ?? 0} check-in(s)
           </span>
-        </CardHeader>
-        <CardContent className="p-0 pb-4">
-          {attendanceQuery.isLoading ? (
-            <div className="px-6 space-y-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (attendanceQuery.data?.data.length ?? 0) === 0 ? (
-            <p className="px-6 text-sm text-muted-foreground">No attendance records yet.</p>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Checked In</TableHead>
-                    <TableHead>Source</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(attendanceQuery.data?.data ?? []).slice(0, 5).map((rec) => (
-                    <TableRow key={rec.id}>
-                      <TableCell className="font-medium">{rec.serviceName}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(rec.checkInAt), "MMM d, yyyy h:mm a")}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground capitalize">
-                        {rec.source}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        }
+        action={<span className="text-xs text-muted-foreground">{attendanceRows.length} check-in(s)</span>}
+        itemName="records"
+        page={attPage}
+        perPage={attPerPage}
+        total={attendanceRows.length}
+        onPageChange={setAttPage}
+        onPerPageChange={(n) => {
+          setAttPerPage(n);
+          setAttPage(1);
+        }}
+      >
+        {attendanceQuery.isLoading ? (
+          <div className="px-6 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : attendanceRows.length === 0 ? (
+          <p className="px-6 text-sm text-muted-foreground">No attendance records yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service</TableHead>
+                <TableHead>Checked In</TableHead>
+                <TableHead>Source</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedAttendance.map((rec) => (
+                <TableRow key={rec.id}>
+                  <TableCell className="font-medium">{rec.serviceName}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(rec.checkInAt), "MMM d, yyyy h:mm a")}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground capitalize">
+                    {rec.source}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>
 
       {/* Admin notes */}
       <Card>

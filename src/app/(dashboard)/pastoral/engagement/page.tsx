@@ -19,7 +19,7 @@ import {
   engagementBucketFor,
 } from "@/hooks/use-pastoral";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -41,7 +41,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchInput } from "@/components/shared/search-input";
 import { StatsCard } from "@/components/shared/stats-card";
-import { TablePagination } from "@/components/shared/table-pagination";
 import { MemberScoringDialog } from "@/components/pastoral/member-scoring-dialog";
 import { cn } from "@/lib/utils";
 
@@ -161,91 +160,101 @@ export default function EngagementPage() {
         })}
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <SearchInput
-              value={searchInput}
-              onChange={setSearchInput}
-              placeholder="Search by member name..."
-              className="w-full sm:w-64"
-            />
-            <Select
-              value={bucketFilter}
-              onValueChange={(v) => {
-                setBucketFilter(v as EngagementBucket | "all");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="All Buckets" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Buckets</SelectItem>
-                {BUCKET_ORDER.map((bucket) => (
-                  <SelectItem key={bucket} value={bucket}>
-                    {ENGAGEMENT_BUCKET_LABELS[bucket]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-1">
-            <Select
-              value={sortBy}
-              onValueChange={(v) => {
-                setSortBy(v as "score" | "calculated_at");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-44">
-                <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SORT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-            >
-              {sortOrder === "asc" ? (
-                <SortAsc className="h-4 w-4" />
-              ) : (
-                <SortDesc className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : scores.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<Sparkles className="h-12 w-12" />}
-                title="No engagement scores yet"
-                description={
-                  search || bucketFilter !== "all"
-                    ? "Try adjusting your search or filters."
-                    : "Engagement scores appear once attendance and giving are being recorded."
-                }
+      <TableCard
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              <SearchInput
+                value={searchInput}
+                onChange={setSearchInput}
+                placeholder="Search by member name..."
+                className="w-full sm:w-64"
               />
+              <Select
+                value={bucketFilter}
+                onValueChange={(v) => {
+                  setBucketFilter(v as EngagementBucket | "all");
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-44">
+                  <SelectValue placeholder="All Buckets" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Buckets</SelectItem>
+                  {BUCKET_ORDER.map((bucket) => (
+                    <SelectItem key={bucket} value={bucket}>
+                      {ENGAGEMENT_BUCKET_LABELS[bucket]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
+            <div className="flex items-center gap-1">
+              <Select
+                value={sortBy}
+                onValueChange={(v) => {
+                  setSortBy(v as "score" | "calculated_at");
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-44">
+                  <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              >
+                {sortOrder === "asc" ? (
+                  <SortAsc className="h-4 w-4" />
+                ) : (
+                  <SortDesc className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+        }
+        itemName="members"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : scores.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<Sparkles className="h-12 w-12" />}
+              title="No engagement scores yet"
+              description={
+                search || bucketFilter !== "all"
+                  ? "Try adjusting your search or filters."
+                  : "Engagement scores appear once attendance and giving are being recorded."
+              }
+            />
+          </div>
+        ) : (
+          <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Member</TableHead>
@@ -297,22 +306,8 @@ export default function EngagementPage() {
                   })}
                 </TableBody>
               </Table>
-            </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="members"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       <MemberScoringDialog
         open={!!selected}

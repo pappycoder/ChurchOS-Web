@@ -66,6 +66,7 @@ export function LoanFormDialog({
   onSaved,
 }: LoanFormDialogProps) {
   const createMutation = useCreateLoan(assetId);
+  const [borrowerName, setBorrowerName] = React.useState("");
 
   const form = useForm<LoanFormValues>({
     resolver: zodResolver(loanSchema),
@@ -80,6 +81,7 @@ export function LoanFormDialog({
 
   React.useEffect(() => {
     if (open) {
+      setBorrowerName("");
       form.reset({
         expectedReturnDate: "",
         borrowerMemberId: "",
@@ -135,9 +137,13 @@ export function LoanFormDialog({
                   <FormControl>
                     <MemberCombobox
                       value={field.value ?? ""}
-                      onChange={(memberId) =>
-                        field.onChange(memberId || undefined)
-                      }
+                      onChange={(memberId, member) => {
+                        field.onChange(memberId || undefined);
+                        setBorrowerName(
+                          member ? `${member.firstName} ${member.lastName}` : ""
+                        );
+                      }}
+                      selectedName={borrowerName || undefined}
                       placeholder="Select member..."
                     />
                   </FormControl>

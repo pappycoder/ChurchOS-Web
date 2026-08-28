@@ -12,7 +12,7 @@ import {
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -144,9 +143,18 @@ export default function RecurringGivingPage() {
         gift with &quot;make it recurring&quot; — manage them here.
       </p>
 
-      <Card>
-        <CardHeader className="pb-0" />
-        <CardContent className="p-0">
+      <TableCard
+        title="Recurring Schedules"
+        itemName="schedules"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+      >
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3].map((i) => (
@@ -247,20 +255,7 @@ export default function RecurringGivingPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="schedules"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       {/* Action confirmation */}
       <Dialog

@@ -11,7 +11,7 @@ import {
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
-import { TablePagination } from "@/components/shared/table-pagination";
+import { TableCard } from "@/components/shared/table-card";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
@@ -23,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -187,8 +186,19 @@ export default function AttendanceRecordsPage() {
         }
       />
 
-      <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
+      <TableCard
+        title="Attendance Records"
+        itemName="records"
+        page={page}
+        perPage={perPage}
+        total={meta?.total ?? 0}
+        onPageChange={setPage}
+        onPerPageChange={(n) => {
+          setPerPage(n);
+          setPage(1);
+        }}
+        toolbar={
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
           <Select
             value={serviceId}
             onValueChange={(v) => {
@@ -250,8 +260,9 @@ export default function AttendanceRecordsPage() {
               aria-label="To date"
             />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+        </div>
+        }
+      >
           {isLoading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -340,20 +351,7 @@ export default function AttendanceRecordsPage() {
               </Table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      <TablePagination
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        itemName="records"
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-      />
+      </TableCard>
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

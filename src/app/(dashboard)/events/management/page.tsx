@@ -17,13 +17,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { TableCard } from "@/components/shared/table-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,7 +64,6 @@ import { MemberCombobox } from "@/components/members/member-combobox";
 import { VisitorCombobox } from "@/components/visitors/visitor-combobox";
 import { useCreateVisitor } from "@/hooks/use-visitors";
 import { usePermissions } from "@/hooks/use-permissions";
-import { TablePagination } from "@/components/shared/table-pagination";
 import { generateTicketPDF } from "@/lib/ticket-pdf";
 
 // ─── Status Badge ─────────────────────────────────────────
@@ -235,28 +228,24 @@ function TicketTypesTab() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Ticket className="h-5 w-5" />
-              Ticket Types
-            </CardTitle>
-            <CardDescription>
-              Create and manage ticket types (inventory) for your events.
-            </CardDescription>
-          </div>
-          {canCreate && (
-            <Button onClick={openCreate} disabled={!selectedEventId}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Ticket Type
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4">
+    <TableCard
+      title={
+        <span className="flex items-center gap-2">
+          <Ticket className="h-5 w-5" />
+          Ticket Types
+        </span>
+      }
+      description="Create and manage ticket types (inventory) for your events."
+      action={
+        canCreate && (
+          <Button onClick={openCreate} disabled={!selectedEventId}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Ticket Type
+          </Button>
+        )
+      }
+      toolbar={
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Select
             value={selectedEventId}
             onValueChange={setSelectedEventId}
@@ -273,7 +262,8 @@ function TicketTypesTab() {
             </SelectContent>
           </Select>
         </div>
-
+      }
+    >
         {!selectedEventId ? (
           <div className="text-center py-8 text-muted-foreground">
             <Ticket className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -297,7 +287,6 @@ function TicketTypesTab() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -363,9 +352,7 @@ function TicketTypesTab() {
                 ))}
               </TableBody>
             </Table>
-          </div>
         )}
-      </CardContent>
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -459,12 +446,13 @@ function TicketTypesTab() {
               disabled={deleteTier.isPending}
             >
               {deleteTier.isPending ? "Deleting..." : "Delete"}
-            </Button>
+</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </TableCard>
   );
+
 }
 
 // ─── Tab 2: Assigned Tickets ──────────────────────────────
@@ -504,28 +492,33 @@ function AssignedTicketsTab() {
   const total = ticketsQuery.data?.total ?? 0;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              Assigned Tickets
-            </CardTitle>
-            <CardDescription>
-              View and manage individual tickets assigned to members.
-            </CardDescription>
-          </div>
-          {canCreate && (
-            <Button onClick={() => setAssignOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Assign Ticket
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap items-center gap-3 mb-4">
+    <TableCard
+      title={
+        <span className="flex items-center gap-2">
+          <Search className="h-5 w-5" />
+          Assigned Tickets
+        </span>
+      }
+      description="View and manage individual tickets assigned to members."
+      action={
+        canCreate && (
+          <Button onClick={() => setAssignOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Assign Ticket
+          </Button>
+        )
+      }
+      itemName="tickets"
+      page={page}
+      perPage={limit}
+      total={total}
+      onPageChange={setPage}
+      onPerPageChange={(newLimit) => {
+        setLimit(newLimit);
+        setPage(1);
+      }}
+      toolbar={
+        <div className="flex flex-wrap items-center gap-3">
           <Input
             placeholder="Search by ticket code or member name..."
             value={search}
@@ -570,7 +563,8 @@ function AssignedTicketsTab() {
             </SelectContent>
           </Select>
         </div>
-
+      }
+    >
         {ticketsQuery.isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -583,50 +577,34 @@ function AssignedTicketsTab() {
             <p className="text-sm">No tickets found.</p>
           </div>
         ) : (
-          <>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Attendee</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Used</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tickets.map((ticket) => (
-                    <TicketRow key={ticket.ticketId} ticket={ticket} />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              page={page}
-              perPage={limit}
-              total={total}
-              itemName="tickets"
-              onPageChange={setPage}
-              onPerPageChange={(newLimit) => {
-                setLimit(newLimit);
-                setPage(1);
-              }}
-            />
-          </>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Code</TableHead>
+                  <TableHead>Event</TableHead>
+                  <TableHead>Attendee</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Used</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tickets.map((ticket) => (
+                  <TicketRow key={ticket.ticketId} ticket={ticket} />
+                ))}
+              </TableBody>
+            </Table>
         )}
-      </CardContent>
 
       <AssignTicketDialog
         open={assignOpen}
         onOpenChange={setAssignOpen}
         events={events}
       />
-    </Card>
+    </TableCard>
   );
 }
 

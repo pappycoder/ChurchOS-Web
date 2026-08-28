@@ -541,8 +541,15 @@ export function AssetFormDialog({
                   <FormControl>
                     <MemberCombobox
                       value={field.value ?? ""}
-                      onChange={(memberId) => field.onChange(memberId || undefined)}
-                      selectedName={asset?.custodianName}
+                      onChange={(memberId, member) => {
+                        field.onChange(memberId || undefined);
+                        form.setValue(
+                          "custodianName",
+                          member ? `${member.firstName} ${member.lastName}` : "",
+                          { shouldDirty: false, shouldValidate: false }
+                        );
+                      }}
+                      selectedName={form.watch("custodianName") || undefined}
                       placeholder="Select member..."
                     />
                   </FormControl>

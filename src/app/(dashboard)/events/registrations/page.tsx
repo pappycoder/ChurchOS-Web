@@ -5,6 +5,8 @@ import { CalendarDays, Search, Users } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
+import { TableCard } from "@/components/shared/table-card";
+import { SearchInput } from "@/components/shared/search-input";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -21,7 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -43,6 +44,13 @@ export default function EventRegistrationsPage() {
 
   const [selectedEventId, setSelectedEventId] = React.useState<string>("");
   const [search, setSearch] = React.useState("");
+  const [page, setPage] = React.useState(1);
+  const [perPage, setPerPage] = React.useState(15);
+
+  React.useEffect(() => {
+    setPage(1);
+    setSearch("");
+  }, [selectedEventId]);
 
   const eventsQuery = useEventsList({ limit: 100, sortBy: "startDate", sortOrder: "desc" });
   const registrationsQuery = useEventRegistrations(selectedEventId);
@@ -62,6 +70,11 @@ export default function EventRegistrationsPage() {
         r.paymentStatus.toLowerCase().includes(q)
     );
   }, [allRegistrations, search]);
+
+  const pagedRegistrations = React.useMemo(
+    () => registrations.slice((page - 1) * perPage, page * perPage),
+    [registrations, page, perPage]
+  );
 
   const selectedEvent = React.useMemo(
     () => events.find((e) => e.eventId === selectedEventId) ?? null,
@@ -179,19 +192,32 @@ export default function EventRegistrationsPage() {
           </div>
 
           {/* Registrations table */}
-          <Card>
-            <CardContent className="pt-6">
-              {/* Search */}
-              <div className="flex items-center gap-2 mb-4">
+          <TableCard
+            title="Registrations"
+            itemName="registrations"
+            page={page}
+            perPage={perPage}
+            total={registrations.length}
+            onPageChange={setPage}
+            onPerPageChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+            toolbar={
+              <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
-                <Input
+                <SearchInput
                   placeholder="Search by member, tier, ticket code, or status..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(v) => {
+                    setSearch(v);
+                    setPage(1);
+                  }}
                   className="max-w-sm"
                 />
               </div>
-
+            }
+          >
               {registrationsQuery.isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -208,55 +234,52 @@ export default function EventRegistrationsPage() {
                   </p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Member ID</TableHead>
-                        <TableHead>Tier</TableHead>
-                        <TableHead>Qty</TableHead>
-                        <TableHead>Payment Status</TableHead>
-                        <TableHead>Checked In</TableHead>
-                        <TableHead>Ticket Code</TableHead>
-                        <TableHead>Registered</TableHead>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Member ID</TableHead>
+                      <TableHead>Tier</TableHead>
+                      <TableHead>Qty</TableHead>
+                      <TableHead>Payment Status</TableHead>
+                      <TableHead>Checked In</TableHead>
+                      <TableHead>Ticket Code</TableHead>
+                      <TableHead>Registered</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pagedRegistrations.map((reg) => (
+                      <TableRow key={reg.registrationId}>
+                        <TableCell className="font-mono text-xs">
+                          <span title={reg.memberId}>
+                            {reg.memberId.slice(0, 8)}...
+                          </span>
+                        </TableCell>
+                        <TableCell>{reg.tierName || "-"}</TableCell>
+                        <TableCell className="text-center">{reg.quantity}</TableCell>
+                        <TableCell>
+                          <Badge variant={PAYMENT_BADGE[reg.paymentStatus] ?? "secondary"}>
+                            {reg.paymentStatus}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {reg.checkedIn ? (
+                            <Badge variant="default">Yes</Badge>
+                          ) : (
+                            <Badge variant="secondary">No</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {reg.ticketCode || "-"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground whitespace-nowrap">
+                          {format(new Date(reg.createdAt), "MMM d, yyyy HH:mm")}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {registrations.map((reg) => (
-                        <TableRow key={reg.registrationId}>
-                          <TableCell className="font-mono text-xs">
-                            <span title={reg.memberId}>
-                              {reg.memberId.slice(0, 8)}...
-                            </span>
-                          </TableCell>
-                          <TableCell>{reg.tierName || "-"}</TableCell>
-                          <TableCell className="text-center">{reg.quantity}</TableCell>
-                          <TableCell>
-                            <Badge variant={PAYMENT_BADGE[reg.paymentStatus] ?? "secondary"}>
-                              {reg.paymentStatus}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {reg.checkedIn ? (
-                              <Badge variant="default">Yes</Badge>
-                            ) : (
-                              <Badge variant="secondary">No</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {reg.ticketCode || "-"}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground whitespace-nowrap">
-                            {format(new Date(reg.createdAt), "MMM d, yyyy HH:mm")}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
               )}
-            </CardContent>
-          </Card>
+          </TableCard>
         </>
       )}
     </div>
