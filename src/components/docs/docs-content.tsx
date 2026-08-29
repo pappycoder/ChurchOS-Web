@@ -191,6 +191,12 @@ export function DocsContent() {
               <PermBadge perm="resource:delete" />.
             </p>
             <p>
+              The archive lifecycle reuses these actions:{" "}
+              <strong>Archive</strong> and <strong>Delete Forever</strong> require
+              the <em>delete</em> permission for that resource, while{" "}
+              <strong>Restore</strong> requires the <em>update</em> permission.
+            </p>
+            <p>
               Permissions are assigned through <strong>roles</strong>. Each user can have
               multiple roles, and permissions accumulate across all assigned roles. The{" "}
               <strong>super_admin</strong> role has all permissions and cannot be modified.
@@ -198,6 +204,35 @@ export function DocsContent() {
             <p>
               If you lack a permission, the corresponding button will be hidden or disabled,
               and the page will show an &quot;Access Denied&quot; message.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Archive Lifecycle</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-2">
+            <p>
+              Record-based modules support an <strong>archive</strong> lifecycle:{" "}
+              <strong>archiving</strong> hides a record from the active lists while
+              keeping its data, so it can be <strong>restored</strong> at any time or{" "}
+              <strong>permanently deleted</strong> (<strong>Delete Forever</strong> —
+              no undo).
+            </p>
+            <p>
+              List pages show an <strong>Active | Archived</strong> filter at the start
+              of the toolbar. The <strong>Archived</strong> view swaps each row&apos;s
+              actions for <strong>Restore</strong> and <strong>Delete Forever</strong>;
+              the active view&apos;s row menu gains an <strong>Archive</strong> item.
+              Detail pages show an <strong>Archive</strong> button for active records
+              (or <strong>Restore</strong> / <strong>Delete Forever</strong> for archived
+              ones) plus an <strong>Archived</strong> badge.
+            </p>
+            <p>
+              Gating: <strong>Archive</strong> and <strong>Delete Forever</strong> require
+              the <strong>delete</strong> permission for that resource, while{" "}
+              <strong>Restore</strong> requires the <strong>update</strong> permission.
             </p>
           </CardContent>
         </Card>
@@ -280,6 +315,21 @@ export function DocsContent() {
                   "Upload CSV/Excel, map fields, preview, and commit bulk import",
                   "members:create",
                 ],
+                [
+                  "Archive",
+                  "Soft-archives the member — hidden from the active lists until restored",
+                  "members:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived member back to the active lists",
+                  "members:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived member",
+                  "members:delete",
+                ],
               ]}
             />
           </CardContent>
@@ -296,6 +346,7 @@ export function DocsContent() {
                 ["Status", "active / inactive / suspended / transferred"],
                 ["Branch", "Filter by church branch"],
                 ["Sort by", "First Name, Last Name, Member Since, Date Added (+ asc/desc toggle)"],
+                ["Archived", "Active | Archived toggle — shows only archived members with Restore / Delete Forever"],
               ]}
             />
           </CardContent>
@@ -364,6 +415,21 @@ export function DocsContent() {
                   "Export",
                   "Downloads selected (or all filtered) families as CSV/PDF/XLSX",
                   "families:read",
+                ],
+                [
+                  "Archive",
+                  "Soft-archives the family — hidden from the active lists until restored",
+                  "families:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived family back to the active lists",
+                  "families:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived family",
+                  "families:delete",
                 ],
               ]}
             />
@@ -445,6 +511,21 @@ export function DocsContent() {
                   "Export",
                   "Downloads selected (or all filtered) visitors as CSV/PDF/XLSX",
                   "visitors:read",
+                ],
+                [
+                  "Archive",
+                  "Soft-archives the visitor — hidden from the active lists until restored",
+                  "visitors:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived visitor back to the active lists",
+                  "visitors:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived visitor",
+                  "visitors:delete",
                 ],
               ]}
             />
@@ -552,6 +633,21 @@ export function DocsContent() {
                   "Downloads attendance records as CSV",
                   "attendance:read",
                 ],
+                [
+                  "Archive Service",
+                  "Soft-archives a service — hidden from the active services list until restored",
+                  "attendance:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived service back to the active services list",
+                  "attendance:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived service",
+                  "attendance:delete",
+                ],
               ]}
             />
           </CardContent>
@@ -568,6 +664,7 @@ export function DocsContent() {
                 ["Category", "adult / children"],
                 ["Date Range", "Start and end date pickers"],
                 ["Sort (Records)", "Date/time, name, service"],
+                ["Archived (Services)", "Active | Archived toggle on the Services list"],
               ]}
             />
           </CardContent>
@@ -661,6 +758,21 @@ export function DocsContent() {
                   "Downloads giving records as CSV/PDF/XLSX",
                   "giving:read",
                 ],
+                [
+                  "Archive Category",
+                  "Soft-archives a giving category — hidden from the active categories list until restored",
+                  "giving:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived giving category back to the active categories list",
+                  "giving:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived giving category",
+                  "giving:delete",
+                ],
               ]}
             />
           </CardContent>
@@ -678,6 +790,7 @@ export function DocsContent() {
                 ["Method", "cash / bank_transfer"],
                 ["Service", "Filter by linked service"],
                 ["Date Range", "Start and end date pickers"],
+                ["Archived (Categories)", "Active | Archived toggle on the Categories page"],
               ]}
             />
           </CardContent>
@@ -780,6 +893,21 @@ export function DocsContent() {
                   "Register a walk-in attendee and record their check-in for a chosen event",
                   "events:create",
                 ],
+                [
+                  "Archive",
+                  "Soft-archives the event — hidden from the active events list until restored",
+                  "events:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived event back to the active events list",
+                  "events:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived event",
+                  "events:delete",
+                ],
               ]}
             />
           </CardContent>
@@ -796,6 +924,7 @@ export function DocsContent() {
                 ["Type", "service / conference / lifecycle / training / social"],
                 ["Sort by", "Start Date, Title, Type (+ asc/desc toggle)"],
                 ["Event Filter (Registrations)", "Dropdown to select a specific event"],
+                ["Archived", "Active | Archived toggle on the Events list"],
               ]}
             />
           </CardContent>
@@ -869,6 +998,21 @@ export function DocsContent() {
                   "Downloads the visible sermons as a CSV file",
                   "sermons:read",
                 ],
+                [
+                  "Archive",
+                  "Soft-archives the sermon — hidden from the active sermon list until restored",
+                  "sermons:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived sermon back to the active sermon list",
+                  "sermons:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived sermon",
+                  "sermons:delete",
+                ],
               ]}
             />
           </CardContent>
@@ -884,6 +1028,7 @@ export function DocsContent() {
                 ["Search", "Server-side search by title, speaker, or scripture"],
                 ["Sort by", "Preached Date, Title, Date Added (+ asc/desc toggle)"],
                 ["Speaker / Series", "Deep links from the Series and Speakers pages pre-filter the list by that speaker or series"],
+                ["Archived", "Active | Archived toggle on the sermon list"],
               ]}
             />
           </CardContent>
@@ -1036,6 +1181,21 @@ export function DocsContent() {
                   "Opens a member's risk/engagement factors and suggested follow-ups (row click on Risk/Engagement pages)",
                   "pastoral:read",
                 ],
+                [
+                  "Archive",
+                  "Soft-archives a note or life event — hidden from the active lists until restored",
+                  "pastoral:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived note or life event back to the active lists",
+                  "pastoral:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived note or life event",
+                  "pastoral:delete",
+                ],
               ]}
             />
           </CardContent>
@@ -1055,6 +1215,7 @@ export function DocsContent() {
                 ["Engagement — Bucket", "highly_engaged / moderately_engaged / low_engagement / disengaged"],
                 ["Search", "Server-side search by member name (Risk Scores & Engagement)"],
                 ["Sort by", "Risk/Engagement Score or Date Calculated (+ asc/desc toggle)"],
+                ["Notes / Life Events — Archived", "Active | Archived toggle on the Notes and Life Events lists"],
               ]}
             />
           </CardContent>
@@ -1192,6 +1353,9 @@ export function DocsContent() {
                 ["Record Return", "Closes a loan with an actual return date and after-condition", "assets:update"],
                 ["Export CSV", "Downloads the visible register rows", "assets:read"],
                 ["View Details", "Opens the detail drawer (overview, QR, maintenance, loans, depreciation)", "assets:read"],
+                ["Archive", "Soft-archives the asset or asset category — hidden from the active register/categories until restored", "assets:delete"],
+                ["Restore", "Brings an archived asset or category back to the active lists", "assets:update"],
+                ["Delete Forever", "Permanently deletes an archived asset or asset category", "assets:delete"],
               ]}
             />
           </CardContent>
@@ -1209,6 +1373,7 @@ export function DocsContent() {
                 ["Condition", "new / good / fair / poor / damaged"],
                 ["Category", "Any registered asset category"],
                 ["Branch", "All branches or a specific branch"],
+                ["Archived", "Active | Archived toggle on the register and Categories lists"],
               ]}
             />
           </CardContent>
@@ -1267,6 +1432,12 @@ export function DocsContent() {
                 ["Remove Group Member", "Removes a member from a cell group", "cell_groups:update"],
                 ["Record Attendance", "Checks in a member, an existing visitor, or a new walk-in visitor (created on the fly)", "cell_groups:create"],
                 ["View Detail", "Opens the cell group detail page", "cell_groups:read"],
+                ["Archive Department", "Soft-archives a department — hidden from the active lists until restored", "departments:delete"],
+                ["Restore Department", "Brings an archived department back to the active lists", "departments:update"],
+                ["Delete Forever (Department)", "Permanently deletes an archived department", "departments:delete"],
+                ["Archive Cell Group", "Soft-archives a cell group — hidden from the active lists until restored", "cell_groups:delete"],
+                ["Restore Cell Group", "Brings an archived cell group back to the active lists", "cell_groups:update"],
+                ["Delete Forever (Cell Group)", "Permanently deletes an archived cell group", "cell_groups:delete"],
               ]}
             />
           </CardContent>
@@ -1281,6 +1452,7 @@ export function DocsContent() {
               rows={[
                 ["Search", "Debounced local search by department name/description, or cell group name/leader/branch/address"],
                 ["Meeting Date", "Attendance records can be narrowed to a single meeting date"],
+                ["Archived", "Active | Archived toggle on the Departments and Cell Groups lists"],
               ]}
             />
           </CardContent>
@@ -1576,6 +1748,21 @@ export function DocsContent() {
                   "Export",
                   "Downloads branch data as CSV/PDF/XLSX",
                   "branches:read",
+                ],
+                [
+                  "Archive",
+                  "Soft-archives the branch — hidden from the active list until restored",
+                  "branches:delete",
+                ],
+                [
+                  "Restore",
+                  "Brings an archived branch back to the active list",
+                  "branches:update",
+                ],
+                [
+                  "Delete Forever",
+                  "Permanently deletes an archived branch",
+                  "branches:delete",
                 ],
               ]}
             />
