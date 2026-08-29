@@ -279,6 +279,7 @@ export default function FormsPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Fields</TableHead>
+                <TableHead>Responses</TableHead>
                 <TableHead>Public</TableHead>
                 {canManage && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
@@ -291,6 +292,9 @@ export default function FormsPage() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-16" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-12" />
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-12" />
@@ -333,6 +337,7 @@ export default function FormsPage() {
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Fields</TableHead>
+                <TableHead>Responses</TableHead>
                 <TableHead>Public</TableHead>
                 {canManage && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
@@ -360,6 +365,7 @@ export default function FormsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{form.fields.length}</TableCell>
+                  <TableCell>{form.submissionCount}</TableCell>
                   <TableCell>
                     {form.isPublic ? (
                       <Badge variant="secondary">Public</Badge>

@@ -85,6 +85,7 @@ export interface Form {
   publicToken?: string;
   uniqueField?: string;
   submissionLimit: number;
+  submissionCount: number;
   archivedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -295,15 +296,31 @@ export function useSubmitForm(formId: string) {
 export function useSubmitFormPublic(publicToken: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: Record<string, unknown>) =>
+    mutationFn: (input: CreateSubmissionInput) =>
       api.post<FormSubmission>(
         `/forms/public/${publicToken}/submit`,
-        { data },
+        input,
         { skipAuth: true },
       ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["form-submissions"] });
     },
+  });
+}
+
+export function useCloseForm() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (formId: string) => api.post<Form>(`/forms/${formId}/close`, {}),
+    onSuccess: () => invalidateFormCaches(qc),
+  });
+}
+
+export function useReopenForm() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (formId: string) => api.post<Form>(`/forms/${formId}/reopen`, {}),
+    onSuccess: () => invalidateFormCaches(qc),
   });
 }
 

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ClipboardList, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useSubmitFormPublic, type FormField } from "@/hooks/use-forms";
 import { FormFieldsRenderer } from "@/components/forms/form-fields-renderer";
+import { SubmissionAttachments } from "@/components/forms/submission-attachments";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -19,6 +20,7 @@ export default function PublicFormPage() {
   const params = useParams<{ publicToken: string }>();
   const publicToken = params.publicToken;
   const [data, setData] = React.useState<Record<string, unknown>>({});
+  const [assetIds, setAssetIds] = React.useState<string[]>([]);
   const [submitted, setSubmitted] = React.useState(false);
   const [failed, setFailed] = React.useState<string | null>(null);
 
@@ -71,7 +73,10 @@ export default function PublicFormPage() {
     }
     setFailed(null);
     try {
-      await publicMutation.mutateAsync(data);
+      await publicMutation.mutateAsync({
+        data,
+        attachmentAssetIds: assetIds.length > 0 ? assetIds : undefined,
+      });
       setSubmitted(true);
     } catch (err) {
       setFailed(err instanceof Error ? err.message : "Unable to submit. Please try again.");
@@ -126,6 +131,8 @@ export default function PublicFormPage() {
         </div>
 
         <FormFieldsRenderer fields={form.fields} onChange={setData} disabled={publicMutation.isPending} />
+
+        <SubmissionAttachments onChange={setAssetIds} disabled={publicMutation.isPending} />
 
         {failed && (
           <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">

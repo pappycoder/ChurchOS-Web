@@ -1482,10 +1482,11 @@ export function DocsContent() {
           <CardContent>
             <PageTable
               rows={[
-                ["Forms List", "/forms", "Searchable list of all forms with status, public-link and submission state; opens any form's detail"],
+                ["Forms List", "/forms", "Searchable list of all forms with status, live response count, public-link and submission state; opens any form's detail"],
                 ["New Form", "/forms/new", "Full-page builder — form details, fields, and settings (status, public sharing, dedupe rules)"],
-                ["Form Detail", "/forms/[formId]", "Form overview, public share link (copy/regenerate), and its submissions list with approve/reject actions"],
+                ["Form Detail", "/forms/[formId]", "Form overview, public share link (copy/regenerate), close/reopen, and its submissions list with approve/reject actions"],
                 ["Edit Form", "/forms/[formId]/edit", "Pre-filled builder to update the form details, fields, and settings"],
+                ["Take Form", "/forms/[formId]/fill", "Authenticated member fill page — the logged-in form holder submits for their own account (open to any forms:read holder when the form is published)"],
                 ["Submissions", "/forms/submissions", "Monitor responses across forms — pick a form to review and approve/reject its submissions"],
                 ["Public Page", "/forms/public/[publicToken]", "Anonymous, link-only submit page — no login required, outside the dashboard"],
               ]}
@@ -1505,11 +1506,13 @@ export function DocsContent() {
                 ["Clone Form", "Duplicates the form as a new draft you can rename", "forms:create"],
                 ["Copy Link", "Copies the public submission link to the clipboard", "forms:update"],
                 ["Regenerate Link", "Issues a fresh public token — the old link stops working", "forms:update"],
+                ["Close Form", "Stops accepting new submissions (status becomes closed)", "forms:update"],
+                ["Reopen Form", "Re-opens a closed form as a draft — edit and re-publish to collect again", "forms:update"],
                 ["Approve / Reject Submission", "Advances a pending response to approved or rejected (with reason)", "forms:update"],
                 ["Archive Form", "Soft-archives the form — hidden from the active list until restored", "forms:delete"],
                 ["Restore Form", "Brings an archived form back to the active lists", "forms:update"],
                 ["Delete Forever", "Permanently deletes the form and all of its submissions (no undo)", "forms:delete"],
-                ["Submit", "Public or member responses — governed by the form's dedupe rules", "—"],
+                ["Submit", "Public or member responses — file attachments attach to the submission (uploads need the media:create permission)", "—"],
               ]}
             />
           </CardContent>

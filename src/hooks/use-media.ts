@@ -24,6 +24,7 @@ export interface MediaLibraryResponse {
 }
 
 export interface UploadMediaResponse {
+  assetId: string;
   url: string;
   path: string;
   width?: number;

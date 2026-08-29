@@ -72,6 +72,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/assets", permission: "assets:read" },
   { prefix: "/forms/new", permission: "forms:create" },
   { prefix: "/forms/[formId]/edit", permission: "forms:update" },
+  { prefix: "/forms/[formId]/fill", permission: "forms:read" },
   { prefix: "/forms/submissions", permission: "forms:read" },
   { prefix: "/forms", permission: "forms:read" },
 

@@ -11,7 +11,9 @@ import {
   Copy,
   FilePlus2,
   Link2,
+  PauseCircle,
   Pencil,
+  PlayCircle,
   RefreshCw,
   ShieldX,
   XCircle,
@@ -25,6 +27,8 @@ import {
   useRestoreForm,
   useCloneForm,
   useRegenerateLink,
+  useCloseForm,
+  useReopenForm,
   useUpdateSubmissionStatus,
   type Form,
   type FormSubmission,
@@ -78,6 +82,7 @@ export default function FormDetailPage() {
   const formId = params.formId as string;
   const { can } = usePermissions();
   const canCreate = can("forms", "create");
+  const canRead = can("forms", "read");
   const canUpdate = can("forms", "update");
   const canDelete = can("forms", "delete");
 
@@ -113,6 +118,8 @@ export default function FormDetailPage() {
   const deleteMutation = useDeleteForm();
   const cloneMutation = useCloneForm();
   const regenerateMutation = useRegenerateLink();
+  const closeMutation = useCloseForm();
+  const reopenMutation = useReopenForm();
   const statusMutation = useUpdateSubmissionStatus(formId);
 
   const createShareUrl = () => {
@@ -148,6 +155,28 @@ export default function FormDetailPage() {
       router.push(`/forms/${cloned.id}`);
     } catch (err) {
       toast.error("Failed to clone form", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
+  };
+
+  const handleClose = async () => {
+    try {
+      await closeMutation.mutateAsync(formId);
+      toast.success("Form closed to new submissions");
+    } catch (err) {
+      toast.error("Failed to close form", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
+  };
+
+  const handleReopen = async () => {
+    try {
+      await reopenMutation.mutateAsync(formId);
+      toast.success("Form reopened");
+    } catch (err) {
+      toast.error("Failed to reopen form", {
         description: err instanceof Error ? err.message : "Please try again.",
       });
     }
@@ -215,6 +244,24 @@ export default function FormDetailPage() {
             <Button variant="outline" onClick={handleClone}>
               <FilePlus2 className="mr-1 h-4 w-4" />
               Clone
+            </Button>
+          )}
+          {canRead && form.status === "published" && (
+            <Button variant="outline" onClick={() => router.push(`/forms/${form.id}/fill`)}>
+              <PlayCircle className="mr-1 h-4 w-4" />
+              Open
+            </Button>
+          )}
+          {canUpdate && (form.status === "draft" || form.status === "published") && (
+            <Button variant="outline" onClick={handleClose}>
+              <PauseCircle className="mr-1 h-4 w-4" />
+              Close
+            </Button>
+          )}
+          {canUpdate && form.status === "closed" && (
+            <Button variant="outline" onClick={handleReopen}>
+              <PlayCircle className="mr-1 h-4 w-4" />
+              Reopen
             </Button>
           )}
           {canUpdate && form.isPublic && (
@@ -291,6 +338,7 @@ export default function FormDetailPage() {
               <DataRow label="Fields" value={`${form.fields.length} field${form.fields.length === 1 ? "" : "s"}`} />
               <DataRow label="Template" value={form.isTemplate ? "Yes" : "No"} />
               <DataRow label="Submission limit" value={form.submissionLimit > 0 ? `${form.submissionLimit}` : "Unlimited"} />
+              <DataRow label="Submissions" value={`${form.submissionCount}`} />
               {form.uniqueField && (
                 <DataRow label="Unique field" value={form.uniqueField} />
               )}
