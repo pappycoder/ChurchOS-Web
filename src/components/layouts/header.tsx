@@ -16,6 +16,7 @@ import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
 import { ActionTooltip } from "@/components/ui/tooltip";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import {
   IconArrowBarToLeft,
   IconSearch,
@@ -26,7 +27,6 @@ import {
   IconMinimize,
   IconMessage,
   IconMail,
-  IconBell,
   IconUser,
   IconSettings,
   IconQuestionMark,
@@ -371,88 +371,7 @@ export function Header() {
               </div>
 
               <div className="me-2 notification_item">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <a href="#" className="btn-menubar relative me-1" id="notification_popup">
-                      <IconBell size={18} />
-                      <span className="notification-status-dot"></span>
-                    </a>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="notification-dropdown p-4" align="end">
-                    <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
-                      <h4 className="text-base font-semibold m-0">Notifications (2)</h4>
-                      <div className="flex items-center gap-3">
-                        <button className="text-sm text-primary bg-transparent border-0 cursor-pointer">
-                          Mark all as read
-                        </button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="text-xs text-foreground bg-transparent border-0 cursor-pointer flex items-center gap-1">
-                              Today <IconChevronDown size={12} />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>This Week</DropdownMenuItem>
-                            <DropdownMenuItem>Last Week</DropdownMenuItem>
-                            <DropdownMenuItem>Last Month</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                    <div className="noti-content">
-                      <div className="flex flex-col">
-                        <div className="border-b border-border mb-3 pb-3">
-                          <a href="#" className="flex no-underline">
-                            <Avatar className="w-10 h-10 mr-2 flex-shrink-0">
-                              <AvatarImage src="" alt="Profile" />
-                              <AvatarFallback className="text-xs">SH</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="m-0 mb-1 text-sm text-foreground">
-                                <span className="font-semibold">Shawn</span> performance in Math is below the threshold.
-                              </p>
-                              <span className="text-xs text-muted-foreground">Just Now</span>
-                            </div>
-                          </a>
-                        </div>
-                        <div className="border-b border-border mb-3 pb-3">
-                          <a href="#" className="flex no-underline pb-0">
-                            <Avatar className="w-10 h-10 mr-2 flex-shrink-0">
-                              <AvatarImage src="" alt="Profile" />
-                              <AvatarFallback className="text-xs">SV</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                              <p className="m-0 mb-1 text-sm text-foreground">
-                                <span className="font-semibold">Sylvia</span> added appointment on 02:00 PM
-                              </p>
-                              <span className="text-xs text-muted-foreground">10 mins ago</span>
-                              <div className="flex gap-2 mt-2">
-                                <span className="px-3 py-1 rounded text-xs cursor-pointer bg-muted">Deny</span>
-                                <span className="px-3 py-1 rounded text-xs cursor-pointer bg-primary text-primary-foreground">
-                                  Approve
-                                </span>
-                              </div>
-                            </div>
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                      <a
-                        href="#"
-                        className="flex-1 py-2 rounded border border-border bg-muted text-sm text-center no-underline text-foreground"
-                      >
-                        Cancel
-                      </a>
-                      <a
-                        href="/activity"
-                        className="flex-1 py-2 rounded border-0 bg-primary text-primary-foreground text-sm text-center no-underline"
-                      >
-                        View All
-                      </a>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <NotificationBell />
               </div>
 
               <div className="dropdown profile-dropdown">
