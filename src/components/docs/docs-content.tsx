@@ -1459,6 +1459,78 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Forms ─────────────────────────────────────── */}
+      <Section id="forms" title="Forms">
+        <Card>
+          <CardHeader>
+            <CardTitle>Forms</CardTitle>
+            <CardDescription>
+              Build dynamic forms to collect structured responses from members or the
+              public. Compose fields (text, textarea, number, date, dropdown, checkbox,
+              email, phone), publish a form, and share a public link to collect anonymous
+              submissions. Submitted responses flow through a pending → approved /
+              rejected workflow, and optional dedupe rules (a unique field and/or a hard
+              submission cap) guard against duplicate public responses.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Forms List", "/forms", "Searchable list of all forms with status, public-link and submission state; opens any form's detail"],
+                ["New Form", "/forms/new", "Full-page builder — form details, fields, and settings (status, public sharing, dedupe rules)"],
+                ["Form Detail", "/forms/[formId]", "Form overview, public share link (copy/regenerate), and its submissions list with approve/reject actions"],
+                ["Edit Form", "/forms/[formId]/edit", "Pre-filled builder to update the form details, fields, and settings"],
+                ["Submissions", "/forms/submissions", "Monitor responses across forms — pick a form to review and approve/reject its submissions"],
+                ["Public Page", "/forms/public/[publicToken]", "Anonymous, link-only submit page — no login required, outside the dashboard"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                ["Add Form", "Builds a new form with fields and settings", "forms:create"],
+                ["Edit Form", "Updates the form's details, fields or settings", "forms:update"],
+                ["Clone Form", "Duplicates the form as a new draft you can rename", "forms:create"],
+                ["Copy Link", "Copies the public submission link to the clipboard", "forms:update"],
+                ["Regenerate Link", "Issues a fresh public token — the old link stops working", "forms:update"],
+                ["Approve / Reject Submission", "Advances a pending response to approved or rejected (with reason)", "forms:update"],
+                ["Archive Form", "Soft-archives the form — hidden from the active list until restored", "forms:delete"],
+                ["Restore Form", "Brings an archived form back to the active lists", "forms:update"],
+                ["Delete Forever", "Permanently deletes the form and all of its submissions (no undo)", "forms:delete"],
+                ["Submit", "Public or member responses — governed by the form's dedupe rules", "—"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Search", "Debounced server search across form titles"],
+                ["Status", "Submissions filtered by pending / approved / rejected on the detail and monitor pages"],
+                ["Archived", "Active | Archived toggle on the Forms list"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>
@@ -1813,6 +1885,7 @@ export function DocsContent() {
                     { resource: "Assets", prefix: "assets" },
                     { resource: "Departments", prefix: "departments" },
                     { resource: "Cell Groups", prefix: "cell_groups" },
+                    { resource: "Forms", prefix: "forms" },
                   ].map((r) => (
                     <tr key={r.prefix} className="border-b last:border-0">
                       <td className="py-2.5 pr-4 font-medium">{r.resource}</td>

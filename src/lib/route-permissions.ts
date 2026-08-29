@@ -70,6 +70,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/departments/cell-groups", permission: "cell_groups:read" },
   { prefix: "/departments", permission: "departments:read" },
   { prefix: "/assets", permission: "assets:read" },
+  { prefix: "/forms/new", permission: "forms:create" },
+  { prefix: "/forms/[formId]/edit", permission: "forms:update" },
   { prefix: "/forms/submissions", permission: "forms:read" },
   { prefix: "/forms", permission: "forms:read" },
 

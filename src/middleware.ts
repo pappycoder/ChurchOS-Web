@@ -41,12 +41,17 @@ export function middleware(request: NextRequest) {
     "/attendance",
     "/giving",
     "/events",
+    "/forms",
     "/media",
     "/pastoral",
     "/admin",
     "/profile",
   ];
-  const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
+
+  const alwaysPublicPaths = ["/forms/public"];
+
+  const isAlwaysPublic = alwaysPublicPaths.some((path) => pathname.startsWith(path));
+  const isProtected = !isAlwaysPublic && protectedPaths.some((path) => pathname.startsWith(path));
 
   if (isProtected && !authenticated) {
     const url = request.nextUrl.clone();
