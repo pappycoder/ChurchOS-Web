@@ -77,7 +77,10 @@ import {
   type ServiceCategory,
 } from "@/hooks/use-attendance";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -138,8 +141,11 @@ export default function AttendanceServicesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<ChurchService | null>(null);
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [deleteTarget, setDeleteTarget] = React.useState<ChurchService | null>(
+    null,
+  );
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -152,7 +158,7 @@ export default function AttendanceServicesPage() {
       limit: perPage,
       archived: archivedView ? true : undefined,
     }),
-    [page, perPage, archivedView]
+    [page, perPage, archivedView],
   );
 
   const { data, isLoading, error } = useAttendanceServices(queryParams);
@@ -218,9 +224,13 @@ export default function AttendanceServicesPage() {
       }
       setDialogOpen(false);
     } catch (error) {
-      toast.error(editing ? "Failed to update service" : "Failed to create service", {
-        description: error instanceof Error ? error.message : "Please try again.",
-      });
+      toast.error(
+        editing ? "Failed to update service" : "Failed to create service",
+        {
+          description:
+            error instanceof Error ? error.message : "Please try again.",
+        },
+      );
     }
   };
 
@@ -232,7 +242,8 @@ export default function AttendanceServicesPage() {
       setDeleteTarget(null);
     } catch (error) {
       toast.error(`Failed to delete ${deleteTarget.name}`, {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
       });
       setDeleteTarget(null);
     }
@@ -292,210 +303,233 @@ export default function AttendanceServicesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={setArchivedFilter}
+            />
           </div>
         }
       >
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : services.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<CalendarDays className="h-12 w-12" />}
-                title={archivedView ? "No archived services" : "No services yet"}
-                description={
-                  archivedView
-                    ? "Archive a service to move it here."
-                    : canCreate
-                      ? "Create your weekly services so check-ins can be recorded against them."
-                      : "No services have been configured."
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Day</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Attendance</TableHead>
-                    <TableHead>Status</TableHead>
-                    {canManage && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {services.map((service) => (
-                    <TableRow
-                      key={service.serviceId}
-                      className="cursor-pointer"
-                      onClick={() => router.push(`/attendance/services/${service.serviceId}`)}
-                    >
-                      <TableCell className="font-medium">{service.name}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {dayLabel(service.dayOfWeek)}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" />
-                          {service.startTime && service.endTime
-                            ? `${format(parseISO(service.startTime), "HH:mm")}–${format(parseISO(service.endTime), "HH:mm")}`
-                            : "-"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {(SERVICE_CATEGORIES.find(
-                            (c) => c.value === (service.category ?? "adult")
-                          )?.label) ?? "Adult"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {(service.attendanceCount ?? 0).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={service.isActive ? "default" : "secondary"}>
-                          <span
-                            className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                              service.isActive ? "bg-green-500" : "bg-gray-400"
-                            }`}
-                          />
-                          {service.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      {canManage && !archivedView && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {canUpdate && (
-                                <DropdownMenuItem onClick={() => openEdit(service)}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                              )}
-                              {canDelete && !service.archivedAt && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setArchiveTarget({ kind: "archive", service })
-                                  }
-                                >
-                                  <Archive className="mr-2 h-4 w-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              )}
-                              {canUpdate && (
-                                <DropdownMenuItem
-                                  disabled={updateMutation.isPending}
-                                  onClick={() =>
-                                    updateMutation.mutate(
-                                      { isActive: !service.isActive },
-                                      {
-                                        onSuccess: () =>
-                                          toast.success(
-                                            service.isActive
-                                              ? "Service deactivated"
-                                              : "Service activated"
-                                          ),
-                                        onError: (err) =>
-                                          toast.error("Failed to update service", {
-                                            description:
-                                              err?.message || "Please try again.",
-                                          }),
-                                      }
-                                    )
-                                  }
-                                >
-                                  {service.isActive ? (
-                                    <>
-                                      <XCircle className="mr-2 h-4 w-4" />
-                                      Deactivate
-                                    </>
-                                  ) : (
-                                    <>
-                                      <RotateCcw className="mr-2 h-4 w-4" />
-                                      Activate
-                                    </>
-                                  )}
-                                </DropdownMenuItem>
-                              )}
-                              {canDelete && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setDeleteTarget(service)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                      {canManage && archivedView && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-end gap-2">
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : services.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<CalendarDays className="h-12 w-12" />}
+              title={archivedView ? "No archived services" : "No services yet"}
+              description={
+                archivedView
+                  ? "Archive a service to move it here."
+                  : canCreate
+                    ? "Create your weekly services so check-ins can be recorded against them."
+                    : "No services have been configured."
+              }
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto px-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Day</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Attendance</TableHead>
+                  <TableHead>Status</TableHead>
+                  {canManage && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {services.map((service) => (
+                  <TableRow
+                    key={service.serviceId}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      router.push(`/attendance/services/${service.serviceId}`)
+                    }
+                  >
+                    <TableCell className="font-medium">
+                      {service.name}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {dayLabel(service.dayOfWeek)}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" />
+                        {service.startTime && service.endTime
+                          ? `${format(parseISO(service.startTime), "HH:mm")}–${format(parseISO(service.endTime), "HH:mm")}`
+                          : "-"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">
+                        {SERVICE_CATEGORIES.find(
+                          (c) => c.value === (service.category ?? "adult"),
+                        )?.label ?? "Adult"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {(service.attendanceCount ?? 0).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={service.isActive ? "default" : "secondary"}
+                      >
+                        <span
+                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                            service.isActive ? "bg-green-500" : "bg-gray-400"
+                          }`}
+                        />
+                        {service.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    {canManage && !archivedView && (
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">More actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
                             {canUpdate && (
-                              <Button
-                                variant="outline"
-                                size="sm"
+                              <DropdownMenuItem
+                                onClick={() => openEdit(service)}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete && !service.archivedAt && (
+                              <DropdownMenuItem
                                 onClick={() =>
-                                  setArchiveTarget({ kind: "restore", service })
+                                  setArchiveTarget({ kind: "archive", service })
                                 }
                               >
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Restore
-                              </Button>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
+                            )}
+                            {canUpdate && (
+                              <DropdownMenuItem
+                                disabled={updateMutation.isPending}
+                                onClick={() =>
+                                  updateMutation.mutate(
+                                    { isActive: !service.isActive },
+                                    {
+                                      onSuccess: () =>
+                                        toast.success(
+                                          service.isActive
+                                            ? "Service deactivated"
+                                            : "Service activated",
+                                        ),
+                                      onError: (err) =>
+                                        toast.error(
+                                          "Failed to update service",
+                                          {
+                                            description:
+                                              err?.message ||
+                                              "Please try again.",
+                                          },
+                                        ),
+                                    },
+                                  )
+                                }
+                              >
+                                {service.isActive ? (
+                                  <>
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                    Deactivate
+                                  </>
+                                ) : (
+                                  <>
+                                    <RotateCcw className="mr-2 h-4 w-4" />
+                                    Activate
+                                  </>
+                                )}
+                              </DropdownMenuItem>
                             )}
                             {canDelete && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() =>
-                                  setArchiveTarget({ kind: "purge", service })
-                                }
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Forever
-                              </Button>
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setDeleteTarget(service)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </>
                             )}
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                    {canManage && archivedView && (
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          {canUpdate && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "restore", service })
+                              }
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Restore
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "purge", service })
+                              }
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Forever
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </TableCard>
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Service" : "Add Service"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit Service" : "Add Service"}
+            </DialogTitle>
             <DialogDescription>
               Check-ins default to the service&apos;s category when recorded.
             </DialogDescription>
@@ -509,7 +543,10 @@ export default function AttendanceServicesPage() {
                   <FormItem>
                     <FormLabel>Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Sunday First Service" {...field} />
+                      <Input
+                        placeholder="e.g. Sunday First Service"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -522,7 +559,10 @@ export default function AttendanceServicesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full">
                             <SelectValue />
@@ -546,7 +586,10 @@ export default function AttendanceServicesPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Day</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="Any day" />
@@ -606,7 +649,10 @@ export default function AttendanceServicesPage() {
                           Inactive services are hidden from new check-ins.
                         </p>
                       </div>
-                      <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={!!field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -617,11 +663,18 @@ export default function AttendanceServicesPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending
+                  }
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                <Button
+                  type="submit"
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending
+                  }
+                >
                   {createMutation.isPending || updateMutation.isPending
                     ? "Saving..."
                     : editing
@@ -635,7 +688,10 @@ export default function AttendanceServicesPage() {
       </Dialog>
 
       {/* Delete confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
@@ -644,9 +700,11 @@ export default function AttendanceServicesPage() {
             <DialogTitle className="text-center">Delete Service</DialogTitle>
             <DialogDescription className="text-center">
               Are you sure you want to permanently delete{" "}
-              <span className="font-medium text-foreground">{deleteTarget?.name}</span>?
-              Deletion is blocked while attendance records still reference it. This
-              action cannot be undone.
+              <span className="font-medium text-foreground">
+                {deleteTarget?.name}
+              </span>
+              ? Deletion is blocked while attendance records still reference it.
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

@@ -65,7 +65,10 @@ import {
   type GivingCategory,
 } from "@/hooks/use-giving";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -89,7 +92,8 @@ export default function GivingCategoriesPage() {
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -102,7 +106,7 @@ export default function GivingCategoriesPage() {
       limit: perPage,
       archived: archivedView ? true : undefined,
     }),
-    [page, perPage, archivedView]
+    [page, perPage, archivedView],
   );
 
   const { data, isLoading, error } = useGivingCategories(queryParams);
@@ -117,11 +121,18 @@ export default function GivingCategoriesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<GivingCategory | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<GivingCategory | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<GivingCategory | null>(
+    null,
+  );
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: "", description: "", displayOrder: "", isActive: true },
+    defaultValues: {
+      name: "",
+      description: "",
+      displayOrder: "",
+      isActive: true,
+    },
   });
 
   React.useEffect(() => {
@@ -130,7 +141,9 @@ export default function GivingCategoriesPage() {
         name: editing?.name ?? "",
         description: editing?.description ?? "",
         displayOrder:
-          editing?.displayOrder !== undefined ? String(editing.displayOrder) : "",
+          editing?.displayOrder !== undefined
+            ? String(editing.displayOrder)
+            : "",
         isActive: editing?.isActive ?? true,
       });
     }
@@ -140,7 +153,9 @@ export default function GivingCategoriesPage() {
     const payload = {
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
-      displayOrder: values.displayOrder ? Number(values.displayOrder) : undefined,
+      displayOrder: values.displayOrder
+        ? Number(values.displayOrder)
+        : undefined,
       isActive: values.isActive,
     };
     try {
@@ -154,9 +169,13 @@ export default function GivingCategoriesPage() {
       setDialogOpen(false);
     } catch (error) {
       // Backend enforces per-church name uniqueness and admin-only roles.
-      toast.error(editing ? "Failed to update category" : "Failed to create category", {
-        description: error instanceof Error ? error.message : "Please try again.",
-      });
+      toast.error(
+        editing ? "Failed to update category" : "Failed to create category",
+        {
+          description:
+            error instanceof Error ? error.message : "Please try again.",
+        },
+      );
     }
   };
 
@@ -233,158 +252,178 @@ export default function GivingCategoriesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={setArchivedFilter}
+            />
           </div>
         }
       >
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : categories.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<Tags className="h-12 w-12" />}
-                title={archivedView ? "No archived categories" : "No categories yet"}
-                description={
-                  archivedView
-                    ? "Archive a category to move it here."
-                    : canCreate
-                      ? "Create categories like Tithe, Offering or Seed to classify gifts."
-                      : "No giving categories have been configured."
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Order</TableHead>
-                    <TableHead>Recurring</TableHead>
-                    <TableHead>Status</TableHead>
-                    {canManage && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categories.map((category) => (
-                    <TableRow key={category.categoryId}>
-                      <TableCell className="font-medium">{category.name}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[280px] truncate">
-                        {category.description || "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {category.displayOrder ?? "-"}
-                      </TableCell>
-                      <TableCell>
-                        {category.isRecurring ? (
-                          <Badge variant="outline">Recurring</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={category.isActive ? "default" : "secondary"}>
-                          <span
-                            className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                              category.isActive ? "bg-green-500" : "bg-gray-400"
-                            }`}
-                          />
-                          {category.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </TableCell>
-                      {canManage && !archivedView && (
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {canUpdate && (
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setEditing(category);
-                                    setDialogOpen(true);
-                                  }}
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                              )}
-                              {canDelete && !category.archivedAt && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setArchiveTarget({ kind: "archive", category })
-                                  }
-                                >
-                                  <Archive className="mr-2 h-4 w-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              )}
-                              {canDelete && !category.archivedAt && (
-                                <DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={() => setDeleteTarget(category)}
-                                >
-                                  <XCircle className="mr-2 h-4 w-4" />
-                                  Deactivate
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<Tags className="h-12 w-12" />}
+              title={
+                archivedView ? "No archived categories" : "No categories yet"
+              }
+              description={
+                archivedView
+                  ? "Archive a category to move it here."
+                  : canCreate
+                    ? "Create categories like Tithe, Offering or Seed to classify gifts."
+                    : "No giving categories have been configured."
+              }
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto px-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Order</TableHead>
+                  <TableHead>Recurring</TableHead>
+                  <TableHead>Status</TableHead>
+                  {canManage && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categories.map((category) => (
+                  <TableRow key={category.categoryId}>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground max-w-[280px] truncate">
+                      {category.description || "-"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {category.displayOrder ?? "-"}
+                    </TableCell>
+                    <TableCell>
+                      {category.isRecurring ? (
+                        <Badge variant="outline">Recurring</Badge>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
                       )}
-                      {canManage && archivedView && (
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={category.isActive ? "default" : "secondary"}
+                      >
+                        <span
+                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                            category.isActive ? "bg-green-500" : "bg-gray-400"
+                          }`}
+                        />
+                        {category.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </TableCell>
+                    {canManage && !archivedView && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">More actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
                             {canUpdate && (
-                              <Button
-                                variant="outline"
-                                size="sm"
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setEditing(category);
+                                  setDialogOpen(true);
+                                }}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete && !category.archivedAt && (
+                              <DropdownMenuItem
                                 onClick={() =>
-                                  setArchiveTarget({ kind: "restore", category })
+                                  setArchiveTarget({
+                                    kind: "archive",
+                                    category,
+                                  })
                                 }
                               >
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Restore
-                              </Button>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
                             )}
-                            {canDelete && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() =>
-                                  setArchiveTarget({ kind: "purge", category })
-                                }
+                            {canDelete && !category.archivedAt && (
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setDeleteTarget(category)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Forever
-                              </Button>
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Deactivate
+                              </DropdownMenuItem>
                             )}
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                    {canManage && archivedView && (
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          {canUpdate && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "restore", category })
+                              }
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Restore
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "purge", category })
+                              }
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Forever
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </TableCard>
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-[460px]">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit Category" : "Add Category"}</DialogTitle>
+            <DialogTitle>
+              {editing ? "Edit Category" : "Add Category"}
+            </DialogTitle>
             <DialogDescription>
               Categories classify gifts — Tithe, Offering, Seed, Overall Total…
             </DialogDescription>
@@ -442,7 +481,10 @@ export default function GivingCategoriesPage() {
                           Inactive categories are hidden from new records.
                         </p>
                       </div>
-                      <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      <Switch
+                        checked={!!field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -453,11 +495,18 @@ export default function GivingCategoriesPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending
+                  }
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                <Button
+                  type="submit"
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending
+                  }
+                >
                   {createMutation.isPending || updateMutation.isPending
                     ? "Saving..."
                     : editing
@@ -471,17 +520,24 @@ export default function GivingCategoriesPage() {
       </Dialog>
 
       {/* Deactivate confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <AlertTriangle className="h-6 w-6 text-destructive" />
             </div>
-            <DialogTitle className="text-center">Deactivate Category</DialogTitle>
+            <DialogTitle className="text-center">
+              Deactivate Category
+            </DialogTitle>
             <DialogDescription className="text-center">
               Deactivate{" "}
-              <span className="font-medium text-foreground">{deleteTarget?.name}</span>? It
-              will be hidden from new records but its history stays intact.
+              <span className="font-medium text-foreground">
+                {deleteTarget?.name}
+              </span>
+              ? It will be hidden from new records but its history stays intact.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
