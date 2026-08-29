@@ -11,11 +11,15 @@ import {
   SortAsc,
   SortDesc,
   Trash2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   useLifeEvents,
   useDeleteLifeEvent,
+  useArchiveLifeEvent,
+  useRestoreLifeEvent,
   type LifeEvent,
   type LifeEventType,
   LIFE_EVENT_TYPES,
@@ -24,6 +28,11 @@ import {
 } from "@/hooks/use-pastoral";
 import { PageHeader } from "@/components/shared/page-header";
 import { TableCard } from "@/components/shared/table-card";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -69,10 +78,13 @@ const SORT_OPTIONS = [
 export default function LifeEventsPage() {
   const { can } = usePermissions();
   const canCreate = can("pastoral", "create");
+  const canUpdate = can("pastoral", "update");
   const canDelete = can("pastoral", "delete");
 
   const [typeFilter, setTypeFilter] = React.useState<LifeEventType | "all">("all");
   const [upcomingOnly, setUpcomingOnly] = React.useState(false);
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [sortBy, setSortBy] = React.useState<"date" | "created_at">("date");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
@@ -86,18 +98,25 @@ export default function LifeEventsPage() {
       upcoming: upcomingOnly ? ("true" as const) : undefined,
       sortBy,
       sortOrder,
+      archived: archivedView ? true : undefined,
     }),
-    [page, perPage, typeFilter, upcomingOnly, sortBy, sortOrder]
+    [page, perPage, typeFilter, upcomingOnly, sortBy, sortOrder, archivedView]
   );
 
   const { data, isLoading, error } = useLifeEvents(queryParams);
   const deleteMutation = useDeleteLifeEvent();
+  const archiveMutation = useArchiveLifeEvent();
+  const restoreMutation = useRestoreLifeEvent();
 
   const events = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [deleteTarget, setDeleteTarget] = React.useState<LifeEvent | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    event: LifeEvent;
+  } | null>(null);
 
   const handleToggleUpcoming = (checked: boolean) => {
     setUpcomingOnly(checked);
@@ -153,6 +172,7 @@ export default function LifeEventsPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3 flex-wrap">
+              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
               <Select
                 value={typeFilter}
                 onValueChange={(v) => {
@@ -235,13 +255,15 @@ export default function LifeEventsPage() {
           <div className="py-8">
             <EmptyState
               icon={<CalendarHeart className="h-12 w-12" />}
-              title="No life events found"
+              title={archivedView ? "No archived life events" : "No life events found"}
               description={
-                typeFilter !== "all" || upcomingOnly
-                  ? "Try adjusting your filters."
-                  : canCreate
-                    ? "Record a birthday, wedding, or baptism to get started."
-                    : "No life events have been recorded yet."
+                archivedView
+                  ? "Archive a life event to move it here."
+                  : typeFilter !== "all" || upcomingOnly
+                    ? "Try adjusting your filters."
+                    : canCreate
+                      ? "Record a birthday, wedding, or baptism to get started."
+                      : "No life events have been recorded yet."
               }
             />
           </div>
@@ -253,7 +275,9 @@ export default function LifeEventsPage() {
                     <TableHead>Type</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
-                    {canDelete && <TableHead className="text-right">Actions</TableHead>}
+                    {(canUpdate || canDelete) && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -285,29 +309,67 @@ export default function LifeEventsPage() {
                           {event.notified ? "Notified" : "Pending"}
                         </Badge>
                       </TableCell>
-                      {canDelete && (
+                      {(canUpdate || canDelete) && (
                         <TableCell
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => setDeleteTarget(event)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          {archivedView ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              {canUpdate && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setArchiveTarget({ kind: "restore", event })}
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                  Restore
+                                </Button>
+                              )}
+                              {canDelete && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => setArchiveTarget({ kind: "purge", event })}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                  Delete Forever
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">More actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {canDelete && (
+                                  <DropdownMenuItem
+                                    onClick={() => setArchiveTarget({ kind: "archive", event })}
+                                  >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive
+                                  </DropdownMenuItem>
+                                )}
+                                {canDelete && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive"
+                                      onClick={() => setDeleteTarget(event)}
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </TableCell>
                       )}
                     </TableRow>
@@ -339,6 +401,23 @@ export default function LifeEventsPage() {
             },
           });
         }}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="life event"
+        targetName={
+          archiveTarget ? LIFE_EVENT_TYPE_LABELS[archiveTarget.event.type] ?? null : null
+        }
+        targetId={archiveTarget?.event.id ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreMutation
+              : deleteMutation
+        }
       />
     </div>
   );

@@ -12,6 +12,9 @@ import {
   Play,
   Pause,
   Tag,
+  Archive,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -23,8 +26,16 @@ import {
   useSermon,
   useIsBookmarked,
   useToggleBookmark,
+  useDeleteSermon,
+  useArchiveSermon,
+  useRestoreArchiveSermon,
+  type Sermon,
 } from "@/hooks/use-sermons";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 function formatDuration(seconds?: number | null): string {
   if (!seconds) return "";
@@ -80,10 +91,19 @@ export default function SermonDetailPage() {
   const sermonId = params.sermonId as string;
   const { can } = usePermissions();
   const canUpdate = can("sermons", "update");
+  const canDelete = can("sermons", "delete");
 
   const { data: sermon, isLoading, error } = useSermon(sermonId);
   const { data: bookmarkState } = useIsBookmarked(sermonId);
   const toggleBookmark = useToggleBookmark(sermonId);
+  const deleteMutation = useDeleteSermon();
+  const archiveMutation = useArchiveSermon();
+  const restoreArchiveMutation = useRestoreArchiveSermon();
+
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    sermon: Sermon;
+  } | null>(null);
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = React.useState(false);
@@ -183,6 +203,12 @@ export default function SermonDetailPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
+            {sermon.archivedAt && (
+              <Badge variant="destructive">
+                <Archive className="mr-1 h-3 w-3" />
+                Archived
+              </Badge>
+            )}
             <Button variant="outline" size="sm" onClick={() => router.back()}>
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
@@ -200,11 +226,49 @@ export default function SermonDetailPage() {
               )}
               {isBookmarked ? "Bookmarked" : "Bookmark"}
             </Button>
-            {canUpdate && (
-              <Button size="sm" onClick={() => router.push(`/sermons/${sermonId}/edit`)}>
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
+            {sermon.archivedAt ? (
+              <>
+                {canUpdate && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setArchiveTarget({ kind: "restore", sermon })}
+                  >
+                    <RotateCcw className="h-4 w-4 mr-1" />
+                    Restore
+                  </Button>
+                )}
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setArchiveTarget({ kind: "purge", sermon })}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete Forever
+                  </Button>
+                )}
+              </>
+            ) : (
+              <>
+                {canUpdate && (
+                  <Button size="sm" onClick={() => router.push(`/sermons/${sermonId}/edit`)}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                )}
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setArchiveTarget({ kind: "archive", sermon })}
+                  >
+                    <Archive className="h-4 w-4 mr-1" />
+                    Archive
+                  </Button>
+                )}
+              </>
             )}
           </div>
         }
@@ -322,6 +386,23 @@ export default function SermonDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="sermon"
+        targetName={archiveTarget?.sermon.title}
+        targetId={archiveTarget?.sermon.sermonId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

@@ -31,6 +31,7 @@ export interface PastoralNote {
   content: string;
   confidentiality: ConfidentialityLevel;
   tags: string[];
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +46,7 @@ export interface LifeEvent {
   date: string;
   details?: Record<string, unknown>;
   notified: boolean;
+  archivedAt?: string;
   createdAt: string;
 }
 
@@ -125,6 +127,7 @@ export interface ListPastoralNotesParams {
   tags?: string[];
   sortBy?: "created_at" | "updated_at";
   sortOrder?: "asc" | "desc";
+  archived?: boolean;
 }
 
 export interface ListLifeEventsParams {
@@ -135,6 +138,7 @@ export interface ListLifeEventsParams {
   upcoming?: "true" | "false";
   sortBy?: "date" | "created_at";
   sortOrder?: "asc" | "desc";
+  archived?: boolean;
 }
 
 export interface ListRiskScoresParams {
@@ -325,6 +329,22 @@ export function useDeletePastoralNote() {
   });
 }
 
+export function useArchivePastoralNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (noteId: string) => api.post<PastoralNote>(`/pastoral/notes/${noteId}/archive`, {}),
+    onSuccess: () => invalidatePastoralCaches(qc),
+  });
+}
+
+export function useRestorePastoralNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (noteId: string) => api.post<PastoralNote>(`/pastoral/notes/${noteId}/restore`, {}),
+    onSuccess: () => invalidatePastoralCaches(qc),
+  });
+}
+
 // ─── Life events ─────────────────────────────────────────
 
 export function useLifeEvents(params: ListLifeEventsParams = {}) {
@@ -348,6 +368,24 @@ export function useDeleteLifeEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (eventId: string) => api.delete<void>(`/pastoral/life-events/${eventId}`),
+    onSuccess: () => invalidatePastoralCaches(qc),
+  });
+}
+
+export function useArchiveLifeEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      api.post<LifeEvent>(`/pastoral/life-events/${eventId}/archive`, {}),
+    onSuccess: () => invalidatePastoralCaches(qc),
+  });
+}
+
+export function useRestoreLifeEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      api.post<LifeEvent>(`/pastoral/life-events/${eventId}/restore`, {}),
     onSuccess: () => invalidatePastoralCaches(qc),
   });
 }

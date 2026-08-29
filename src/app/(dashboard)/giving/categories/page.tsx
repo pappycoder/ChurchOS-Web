@@ -9,6 +9,8 @@ import {
   Plus,
   Tags,
   Trash2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -57,9 +59,16 @@ import {
   useCreateGivingCategory,
   useUpdateGivingCategory,
   useDeleteGivingCategory,
+  useArchiveGivingCategory,
+  useRestoreArchiveGivingCategory,
   type GivingCategory,
 } from "@/hooks/use-giving";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -79,11 +88,28 @@ export default function GivingCategoriesPage() {
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    category: GivingCategory;
+  } | null>(null);
 
-  const { data, isLoading, error } = useGivingCategories({ page, limit: perPage });
+  const queryParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      archived: archivedView ? true : undefined,
+    }),
+    [page, perPage, archivedView]
+  );
+
+  const { data, isLoading, error } = useGivingCategories(queryParams);
   const createMutation = useCreateGivingCategory();
   const updateMutation = useUpdateGivingCategory("");
   const deleteMutation = useDeleteGivingCategory();
+  const archiveMutation = useArchiveGivingCategory();
+  const restoreArchiveMutation = useRestoreArchiveGivingCategory();
 
   const categories = data?.data ?? [];
   const meta = data?.meta;
@@ -204,6 +230,11 @@ export default function GivingCategoriesPage() {
           setPerPage(n);
           setPage(1);
         }}
+        toolbar={
+          <div className="flex flex-wrap items-center gap-2">
+            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+          </div>
+        }
       >
           {isLoading ? (
             <div className="p-4 space-y-3">
@@ -215,11 +246,13 @@ export default function GivingCategoriesPage() {
             <div className="py-8">
               <EmptyState
                 icon={<Tags className="h-12 w-12" />}
-                title="No categories yet"
+                title={archivedView ? "No archived categories" : "No categories yet"}
                 description={
-                  canCreate
-                    ? "Create categories like Tithe, Offering or Seed to classify gifts."
-                    : "No giving categories have been configured."
+                  archivedView
+                    ? "Archive a category to move it here."
+                    : canCreate
+                      ? "Create categories like Tithe, Offering or Seed to classify gifts."
+                      : "No giving categories have been configured."
                 }
               />
             </div>
@@ -263,7 +296,7 @@ export default function GivingCategoriesPage() {
                           {category.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
-                      {canManage && (
+                      {canManage && !archivedView && (
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -284,7 +317,17 @@ export default function GivingCategoriesPage() {
                                   Edit
                                 </DropdownMenuItem>
                               )}
-                              {canDelete && (
+                              {canDelete && !category.archivedAt && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "archive", category })
+                                  }
+                                >
+                                  <Archive className="mr-2 h-4 w-4" />
+                                  Archive
+                                </DropdownMenuItem>
+                              )}
+                              {canDelete && !category.archivedAt && (
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive"
                                   onClick={() => setDeleteTarget(category)}
@@ -295,6 +338,37 @@ export default function GivingCategoriesPage() {
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
+                        </TableCell>
+                      )}
+                      {canManage && archivedView && (
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            {canUpdate && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "restore", category })
+                                }
+                              >
+                                <RotateCcw className="mr-2 h-4 w-4" />
+                                Restore
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "purge", category })
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Forever
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -427,6 +501,23 @@ export default function GivingCategoriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="category"
+        targetName={archiveTarget?.category.name}
+        targetId={archiveTarget?.category.categoryId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

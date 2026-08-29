@@ -8,6 +8,9 @@ import {
   Baby,
   HandCoins,
   Users,
+  Archive,
+  RotateCcw,
+  Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
@@ -24,11 +27,20 @@ import {
 import {
   useService,
   useServiceAttendance,
+  useDeleteService,
+  useArchiveService,
+  useRestoreArchiveService,
   SERVICE_CATEGORIES,
+  type ChurchService,
 } from "@/hooks/use-attendance";
 import type { GivingTransaction } from "@/hooks/use-giving";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 const givingConfig = {
   amount: { label: "Amount", color: "var(--chart-1)" },
@@ -50,9 +62,20 @@ export default function ServiceDetailPage({
 }) {
   const { serviceId } = React.use(params);
   const router = useRouter();
+  const { can } = usePermissions();
+  const canUpdate = can("attendance", "update");
+  const canDelete = can("attendance", "delete");
 
   const serviceQuery = useService(serviceId);
   const attendanceQuery = useServiceAttendance(serviceId);
+  const deleteMutation = useDeleteService();
+  const archiveMutation = useArchiveService();
+  const restoreArchiveMutation = useRestoreArchiveService();
+
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    service: ChurchService;
+  } | null>(null);
 
   // Giving tagged to this service — paged fetch of all successful gifts.
   const [giving, setGiving] = React.useState<{
@@ -164,6 +187,12 @@ export default function ServiceDetailPage({
                 ?.label ?? "Adult"}
             </Badge>
             {!service.isActive && <Badge variant="secondary">Inactive</Badge>}
+            {service.archivedAt && (
+              <Badge variant="destructive">
+                <Archive className="mr-1 h-3 w-3" />
+                Archived
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
             <span>
@@ -182,6 +211,45 @@ export default function ServiceDetailPage({
               </span>
             )}
           </p>
+          {(canUpdate || canDelete) && !service.archivedAt && (
+            <div className="flex items-center gap-2 mt-4">
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setArchiveTarget({ kind: "archive", service })}
+                >
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archive
+                </Button>
+              )}
+            </div>
+          )}
+          {service.archivedAt && (canUpdate || canDelete) && (
+            <div className="flex items-center gap-2 mt-4">
+              {canUpdate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setArchiveTarget({ kind: "restore", service })}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Restore
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setArchiveTarget({ kind: "purge", service })}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Forever
+                </Button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -272,6 +340,23 @@ export default function ServiceDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="service"
+        targetName={archiveTarget?.service.name}
+        targetId={archiveTarget?.service.serviceId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

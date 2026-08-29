@@ -6,6 +6,8 @@ import {
   ArrowLeft,
   Pencil,
   Trash2,
+  Archive,
+  RotateCcw,
   Phone,
   Mail,
   MapPin,
@@ -38,10 +40,17 @@ import {
   useMemberGivingHistory,
   useMemberAttendanceHistory,
   useAddMemberNote,
+  useArchiveMember,
+  useRestoreArchiveMember,
+  useDeleteMember,
   type MemberStatus,
 } from "@/hooks/use-members";
 import { useBranchesList } from "@/hooks/use-branches";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { MemberFormDialog } from "@/components/members/member-form-dialog";
 import { DeleteMemberDialog } from "@/components/members/delete-member-dialog";
 
@@ -88,9 +97,13 @@ export default function MemberDetailPage({
   const attendanceQuery = useMemberAttendanceHistory(memberId);
   const branchesQuery = useBranchesList({ limit: 100 });
   const addNoteMutation = useAddMemberNote(memberId);
+  const archiveMutation = useArchiveMember();
+  const restoreArchiveMutation = useRestoreArchiveMember();
+  const purgeMutation = useDeleteMember();
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
   const [noteDraft, setNoteDraft] = React.useState("");
 
   const [givePage, setGivePage] = React.useState(1);
@@ -199,6 +212,12 @@ export default function MemberDetailPage({
                   <span className={`mr-1 h-1.5 w-1.5 rounded-full ${statusBadge.dot}`} />
                   {display.status.charAt(0).toUpperCase() + display.status.slice(1)}
                 </Badge>
+                {display.archivedAt && (
+                  <Badge variant="destructive">
+                    <Archive className="mr-1 h-3 w-3" />
+                    Archived
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {[
@@ -212,21 +231,53 @@ export default function MemberDetailPage({
           </div>
           {(canUpdateMembers || canDeleteMembers) && (
             <div className="flex items-center gap-2">
-              {canDeleteMembers && display.status !== "inactive" && (
-                <Button
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Deactivate
-                </Button>
-              )}
-              {canUpdateMembers && (
-                <Button onClick={() => setEditOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit Member
-                </Button>
+              {display.archivedAt ? (
+                <>
+                  {canUpdateMembers && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setArchiveAction("restore")}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Restore
+                    </Button>
+                  )}
+                  {canDeleteMembers && (
+                    <Button
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setArchiveAction("purge")}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Forever
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {canDeleteMembers && display.status !== "inactive" && (
+                    <Button
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setDeleteOpen(true)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Deactivate
+                    </Button>
+                  )}
+                  {canDeleteMembers && (
+                    <Button variant="outline" onClick={() => setArchiveAction("archive")}>
+                      <Archive className="h-4 w-4 mr-2" />
+                      Archive
+                    </Button>
+                  )}
+                  {canUpdateMembers && (
+                    <Button onClick={() => setEditOpen(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Member
+                    </Button>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -447,6 +498,21 @@ export default function MemberDetailPage({
         onOpenChange={setDeleteOpen}
         members={[display]}
         onDeleted={() => router.push("/members")}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveAction}
+        onOpenChange={(open) => !open && setArchiveAction(null)}
+        kind={archiveAction ?? "archive"}
+        entityLabel="member"
+        targetName={`${display.firstName} ${display.lastName}`}
+        targetId={display.memberId}
+        mutation={
+          archiveAction === "archive"
+            ? archiveMutation
+            : archiveAction === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
       />
     </div>
   );

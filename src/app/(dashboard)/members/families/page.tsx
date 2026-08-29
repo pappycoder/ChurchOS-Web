@@ -10,6 +10,8 @@ import {
   Eye,
   Pencil,
   Trash2,
+  RotateCcw,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -41,10 +43,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   useFamiliesList,
+  useArchiveFamily,
+  useRestoreArchiveFamily,
+  useDeleteFamily,
   type Family,
   type ListFamiliesParams,
 } from "@/hooks/use-families";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { FamilyFormDialog } from "@/components/families/family-form-dialog";
 import { TableCard } from "@/components/shared/table-card";
 import { DeleteFamilyDialog } from "@/components/families/delete-family-dialog";
@@ -68,6 +78,8 @@ export default function FamiliesPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
@@ -75,6 +87,10 @@ export default function FamiliesPage() {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [editFamily, setEditFamily] = React.useState<Family | null>(null);
   const [deleteTargets, setDeleteTargets] = React.useState<Family[] | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    family: Family;
+  } | null>(null);
 
   // Debounce server-side search.
   React.useEffect(() => {
@@ -90,11 +106,15 @@ export default function FamiliesPage() {
       page,
       limit: perPage,
       search: search || undefined,
+      archived: archivedView ? true : undefined,
     }),
-    [page, perPage, search]
+    [page, perPage, search, archivedView]
   );
 
   const { data, isLoading, error } = useFamiliesList(queryParams);
+  const archiveMutation = useArchiveFamily();
+  const restoreArchiveMutation = useRestoreArchiveFamily();
+  const purgeMutation = useDeleteFamily();
 
   // Unfiltered queries power the stats cards.
   const totalsQuery = useFamiliesList({ limit: 1 });
@@ -250,17 +270,24 @@ export default function FamiliesPage() {
           setPage(1);
         }}
         toolbar={
-          <SearchInput
-            value={searchInput}
-            onChange={(v) => {
-              setSearchInput(v);
-            }}
-            placeholder="Search family name..."
-            className="w-full sm:w-64"
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={setArchivedFilter}
+              onClearSelection={() => setSelectedIds(new Set())}
+            />
+            <SearchInput
+              value={searchInput}
+              onChange={(v) => {
+                setSearchInput(v);
+              }}
+              placeholder="Search family name..."
+              className="w-full sm:w-64"
+            />
+          </div>
         }
       >
-          {someSelected && canDeleteFamilies && (
+          {!archivedView && someSelected && canDeleteFamilies && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
               <span className="text-sm font-medium">{selectedIds.size} selected</span>
               <Button
@@ -287,13 +314,15 @@ export default function FamiliesPage() {
             <div className="py-8">
               <EmptyState
                 icon={<Home className="h-12 w-12" />}
-                title="No families found"
+                title={archivedView ? "No archived families" : "No families found"}
                 description={
-                  search
-                    ? "Try adjusting your search."
-                    : canCreateFamilies
-                      ? "Add your first family to get started."
-                      : "No families have been added yet."
+                  archivedView
+                    ? "Archive a family to move them here."
+                    : search
+                      ? "Try adjusting your search."
+                      : canCreateFamilies
+                        ? "Add your first family to get started."
+                        : "No families have been added yet."
                 }
               />
             </div>
@@ -302,13 +331,15 @@ export default function FamiliesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={allSelected}
-                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                        aria-label="Select all families"
-                      />
-                    </TableHead>
+                    {!archivedView && (
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={allSelected}
+                          onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                          aria-label="Select all families"
+                        />
+                      </TableHead>
+                    )}
                     <TableHead>Family</TableHead>
                     <TableHead>Head of Family</TableHead>
                     <TableHead>Members</TableHead>
@@ -323,18 +354,20 @@ export default function FamiliesPage() {
                       className="cursor-pointer"
                       onClick={() => handleRowClick(family.familyId)}
                     >
-                      <TableCell
-                        className="w-12"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Checkbox
-                          checked={selectedIds.has(family.familyId)}
-                          onCheckedChange={(checked) =>
-                            handleSelectRow(family.familyId, !!checked)
-                          }
-                          aria-label={`Select ${family.name}`}
-                        />
-                      </TableCell>
+                      {!archivedView && (
+                        <TableCell
+                          className="w-12"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            checked={selectedIds.has(family.familyId)}
+                            onCheckedChange={(checked) =>
+                              handleSelectRow(family.familyId, !!checked)
+                            }
+                            aria-label={`Select ${family.name}`}
+                          />
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex items-center gap-2.5">
                           <Avatar size="sm">
@@ -352,7 +385,43 @@ export default function FamiliesPage() {
                       <TableCell className="text-muted-foreground">
                         {format(new Date(family.createdAt), "MMM d, yyyy")}
                       </TableCell>
-                      {canManage && (
+                      {archivedView ? (
+                        canManage && (
+                          <TableCell
+                            className="text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-end gap-1.5">
+                              {canUpdateFamilies && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "restore", family })
+                                  }
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                  Restore
+                                </Button>
+                              )}
+                              {canDeleteFamilies && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "purge", family })
+                                  }
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                  Delete Forever
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        )
+                      ) : (
+                      canManage && (
                         <TableCell
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
@@ -379,6 +448,14 @@ export default function FamiliesPage() {
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
+                                    onClick={() =>
+                                      setArchiveTarget({ kind: "archive", family })
+                                    }
+                                  >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => setDeleteTargets([family])}
                                   >
@@ -390,6 +467,7 @@ export default function FamiliesPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
+                      )
                       )}
                     </TableRow>
                   ))}
@@ -413,6 +491,22 @@ export default function FamiliesPage() {
         onOpenChange={(open) => !open && setDeleteTargets(null)}
         families={deleteTargets ?? []}
         onDeleted={() => setSelectedIds(new Set())}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="family"
+        targetName={archiveTarget?.family.name ?? null}
+        targetId={archiveTarget?.family.familyId ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
+        onConfirmed={() => setSelectedIds(new Set())}
       />
     </div>
   );

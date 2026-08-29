@@ -14,6 +14,8 @@ import {
   Pencil,
   Plus,
   Trash2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -67,11 +69,18 @@ import {
   useCreateService,
   useUpdateService,
   useDeleteService,
+  useArchiveService,
+  useRestoreArchiveService,
   SERVICE_CATEGORIES,
   type ChurchService,
   type ServiceCategory,
 } from "@/hooks/use-attendance";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 const DAY_OPTIONS = [
   { value: "0", label: "Sunday" },
@@ -129,11 +138,28 @@ export default function AttendanceServicesPage() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<ChurchService | null>(null);
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    service: ChurchService;
+  } | null>(null);
 
-  const { data, isLoading, error } = useAttendanceServices({ page, limit: perPage });
+  const queryParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      archived: archivedView ? true : undefined,
+    }),
+    [page, perPage, archivedView]
+  );
+
+  const { data, isLoading, error } = useAttendanceServices(queryParams);
   const createMutation = useCreateService();
   const updateMutation = useUpdateService(editing?.serviceId ?? "");
   const deleteMutation = useDeleteService();
+  const archiveMutation = useArchiveService();
+  const restoreArchiveMutation = useRestoreArchiveService();
 
   const services = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -263,6 +289,11 @@ export default function AttendanceServicesPage() {
           setPerPage(n);
           setPage(1);
         }}
+        toolbar={
+          <div className="flex flex-wrap items-center gap-2">
+            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+          </div>
+        }
       >
           {isLoading ? (
             <div className="p-4 space-y-3">
@@ -274,11 +305,13 @@ export default function AttendanceServicesPage() {
             <div className="py-8">
               <EmptyState
                 icon={<CalendarDays className="h-12 w-12" />}
-                title="No services yet"
+                title={archivedView ? "No archived services" : "No services yet"}
                 description={
-                  canCreate
-                    ? "Create your weekly services so check-ins can be recorded against them."
-                    : "No services have been configured."
+                  archivedView
+                    ? "Archive a service to move it here."
+                    : canCreate
+                      ? "Create your weekly services so check-ins can be recorded against them."
+                      : "No services have been configured."
                 }
               />
             </div>
@@ -335,7 +368,7 @@ export default function AttendanceServicesPage() {
                           {service.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
-                      {canManage && (
+                      {canManage && !archivedView && (
                         <TableCell
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
@@ -352,6 +385,16 @@ export default function AttendanceServicesPage() {
                                 <DropdownMenuItem onClick={() => openEdit(service)}>
                                   <Pencil className="mr-2 h-4 w-4" />
                                   Edit
+                                </DropdownMenuItem>
+                              )}
+                              {canDelete && !service.archivedAt && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "archive", service })
+                                  }
+                                >
+                                  <Archive className="mr-2 h-4 w-4" />
+                                  Archive
                                 </DropdownMenuItem>
                               )}
                               {canUpdate && (
@@ -393,6 +436,40 @@ export default function AttendanceServicesPage() {
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
+                        </TableCell>
+                      )}
+                      {canManage && archivedView && (
+                        <TableCell
+                          className="text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-end gap-2">
+                            {canUpdate && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "restore", service })
+                                }
+                              >
+                                <RotateCcw className="mr-2 h-4 w-4" />
+                                Restore
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "purge", service })
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Forever
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -579,6 +656,23 @@ export default function AttendanceServicesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="service"
+        targetName={archiveTarget?.service.name}
+        targetId={archiveTarget?.service.serviceId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

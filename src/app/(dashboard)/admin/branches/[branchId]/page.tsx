@@ -7,6 +7,8 @@ import {
   AlertTriangle,
   Pencil,
   Trash2,
+  Archive,
+  RotateCcw,
   Building2,
   MapPin,
   Phone,
@@ -27,8 +29,15 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useBranch, type Branch } from "@/hooks/use-branches";
+import {
+  useBranch,
+  useArchiveBranch,
+  useRestoreArchiveBranch,
+  useDeleteBranch,
+  type Branch,
+} from "@/hooks/use-branches";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchiveConfirmDialog, type ArchiveDialogKind } from "@/components/shared/archive-confirm-dialog";
 import { BranchFormDialog } from "@/components/branches/branch-form-dialog";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
 
@@ -65,9 +74,13 @@ export default function BranchDetailPage({
   const canUpdateBranches = can("branches", "update");
   const canDeleteBranches = can("branches", "delete");
   const { data: branch, isLoading, error } = useBranch(branchId);
+  const archiveMutation = useArchiveBranch();
+  const restoreArchiveMutation = useRestoreArchiveBranch();
+  const purgeMutation = useDeleteBranch();
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
   const [savedBranch, setSavedBranch] = React.useState<Branch | null>(null);
 
   const display = savedBranch ?? branch ?? null;
@@ -150,6 +163,12 @@ export default function BranchDetailPage({
                   {display?.isHeadquarters && (
                     <Badge variant="secondary">Headquarters</Badge>
                   )}
+                  {display?.archivedAt && (
+                    <Badge variant="destructive">
+                      <Archive className="mr-1 h-3 w-3" />
+                      Archived
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {[display?.city, display?.state].filter(Boolean).join(", ") ||
@@ -159,21 +178,56 @@ export default function BranchDetailPage({
             </div>
             {(canUpdateBranches || canDeleteBranches) && display && (
               <div className="flex items-center gap-2">
-                {canDeleteBranches && (
-                  <Button
-                    variant="outline"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => setDeleteOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
-                {canUpdateBranches && (
-                  <Button onClick={() => setEditOpen(true)}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Edit Branch
-                  </Button>
+                {display.archivedAt ? (
+                  <>
+                    {canUpdateBranches && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setArchiveAction("restore")}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Restore
+                      </Button>
+                    )}
+                    {canDeleteBranches && (
+                      <Button
+                        variant="outline"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setArchiveAction("purge")}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Forever
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {canDeleteBranches && (
+                      <>
+                        <Button
+                          variant="outline"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => setDeleteOpen(true)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => setArchiveAction("archive")}
+                        >
+                          <Archive className="h-4 w-4 mr-2" />
+                          Archive
+                        </Button>
+                      </>
+                    )}
+                    {canUpdateBranches && (
+                      <Button onClick={() => setEditOpen(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Branch
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -240,6 +294,25 @@ export default function BranchDetailPage({
           onDeleted={() => router.push("/admin/branches")}
         />
       )}
+
+      <ArchiveConfirmDialog
+        open={!!archiveAction}
+        onOpenChange={(open) => !open && setArchiveAction(null)}
+        kind={archiveAction ?? "archive"}
+        entityLabel="branch"
+        targetName={display?.name ?? null}
+        targetId={display?.branchId ?? ""}
+        mutation={
+          archiveAction === "archive"
+            ? archiveMutation
+            : archiveAction === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
+        onConfirmed={
+          archiveAction === "purge" ? () => router.push("/admin/branches") : undefined
+        }
+      />
     </div>
   );
 }

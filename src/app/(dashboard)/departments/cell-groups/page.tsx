@@ -12,6 +12,8 @@ import {
   Trash2,
   UsersRound,
   Users,
+  RotateCcw,
+  Archive,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { PageHeader } from "@/components/shared/page-header";
@@ -28,9 +30,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { CellGroupFormDialog } from "@/components/departments/cell-group-form-dialog";
 import { DeleteCellGroupDialog } from "@/components/departments/delete-cell-group-dialog";
-import { useCellGroupsList, type CellGroup } from "@/hooks/use-admin";
+import {
+  useCellGroupsList,
+  useArchiveCellGroup,
+  useRestoreArchiveCellGroup,
+  useDeleteCellGroup,
+  type CellGroup,
+} from "@/hooks/use-admin";
 
 export default function CellGroupsPage() {
   const { can } = usePermissions();
@@ -45,13 +58,24 @@ export default function CellGroupsPage() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CellGroup | null>(null);
   const [deleting, setDeleting] = React.useState<CellGroup | null>(null);
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    group: CellGroup;
+  } | null>(null);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput), 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: groups, isLoading } = useCellGroupsList();
+  const { data: groups, isLoading } = useCellGroupsList({
+    archived: archivedView ? true : undefined,
+  });
+  const archiveMutation = useArchiveCellGroup();
+  const restoreArchiveMutation = useRestoreArchiveCellGroup();
+  const purgeMutation = useDeleteCellGroup();
 
   const filtered = React.useMemo(() => {
     const rows = groups ?? [];
@@ -131,17 +155,20 @@ export default function CellGroupsPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="relative sm:w-72">
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search cell groups..."
-              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            <div className="relative sm:w-72">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search cell groups..."
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
           </div>
         }
       >
@@ -167,11 +194,13 @@ export default function CellGroupsPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center">
+                <TableCell colSpan={canUpdate || canDelete ? 6 : 5} className="h-32 text-center">
                   <p className="text-muted-foreground">
-                    {search
-                      ? "No cell groups match your search."
-                      : "No cell groups yet. Create your first one to get started."}
+                    {archivedView
+                      ? "No archived cell groups."
+                      : search
+                        ? "No cell groups match your search."
+                        : "No cell groups yet. Create your first one to get started."}
                   </p>
                 </TableCell>
               </TableRow>
@@ -231,33 +260,76 @@ export default function CellGroupsPage() {
                   </TableCell>
                   {canUpdate || canDelete ? (
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {canUpdate && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            aria-label={`Edit ${group.name}`}
-                            onClick={() => {
-                              setEditing(group);
-                              setFormOpen(true);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {canDelete && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            aria-label={`Delete ${group.name}`}
-                            onClick={() => setDeleting(group)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      {archivedView ? (
+                        <div className="flex justify-end gap-1.5">
+                          {canUpdate && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "restore", group })
+                              }
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                              Restore
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "purge", group })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                              Delete Forever
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex justify-end gap-1">
+                          {canUpdate && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              aria-label={`Edit ${group.name}`}
+                              onClick={() => {
+                                setEditing(group);
+                                setFormOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                aria-label={`Archive ${group.name}`}
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "archive", group })
+                                }
+                              >
+                                <Archive className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                aria-label={`Delete ${group.name}`}
+                                onClick={() => setDeleting(group)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </TableCell>
                   ) : null}
                 </TableRow>
@@ -279,6 +351,22 @@ export default function CellGroupsPage() {
           if (!open) setDeleting(null);
         }}
         group={deleting}
+      />
+
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="cell group"
+        targetName={archiveTarget?.group.name ?? null}
+        targetId={archiveTarget?.group.id ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
       />
     </div>
   );

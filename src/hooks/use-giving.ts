@@ -15,6 +15,7 @@ export interface GivingCategory {
   displayOrder?: number;
   isRecurring?: boolean;
   isActive: boolean;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +24,7 @@ export interface ListCategoriesParams {
   page?: number;
   limit?: number;
   isActive?: boolean;
+  archived?: boolean;
 }
 
 export interface CreateGivingCategoryInput {
@@ -162,6 +164,24 @@ export function useDeleteGivingCategory() {
   return useMutation({
     mutationFn: (categoryId: string) =>
       api.delete<{ success: boolean }>(`/giving/categories/${categoryId}`),
+    onSuccess: () => invalidateGivingCaches(queryClient),
+  });
+}
+
+export function useArchiveGivingCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (categoryId: string) =>
+      api.post<GivingCategory>(`/giving/categories/${categoryId}/archive`, {}),
+    onSuccess: () => invalidateGivingCaches(queryClient),
+  });
+}
+
+export function useRestoreArchiveGivingCategory() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (categoryId: string) =>
+      api.post<GivingCategory>(`/giving/categories/${categoryId}/restore`, {}),
     onSuccess: () => invalidateGivingCaches(queryClient),
   });
 }

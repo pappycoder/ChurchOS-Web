@@ -24,6 +24,7 @@ export interface Member {
   photoUrl?: string;
   customFields?: Record<string, unknown>;
   notes?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -45,6 +46,7 @@ export interface ListMembersParams {
   search?: string;
   status?: MemberStatus | "all";
   branchId?: string;
+  archived?: boolean;
   sortBy?: "first_name" | "last_name" | "created_at" | "member_since" | "status";
   sortOrder?: "asc" | "desc";
 }
@@ -93,6 +95,7 @@ function buildListPath(params: ListMembersParams): string {
   if (params.search) searchParams.set("search", params.search);
   if (params.status && params.status !== "all") searchParams.set("status", params.status);
   if (params.branchId) searchParams.set("branchId", params.branchId);
+  if (params.archived) searchParams.set("archived", "true");
   if (params.sortBy) searchParams.set("sortBy", params.sortBy);
   if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
   const queryString = searchParams.toString();
@@ -165,6 +168,24 @@ export function useRestoreMember() {
   return useMutation({
     mutationFn: (memberId: string) =>
       api.post<Member>(`/members/${memberId}/restore`, {}),
+    onSuccess: () => invalidateMemberCaches(queryClient),
+  });
+}
+
+export function useArchiveMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (memberId: string) =>
+      api.post<Member>(`/members/${memberId}/archive`, {}),
+    onSuccess: () => invalidateMemberCaches(queryClient),
+  });
+}
+
+export function useRestoreArchiveMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (memberId: string) =>
+      api.post<Member>(`/members/${memberId}/restore-archive`, {}),
     onSuccess: () => invalidateMemberCaches(queryClient),
   });
 }

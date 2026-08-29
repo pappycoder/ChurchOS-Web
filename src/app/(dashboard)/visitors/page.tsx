@@ -14,6 +14,8 @@ import {
   Pencil,
   Trash2,
   Repeat,
+  RotateCcw,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -53,6 +55,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   useVisitorsList,
+  useArchiveVisitor,
+  useRestoreArchiveVisitor,
+  useDeleteVisitor,
   FOLLOW_UP_STATUSES,
   type ListVisitorsParams,
   type Visitor,
@@ -60,6 +65,11 @@ import {
 } from "@/hooks/use-visitors";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { VisitorFormDialog } from "@/components/visitors/visitor-form-dialog";
 import { DeleteVisitorDialog } from "@/components/visitors/delete-visitor-dialog";
 import { ConvertVisitorDialog } from "@/components/visitors/convert-visitor-dialog";
@@ -122,6 +132,8 @@ export default function VisitorsPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [statusFilter, setStatusFilter] = React.useState<FollowUpStatus | "all">("all");
   const [sortBy, setSortBy] =
     React.useState<NonNullable<ListVisitorsParams["sortBy"]>>("firstName");
@@ -134,6 +146,10 @@ export default function VisitorsPage() {
   const [editVisitor, setEditVisitor] = React.useState<Visitor | null>(null);
   const [convertVisitor, setConvertVisitor] = React.useState<Visitor | null>(null);
   const [deleteTargets, setDeleteTargets] = React.useState<Visitor[] | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    visitor: Visitor;
+  } | null>(null);
 
   // Debounce server-side search.
   React.useEffect(() => {
@@ -152,11 +168,15 @@ export default function VisitorsPage() {
       followUpStatus: statusFilter === "all" ? undefined : statusFilter,
       sortBy,
       sortOrder,
+      archived: archivedView ? true : undefined,
     }),
-    [page, perPage, search, statusFilter, sortBy, sortOrder]
+    [page, perPage, search, statusFilter, sortBy, sortOrder, archivedView]
   );
 
   const { data, isLoading, error } = useVisitorsList(queryParams);
+  const archiveMutation = useArchiveVisitor();
+  const restoreArchiveMutation = useRestoreArchiveVisitor();
+  const purgeMutation = useDeleteVisitor();
 
   // Unfiltered fetch powers the stats cards.
   const statsQuery = useVisitorsList({ limit: 200 });
@@ -344,6 +364,11 @@ export default function VisitorsPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={setArchivedFilter}
+              onClearSelection={() => setSelectedIds(new Set())}
+            />
             <SearchInput
               value={searchInput}
               onChange={(v) => {
@@ -401,7 +426,7 @@ export default function VisitorsPage() {
           </div>
         }
       >
-          {someSelected && canDeleteVisitors && (
+          {!archivedView && someSelected && canDeleteVisitors && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
               <span className="text-sm font-medium">{selectedIds.size} selected</span>
               <Button
@@ -428,13 +453,15 @@ export default function VisitorsPage() {
             <div className="py-8">
               <EmptyState
                 icon={<UserPlus className="h-12 w-12" />}
-                title="No visitors found"
+                title={archivedView ? "No archived visitors" : "No visitors found"}
                 description={
-                  search || statusFilter !== "all"
-                    ? "Try adjusting your filters."
-                    : canCreateVisitors
-                      ? "Add your first visitor to get started."
-                      : "No visitors have been registered yet."
+                  archivedView
+                    ? "Archive a visitor to move them here."
+                    : search || statusFilter !== "all"
+                      ? "Try adjusting your filters."
+                      : canCreateVisitors
+                        ? "Add your first visitor to get started."
+                        : "No visitors have been registered yet."
                 }
               />
             </div>
@@ -443,13 +470,15 @@ export default function VisitorsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={allSelected}
-                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                        aria-label="Select all visitors"
-                      />
-                    </TableHead>
+                    {!archivedView && (
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={allSelected}
+                          onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                          aria-label="Select all visitors"
+                        />
+                      </TableHead>
+                    )}
                     <TableHead>Visitor</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>First Visit</TableHead>
@@ -465,15 +494,17 @@ export default function VisitorsPage() {
                       className="cursor-pointer"
                       onClick={() => handleRowClick(visitor.id)}
                     >
-                      <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={selectedIds.has(visitor.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectRow(visitor.id, !!checked)
-                          }
-                          aria-label={`Select ${displayName(visitor)}`}
-                        />
-                      </TableCell>
+                      {!archivedView && (
+                        <TableCell className="w-12" onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(visitor.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectRow(visitor.id, !!checked)
+                            }
+                            aria-label={`Select ${displayName(visitor)}`}
+                          />
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex items-center gap-2.5">
                           <Avatar size="sm">
@@ -509,7 +540,40 @@ export default function VisitorsPage() {
                       <TableCell>
                         <FollowUpStatusCell status={visitor.followUpStatus} />
                       </TableCell>
-                      {canManage && (
+                      {archivedView ? (
+                        canManage && (
+                          <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1.5">
+                              {canUpdateVisitors && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "restore", visitor })
+                                  }
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                  Restore
+                                </Button>
+                              )}
+                              {canDeleteVisitors && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "purge", visitor })
+                                  }
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                  Delete Forever
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        )
+                      ) : (
+                      canManage && (
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -523,25 +587,29 @@ export default function VisitorsPage() {
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              {!visitor.convertedMemberId && (
+                              {canUpdateVisitors && !visitor.convertedMemberId && (
                                 <>
-                                  {canUpdateVisitors && (
-                                    <>
-                                      <DropdownMenuItem onClick={() => setEditVisitor(visitor)}>
-                                        <Pencil className="mr-2 h-4 w-4" />
-                                        Edit Visitor
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem onClick={() => setConvertVisitor(visitor)}>
-                                        <Repeat className="mr-2 h-4 w-4" />
-                                        Convert to Member
-                                      </DropdownMenuItem>
-                                    </>
-                                  )}
+                                  <DropdownMenuItem onClick={() => setEditVisitor(visitor)}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Visitor
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setConvertVisitor(visitor)}>
+                                    <Repeat className="mr-2 h-4 w-4" />
+                                    Convert to Member
+                                  </DropdownMenuItem>
                                 </>
                               )}
                               {canDeleteVisitors && (
                                 <>
                                   <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      setArchiveTarget({ kind: "archive", visitor })
+                                    }
+                                  >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => setDeleteTargets([visitor])}
@@ -554,6 +622,7 @@ export default function VisitorsPage() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
+                      )
                       )}
                     </TableRow>
                   ))}
@@ -582,6 +651,26 @@ export default function VisitorsPage() {
         onOpenChange={(open) => !open && setDeleteTargets(null)}
         visitors={deleteTargets ?? []}
         onDeleted={() => setSelectedIds(new Set())}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="visitor"
+        targetName={
+          archiveTarget
+            ? displayName(archiveTarget.visitor)
+            : null
+        }
+        targetId={archiveTarget?.visitor.id ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
+        onConfirmed={() => setSelectedIds(new Set())}
       />
     </div>
   );

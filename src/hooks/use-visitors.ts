@@ -38,6 +38,7 @@ export interface Visitor {
   customFields?: Record<string, unknown>;
   convertedMemberId?: string;
   convertedAt?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +62,7 @@ export interface ListVisitorsParams {
   assignedToId?: string;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+  archived?: boolean;
 }
 
 export interface CreateVisitorInput {
@@ -96,6 +98,7 @@ function buildListPath(params: ListVisitorsParams): string {
   if (params.assignedToId) searchParams.set("assignedToId", params.assignedToId);
   if (params.sortBy) searchParams.set("sortBy", params.sortBy);
   if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
+  if (params.archived) searchParams.set("archived", "true");
   const queryString = searchParams.toString();
   return `/visitors${queryString ? `?${queryString}` : ""}`;
 }
@@ -173,6 +176,24 @@ export function useDeleteVisitor() {
     mutationFn: (visitorId: string) =>
       api.delete<{ success: boolean }>(`/visitors/${visitorId}`),
     onSuccess: (_data, visitorId) => invalidateVisitorCaches(queryClient, visitorId),
+  });
+}
+
+export function useArchiveVisitor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (visitorId: string) =>
+      api.post<Visitor>(`/visitors/${visitorId}/archive`, {}),
+    onSuccess: () => invalidateVisitorCaches(queryClient),
+  });
+}
+
+export function useRestoreArchiveVisitor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (visitorId: string) =>
+      api.post<Visitor>(`/visitors/${visitorId}/restore`, {}),
+    onSuccess: () => invalidateVisitorCaches(queryClient),
   });
 }
 

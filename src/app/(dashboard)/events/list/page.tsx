@@ -11,6 +11,8 @@ import {
   Pencil,
   Plus,
   Trash2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -50,12 +52,19 @@ import {
 import {
   useEventsList,
   useDeleteEvent,
+  useArchiveEvent,
+  useRestoreArchiveEvent,
   EVENT_TYPES,
   EVENT_TYPE_MAP,
   type EventItem,
   type ListEventsParams,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 const SORT_OPTIONS: { value: ListEventsParams["sortBy"]; label: string }[] = [
   { value: "startDate", label: "Start Date" },
@@ -74,12 +83,18 @@ export default function EventsListPage() {
   // Filters
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [sortBy, setSortBy] = React.useState<ListEventsParams["sortBy"]>("startDate");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [deleteTarget, setDeleteTarget] = React.useState<EventItem | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    event: EventItem;
+  } | null>(null);
 
   // Debounce server-side search.
   React.useEffect(() => {
@@ -96,14 +111,17 @@ export default function EventsListPage() {
       limit: perPage,
       search: search || undefined,
       type: typeFilter === "all" ? undefined : typeFilter,
+      archived: archivedView ? true : undefined,
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, typeFilter, sortBy, sortOrder]
+    [page, perPage, search, typeFilter, archivedView, sortBy, sortOrder]
   );
 
   const { data, isLoading, error } = useEventsList(queryParams);
   const deleteMutation = useDeleteEvent();
+  const archiveMutation = useArchiveEvent();
+  const restoreArchiveMutation = useRestoreArchiveEvent();
 
   // Stats: unfiltered total, upcoming, past.
   const totalsQuery = useEventsList({ limit: 1 });
@@ -243,6 +261,7 @@ export default function EventsListPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
+            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
             <SearchInput
               value={searchInput}
               onChange={(v) => setSearchInput(v)}
@@ -315,11 +334,13 @@ export default function EventsListPage() {
             <div className="py-8">
               <EmptyState
                 icon={<CalendarDays className="h-12 w-12" />}
-                title="No events yet"
+                title={archivedView ? "No archived events" : "No events yet"}
                 description={
-                  search || typeFilter !== "all"
-                    ? "Try adjusting your filters."
-                    : "Create your first event to get started."
+                  archivedView
+                    ? "Archive an event to move it here."
+                    : search || typeFilter !== "all"
+                      ? "Try adjusting your filters."
+                      : "Create your first event to get started."
                 }
               />
             </div>
@@ -360,7 +381,7 @@ export default function EventsListPage() {
                           ? `${event.registrationCount} / ${event.capacity}`
                           : event.registrationCount}
                       </TableCell>
-                      {canManage && (
+                      {canManage && !archivedView && (
                         <TableCell
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
@@ -391,6 +412,19 @@ export default function EventsListPage() {
                                   Edit
                                 </DropdownMenuItem>
                               )}
+                              {canDelete && !event.archivedAt && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setArchiveTarget({
+                                      kind: "archive",
+                                      event,
+                                    })
+                                  }
+                                >
+                                  <Archive className="mr-2 h-4 w-4" />
+                                  Archive
+                                </DropdownMenuItem>
+                              )}
                               {canDelete && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -405,6 +439,46 @@ export default function EventsListPage() {
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
+                        </TableCell>
+                      )}
+                      {canManage && archivedView && (
+                        <TableCell
+                          className="text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-end gap-2">
+                            {canUpdate && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setArchiveTarget({
+                                    kind: "restore",
+                                    event,
+                                  })
+                                }
+                              >
+                                <RotateCcw className="mr-2 h-4 w-4" />
+                                Restore
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() =>
+                                  setArchiveTarget({
+                                    kind: "purge",
+                                    event,
+                                  })
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Forever
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -449,6 +523,23 @@ export default function EventsListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="event"
+        targetName={archiveTarget?.event.title}
+        targetId={archiveTarget?.event.eventId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

@@ -14,6 +14,8 @@ import {
   Tag,
   AlertTriangle,
   Repeat,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -41,6 +43,9 @@ import {
 import {
   useVisitor,
   useUpdateVisitor,
+  useArchiveVisitor,
+  useRestoreArchiveVisitor,
+  useDeleteVisitor,
   FOLLOW_UP_STATUSES,
   type FollowUpStatus,
 } from "@/hooks/use-visitors";
@@ -50,6 +55,10 @@ import {
 } from "@/hooks/use-attendance";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { VisitorFormDialog } from "@/components/visitors/visitor-form-dialog";
 import { DeleteVisitorDialog } from "@/components/visitors/delete-visitor-dialog";
 import { ConvertVisitorDialog } from "@/components/visitors/convert-visitor-dialog";
@@ -96,6 +105,9 @@ export default function VisitorDetailPage({
 
   const { data: visitor, isLoading, error } = useVisitor(visitorId);
   const updateMutation = useUpdateVisitor(visitorId);
+  const archiveMutation = useArchiveVisitor();
+  const restoreArchiveMutation = useRestoreArchiveVisitor();
+  const purgeMutation = useDeleteVisitor();
   const usersQuery = useUsers({ limit: 100, status: "active" });
   // Check-ins linked to this visitor via attendance.visitor_id.
   const visitsQuery = useAttendanceRecords({
@@ -109,6 +121,7 @@ export default function VisitorDetailPage({
   const [editOpen, setEditOpen] = React.useState(false);
   const [convertOpen, setConvertOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
 
   const [visitPage, setVisitPage] = React.useState(1);
   const [visitPerPage, setVisitPerPage] = React.useState(15);
@@ -225,6 +238,12 @@ export default function VisitorDetailPage({
                     Member Profile
                   </Badge>
                 )}
+                {display.archivedAt && (
+                  <Badge variant="destructive">
+                    <Archive className="mr-1 h-3 w-3" />
+                    Archived
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
                 {[
@@ -236,26 +255,61 @@ export default function VisitorDetailPage({
           </div>
           {(canUpdateVisitors || canDeleteVisitors) && (
             <div className="flex items-center gap-2">
-              {canDeleteVisitors && (
-                <Button
-                  variant="outline"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              )}
-              {canUpdateVisitors && !isConverted && (
+              {display.archivedAt ? (
                 <>
-                  <Button variant="outline" onClick={() => setConvertOpen(true)}>
-                    <Repeat className="h-4 w-4 mr-2" />
-                    Convert to Member
-                  </Button>
-                  <Button onClick={() => setEditOpen(true)}>
-                    <Pencil className="h-4 w-4 mr-2" />
-                    Edit Visitor
-                  </Button>
+                  {canUpdateVisitors && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setArchiveAction("restore")}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Restore
+                    </Button>
+                  )}
+                  {canDeleteVisitors && (
+                    <Button
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setArchiveAction("purge")}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Forever
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {canDeleteVisitors && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setArchiveAction("archive")}
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        Archive
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => setDeleteOpen(true)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
+                  {canUpdateVisitors && !isConverted && (
+                    <>
+                      <Button variant="outline" onClick={() => setConvertOpen(true)}>
+                        <Repeat className="h-4 w-4 mr-2" />
+                        Convert to Member
+                      </Button>
+                      <Button onClick={() => setEditOpen(true)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Visitor
+                      </Button>
+                    </>
+                  )}
                 </>
               )}
             </div>
@@ -459,6 +513,21 @@ export default function VisitorDetailPage({
         onOpenChange={(open) => !open && setDeleteOpen(false)}
         visitors={[display]}
         onDeleted={() => router.push("/visitors")}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveAction}
+        onOpenChange={(open) => !open && setArchiveAction(null)}
+        kind={archiveAction ?? "archive"}
+        entityLabel="visitor"
+        targetName={fullName}
+        targetId={display.id}
+        mutation={
+          archiveAction === "archive"
+            ? archiveMutation
+            : archiveAction === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
       />
     </div>
   );

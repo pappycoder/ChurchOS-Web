@@ -25,6 +25,7 @@ export interface ChurchService {
   isActive: boolean;
   /** All-time check-in count (populated by list/detail endpoints). */
   attendanceCount?: number;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,6 +35,7 @@ export interface ListServicesParams {
   limit?: number;
   category?: string;
   isActive?: boolean;
+  archived?: boolean;
   dayOfWeek?: number;
 }
 
@@ -209,6 +211,30 @@ export function useDeleteService() {
       api.delete<{ success: boolean }>(`/services/${serviceId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance-services"] });
+    },
+  });
+}
+
+export function useArchiveService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (serviceId: string) =>
+      api.post<ChurchService>(`/services/${serviceId}/archive`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance-services"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-service"] });
+    },
+  });
+}
+
+export function useRestoreArchiveService() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (serviceId: string) =>
+      api.post<ChurchService>(`/services/${serviceId}/restore`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance-services"] });
+      queryClient.invalidateQueries({ queryKey: ["attendance-service"] });
     },
   });
 }

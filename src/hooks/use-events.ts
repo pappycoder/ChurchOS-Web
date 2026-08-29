@@ -42,6 +42,7 @@ export interface EventItem {
   isFree: boolean;
   price?: number;
   registrationCount: number;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,6 +96,7 @@ export interface ListEventsParams {
   type?: string;
   status?: string;
   search?: string;
+  archived?: boolean;
   sortBy?: "startDate" | "createdAt" | "title";
   sortOrder?: "asc" | "desc";
 }
@@ -240,6 +242,30 @@ export function useDeleteEvent() {
     mutationFn: (eventId: string) =>
       api.delete<void>(`/events/${eventId}`),
     onSuccess: () => invalidateEventCaches(qc),
+  });
+}
+
+export function useArchiveEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      api.post<EventItem>(`/events/${eventId}/archive`, {}),
+    onSuccess: () => {
+      invalidateEventCaches(qc);
+      qc.invalidateQueries({ queryKey: ["events-detail"] });
+    },
+  });
+}
+
+export function useRestoreArchiveEvent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) =>
+      api.post<EventItem>(`/events/${eventId}/restore`, {}),
+    onSuccess: () => {
+      invalidateEventCaches(qc);
+      qc.invalidateQueries({ queryKey: ["events-detail"] });
+    },
   });
 }
 

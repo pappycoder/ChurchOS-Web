@@ -14,6 +14,7 @@ import {
   Pencil,
   Trash2,
   RotateCcw,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -54,12 +55,20 @@ import {
 import {
   useMembersList,
   useRestoreMember,
+  useArchiveMember,
+  useRestoreArchiveMember,
+  useDeleteMember,
   type ListMembersParams,
   type Member,
   type MemberStatus,
 } from "@/hooks/use-members";
 import { useBranchesList } from "@/hooks/use-branches";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { MemberFormDialog } from "@/components/members/member-form-dialog";
 import { DeleteMemberDialog } from "@/components/members/delete-member-dialog";
 
@@ -110,6 +119,8 @@ export default function MembersPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [statusFilter, setStatusFilter] = React.useState<MemberStatus | "all">("all");
   const [branchFilter, setBranchFilter] = React.useState<string>("all");
   const [sortBy, setSortBy] = React.useState<NonNullable<ListMembersParams["sortBy"]>>("first_name");
@@ -121,6 +132,10 @@ export default function MembersPage() {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [editMember, setEditMember] = React.useState<Member | null>(null);
   const [deleteTargets, setDeleteTargets] = React.useState<Member[] | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    member: Member;
+  } | null>(null);
 
   // Debounce server-side search.
   React.useEffect(() => {
@@ -138,14 +153,18 @@ export default function MembersPage() {
       search: search || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
       branchId: branchFilter === "all" ? undefined : branchFilter,
+      archived: archivedView ? true : undefined,
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, statusFilter, branchFilter, sortBy, sortOrder]
+    [page, perPage, search, statusFilter, branchFilter, archivedView, sortBy, sortOrder]
   );
 
   const { data, isLoading, error } = useMembersList(queryParams);
   const restoreMutation = useRestoreMember();
+  const archiveMutation = useArchiveMember();
+  const restoreArchiveMutation = useRestoreArchiveMember();
+  const purgeMutation = useDeleteMember();
 
   // Unfiltered + active-only count queries power the stats cards.
   const totalsQuery = useMembersList({ limit: 1 });
@@ -315,6 +334,11 @@ export default function MembersPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={setArchivedFilter}
+              onClearSelection={() => setSelectedIds(new Set())}
+            />
             <SearchInput
               value={searchInput}
               onChange={(v) => {
@@ -387,7 +411,7 @@ export default function MembersPage() {
           </div>
         }
       >
-        {someSelected && canDeleteMembers && (
+        {!archivedView && someSelected && canDeleteMembers && (
             <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
               <span className="text-sm font-medium">{selectedIds.size} selected</span>
               <Button
@@ -414,13 +438,15 @@ export default function MembersPage() {
             <div className="py-8">
               <EmptyState
                 icon={<Users className="h-12 w-12" />}
-                title="No members found"
+                title={archivedView ? "No archived members" : "No members found"}
                 description={
-                  search || statusFilter !== "all" || branchFilter !== "all"
-                    ? "Try adjusting your filters."
-                    : canCreateMembers
-                      ? "Add your first member to get started."
-                      : "No members have been added yet."
+                  archivedView
+                    ? "Archive a member to move them here."
+                    : search || statusFilter !== "all" || branchFilter !== "all"
+                      ? "Try adjusting your filters."
+                      : canCreateMembers
+                        ? "Add your first member to get started."
+                        : "No members have been added yet."
                 }
               />
             </div>
@@ -429,13 +455,15 @@ export default function MembersPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={allSelected}
-                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                        aria-label="Select all members"
-                      />
-                    </TableHead>
+                    {!archivedView && (
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={allSelected}
+                          onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                          aria-label="Select all members"
+                        />
+                      </TableHead>
+                    )}
                     <TableHead>Member</TableHead>
                     <TableHead>Contact</TableHead>
                     <TableHead>Branch</TableHead>
@@ -451,18 +479,20 @@ export default function MembersPage() {
                       className="cursor-pointer"
                       onClick={() => handleRowClick(member.memberId)}
                     >
-                      <TableCell
-                        className="w-12"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Checkbox
-                          checked={selectedIds.has(member.memberId)}
-                          onCheckedChange={(checked) =>
-                            handleSelectRow(member.memberId, !!checked)
-                          }
-                          aria-label={`Select ${member.firstName} ${member.lastName}`}
-                        />
-                      </TableCell>
+                      {!archivedView && (
+                        <TableCell
+                          className="w-12"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            checked={selectedIds.has(member.memberId)}
+                            onCheckedChange={(checked) =>
+                              handleSelectRow(member.memberId, !!checked)
+                            }
+                            aria-label={`Select ${member.firstName} ${member.lastName}`}
+                          />
+                        </TableCell>
+                      )}
                       <TableCell>
                         <div className="flex items-center gap-2.5">
                           <Avatar size="sm">
@@ -493,7 +523,43 @@ export default function MembersPage() {
                       <TableCell>
                         <MemberStatusCell status={member.status} />
                       </TableCell>
-                      {canManage && (
+                      {archivedView ? (
+                        canManage && (
+                          <TableCell
+                            className="text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-end gap-1.5">
+                              {canUpdateMembers && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "restore", member })
+                                  }
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                  Restore
+                                </Button>
+                              )}
+                              {canDeleteMembers && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "purge", member })
+                                  }
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                  Delete Forever
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        )
+                      ) : (
+                      canManage && (
                         <TableCell
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
@@ -537,21 +603,32 @@ export default function MembersPage() {
                                   )}
                                 </>
                               )}
-                              {canDeleteMembers && member.status !== "inactive" && (
+                              {canDeleteMembers && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setDeleteTargets([member])}
+                                    onClick={() =>
+                                      setArchiveTarget({ kind: "archive", member })
+                                    }
                                   >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Deactivate
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive
                                   </DropdownMenuItem>
+                                  {member.status !== "inactive" && (
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive"
+                                      onClick={() => setDeleteTargets([member])}
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Deactivate
+                                    </DropdownMenuItem>
+                                  )}
                                 </>
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
+                      )
                       )}
                     </TableRow>
                   ))}
@@ -575,6 +652,26 @@ export default function MembersPage() {
         onOpenChange={(open) => !open && setDeleteTargets(null)}
         members={deleteTargets ?? []}
         onDeleted={() => setSelectedIds(new Set())}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="member"
+        targetName={
+          archiveTarget
+            ? `${archiveTarget.member.firstName} ${archiveTarget.member.lastName}`
+            : null
+        }
+        targetId={archiveTarget?.member.memberId ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
+        onConfirmed={() => setSelectedIds(new Set())}
       />
     </div>
   );

@@ -4,11 +4,16 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
-import { Boxes, Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { Boxes, Eye, Pencil, Plus, Trash2, Archive, RotateCcw } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { TablePagination } from "@/components/shared/table-pagination";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,6 +46,8 @@ import {
   useAssetCategories,
   useAssetsList,
   useDeleteAsset,
+  useArchiveAsset,
+  useRestoreAsset,
   type Asset,
   type AssetCondition,
   type AssetsListParams,
@@ -64,6 +71,8 @@ export default function AssetsPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [statusFilter, setStatusFilter] = React.useState<AssetStatus | "all">("all");
   const [conditionFilter, setConditionFilter] = React.useState<AssetCondition | "all">("all");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
@@ -74,6 +83,10 @@ export default function AssetsPage() {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [editAsset, setEditAsset] = React.useState<Asset | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Asset | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    asset: Asset;
+  } | null>(null);
   const [detailAsset, setDetailAsset] = React.useState<Asset | null>(null);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
@@ -94,12 +107,15 @@ export default function AssetsPage() {
       condition: conditionFilter === "all" ? undefined : conditionFilter,
       categoryId: categoryFilter === "all" ? undefined : categoryFilter,
       branchId: branchFilter === "all" ? undefined : branchFilter,
+      archived: archivedView ? true : undefined,
     }),
-    [page, perPage, search, statusFilter, conditionFilter, categoryFilter, branchFilter]
+    [page, perPage, search, statusFilter, conditionFilter, categoryFilter, branchFilter, archivedView]
   );
 
   const { data, isLoading, error } = useAssetsList(queryParams);
   const deleteMutation = useDeleteAsset();
+  const archiveMutation = useArchiveAsset();
+  const restoreMutation = useRestoreAsset();
 
   const categoriesQuery = useAssetCategories();
   const branchesQuery = useBranchesList({ limit: 100 });
@@ -223,12 +239,15 @@ export default function AssetsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <SearchInput
-              value={searchInput}
-              onChange={setSearchInput}
-              placeholder="Search name, tag, serial..."
-              className="sm:w-72"
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              <SearchInput
+                value={searchInput}
+                onChange={setSearchInput}
+                placeholder="Search name, tag, serial..."
+                className="sm:w-72"
+              />
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <Select
                 value={statusFilter}
@@ -343,9 +362,11 @@ export default function AssetsPage() {
                     <TableRow>
                       <TableCell colSpan={canReadActions ? 7 : 6} className="h-32 text-center">
                         <p className="text-muted-foreground">
-                          {search || statusFilter !== "all" || conditionFilter !== "all"
-                            ? "No assets match your filters."
-                            : "No assets registered yet."}
+                          {archivedView
+                            ? "No archived assets."
+                            : search || statusFilter !== "all" || conditionFilter !== "all"
+                              ? "No assets match your filters."
+                              : "No assets registered yet."}
                         </p>
                       </TableCell>
                     </TableRow>
@@ -395,36 +416,72 @@ export default function AssetsPage() {
                         </TableCell>
                         {canReadActions && (
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                title="View"
-                                onClick={() => openDetail(asset)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {canUpdate && (
+                            {archivedView ? (
+                              <div className="flex justify-end gap-1">
+                                {canUpdate && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setArchiveTarget({ kind: "restore", asset })}
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                    Restore
+                                  </Button>
+                                )}
+                                {canDelete && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() => setArchiveTarget({ kind: "purge", asset })}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                    Delete Forever
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="flex justify-end gap-1">
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  title="Edit"
-                                  onClick={() => setEditAsset(asset)}
+                                  title="View"
+                                  onClick={() => openDetail(asset)}
                                 >
-                                  <Pencil className="h-4 w-4" />
+                                  <Eye className="h-4 w-4" />
                                 </Button>
-                              )}
-                              {canDelete && (
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  title="Delete"
-                                  onClick={() => setDeleteTarget(asset)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              )}
-                            </div>
+                                {canUpdate && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    title="Edit"
+                                    onClick={() => setEditAsset(asset)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {canDelete && (
+                                  <>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      title="Archive"
+                                      onClick={() => setArchiveTarget({ kind: "archive", asset })}
+                                    >
+                                      <Archive className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      title="Delete"
+                                      onClick={() => setDeleteTarget(asset)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            )}
                           </TableCell>
                         )}
                       </TableRow>
@@ -490,6 +547,21 @@ export default function AssetsPage() {
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         assetId={detailAsset?.id ?? ""}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="asset"
+        targetName={archiveTarget?.asset.name ?? null}
+        targetId={archiveTarget?.asset.id ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreMutation
+              : deleteMutation
+        }
       />
     </div>
   );

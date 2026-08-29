@@ -16,6 +16,7 @@ export interface Branch {
   email?: string;
   photoUrl?: string;
   memberCount: number;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +31,7 @@ export interface ListBranchesParams {
   page?: number;
   limit?: number;
   search?: string;
+  archived?: boolean;
   sortBy?: "name" | "city" | "created_at";
   sortOrder?: "asc" | "desc";
 }
@@ -52,6 +54,7 @@ function buildListPath(params: ListBranchesParams): string {
   if (params.page) searchParams.set("page", String(params.page));
   if (params.limit) searchParams.set("limit", String(params.limit));
   if (params.search) searchParams.set("search", params.search);
+  if (params.archived) searchParams.set("archived", "true");
   if (params.sortBy) searchParams.set("sortBy", params.sortBy);
   if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
   const queryString = searchParams.toString();
@@ -104,6 +107,34 @@ export function useDeleteBranch() {
       api.delete<{ success: boolean }>(`/branches/${branchId}`),
     onSuccess: (_data, branchId) => {
       queryClient.removeQueries({ queryKey: ["branch", branchId] });
+      queryClient.invalidateQueries({ queryKey: ["branches-list"] });
+      queryClient.invalidateQueries({ queryKey: ["branches"] });
+    },
+  });
+}
+
+export function useArchiveBranch() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (branchId: string) =>
+      api.post<Branch>(`/branches/${branchId}/archive`, {}),
+    onSuccess: (data, branchId) => {
+      queryClient.removeQueries({ queryKey: ["branch", branchId] });
+      queryClient.setQueryData<Branch>(["branch", branchId], data);
+      queryClient.invalidateQueries({ queryKey: ["branches-list"] });
+      queryClient.invalidateQueries({ queryKey: ["branches"] });
+    },
+  });
+}
+
+export function useRestoreArchiveBranch() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (branchId: string) =>
+      api.post<Branch>(`/branches/${branchId}/restore`, {}),
+    onSuccess: (data, branchId) => {
+      queryClient.removeQueries({ queryKey: ["branch", branchId] });
+      queryClient.setQueryData<Branch>(["branch", branchId], data);
       queryClient.invalidateQueries({ queryKey: ["branches-list"] });
       queryClient.invalidateQueries({ queryKey: ["branches"] });
     },

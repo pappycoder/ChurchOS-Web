@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { Building2, Pencil, Plus, Trash2, Users, RotateCcw, Archive } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
@@ -16,10 +16,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { DepartmentFormDialog } from "@/components/departments/department-form-dialog";
 import { DeleteDepartmentDialog } from "@/components/departments/delete-department-dialog";
 import { DepartmentDetailDrawer } from "@/components/departments/department-detail-drawer";
-import { useDepartmentsList, type Department } from "@/hooks/use-admin";
+import {
+  useDepartmentsList,
+  useArchiveDepartment,
+  useRestoreArchiveDepartment,
+  useDeleteDepartment,
+  type Department,
+} from "@/hooks/use-admin";
 
 export default function DepartmentsPage() {
   const { can } = usePermissions();
@@ -36,13 +47,24 @@ export default function DepartmentsPage() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Department | null>(null);
   const [deleting, setDeleting] = React.useState<Department | null>(null);
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    department: Department;
+  } | null>(null);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput), 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: departments, isLoading } = useDepartmentsList();
+  const { data: departments, isLoading } = useDepartmentsList({
+    archived: archivedView ? true : undefined,
+  });
+  const archiveMutation = useArchiveDepartment();
+  const restoreArchiveMutation = useRestoreArchiveDepartment();
+  const purgeMutation = useDeleteDepartment();
 
   const filtered = React.useMemo(() => {
     const rows = departments ?? [];
@@ -119,17 +141,20 @@ export default function DepartmentsPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="relative sm:w-72">
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search departments..."
-              className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            <div className="relative sm:w-72">
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search departments..."
+                className="w-full h-9 rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
           </div>
         }
       >
@@ -154,11 +179,13 @@ export default function DepartmentsPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center">
+                <TableCell colSpan={canUpdate || canDelete ? 5 : 4} className="h-32 text-center">
                   <p className="text-muted-foreground">
-                    {search
-                      ? "No departments match your search."
-                      : "No departments yet. Create your first one to get started."}
+                    {archivedView
+                      ? "No archived departments."
+                      : search
+                        ? "No departments match your search."
+                        : "No departments yet. Create your first one to get started."}
                   </p>
                 </TableCell>
               </TableRow>
@@ -190,33 +217,76 @@ export default function DepartmentsPage() {
                     </TableCell>
                     {canUpdate || canDelete ? (
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          {canUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              aria-label={`Edit ${department.name}`}
-                              onClick={() => {
-                                setEditing(department);
-                                setFormOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {canDelete && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              aria-label={`Delete ${department.name}`}
-                              onClick={() => setDeleting(department)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                        {archivedView ? (
+                          <div className="flex justify-end gap-1.5">
+                            {canUpdate && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "restore", department })
+                                }
+                              >
+                                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                Restore
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "purge", department })
+                                }
+                              >
+                                <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                Delete Forever
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex justify-end gap-1">
+                            {canUpdate && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                aria-label={`Edit ${department.name}`}
+                                onClick={() => {
+                                  setEditing(department);
+                                  setFormOpen(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  aria-label={`Archive ${department.name}`}
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "archive", department })
+                                  }
+                                >
+                                  <Archive className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  aria-label={`Delete ${department.name}`}
+                                  onClick={() => setDeleting(department)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                     ) : null}
                   </TableRow>
@@ -246,6 +316,22 @@ export default function DepartmentsPage() {
           if (!open) setDeleting(null);
         }}
         department={deleting}
+      />
+
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="department"
+        targetName={archiveTarget?.department.name ?? null}
+        targetId={archiveTarget?.department.id ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
       />
     </div>
   );

@@ -40,6 +40,7 @@ export interface Asset {
   location?: string;
   qrCode?: string;
   notes?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -49,6 +50,7 @@ export interface AssetCategory {
   churchId: string;
   name: string;
   description?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -116,6 +118,7 @@ export interface AssetsListParams {
   branchId?: string;
   departmentId?: string;
   search?: string;
+  archived?: boolean;
 }
 
 export interface AssetsListMeta {
@@ -287,6 +290,7 @@ export function useAssetsList(params: AssetsListParams = {}) {
     branchId: params.branchId,
     departmentId: params.departmentId,
     search: params.search,
+    archived: params.archived ? "true" : undefined,
   });
   return useQuery({
     queryKey: ["assets-list", params],
@@ -305,10 +309,11 @@ export function useAsset(assetId: string | undefined) {
   });
 }
 
-export function useAssetCategories() {
+export function useAssetCategories(archived?: boolean) {
   return useQuery({
-    queryKey: ["assets-categories"],
-    queryFn: () => api.get<AssetCategory[]>("/assets/categories"),
+    queryKey: ["assets-categories", archived ?? false],
+    queryFn: () =>
+      api.get<AssetCategory[]>(`/assets/categories${archived ? "?archived=true" : ""}`),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -381,6 +386,22 @@ export function useDeleteAsset() {
   });
 }
 
+export function useArchiveAsset() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (assetId: string) => api.post<Asset>(`/assets/${assetId}/archive`, {}),
+    onSuccess: () => invalidateAssetQueries(client),
+  });
+}
+
+export function useRestoreAsset() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (assetId: string) => api.post<Asset>(`/assets/${assetId}/restore`, {}),
+    onSuccess: () => invalidateAssetQueries(client),
+  });
+}
+
 export function useCreateAssetCategory() {
   const client = useQueryClient();
   return useMutation({
@@ -404,6 +425,24 @@ export function useDeleteAssetCategory() {
   return useMutation({
     mutationFn: (categoryId: string) =>
       api.delete<{ success: boolean }>(`/assets/categories/${categoryId}`),
+    onSuccess: () => invalidateAssetQueries(client),
+  });
+}
+
+export function useArchiveAssetCategory() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (categoryId: string) =>
+      api.post<AssetCategory>(`/assets/categories/${categoryId}/archive`, {}),
+    onSuccess: () => invalidateAssetQueries(client),
+  });
+}
+
+export function useRestoreAssetCategory() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (categoryId: string) =>
+      api.post<AssetCategory>(`/assets/categories/${categoryId}/restore`, {}),
     onSuccess: () => invalidateAssetQueries(client),
   });
 }

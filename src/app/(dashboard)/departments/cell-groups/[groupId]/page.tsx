@@ -15,6 +15,8 @@ import {
   UserPlus,
   Users,
   UsersRound,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -44,6 +46,7 @@ import { CellGroupFormDialog } from "@/components/departments/cell-group-form-di
 import { DeleteCellGroupDialog } from "@/components/departments/delete-cell-group-dialog";
 import { CellGroupMemberDialog } from "@/components/departments/cell-group-member-dialog";
 import { CellGroupAttendanceDialog } from "@/components/departments/cell-group-attendance-dialog";
+import { ArchiveConfirmDialog, type ArchiveDialogKind } from "@/components/shared/archive-confirm-dialog";
 import {
   useCellGroup,
   useCellGroupAttendance,
@@ -51,6 +54,9 @@ import {
   useCellGroupMembers,
   useNearestCellGroups,
   useRemoveCellGroupMember,
+  useArchiveCellGroup,
+  useRestoreArchiveCellGroup,
+  useDeleteCellGroup,
 } from "@/hooks/use-admin";
 
 function formatDate(value: string | undefined): string {
@@ -86,9 +92,13 @@ export default function CellGroupDetailPage({
   );
 
   const removeMember = useRemoveCellGroupMember(groupId);
+  const archiveMutation = useArchiveCellGroup();
+  const restoreArchiveMutation = useRestoreArchiveCellGroup();
+  const purgeMutation = useDeleteCellGroup();
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
   const [memberDialogOpen, setMemberDialogOpen] = React.useState(false);
   const [attendanceDialogOpen, setAttendanceDialogOpen] = React.useState(false);
 
@@ -161,6 +171,12 @@ export default function CellGroupDetailPage({
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-2xl font-semibold">{group.name}</h2>
                   {group.branchName && <Badge variant="secondary">{group.branchName}</Badge>}
+                  {group.archivedAt && (
+                    <Badge variant="destructive">
+                      <Archive className="mr-1 h-3 w-3" />
+                      Archived
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
                   Leader:{" "}
@@ -196,15 +212,41 @@ export default function CellGroupDetailPage({
                 </div>
               </div>
               <div className="flex gap-2">
-                {canUpdate && (
-                  <Button variant="outline" onClick={() => setEditOpen(true)}>
-                    <Pencil className="h-4 w-4 mr-1" /> Edit
-                  </Button>
-                )}
-                {canDelete && (
-                  <Button variant="outline" className="text-destructive" onClick={() => setDeleteOpen(true)}>
-                    <Trash2 className="h-4 w-4 mr-1" /> Delete
-                  </Button>
+                {group.archivedAt ? (
+                  <>
+                    {canUpdate && (
+                      <Button variant="outline" onClick={() => setArchiveAction("restore")}>
+                        <RotateCcw className="h-4 w-4 mr-1" /> Restore
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button
+                        variant="outline"
+                        className="text-destructive"
+                        onClick={() => setArchiveAction("purge")}
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" /> Delete Forever
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {canDelete && (
+                      <Button variant="outline" onClick={() => setArchiveAction("archive")}>
+                        <Archive className="h-4 w-4 mr-1" /> Archive
+                      </Button>
+                    )}
+                    {canUpdate && (
+                      <Button variant="outline" onClick={() => setEditOpen(true)}>
+                        <Pencil className="h-4 w-4 mr-1" /> Edit
+                      </Button>
+                    )}
+                    {canDelete && (
+                      <Button variant="outline" className="text-destructive" onClick={() => setDeleteOpen(true)}>
+                        <Trash2 className="h-4 w-4 mr-1" /> Delete
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
@@ -451,6 +493,25 @@ export default function CellGroupDetailPage({
         onOpenChange={setAttendanceDialogOpen}
         groupId={groupId}
         groupName={group?.name ?? ""}
+      />
+
+      <ArchiveConfirmDialog
+        open={!!archiveAction}
+        onOpenChange={(open) => !open && setArchiveAction(null)}
+        kind={archiveAction ?? "archive"}
+        entityLabel="cell group"
+        targetName={group?.name ?? null}
+        targetId={group?.id ?? ""}
+        mutation={
+          archiveAction === "archive"
+            ? archiveMutation
+            : archiveAction === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
+        onConfirmed={
+          archiveAction === "purge" ? () => router.push("/departments/cell-groups") : undefined
+        }
       />
     </div>
   );

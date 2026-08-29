@@ -18,6 +18,7 @@ export interface Family {
   name: string;
   headId?: string;
   members: FamilyMemberInfo[];
+  archivedAt?: string;
   createdAt: string;
 }
 
@@ -36,6 +37,7 @@ export interface ListFamiliesParams {
   page?: number;
   limit?: number;
   search?: string;
+  archived?: boolean;
 }
 
 export interface CreateFamilyInput {
@@ -56,6 +58,7 @@ function buildListPath(params: ListFamiliesParams): string {
   if (params.page) searchParams.set("page", String(params.page));
   if (params.limit) searchParams.set("limit", String(params.limit));
   if (params.search) searchParams.set("search", params.search);
+  if (params.archived) searchParams.set("archived", "true");
   const queryString = searchParams.toString();
   return `/families${queryString ? `?${queryString}` : ""}`;
 }
@@ -107,6 +110,24 @@ export function useDeleteFamily() {
     mutationFn: (familyId: string) =>
       api.delete<{ success: boolean }>(`/families/${familyId}`),
     onSuccess: (_data, familyId) => invalidateFamilyCaches(queryClient, familyId),
+  });
+}
+
+export function useArchiveFamily() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (familyId: string) =>
+      api.post<Family>(`/families/${familyId}/archive`, {}),
+    onSuccess: () => invalidateFamilyCaches(queryClient),
+  });
+}
+
+export function useRestoreArchiveFamily() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (familyId: string) =>
+      api.post<Family>(`/families/${familyId}/restore`, {}),
+    onSuccess: () => invalidateFamilyCaches(queryClient),
   });
 }
 

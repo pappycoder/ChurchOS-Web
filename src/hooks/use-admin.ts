@@ -20,6 +20,7 @@ export interface Department {
   parentId?: string;
   members: DepartmentMember[];
   memberCount: number;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +39,7 @@ export interface CellGroup {
   address?: string;
   meetingDay?: string;
   meetingTime?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -144,10 +146,13 @@ function invalidateAdminCaches(
   if (groupId) queryClient.invalidateQueries({ queryKey: ["cell-group", groupId] });
 }
 
-export function useDepartmentsList() {
+export function useDepartmentsList(params: { archived?: boolean } = {}) {
+  const searchParams = new URLSearchParams();
+  if (params.archived) searchParams.set("archived", "true");
+  const queryString = searchParams.toString();
   return useQuery({
-    queryKey: ["departments-list"],
-    queryFn: () => api.get<Department[]>("/admin/departments"),
+    queryKey: ["departments-list", params],
+    queryFn: () => api.get<Department[]>(`/admin/departments${queryString ? `?${queryString}` : ""}`),
   });
 }
 
@@ -185,6 +190,24 @@ export function useDeleteDepartment() {
   });
 }
 
+export function useArchiveDepartment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (departmentId: string) =>
+      api.post<Department>(`/admin/departments/${departmentId}/archive`, {}),
+    onSuccess: () => invalidateAdminCaches(queryClient),
+  });
+}
+
+export function useRestoreArchiveDepartment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (departmentId: string) =>
+      api.post<Department>(`/admin/departments/${departmentId}/restore`, {}),
+    onSuccess: () => invalidateAdminCaches(queryClient),
+  });
+}
+
 export function useAddDepartmentMember(departmentId: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -203,10 +226,13 @@ export function useRemoveDepartmentMember(departmentId: string) {
   });
 }
 
-export function useCellGroupsList() {
+export function useCellGroupsList(params: { archived?: boolean } = {}) {
+  const searchParams = new URLSearchParams();
+  if (params.archived) searchParams.set("archived", "true");
+  const queryString = searchParams.toString();
   return useQuery({
-    queryKey: ["cell-groups-list"],
-    queryFn: () => api.get<CellGroup[]>("/admin/cell-groups"),
+    queryKey: ["cell-groups-list", params],
+    queryFn: () => api.get<CellGroup[]>(`/admin/cell-groups${queryString ? `?${queryString}` : ""}`),
   });
 }
 
@@ -251,6 +277,24 @@ export function useDeleteCellGroup() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (groupId: string) => api.delete<void>(`/admin/cell-groups/${groupId}`),
+    onSuccess: () => invalidateAdminCaches(queryClient),
+  });
+}
+
+export function useArchiveCellGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (groupId: string) =>
+      api.post<CellGroup>(`/admin/cell-groups/${groupId}/archive`, {}),
+    onSuccess: () => invalidateAdminCaches(queryClient),
+  });
+}
+
+export function useRestoreArchiveCellGroup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (groupId: string) =>
+      api.post<CellGroup>(`/admin/cell-groups/${groupId}/restore`, {}),
     onSuccess: () => invalidateAdminCaches(queryClient),
   });
 }

@@ -19,6 +19,7 @@ export interface Sermon {
   videoUrl?: string;
   durationSeconds?: number;
   description?: string;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,6 +44,7 @@ export interface ListSermonsParams {
   tag?: string;
   startDate?: string;
   endDate?: string;
+  archived?: boolean;
   sortBy?: "sermonDate" | "createdAt" | "title";
   sortOrder?: "asc" | "desc";
 }
@@ -180,5 +182,29 @@ export function useDeleteSermon() {
     mutationFn: (sermonId: string) =>
       api.delete<void>(`/sermons/${sermonId}`),
     onSuccess: () => invalidateSermonCaches(qc),
+  });
+}
+
+export function useArchiveSermon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sermonId: string) =>
+      api.post<Sermon>(`/sermons/${sermonId}/archive`, {}),
+    onSuccess: () => {
+      invalidateSermonCaches(qc);
+      qc.invalidateQueries({ queryKey: ["sermons-detail"] });
+    },
+  });
+}
+
+export function useRestoreArchiveSermon() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sermonId: string) =>
+      api.post<Sermon>(`/sermons/${sermonId}/restore`, {}),
+    onSuccess: () => {
+      invalidateSermonCaches(qc);
+      qc.invalidateQueries({ queryKey: ["sermons-detail"] });
+    },
   });
 }

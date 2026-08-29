@@ -14,6 +14,8 @@ import {
   Footprints,
   AlertTriangle,
   Ticket,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -38,8 +40,9 @@ import {
   useEventAttendance,
   useEventStats,
   useDeleteEvent,
+  useArchiveEvent,
+  useRestoreArchiveEvent,
   EVENT_TYPE_MAP,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type EventItem,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   type EventRegistration,
@@ -47,6 +50,10 @@ import {
   type EventAttendanceRecord,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DataRow({ label, value }: { label: string; value?: string | null }) {
@@ -74,8 +81,14 @@ export default function EventDetailPage({
   const attendanceQuery = useEventAttendance(eventId);
   const statsQuery = useEventStats(eventId);
   const deleteMutation = useDeleteEvent();
+  const archiveMutation = useArchiveEvent();
+  const restoreArchiveMutation = useRestoreArchiveEvent();
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    event: EventItem;
+  } | null>(null);
   const [regPage, setRegPage] = React.useState(1);
   const [regPerPage, setRegPerPage] = React.useState(15);
   const [attPage, setAttPage] = React.useState(1);
@@ -167,6 +180,12 @@ export default function EventDetailPage({
               {isPast ? "Past" : "Upcoming"}
             </Badge>
             {event.isFree && <Badge variant="secondary">Free</Badge>}
+            {event.archivedAt && (
+              <Badge variant="destructive">
+                <Archive className="mr-1 h-3 w-3" />
+                Archived
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
             {event.location && (
@@ -188,7 +207,7 @@ export default function EventDetailPage({
                 : `${event.registrationCount} registered`}
             </span>
           </p>
-          {(canUpdate || canDelete) && (
+          {(canUpdate || canDelete) && !event.archivedAt && (
             <div className="flex items-center gap-2 mt-4">
               {canUpdate && (
                 <Button
@@ -198,6 +217,16 @@ export default function EventDetailPage({
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setArchiveTarget({ kind: "archive", event })}
+                >
+                  <Archive className="h-4 w-4 mr-2" />
+                  Archive
                 </Button>
               )}
               {canDelete && (
@@ -219,6 +248,31 @@ export default function EventDetailPage({
                 >
                   <Ticket className="h-4 w-4 mr-2" />
                   Manage Tiers
+                </Button>
+              )}
+            </div>
+          )}
+          {event.archivedAt && (canUpdate || canDelete) && (
+            <div className="flex items-center gap-2 mt-4">
+              {canUpdate && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setArchiveTarget({ kind: "restore", event })}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Restore
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setArchiveTarget({ kind: "purge", event })}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Forever
                 </Button>
               )}
             </div>
@@ -441,6 +495,23 @@ export default function EventDetailPage({
           </div>
         </div>
       )}
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="event"
+        targetName={archiveTarget?.event.title}
+        targetId={archiveTarget?.event.eventId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

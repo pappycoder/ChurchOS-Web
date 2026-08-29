@@ -11,6 +11,8 @@ import {
   UserPlus,
   UserMinus,
   AlertTriangle,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -27,9 +29,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFamily } from "@/hooks/use-families";
-import type { FamilyMemberInfo } from "@/hooks/use-families";
+import {
+  useFamily,
+  useArchiveFamily,
+  useRestoreArchiveFamily,
+  useDeleteFamily,
+  type FamilyMemberInfo,
+} from "@/hooks/use-families";
 import { usePermissions } from "@/hooks/use-permissions";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { FamilyFormDialog } from "@/components/families/family-form-dialog";
 import { DeleteFamilyDialog } from "@/components/families/delete-family-dialog";
 import { AddFamilyMemberDialog } from "@/components/families/add-family-member-dialog";
@@ -54,12 +65,16 @@ export default function FamilyDetailPage({
   const canDeleteFamilies = can("families", "delete");
 
   const { data: family, isLoading, error } = useFamily(familyId);
+  const archiveMutation = useArchiveFamily();
+  const restoreArchiveMutation = useRestoreArchiveFamily();
+  const purgeMutation = useDeleteFamily();
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [addMemberOpen, setAddMemberOpen] = React.useState(false);
   const [removeTarget, setRemoveTarget] =
     React.useState<FamilyMemberInfo | null>(null);
+  const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
 
   // Optimistic display state so dialog edits reflect instantly.
   const [display, setDisplay] = React.useState<typeof family>(undefined);
@@ -122,6 +137,12 @@ export default function FamilyDetailPage({
                     Head: {head.firstName} {head.lastName}
                   </Badge>
                 )}
+                {display.archivedAt && (
+                  <Badge variant="destructive">
+                    <Archive className="mr-1 h-3 w-3" />
+                    Archived
+                  </Badge>
+                )}
               </div>
               <p className="text-sm text-muted-foreground mt-0.5">
                 Created {format(new Date(display.createdAt), "MMM d, yyyy")}
@@ -130,17 +151,52 @@ export default function FamilyDetailPage({
           </div>
           {(canUpdateFamilies || canDeleteFamilies) && (
             <div className="flex items-center gap-2 shrink-0">
-              {canUpdateFamilies && (
-                <Button variant="outline" onClick={() => setEditOpen(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              )}
-              {canDeleteFamilies && (
-                <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
+              {display.archivedAt ? (
+                <>
+                  {canUpdateFamilies && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setArchiveAction("restore")}
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Restore
+                    </Button>
+                  )}
+                  {canDeleteFamilies && (
+                    <Button
+                      variant="outline"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setArchiveAction("purge")}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Forever
+                    </Button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {canUpdateFamilies && (
+                    <Button variant="outline" onClick={() => setEditOpen(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  )}
+                  {canDeleteFamilies && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setArchiveAction("archive")}
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        Archive
+                      </Button>
+                      <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </Button>
+                    </>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -259,6 +315,21 @@ export default function FamilyDetailPage({
         familyId={familyId}
         familyName={display.name}
         member={removeTarget}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveAction}
+        onOpenChange={(open) => !open && setArchiveAction(null)}
+        kind={archiveAction ?? "archive"}
+        entityLabel="family"
+        targetName={display.name}
+        targetId={display.familyId}
+        mutation={
+          archiveAction === "archive"
+            ? archiveMutation
+            : archiveAction === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
       />
     </div>
   );

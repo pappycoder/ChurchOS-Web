@@ -10,11 +10,15 @@ import {
   Plus,
   StickyNote,
   Trash2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   usePastoralNotes,
   useDeletePastoralNote,
+  useArchivePastoralNote,
+  useRestorePastoralNote,
   type PastoralNote,
   type ConfidentialityLevel,
   CONFIDENTIALITY_LABELS,
@@ -22,6 +26,11 @@ import {
 } from "@/hooks/use-pastoral";
 import { PageHeader } from "@/components/shared/page-header";
 import { TableCard } from "@/components/shared/table-card";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -70,6 +79,8 @@ export default function PastoralNotesPage() {
   const [confidentiality, setConfidentiality] = React.useState<
     ConfidentialityLevel | "all"
   >("all");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
@@ -78,12 +89,15 @@ export default function PastoralNotesPage() {
       page,
       limit: perPage,
       confidentiality: confidentiality === "all" ? undefined : confidentiality,
+      archived: archivedView ? true : undefined,
     }),
-    [page, perPage, confidentiality]
+    [page, perPage, confidentiality, archivedView]
   );
 
   const { data, isLoading, error } = usePastoralNotes(queryParams);
   const deleteMutation = useDeletePastoralNote();
+  const archiveMutation = useArchivePastoralNote();
+  const restoreMutation = useRestorePastoralNote();
 
   const notes = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -91,6 +105,10 @@ export default function PastoralNotesPage() {
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editNote, setEditNote] = React.useState<PastoralNote | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<PastoralNote | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    note: PastoralNote;
+  } | null>(null);
 
   if (error) {
     return (
@@ -137,6 +155,7 @@ export default function PastoralNotesPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2 flex-wrap">
+              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
               <Select
                 value={confidentiality}
                 onValueChange={(v) => {
@@ -182,13 +201,15 @@ export default function PastoralNotesPage() {
           <div className="py-8">
             <EmptyState
               icon={<StickyNote className="h-12 w-12" />}
-              title="No notes found"
+              title={archivedView ? "No archived notes" : "No notes found"}
               description={
-                confidentiality !== "all"
-                  ? "Try adjusting the confidentiality filter."
-                  : canCreate
-                    ? "Add your first note to start tracking pastoral care."
-                    : "No pastoral notes have been recorded yet."
+                archivedView
+                  ? "Archive a note to move it here."
+                  : confidentiality !== "all"
+                    ? "Try adjusting the confidentiality filter."
+                    : canCreate
+                      ? "Add your first note to start tracking pastoral care."
+                      : "No pastoral notes have been recorded yet."
               }
             />
           </div>
@@ -258,39 +279,73 @@ export default function PastoralNotesPage() {
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {(canUpdate || canDelete) && (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                          {archivedView ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              {canUpdate && (
                                 <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setArchiveTarget({ kind: "restore", note })}
                                 >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">More actions</span>
+                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                  Restore
                                 </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {canUpdate && (
-                                  <DropdownMenuItem onClick={() => setEditNote(note)}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit Note
-                                  </DropdownMenuItem>
-                                )}
-                                {canDelete && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      className="text-destructive focus:text-destructive"
-                                      onClick={() => setDeleteTarget(note)}
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete
+                              )}
+                              {canDelete && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive"
+                                  onClick={() => setArchiveTarget({ kind: "purge", note })}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                  Delete Forever
+                                </Button>
+                              )}
+                            </div>
+                          ) : (
+                            (canUpdate || canDelete) && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">More actions</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  {canUpdate && (
+                                    <DropdownMenuItem onClick={() => setEditNote(note)}>
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit Note
                                     </DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                                  )}
+                                  {canDelete && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          setArchiveTarget({ kind: "archive", note })
+                                        }
+                                      >
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Archive
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() => setDeleteTarget(note)}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )
                           )}
                         </TableCell>
                       )}
@@ -328,6 +383,21 @@ export default function PastoralNotesPage() {
             },
           });
         }}
+      />
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="note"
+        targetName={null}
+        targetId={archiveTarget?.note.id ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreMutation
+              : deleteMutation
+        }
       />
     </div>
   );

@@ -13,6 +13,8 @@ import {
   Pencil,
   Plus,
   Trash2,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -52,10 +54,17 @@ import {
 import {
   useSermonsList,
   useDeleteSermon,
+  useArchiveSermon,
+  useRestoreArchiveSermon,
   type Sermon,
   type ListSermonsParams,
 } from "@/hooks/use-sermons";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 
 const SORT_OPTIONS: { value: ListSermonsParams["sortBy"]; label: string }[] = [
   { value: "sermonDate", label: "Date" },
@@ -85,6 +94,12 @@ function SermonsListContent() {
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [deleteTarget, setDeleteTarget] = React.useState<Sermon | null>(null);
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    sermon: Sermon;
+  } | null>(null);
 
   const searchParams = useSearchParams();
   const [speaker, setSpeaker] = React.useState(searchParams.get("speaker") ?? "");
@@ -111,14 +126,17 @@ function SermonsListContent() {
       search: search || undefined,
       speaker: speaker || undefined,
       series: series || undefined,
+      archived: archivedView ? true : undefined,
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, sortBy, sortOrder, speaker, series]
+    [page, perPage, search, sortBy, sortOrder, speaker, series, archivedView]
   );
 
   const { data, isLoading, error } = useSermonsList(queryParams);
   const deleteMutation = useDeleteSermon();
+  const archiveMutation = useArchiveSermon();
+  const restoreArchiveMutation = useRestoreArchiveSermon();
 
   const totalsQuery = useSermonsList({ limit: 1 });
   const seriesQuery = useSermonsList({ limit: 1, series: "__any__" });
@@ -232,6 +250,8 @@ function SermonsListContent() {
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
             {(speaker || series) && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">Filtered by:</span>
@@ -255,6 +275,7 @@ function SermonsListContent() {
                 </Button>
               </div>
             )}
+            </div>
             <SearchInput
               value={searchInput}
               onChange={(v) => setSearchInput(v)}
@@ -307,11 +328,13 @@ function SermonsListContent() {
           <div className="py-8">
             <EmptyState
               icon={<BookOpen className="h-12 w-12" />}
-              title="No sermons yet"
+              title={archivedView ? "No archived sermons" : "No sermons yet"}
               description={
-                search
-                  ? "Try adjusting your search."
-                  : "Add your first sermon to get started."
+                archivedView
+                  ? "Archive a sermon to move it here."
+                  : search
+                    ? "Try adjusting your search."
+                    : "Add your first sermon to get started."
               }
             />
           </div>
@@ -358,7 +381,7 @@ function SermonsListContent() {
                           "-"
                         )}
                       </TableCell>
-                      {canManage && (
+                      {canManage && !archivedView && (
                         <TableCell
                           className="text-right"
                           onClick={(e) => e.stopPropagation()}
@@ -389,6 +412,19 @@ function SermonsListContent() {
                                   Edit
                                 </DropdownMenuItem>
                               )}
+                              {canDelete && !sermon.archivedAt && (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setArchiveTarget({
+                                      kind: "archive",
+                                      sermon,
+                                    })
+                                  }
+                                >
+                                  <Archive className="mr-2 h-4 w-4" />
+                                  Archive
+                                </DropdownMenuItem>
+                              )}
                               {canDelete && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -403,6 +439,46 @@ function SermonsListContent() {
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>
+                        </TableCell>
+                      )}
+                      {canManage && archivedView && (
+                        <TableCell
+                          className="text-right"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-end gap-2">
+                            {canUpdate && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  setArchiveTarget({
+                                    kind: "restore",
+                                    sermon,
+                                  })
+                                }
+                              >
+                                <RotateCcw className="mr-2 h-4 w-4" />
+                                Restore
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() =>
+                                  setArchiveTarget({
+                                    kind: "purge",
+                                    sermon,
+                                  })
+                                }
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Forever
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                     </TableRow>
@@ -445,6 +521,23 @@ function SermonsListContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Archive / Restore / Delete Forever confirmation */}
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="sermon"
+        targetName={archiveTarget?.sermon.title}
+        targetId={archiveTarget?.sermon.sermonId ?? ""}
+        mutation={
+          archiveTarget?.kind === "restore"
+            ? restoreArchiveMutation
+            : archiveTarget?.kind === "archive"
+              ? archiveMutation
+              : deleteMutation
+        }
+      />
     </div>
   );
 }

@@ -13,6 +13,8 @@ import {
   MoreHorizontal,
   Eye,
   Pencil,
+  RotateCcw,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -52,9 +54,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   useBranchesList,
+  useArchiveBranch,
+  useRestoreArchiveBranch,
+  useDeleteBranch,
   type Branch,
 } from "@/hooks/use-branches";
 import { usePermissions } from "@/hooks/use-permissions";
+import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { BranchFormDialog } from "@/components/branches/branch-form-dialog";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
 
@@ -134,6 +144,8 @@ export default function BranchesPage() {
 
   const [search, setSearch] = React.useState("");
   const [typeFilter, setTypeFilter] = React.useState<TypeFilter>("all");
+  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const archivedView = archivedFilter === "archived";
   const [sortBy, setSortBy] = React.useState<"name" | "city" | "created_at">("name");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
@@ -141,6 +153,10 @@ export default function BranchesPage() {
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [editBranch, setEditBranch] = React.useState<Branch | null>(null);
   const [deleteTargets, setDeleteTargets] = React.useState<Branch[] | null>(null);
+  const [archiveTarget, setArchiveTarget] = React.useState<{
+    kind: ArchiveDialogKind;
+    branch: Branch;
+  } | null>(null);
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
@@ -149,9 +165,14 @@ export default function BranchesPage() {
   const { data, isLoading, error } = useBranchesList({
     limit: 100,
     search: search || undefined,
+    archived: archivedView ? true : undefined,
     sortBy,
     sortOrder,
   });
+
+  const archiveMutation = useArchiveBranch();
+  const restoreArchiveMutation = useRestoreArchiveBranch();
+  const purgeMutation = useDeleteBranch();
 
   const allBranches = React.useMemo(() => data?.data ?? [], [data]);
 
@@ -240,7 +261,7 @@ export default function BranchesPage() {
   // so the fetch mirrors it in memory before mapping).
   const fetchAllExportRows = React.useCallback(async () => {
     const rows = await fetchAllPages<Branch>((p) =>
-      api.get(listUrl("/branches", { page: p, limit: 100, search: search || undefined, sortBy, sortOrder }))
+      api.get(listUrl("/branches", { page: p, limit: 100, search: search || undefined, archived: archivedView ? true : undefined, sortBy, sortOrder }))
     );
     const filtered =
       typeFilter === "headquarters"
@@ -249,7 +270,7 @@ export default function BranchesPage() {
           ? rows.filter((b) => !b.isHeadquarters)
           : rows;
     return buildExportRows(filtered);
-  }, [search, sortBy, sortOrder, typeFilter, buildExportRows]);
+  }, [search, sortBy, sortOrder, typeFilter, buildExportRows, archivedView]);
 
   if (error) {
     return (
@@ -307,6 +328,11 @@ export default function BranchesPage() {
             title="Branches List"
             toolbar={
               <div className="flex items-center gap-2 flex-wrap">
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={setArchivedFilter}
+                  onClearSelection={() => setSelectedIds(new Set())}
+                />
                 <SearchInput
                   value={search}
                   onChange={setSearch}
@@ -356,7 +382,7 @@ export default function BranchesPage() {
               setPage(1);
             }}
           >
-            {someSelected && canDeleteBranches && (
+            {!archivedView && someSelected && canDeleteBranches && (
               <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
                 <span className="text-sm font-medium">{selectedIds.size} selected</span>
                 <Button
@@ -381,25 +407,31 @@ export default function BranchesPage() {
               <div className="py-8">
                 <EmptyState
                   icon={<Building2 className="h-12 w-12" />}
-                  title="No branches found"
-                  description={search || typeFilter !== "all"
-                    ? "Try adjusting your filters."
-                    : canManage
-                      ? "Add your first branch to get started."
-                      : "No branches have been added yet."}
+                  title={archivedView ? "No archived branches" : "No branches found"}
+                  description={
+                    archivedView
+                      ? "Archive a branch to move it here."
+                      : search || typeFilter !== "all"
+                        ? "Try adjusting your filters."
+                        : canManage
+                          ? "Add your first branch to get started."
+                          : "No branches have been added yet."
+                  }
                 />
               </div>
             ) : (
               <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={allSelected}
-                            onCheckedChange={(v) => handleSelectAll(!!v)}
-                            aria-label="Select all rows"
-                          />
-                        </TableHead>
+                        {!archivedView && (
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={allSelected}
+                              onCheckedChange={(v) => handleSelectAll(!!v)}
+                              aria-label="Select all rows"
+                            />
+                          </TableHead>
+                        )}
                         <TableHead>Branch Name</TableHead>
                         <TableHead>Location</TableHead>
                         <TableHead>Phone</TableHead>
@@ -416,16 +448,18 @@ export default function BranchesPage() {
                           className="cursor-pointer"
                           onClick={() => handleRowClick(branch.branchId)}
                         >
-                          <TableCell
-                            className="w-12"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Checkbox
-                              checked={selectedIds.has(branch.branchId)}
-                              onCheckedChange={(v) => handleSelectRow(branch.branchId, !!v)}
-                              aria-label={`Select ${branch.name}`}
-                            />
-                          </TableCell>
+                          {!archivedView && (
+                            <TableCell
+                              className="w-12"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Checkbox
+                                checked={selectedIds.has(branch.branchId)}
+                                onCheckedChange={(v) => handleSelectRow(branch.branchId, !!v)}
+                                aria-label={`Select ${branch.name}`}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9 rounded-lg">
@@ -463,6 +497,35 @@ export default function BranchesPage() {
                             className="text-right"
                             onClick={(e) => e.stopPropagation()}
                           >
+                            {archivedView ? (
+                              <div className="flex items-center justify-end gap-1.5">
+                                {canUpdateBranches && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() =>
+                                      setArchiveTarget({ kind: "restore", branch })
+                                    }
+                                  >
+                                    <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                    Restore
+                                  </Button>
+                                )}
+                                {canDeleteBranches && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-destructive hover:text-destructive"
+                                    onClick={() =>
+                                      setArchiveTarget({ kind: "purge", branch })
+                                    }
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                    Delete Forever
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
                             <div className="flex items-center justify-end gap-1">
                               {canUpdateBranches && (
                                 <Button
@@ -495,23 +558,32 @@ export default function BranchesPage() {
                                           Edit Branch
                                         </DropdownMenuItem>
                                       )}
-                                      {canUpdateBranches && canDeleteBranches && (
-                                        <DropdownMenuSeparator />
-                                      )}
                                       {canDeleteBranches && (
-                                        <DropdownMenuItem
-                                          className="text-destructive focus:text-destructive"
-                                          onClick={() => setDeleteTargets([branch])}
-                                        >
-                                          <Trash2 className="mr-2 h-4 w-4" />
-                                          Delete Branch
-                                        </DropdownMenuItem>
+                                        <>
+                                          <DropdownMenuSeparator />
+                                          <DropdownMenuItem
+                                            onClick={() =>
+                                              setArchiveTarget({ kind: "archive", branch })
+                                            }
+                                          >
+                                            <Archive className="mr-2 h-4 w-4" />
+                                            Archive
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem
+                                            className="text-destructive focus:text-destructive"
+                                            onClick={() => setDeleteTargets([branch])}
+                                          >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete Branch
+                                          </DropdownMenuItem>
+                                        </>
                                       )}
                                     </>
                                   )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -543,6 +615,23 @@ export default function BranchesPage() {
           onDeleted={() => setSelectedIds(new Set())}
         />
       )}
+
+      <ArchiveConfirmDialog
+        open={!!archiveTarget}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        kind={archiveTarget?.kind ?? "archive"}
+        entityLabel="branch"
+        targetName={archiveTarget?.branch.name ?? null}
+        targetId={archiveTarget?.branch.branchId ?? ""}
+        mutation={
+          archiveTarget?.kind === "archive"
+            ? archiveMutation
+            : archiveTarget?.kind === "restore"
+              ? restoreArchiveMutation
+              : purgeMutation
+        }
+        onConfirmed={() => setSelectedIds(new Set())}
+      />
     </div>
   );
 }
