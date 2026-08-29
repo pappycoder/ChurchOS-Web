@@ -10,7 +10,9 @@ import {
   Copy,
   Eye,
   MoreHorizontal,
+  PauseCircle,
   Pencil,
+  PlayCircle,
   Plus,
   Trash2,
   Archive,
@@ -24,6 +26,8 @@ import {
   useArchiveForm,
   useRestoreForm,
   useCloneForm,
+  useCloseForm,
+  useReopenForm,
   type Form,
   type FormStatus,
   FORM_STATUS_LABELS,
@@ -130,6 +134,8 @@ export default function FormsPage() {
   const archiveMutation = useArchiveForm();
   const restoreMutation = useRestoreForm();
   const cloneMutation = useCloneForm();
+  const closeMutation = useCloseForm();
+  const reopenMutation = useReopenForm();
 
   const handleShare = async (form: Form) => {
     if (!form.publicToken) return;
@@ -148,6 +154,28 @@ export default function FormsPage() {
       toast.success("Form cloned");
     } catch (err) {
       toast.error("Failed to clone form", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
+  };
+
+  const handleClose = async (form: Form) => {
+    try {
+      await closeMutation.mutateAsync(form.id);
+      toast.success("Form closed to new submissions");
+    } catch (err) {
+      toast.error("Failed to close form", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
+  };
+
+  const handleReopen = async (form: Form) => {
+    try {
+      await reopenMutation.mutateAsync(form.id);
+      toast.success("Form reopened");
+    } catch (err) {
+      toast.error("Failed to reopen form", {
         description: err instanceof Error ? err.message : "Please try again.",
       });
     }
@@ -459,6 +487,29 @@ export default function FormsPage() {
                               >
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit
+                              </DropdownMenuItem>
+                            )}
+                            {canUpdate &&
+                              (form.status === "draft" || form.status === "published") && (
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleClose(form);
+                                  }}
+                                >
+                                  <PauseCircle className="mr-2 h-4 w-4" />
+                                  Close
+                                </DropdownMenuItem>
+                              )}
+                            {canUpdate && form.status === "closed" && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReopen(form);
+                                }}
+                              >
+                                <PlayCircle className="mr-2 h-4 w-4" />
+                                Reopen
                               </DropdownMenuItem>
                             )}
                             {canDelete && !form.archivedAt && (

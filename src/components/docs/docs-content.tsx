@@ -1301,6 +1301,82 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Analytics ─────────────────────────────────── */}
+      <Section id="analytics" title="Analytics">
+        <Card>
+          <CardHeader>
+            <CardTitle>Analytics Module</CardTitle>
+            <CardDescription>
+              Cross-domain analytics dashboards giving pastors and administrators a
+              unified view of the church — membership, attendance, and giving
+              metrics with trend charts and breakdowns. Server-side results are
+              cached for 3-10 minutes depending on endpoint. Access is role-based
+              (the backend analytics endpoints are guarded by role only, no
+              dedicated permission resource): the overview, attendance and members
+              analytics are open to church admins, senior pastors and branch
+              pastors; giving analytics additionally includes the treasurer.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Overview", "/analytics", "Unified dashboard — total/active/new members, branches, attendance, giving, at-risk count, upcoming events, pending submissions and engagement distribution. Church admins, senior pastors & branch pastors"],
+                ["Giving", "/analytics/giving", "Total / count / average gift, giving trend, by-category and top-donor breakdowns, by-type, by-status and a recurring-giving summary. Adds treasurers"],
+                ["Attendance", "/analytics/attendance", "Total / member / visitor check-ins, first-time vs returning visitors, trend split by member/visitor, by-service and by-source / by-branch breakdowns. Church admins, senior pastors & branch pastors"],
+                ["Members", "/analytics/members", "Total members, monthly growth trend, and by-status / by-gender / by-age-group distributions. Church admins, senior pastors & branch pastors"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                [
+                  "View Overview / Attendance / Members analytics",
+                  "Requires the branch-pastor role group — church_admin / senior_pastor / branch_pastor",
+                  "Role-gated (no resource)",
+                ],
+                [
+                  "View Giving analytics",
+                  "Requires the treasurer role group — church_admin / senior_pastor / branch_pastor / treasurer",
+                  "Role-gated (no resource)",
+                ],
+                [
+                  "Refresh",
+                  "Re-fetches the current page's analytics from the server",
+                  "any analytics role",
+                ],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Date range", "All time / This month / Last 30 days / This quarter / Year to date presets plus custom start/end dates — Giving analytics only"],
+                ["Branch", "All branches or a specific branch — Giving analytics only"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Assets ─────────────────────────────────────── */}
       <Section id="assets" title="Assets">
         <Card>

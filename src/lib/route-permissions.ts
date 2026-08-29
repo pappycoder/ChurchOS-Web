@@ -91,8 +91,12 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/admin/settings", permission: "church_settings:update" },
   { prefix: "/admin/branches", permission: "branches:read" },
 
-  // Analytics
-  { prefix: "/analytics", permission: "analytics:read" },
+  // Analytics — role ceilings mirror the backend @RequireRoles (no dedicated
+  // permission resource). Longest-prefix wins, so per-page rules override the base.
+  { prefix: "/analytics/giving", roles: ["church_admin", "senior_pastor", "branch_pastor", "treasurer"] },
+  { prefix: "/analytics/attendance", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
+  { prefix: "/analytics/members", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
+  { prefix: "/analytics", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
 ];
 
 /** Longest-prefix match; returns null for open routes. */
