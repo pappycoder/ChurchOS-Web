@@ -1228,13 +1228,14 @@ export function DocsContent() {
           <CardHeader>
             <CardTitle>Reports Module</CardTitle>
             <CardDescription>
-              Aggregated, date-filterable reports for funding, attendance and
-              membership — each with a monthly trend chart and CSV export.
-              Server-side data is cached for 5-10 minutes. Access is split by
-              report: financial reports are restricted to church admins, senior
-              pastors and the treasurer; attendance reports to church admins,
-              senior pastors and branch pastors; members reports additionally to
-              secretaries.
+              A single report generator that composes data blocks (financial,
+              attendance, membership), applies a date range and optional branch,
+              and exports the result as <strong>PDF</strong>, <strong>XLSX</strong> or{" "}
+              <strong>CSV</strong>. Visualization lives in the separate Analytics
+              module; Reports is focused on producing downloadable documents.
+              All report data is generated client-side from the server-cached
+              (5-10 min) report endpoints and requires{" "}
+              <Badge>reports:read</Badge>.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -1246,9 +1247,7 @@ export function DocsContent() {
           <CardContent>
             <PageTable
               rows={[
-                ["Financial", "/reports/financial", "Giving totals, transaction count, average gift, by-category breakdown, monthly trend. Church admins, senior pastors & treasurers"],
-                ["Attendance", "/reports/attendance", "Total check-ins, services held, average per service, by-service breakdown, monthly trend. Church admins, senior pastors & branch pastors"],
-                ["Members", "/reports/members", "Total, new-in-period and active members, by-status and by-gender breakdown, monthly growth. Adds secretaries"],
+                ["Generate Report", "/reports", "Compose Financial / Attendance / Members blocks with a date range (and branch for Financial & Attendance), pick PDF / XLSX / CSV, preview inline, and download"],
               ]}
             />
           </CardContent>
@@ -1262,23 +1261,13 @@ export function DocsContent() {
             <ActionTable
               rows={[
                 [
-                  "View Financial Report",
-                  "Requires the treasurer role group — church_admin / senior_pastor / treasurer",
+                  "Generate / Download Report",
+                  "Builds the composed rows and downloads PDF / XLSX / CSV — client-side via jspdf / xlsx",
                   "reports:read",
                 ],
                 [
-                  "View Attendance Report",
-                  "Requires the branch-pastor role group — church_admin / senior_pastor / branch_pastor",
-                  "reports:read",
-                ],
-                [
-                  "View Members Report",
-                  "Requires the secretary role group — church_admin / senior_pastor / branch_pastor / secretary",
-                  "reports:read",
-                ],
-                [
-                  "Export CSV",
-                  "Downloads the visible report's breakdown rows as CSV — same access as viewing that report",
+                  "Toggle data block",
+                  "Select which summaries (Financial, Attendance, Members) to include in the export",
                   "reports:read",
                 ],
               ]}
@@ -1288,13 +1277,15 @@ export function DocsContent() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Filters &amp; Sort</CardTitle>
+            <CardTitle>Filters &amp; Output</CardTitle>
           </CardHeader>
           <CardContent>
             <FilterTable
               rows={[
+                ["Data blocks", "Financial summary · Attendance summary · Members summary — at least one required"],
                 ["Date Range", "All time / This month / Last 30 days / This quarter / Year to date presets plus custom start/end dates"],
-                ["Branch", "All branches or a specific branch — Financial & Attendance only (Members is church-wide)"],
+                ["Branch", "All branches or a specific branch — available when Financial or Attendance is selected (Members is church-wide)"],
+                ["Format", "PDF (single combined document) · XLSX (one sheet per block) · CSV (one file per block)"],
               ]}
             />
           </CardContent>

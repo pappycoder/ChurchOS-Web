@@ -76,13 +76,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/forms/submissions", permission: "forms:read" },
   { prefix: "/forms", permission: "forms:read" },
 
-  // Reports — longest-prefix wins, so the per-page role rules override the base
-  { prefix: "/reports/financial", roles: ["church_admin", "senior_pastor", "treasurer"] },
-  { prefix: "/reports/attendance", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
-  {
-    prefix: "/reports/members",
-    roles: ["church_admin", "senior_pastor", "branch_pastor", "secretary"],
-  },
+  // Reports — single generator page guarded by the reports:read permission
   { prefix: "/reports", permission: "reports:read" },
 
   // Administration

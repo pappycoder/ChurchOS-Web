@@ -246,19 +246,9 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "reports:read",
         children: [
           {
-            title: "Financial",
-            href: "/reports/financial",
-            roles: ["church_admin", "senior_pastor", "treasurer"],
-          },
-          {
-            title: "Attendance",
-            href: "/reports/attendance",
-            roles: ["church_admin", "senior_pastor", "branch_pastor"],
-          },
-          {
-            title: "Members",
-            href: "/reports/members",
-            roles: ["church_admin", "senior_pastor", "branch_pastor", "secretary"],
+            title: "Generate Report",
+            href: "/reports",
+            permission: "reports:read",
           },
         ],
       },

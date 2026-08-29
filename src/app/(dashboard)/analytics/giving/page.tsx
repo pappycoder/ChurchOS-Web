@@ -14,6 +14,7 @@ import {
 } from "@/components/reports/report-date-range";
 import { BreakdownBars } from "@/components/reports/breakdown-bars";
 import { AnalyticsTrendChart, AnalyticsBars } from "@/components/analytics/analytics-charts";
+import { BarsChart } from "@/components/analytics/bars-chart";
 import { useAnalyticsGiving, formatNaira } from "@/hooks/use-analytics";
 import { useBranchesList } from "@/hooks/use-branches";
 
@@ -115,9 +116,19 @@ export default function AnalyticsGivingPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold">By Category</CardTitle>
-                <CardDescription>Total per giving category.</CardDescription>
+                <CardDescription>Total giving per category (₦).</CardDescription>
               </CardHeader>
               <CardContent>
+                <BarsChart
+                  data={(data?.byCategory ?? []).map((c) => ({
+                    label: c.categoryName,
+                    value: c.total,
+                  }))}
+                  loading={query.isLoading}
+                  formatValue={formatNaira}
+                  color="var(--chart-1)"
+                  height={240}
+                />
                 <BreakdownBars
                   items={(data?.byCategory ?? []).map((c) => ({
                     name: c.categoryName,
@@ -136,6 +147,16 @@ export default function AnalyticsGivingPage() {
                 <CardDescription>Highest contributors in the range.</CardDescription>
               </CardHeader>
               <CardContent>
+                <BarsChart
+                  data={(data?.topDonors ?? []).map((d) => ({
+                    label: d.memberName,
+                    value: d.total,
+                  }))}
+                  loading={query.isLoading}
+                  formatValue={formatNaira}
+                  color="var(--chart-3)"
+                  height={240}
+                />
                 <BreakdownBars
                   items={(data?.topDonors ?? []).map((d) => ({
                     name: d.memberName,

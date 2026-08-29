@@ -7,28 +7,18 @@ import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AnalyticsTrendChart } from "@/components/analytics/analytics-charts";
+import { DonutChart, colorize } from "@/components/analytics/pie-chart";
+import { HistogramChart } from "@/components/analytics/histogram-chart";
 import { useAnalyticsMembers } from "@/hooks/use-analytics";
 
-function RecordGrid({ data, loading }: { data: Record<string, number> | undefined; loading: boolean }) {
-  const entries = data ? Object.entries(data) : [];
-  if (entries.length === 0) {
-    return (
-      <p className="py-4 text-center text-sm text-muted-foreground">
-        {loading ? "Loading…" : "No data yet."}
-      </p>
-    );
-  }
-  return (
-    <div className="flex flex-wrap gap-x-6 gap-y-2">
-      {entries.map(([key, value]) => (
-        <div key={key} className="flex items-center gap-2 text-sm">
-          <span className="capitalize text-muted-foreground">{key.replace(/_/g, " ")}</span>
-          <span className="font-semibold tabular-nums">{value.toLocaleString()}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
+const AGE_LABELS: Record<string, string> = {
+  under_18: "Under 18",
+  age_18_30: "18–30",
+  age_31_45: "31–45",
+  age_46_60: "46–60",
+  age_60_plus: "60+",
+  unspecified: "Unknown",
+};
 
 export default function AnalyticsMembersPage() {
   const query = useAnalyticsMembers();
@@ -79,14 +69,42 @@ export default function AnalyticsMembersPage() {
             </CardContent>
           </Card>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          {/* Age distribution — histogram */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">Age Distribution</CardTitle>
+              <CardDescription>Members by age group (bins).</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <HistogramChart
+                data={Object.entries(data?.byAgeGroup ?? {}).map(([key, value]) => ({
+                  label: AGE_LABELS[key] ?? key.replace(/_/g, " "),
+                  value,
+                }))}
+                loading={query.isLoading}
+                unit="members"
+                color="var(--chart-2)"
+              />
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold">By Status</CardTitle>
                 <CardDescription>Members per membership status.</CardDescription>
               </CardHeader>
               <CardContent>
-                <RecordGrid data={data?.byStatus} loading={query.isLoading} />
+                <DonutChart
+                  data={colorize(
+                    Object.entries(data?.byStatus ?? {}).map(([key, value]) => ({
+                      name: key.replace(/_/g, " "),
+                      value,
+                    }))
+                  )}
+                  loading={query.isLoading}
+                  unit="members"
+                />
               </CardContent>
             </Card>
 
@@ -96,17 +114,16 @@ export default function AnalyticsMembersPage() {
                 <CardDescription>Members by gender.</CardDescription>
               </CardHeader>
               <CardContent>
-                <RecordGrid data={data?.byGender} loading={query.isLoading} />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">By Age Group</CardTitle>
-                <CardDescription>Members by age range.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <RecordGrid data={data?.byAgeGroup} loading={query.isLoading} />
+                <DonutChart
+                  data={colorize(
+                    Object.entries(data?.byGender ?? {}).map(([key, value]) => ({
+                      name: key.replace(/_/g, " "),
+                      value,
+                    }))
+                  )}
+                  loading={query.isLoading}
+                  unit="members"
+                />
               </CardContent>
             </Card>
           </div>
