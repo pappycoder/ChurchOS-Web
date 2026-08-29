@@ -112,6 +112,7 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
               size="icon"
               className="h-6 w-6 shrink-0"
               onClick={handleRemove}
+              aria-label="Remove image"
             >
               <X className="h-3 w-3" />
             </Button>
@@ -177,6 +178,7 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
                   size="icon"
                   className="h-6 w-6 shrink-0"
                   onClick={() => setSelectedFile(null)}
+                  aria-label="Remove selected image"
                 >
                   <X className="h-3 w-3" />
                 </Button>

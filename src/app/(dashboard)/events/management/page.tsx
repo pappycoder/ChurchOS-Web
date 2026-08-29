@@ -331,6 +331,7 @@ function TicketTypesTab() {
                               size="icon"
                               className="h-8 w-8"
                               onClick={() => openEdit(tier)}
+                              aria-label="Edit tier"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -341,6 +342,7 @@ function TicketTypesTab() {
                               size="icon"
                               className="h-8 w-8 text-destructive hover:text-destructive"
                               onClick={() => setDeleteTarget(tier)}
+                              aria-label="Delete tier"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>

@@ -8,6 +8,7 @@ import {
   MenuAsideThumb, StackedThumb, ModernThumb, TransparentThumb, RtlThumb,
 } from "./theme-previews";
 import { Sun, Moon, RotateCcw, ShoppingCart, X } from "lucide-react";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 function AccordionSection({ title, defaultOpen = true, children }: {
   title: string;
@@ -193,13 +194,16 @@ export function SettingsPanel() {
             <h3>Theme Customizer</h3>
             <p>Choose your themes & layouts etc.</p>
           </div>
-          <button
-            onClick={() => setOpen(false)}
-            className="custom-btn-close"
-            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 20 }}
-          >
-            <X size={20} />
-          </button>
+          <ActionTooltip label="Close theme customizer">
+            <button
+              onClick={() => setOpen(false)}
+              className="custom-btn-close"
+              aria-label="Close theme customizer"
+              style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontSize: 20 }}
+            >
+              <X size={20} />
+            </button>
+          </ActionTooltip>
         </div>
 
         <div className="settings-body">

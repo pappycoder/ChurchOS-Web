@@ -215,6 +215,7 @@ export default function EngagementPage() {
                 size="icon"
                 className="h-9 w-9 shrink-0"
                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
               >
                 {sortOrder === "asc" ? (
                   <SortAsc className="h-4 w-4" />

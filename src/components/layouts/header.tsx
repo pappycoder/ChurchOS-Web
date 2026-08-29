@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import {
   IconArrowBarToLeft,
   IconSearch,
@@ -329,9 +330,15 @@ export function Header() {
               </DropdownMenu>
 
               <div className="me-2">
-                <button className="btn-menubar btnFullscreen" onClick={toggleFullscreen}>
-                  {isFullscreen ? <IconMinimize size={18} /> : <IconMaximize size={18} />}
-                </button>
+                <ActionTooltip label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
+                  <button
+                    className="btn-menubar btnFullscreen"
+                    onClick={toggleFullscreen}
+                    aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                  >
+                    {isFullscreen ? <IconMinimize size={18} /> : <IconMaximize size={18} />}
+                  </button>
+                </ActionTooltip>
               </div>
 
               <DropdownMenu>

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useResetPassword } from "@/hooks/use-auth";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -126,13 +127,16 @@ function ResetPasswordForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button
-              type="button"
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-            </button>
+            <ActionTooltip label={showPassword ? "Hide password" : "Show password"}>
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+              </button>
+            </ActionTooltip>
           </div>
 
           {/* Password Strength Bars */}
@@ -165,13 +169,16 @@ function ResetPasswordForm() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <button
-              type="button"
-              className="toggle-password"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-            </button>
+            <ActionTooltip label={showConfirmPassword ? "Hide password" : "Show password"}>
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              >
+                {showConfirmPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+              </button>
+            </ActionTooltip>
           </div>
         </div>
 

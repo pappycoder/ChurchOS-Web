@@ -114,7 +114,7 @@ export default function BranchDetailPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/branches")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/branches")} aria-label="Back to branches">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <Breadcrumb>

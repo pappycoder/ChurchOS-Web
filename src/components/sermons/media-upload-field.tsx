@@ -110,6 +110,7 @@ export function MediaUploadField({
             size="icon"
             className="h-6 w-6 shrink-0"
             onClick={handleRemove}
+            aria-label="Remove media"
           >
             <X className="h-3 w-3" />
           </Button>
@@ -175,6 +176,7 @@ export function MediaUploadField({
                   size="icon"
                   className="h-6 w-6 shrink-0"
                   onClick={() => setSelectedFile(null)}
+                  aria-label="Remove selected media"
                 >
                   <X className="h-3 w-3" />
                 </Button>

@@ -285,6 +285,7 @@ export default function SermonDetailPage() {
                 size="icon"
                 className="h-10 w-10 shrink-0 rounded-full"
                 onClick={togglePlay}
+                aria-label={playing ? "Pause audio" : "Play audio"}
               >
                 {playing ? (
                   <Pause className="h-5 w-5" />

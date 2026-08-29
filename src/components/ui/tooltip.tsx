@@ -54,4 +54,20 @@ function TooltipContent({
   )
 }
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+type ActionTooltipProps = {
+  /** Short, action-oriented label that also matches the trigger's accessible name. */
+  label: React.ReactNode
+  children: React.ReactElement
+  side?: React.ComponentProps<typeof TooltipContent>["side"]
+}
+
+function ActionTooltip({ label, children, side = "top" }: ActionTooltipProps) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side={side}>{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, ActionTooltip }

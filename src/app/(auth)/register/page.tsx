@@ -9,6 +9,7 @@ import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useRegister } from "@/hooks/use-auth";
 import { Eye, EyeOff, Mail, User, Building2, Phone, MapPin } from "lucide-react";
 import { DenominationCombobox } from "@/components/shared/denomination-combobox";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -157,9 +158,16 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-            </button>
+            <ActionTooltip label={showPassword ? "Hide password" : "Show password"}>
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+              </button>
+            </ActionTooltip>
           </div>
         </div>
 
@@ -175,9 +183,16 @@ export default function RegisterPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
             />
-            <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
-              {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-            </button>
+            <ActionTooltip label={showPassword ? "Hide password" : "Show password"}>
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+              </button>
+            </ActionTooltip>
           </div>
         </div>
 

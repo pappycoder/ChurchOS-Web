@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { useLogin } from "@/hooks/use-auth";
 import { Eye, EyeOff, Mail } from "lucide-react";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 export default function LoginPage() {
   const loginMutation = useLogin();
@@ -63,13 +64,16 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            <button
-              type="button"
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-            </button>
+            <ActionTooltip label={showPassword ? "Hide password" : "Show password"}>
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+              </button>
+            </ActionTooltip>
           </div>
         </div>
 

@@ -391,13 +391,13 @@ export function CalendarView({
             ))}
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={navigatePrev}>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={navigatePrev} aria-label="Previous period">
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button variant="outline" size="sm" className="h-8 px-3 text-xs" onClick={navigateToday}>
               Today
             </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={navigateNext}>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={navigateNext} aria-label="Next period">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>

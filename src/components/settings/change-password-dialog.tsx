@@ -13,6 +13,7 @@ import { z } from "zod";
 import { toast } from "sonner";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
@@ -56,14 +57,16 @@ function PasswordInputField({
   return (
     <div className="relative">
       <Input type={show ? "text" : "password"} className="pr-10" {...props} />
-      <button
-        type="button"
-        onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-        aria-label={show ? "Hide password" : "Show password"}
-      >
-        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-      </button>
+      <ActionTooltip label={show ? "Hide password" : "Show password"}>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          aria-label={show ? "Hide password" : "Show password"}
+        >
+          {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </ActionTooltip>
     </div>
   );
 }

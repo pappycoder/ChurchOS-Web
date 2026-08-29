@@ -51,7 +51,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users")}>
+        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users")} aria-label="Back to users">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <Breadcrumb>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Settings } from "lucide-react";
+import { ActionTooltip } from "@/components/ui/tooltip";
 
 const themes = [
   { id: "", label: "Blue", color: "#2563EB" },
@@ -38,18 +39,21 @@ export function ThemeToggle() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {/* Toggle Button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110"
-        style={{
-          backgroundColor: "var(--primary)",
-          color: "#fff",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        <Settings className="w-5 h-5" />
-      </button>
+      <ActionTooltip label={open ? "Close theme settings" : "Open theme settings"}>
+        <button
+          onClick={() => setOpen(!open)}
+          aria-label={open ? "Close theme settings" : "Open theme settings"}
+          className="flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110"
+          style={{
+            backgroundColor: "var(--primary)",
+            color: "#fff",
+            border: "none",
+            cursor: "pointer",
+          }}
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+      </ActionTooltip>
 
       {/* Color Swatches Panel */}
       {open && (

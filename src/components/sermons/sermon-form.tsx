@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
 import { MediaUploadField } from "@/components/sermons/media-upload-field";
 import type { Sermon, CreateSermonInput } from "@/hooks/use-sermons";
 
@@ -234,13 +235,16 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
                       className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary"
                     >
                       {t}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(t)}
-                        className="rounded-full p-0.5 hover:bg-primary/20"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <ActionTooltip label={`Remove ${t}`}>
+                        <button
+                          type="button"
+                          onClick={() => removeTag(t)}
+                          className="rounded-full p-0.5 hover:bg-primary/20"
+                          aria-label={`Remove ${t}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </ActionTooltip>
                     </span>
                   ))}
                 </div>
