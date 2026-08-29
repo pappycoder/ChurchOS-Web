@@ -16,6 +16,7 @@ import {
   Trash2,
   Archive,
   RotateCcw,
+  XCircle,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -419,7 +420,17 @@ export default function AttendanceServicesPage() {
                                     )
                                   }
                                 >
-                                  {service.isActive ? "Deactivate" : "Activate"}
+                                  {service.isActive ? (
+                                    <>
+                                      <XCircle className="mr-2 h-4 w-4" />
+                                      Deactivate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <RotateCcw className="mr-2 h-4 w-4" />
+                                      Activate
+                                    </>
+                                  )}
                                 </DropdownMenuItem>
                               )}
                               {canDelete && (

@@ -15,6 +15,7 @@ import {
   Trash2,
   RotateCcw,
   Archive,
+  XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
@@ -620,7 +621,7 @@ export default function MembersPage() {
                                       className="text-destructive focus:text-destructive"
                                       onClick={() => setDeleteTargets([member])}
                                     >
-                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      <XCircle className="mr-2 h-4 w-4" />
                                       Deactivate
                                     </DropdownMenuItem>
                                   )}

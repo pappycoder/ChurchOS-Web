@@ -11,6 +11,7 @@ import {
   Trash2,
   Archive,
   RotateCcw,
+  XCircle,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -332,7 +333,7 @@ export default function GivingCategoriesPage() {
                                   className="text-destructive focus:text-destructive"
                                   onClick={() => setDeleteTarget(category)}
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <XCircle className="mr-2 h-4 w-4" />
                                   Deactivate
                                 </DropdownMenuItem>
                               )}
