@@ -541,16 +541,21 @@ export function DocsContent() {
               {[
                 { label: "New", color: "bg-blue-100 text-blue-800" },
                 { label: "Contacted", color: "bg-purple-100 text-purple-800" },
-                { label: "Follow-Up Scheduled", color: "bg-amber-100 text-amber-800" },
+                { label: "Scheduled", color: "bg-amber-100 text-amber-800" },
                 { label: "Interested", color: "bg-green-100 text-green-800" },
-                { label: "Became Member", color: "bg-emerald-100 text-emerald-800" },
-                { label: "Not Interested", color: "bg-gray-100 text-gray-800" },
+                { label: "Converted", color: "bg-emerald-100 text-emerald-800" },
+                { label: "Dropped off", color: "bg-gray-100 text-gray-800" },
               ].map((s) => (
                 <Badge key={s.label} variant="secondary" className={s.color}>
                   {s.label}
                 </Badge>
               ))}
             </div>
+            <p className="mt-3 text-xs text-muted-foreground">
+              On the follow-up board, Converted and Dropped off share a single terminal
+              &ldquo;Converted / Dropped&rdquo; column; all six statuses stay available in each
+              card&rsquo;s dropdown.
+            </p>
           </CardContent>
         </Card>
       </Section>

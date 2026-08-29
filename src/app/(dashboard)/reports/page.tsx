@@ -57,10 +57,15 @@ const BLOCKS: { key: ReportBlock; label: string; description: string }[] = [
   },
 ];
 
-const FORMATS: { key: Format; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { key: "pdf", label: "PDF", icon: FileText },
-  { key: "xlsx", label: "XLSX", icon: FileSpreadsheet },
-  { key: "csv", label: "CSV", icon: FileBarChart },
+const FORMATS: {
+  key: Format;
+  label: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { key: "pdf", label: "PDF", description: "One combined document", icon: FileText },
+  { key: "xlsx", label: "XLSX", description: "One sheet per block", icon: FileSpreadsheet },
+  { key: "csv", label: "CSV", description: "One file per block", icon: FileBarChart },
 ];
 
 function formatNaira(value: number): string {
@@ -93,13 +98,27 @@ export default function ReportsGeneratorPage() {
       prev.includes(block) ? prev.filter((b) => b !== block) : [...prev, block]
     );
 
-  const needsBranchFilter = blocks.includes("financial") && blocks.includes("attendance");
+  const needsBranchFilter =
+    blocks.includes("financial") || blocks.includes("attendance");
 
   const loading =
     blocks.some((b) => queryFor(b).isLoading) && !blocks.every((b) => queryFor(b).data);
   const anyError = blocks.some((b) => queryFor(b).isError);
 
   const hasBlockData = (b: ReportBlock) => !!queryFor(b).data;
+
+  const rangeLabel = range.startDate || range.endDate
+    ? `${range.startDate || "…"} → ${range.endDate || "…"}`
+    : "All time";
+
+  const branchLabel = branchId
+    ? (branchesQuery.data?.data ?? []).find((br) => br.branchId === branchId)?.name || "Selected branch"
+    : "All branches";
+
+  const summaryLabel =
+    `Download ${outputFormat.toUpperCase()} — ${blocks
+      .map((b) => BLOCKS.find((x) => x.key === b)!.label.replace(" summary", ""))
+      .join(", ")} · ${rangeLabel} · ${branchLabel}`;
 
   const handleGenerate = async () => {
     if (blocks.length === 0) return;
@@ -135,7 +154,7 @@ export default function ReportsGeneratorPage() {
         rows: [
           { name: "Grand Total", total: r?.grandTotal ?? 0, count: r?.transactionCount ?? 0, average: r?.averageAmount ?? 0 },
           ...(r?.byCategory ?? []).map((c) => ({ name: c.name, total: c.total, count: c.count })),
-          { name: "— Monthly trend —", total: undefined, count: undefined },
+          ...(r?.byCategory?.length ? [{ name: "Monthly trend", total: undefined }] : []),
           ...(r?.monthlyTrend ?? []).map((t) => ({ name: monthLabel(t.month), total: t.total })),
         ],
         columns: [
@@ -152,7 +171,7 @@ export default function ReportsGeneratorPage() {
         rows: [
           { name: "Grand Total", total: r?.totalAttendance ?? 0, services: r?.serviceCount ?? 0, average: r?.averagePerService ?? 0 },
           ...(r?.byService ?? []).map((s) => ({ name: s.name, total: s.total, services: s.serviceCount, average: s.average })),
-          { name: "— Monthly trend —", total: undefined },
+          ...(r?.byService?.length ? [{ name: "Monthly trend", total: undefined }] : []),
           ...(r?.monthlyTrend ?? []).map((t) => ({ name: monthLabel(t.month), total: t.total })),
         ],
         columns: [
@@ -169,11 +188,11 @@ export default function ReportsGeneratorPage() {
         { name: "Total Members", count: r?.totalMembers ?? 0 },
         { name: "New in Period", count: r?.newMembersInPeriod ?? 0 },
         { name: "Active Members", count: r?.activeMembers ?? 0 },
-        { name: "— By status —", count: undefined },
+        ...(r?.byStatus?.length ? [{ name: "By status", count: undefined }] : []),
         ...(r?.byStatus ?? []).map((s) => ({ name: s.status, count: s.count })),
-        { name: "— By gender —", count: undefined },
+        ...(r?.byGender?.length ? [{ name: "By gender", count: undefined }] : []),
         ...(r?.byGender ?? []).map((g) => ({ name: g.gender, count: g.count })),
-        { name: "— Monthly growth —", count: undefined },
+        ...(r?.monthlyGrowth?.length ? [{ name: "Monthly growth", count: undefined }] : []),
         ...(r?.monthlyGrowth ?? []).map((t) => ({ name: monthLabel(t.month), count: t.total })),
       ],
       columns: [
@@ -240,14 +259,18 @@ export default function ReportsGeneratorPage() {
         }
       />
 
-      {/* Configuration */}
+      {/* Step 1 — Choose data blocks */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Report configuration</CardTitle>
-          <CardDescription>Choose what to include, the date range, and the output format.</CardDescription>
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">1</span>
+            Choose data blocks
+          </CardTitle>
+          <CardDescription>
+            Select the summaries to include{blocks.length > 0 ? ` — ${blocks.length} selected` : ""}.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5 py-4">
-          {/* Data blocks */}
+        <CardContent className="py-4">
           <div className="grid gap-4 lg:grid-cols-3">
             {BLOCKS.map((b) => {
               const checked = blocks.includes(b.key);
@@ -273,15 +296,29 @@ export default function ReportsGeneratorPage() {
           </div>
 
           {blocks.length === 0 && (
-            <p className="text-sm text-destructive">Select at least one data block.</p>
+            <p className="mt-3 text-sm text-destructive">Select at least one data block to generate a report.</p>
           )}
+        </CardContent>
+      </Card>
 
-          {/* Filters */}
-          <div className="flex flex-wrap items-end gap-4 border-t pt-4">
-            <ReportDateRange value={range} onChange={setRange} />
-            {needsBranchFilter ? (
-              <div className="flex items-center gap-2">
-                <Label className="text-sm font-medium">Branch</Label>
+      {/* Step 2 — Set filters */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">2</span>
+            Set filters
+          </CardTitle>
+          <CardDescription>Choose the date range and, for Financial or Attendance blocks, a specific branch.</CardDescription>
+        </CardHeader>
+        <CardContent className="py-4">
+          <div className="flex flex-wrap items-end gap-4">
+            <div>
+              <Label className="mb-1.5 block text-sm font-medium">Date range</Label>
+              <ReportDateRange value={range} onChange={setRange} />
+            </div>
+            <div>
+              <Label className="mb-1.5 block text-sm font-medium">Branch</Label>
+              {needsBranchFilter ? (
                 <Select value={branchId} onValueChange={(v) => setBranchId(v === "all" ? "" : v)}>
                   <SelectTrigger className="w-44 h-9" aria-label="Branch filter">
                     <SelectValue placeholder="All branches" />
@@ -293,34 +330,68 @@ export default function ReportsGeneratorPage() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">Branch filter requires the Financial or Attendance block.</p>
-            )}
-          </div>
-
-          {/* Format */}
-          <div className="flex items-center gap-2 border-t pt-4">
-            <Label className="text-sm font-medium">Format</Label>
-            <div className="flex gap-1">
-              {FORMATS.map((f) => {
-                const Icon = f.icon;
-                const active = outputFormat === f.key;
-                return (
-                  <Button
-                    key={f.key}
-                    size="sm"
-                    variant={active ? "default" : "outline"}
-                    onClick={() => setOutputFormat(f.key)}
-                    className="gap-2"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {f.label}
-                  </Button>
-                );
-              })}
+              ) : (
+                <p className="h-9 flex items-center text-xs text-muted-foreground">
+                  Requires the Financial or Attendance block.
+                </p>
+              )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Step 3 — Pick format */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">3</span>
+            Pick format
+          </CardTitle>
+          <CardDescription>How the generated report should be delivered.</CardDescription>
+        </CardHeader>
+        <CardContent className="py-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {FORMATS.map((f) => {
+              const Icon = f.icon;
+              const active = outputFormat === f.key;
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setOutputFormat(f.key)}
+                  className={`flex items-start gap-3 rounded-lg border p-4 text-left cursor-pointer transition-colors ${
+                    active
+                      ? "border-primary/60 bg-primary/5 ring-1 ring-primary/20"
+                      : "hover:bg-muted/40"
+                  }`}
+                >
+                  <Icon className={`h-5 w-5 mt-0.5 ${active ? "text-primary" : "text-muted-foreground"}`} />
+                  <span>
+                    <span className={`block text-sm font-semibold ${active ? "text-primary" : ""}`}>{f.label}</span>
+                    <span className="block text-xs text-muted-foreground mt-0.5">{f.description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Export summary + action */}
+      <Card className="border-primary/40 bg-primary/5">
+        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-semibold">Ready to export</div>
+            <p className="text-xs text-muted-foreground mt-0.5">{summaryLabel}</p>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleGenerate}
+            disabled={blocks.length === 0 || loading || exporting}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {exporting ? "Generating…" : `Download ${outputFormat.toUpperCase()}`}
+          </Button>
         </CardContent>
       </Card>
 
@@ -328,15 +399,12 @@ export default function ReportsGeneratorPage() {
       <div className="space-y-4">
         {loading && <div className="text-sm text-muted-foreground py-4">Loading report data…</div>}
 
-        {hasBlockData("financial") && blocks.includes("financial") && (
-          <FinancialPreview report={financial.data} />
-        )}
-        {hasBlockData("attendance") && blocks.includes("attendance") && (
-          <AttendancePreview report={attendance.data} />
-        )}
-        {hasBlockData("members") && blocks.includes("members") && (
-          <MembersPreview report={members.data} />
-        )}
+        {blocks.map((b) => {
+          if (b === "financial" && hasBlockData("financial")) return <FinancialPreview key="financial" report={financial.data} />;
+          if (b === "attendance" && hasBlockData("attendance")) return <AttendancePreview key="attendance" report={attendance.data} />;
+          if (b === "members" && hasBlockData("members")) return <MembersPreview key="members" report={members.data} />;
+          return null;
+        })}
       </div>
     </div>
   );
