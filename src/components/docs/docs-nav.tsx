@@ -24,6 +24,7 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { id: "assets", label: "Assets" },
   { id: "departments", label: "Departments" },
   { id: "forms", label: "Forms" },
+  { id: "communication", label: "Communication" },
   { id: "admin-users", label: "Admin — Users" },
   { id: "admin-roles", label: "Admin — Roles" },
   { id: "admin-settings", label: "Admin — Settings" },

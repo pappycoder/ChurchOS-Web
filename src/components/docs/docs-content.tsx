@@ -1606,6 +1606,75 @@ export function DocsContent() {
         </Card>
       </Section>
 
+      {/* ─── Communication ─────────────────────────────── */}
+      <Section id="communication" title="Communication">
+        <Card>
+          <CardHeader>
+            <CardTitle>Communication</CardTitle>
+            <CardDescription>
+              Reach your church through broadcast channels. Compose reusable message
+              templates (WhatsApp, SMS, or email), send one-time broadcasts to a
+              targeted audience (optionally on a schedule), and track message delivery
+              for the WhatsApp channel.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        <Card>
+          <CardHeader>
+          <CardTitle>Pages</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PageTable
+              rows={[
+                ["Templates", "/communication/templates", "List of reusable message templates with channel, category, language and variable definitions; filter, view, edit, publish, archive/restore, or delete"],
+                ["Broadcasts", "/communication/broadcasts", "List of all broadcasts (draft, scheduled, sending, sent, failed, cancelled) with channel, status and audience stats; view detail or cancel a scheduled/sending broadcast"],
+                ["New Broadcast", "/communication/broadcasts/new", "Full-page broadcast composer — name, channel, published-template picker, audience filters and optional schedule"],
+                ["Messages", "/communication/messages", "Outbound/inbound WhatsApp message log with direction and phone filters, per-message detail, and a quick-send entry point"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionTable
+              rows={[
+                ["Add Template", "Creates a new message template (name, channel, content, category, language, variables, status)", "templates:create"],
+                ["Edit Template", "Updates an existing template's content, channel, category, language or variables", "templates:update"],
+                ["Publish Template", "Publishes a draft template so it becomes selectable for broadcasts", "templates:update"],
+                ["Archive Template", "Soft-archives a template — hidden from the active list until restored", "templates:delete"],
+                ["Restore Template", "Brings an archived template back to the active lists", "templates:update"],
+                ["Delete Forever", "Permanently deletes a template (no undo)", "templates:delete"],
+                ["New Broadcast", "Creates a broadcast from a published template targeting an audience (member status, branch, gender) with optional scheduling", "broadcasts:create"],
+                ["Cancel Broadcast", "Cancels a scheduled or currently-sending broadcast", "broadcasts:update"],
+                ["Send Message", "Sends a one-off WhatsApp message (text) directly to a recipient", "whatsapp:create"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters &amp; Sort</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <FilterTable
+              rows={[
+                ["Search", "Debounced search across template names / broadcast names / message phones"],
+                ["Channel", "Filter templates or broadcasts by WhatsApp / SMS / Email"],
+                ["Status", "Filter templates by draft / published (and archived via the Active | Archived toggle); broadcasts by draft / scheduled / sending / sent / failed / cancelled"],
+                ["Direction", "Messages filtered by outbound / inbound"],
+                ["Archived", "Active | Archived toggle on the Templates list"],
+              ]}
+            />
+          </CardContent>
+        </Card>
+      </Section>
+
       {/* ─── Admin — Users ────────────────────────────── */}
       <Section id="admin-users" title="Admin — Users">
         <Card>
@@ -1961,6 +2030,9 @@ export function DocsContent() {
                     { resource: "Departments", prefix: "departments" },
                     { resource: "Cell Groups", prefix: "cell_groups" },
                     { resource: "Forms", prefix: "forms" },
+                    { resource: "Templates", prefix: "templates" },
+                    { resource: "Broadcasts", prefix: "broadcasts" },
+                    { resource: "WhatsApp Messages", prefix: "whatsapp" },
                   ].map((r) => (
                     <tr key={r.prefix} className="border-b last:border-0">
                       <td className="py-2.5 pr-4 font-medium">{r.resource}</td>

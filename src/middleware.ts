@@ -46,6 +46,7 @@ export function middleware(request: NextRequest) {
     "/pastoral",
     "/admin",
     "/profile",
+    "/communication",
   ];
 
   const alwaysPublicPaths = ["/forms/public"];
