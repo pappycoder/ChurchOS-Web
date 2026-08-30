@@ -73,14 +73,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
-        children: [
-          { title: "Admin Dashboard", href: "/dashboard/admin", roles: ["super_admin", "church_admin"] },
-          { title: "Pastor Dashboard", href: "/dashboard/pastor", roles: ["senior_pastor", "branch_pastor", "super_admin", "church_admin"] },
-          { title: "Secretary Dashboard", href: "/dashboard/secretary", roles: ["secretary", "super_admin", "church_admin"] },
-          { title: "Treasurer Dashboard", href: "/dashboard/treasurer", roles: ["treasurer", "super_admin", "church_admin"] },
-          { title: "Department Dashboard", href: "/dashboard/department", roles: ["department_head", "super_admin", "church_admin"] },
-          { title: "My Dashboard", href: "/dashboard", roles: ["member", "super_admin", "church_admin"] },
-        ],
       },
       {
         title: "Members",

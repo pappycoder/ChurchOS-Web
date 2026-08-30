@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/shared/page-header";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { MyDashboard } from "@/components/dashboard/my-dashboard";
 
 export default function DashboardPage() {
   return (
     <div className="space-y-4">
       <PageHeader title="Dashboard" breadcrumbs={[{ label: "Dashboard" }]} />
-      <DashboardShell />
+      <MyDashboard />
     </div>
   );
 }
