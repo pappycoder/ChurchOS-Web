@@ -36,6 +36,9 @@ export interface NotificationsListParams {
   page?: number;
   limit?: number;
   type?: NotificationType;
+  read?: "all" | "unread";
+  startDate?: string;
+  endDate?: string;
 }
 
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
@@ -59,9 +62,12 @@ export function formatRelativeTime(iso: string): string {
 
 export function useNotificationsList(params: NotificationsListParams = {}) {
   const query = new URLSearchParams();
-  if (params.page) query.set("page", String(params.page));
+  if (params.page && params.page > 1) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
   if (params.type) query.set("type", params.type);
+  if (params.read === "unread") query.set("read", params.read);
+  if (params.startDate) query.set("startDate", params.startDate);
+  if (params.endDate) query.set("endDate", params.endDate);
   const qs = query.toString();
   return useQuery({
     queryKey: ["notifications", params],
@@ -105,6 +111,30 @@ export function useMarkAllAsRead() {
   return useMutation({
     mutationFn: () =>
       api.patch<{ updated: number }>("/notifications/read-all"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
+    },
+  });
+}
+
+export function useBulkMarkAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      api.patch<{ updated: number }>("/notifications/bulk-read", { ids }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
+    },
+  });
+}
+
+export function useBulkDeleteNotifications() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      api.post<{ deleted: number }>("/notifications/bulk-delete", { ids }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
