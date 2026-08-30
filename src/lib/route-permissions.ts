@@ -58,6 +58,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/communication/templates", permission: "templates:read" },
   { prefix: "/communication/broadcasts", permission: "broadcasts:read" },
   { prefix: "/communication/messages", permission: "whatsapp:read" },
+  { prefix: "/communication/inbox", permission: "emails:read" },
 
   // Departments · Assets · Forms
   { prefix: "/departments/cell-groups", permission: "cell_groups:read" },

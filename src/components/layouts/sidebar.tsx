@@ -194,6 +194,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: MessageSquare,
         permission: "whatsapp:read",
       },
+      {
+        title: "Inbox",
+        href: "/communication/inbox",
+        icon: Mail,
+        permission: "emails:read",
+      },
     ],
   },
   {
@@ -641,12 +647,7 @@ export function Sidebar() {
                   </a>
                 </li>
                 <li className="flex-1">
-                  <Link href="/chat" className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted">
-                    Chats
-                  </Link>
-                </li>
-                <li className="flex-1">
-                  <Link href="/email" className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted">
+                  <Link href="/communication/inbox" className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted">
                     Inbox
                   </Link>
                 </li>
@@ -686,14 +687,6 @@ export function Sidebar() {
                 <CalendarIcon size={18} />
               </Link>
             </div>
-            <div className="me-3">
-              <Link href="/chat" className="btn-menubar relative">
-                <MessageSquare size={18} />
-                <span className="badge badge-info rounded-pill flex items-center justify-center header-badge">
-                  5
-                </span>
-              </Link>
-            </div>
             <div className="me-3 notification-item">
               <Link href="/activity" className="btn-menubar relative me-1">
                 <Bell size={18} />
@@ -701,7 +694,7 @@ export function Sidebar() {
               </Link>
             </div>
             <div className="me-0">
-              <Link href="/email" className="btn-menubar">
+              <Link href="/communication/inbox" className="btn-menubar">
                 <Mail size={18} />
               </Link>
             </div>

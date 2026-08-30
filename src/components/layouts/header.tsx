@@ -14,55 +14,27 @@ import { useSettings } from "@/contexts/settings-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useEmailUnread } from "@/hooks/use-email";
 import { cn } from "@/lib/utils";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import {
   IconArrowBarToLeft,
   IconSearch,
-  IconLayoutGrid,
   IconSettingsCog,
   IconSparkles,
   IconMaximize,
   IconMinimize,
-  IconMessage,
-  IconMail,
   IconUser,
   IconSettings,
   IconQuestionMark,
   IconLogout,
-  IconCalendar,
-  IconBrandHipchat,
-  IconTimeline,
-  IconLayoutKanban,
-  IconCreditCard,
-  IconChecklist,
-  IconNotes,
-  IconFolder,
   IconChevronDown,
-  IconArrowRight,
   IconMenu2,
   IconDotsVertical,
   IconX,
+  IconMail,
 } from "@tabler/icons-react";
-
-const CRM_LINKS = [
-  { title: "Contacts", href: "/contacts", icon: IconUser },
-  { title: "Companies", href: "/companies", icon: IconLayoutGrid },
-  { title: "Deals", href: "/deals", icon: IconTimeline },
-  { title: "Leads", href: "/leads", icon: IconChecklist },
-  { title: "Pipeline", href: "/pipeline", icon: IconTimeline },
-  { title: "Activities", href: "/activity", icon: IconChecklist },
-];
-
-const APP_LINKS = [
-  { title: "Calendar", href: "/calendar", icon: IconCalendar },
-  { title: "Chat", href: "/chat", icon: IconBrandHipchat },
-  { title: "Notes", href: "/notes", icon: IconNotes },
-  { title: "Files", href: "/files", icon: IconFolder },
-  { title: "Kanban", href: "/kanban", icon: IconLayoutKanban },
-  { title: "Invoices", href: "/invoices", icon: IconCreditCard },
-];
 
 const AI_LINKS = [
   { title: "AI Dashboard", href: "/ai-dashboard" },
@@ -136,6 +108,8 @@ export function Header() {
   const { logout } = useAuth();
   const { data: currentProfile } = useCurrentProfile();
   const { canAny } = usePermissions();
+  const { data: emailUnread } = useEmailUnread();
+  const emailUnreadCount = emailUnread?.count ?? 0;
 
   const visibleNav = React.useMemo(
     () => HORIZONTAL_NAV.filter((item) => !item.permission || canAny(item.permission)),
@@ -241,34 +215,6 @@ export function Header() {
                 <input type="text" className="form-control" placeholder="Search in ChurchOS" />
               </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <a href="#" className="btn-menubar me-2">
-                    <IconLayoutGrid size={18} />
-                  </a>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="crm-dropdown p-0" align="start">
-                  <div className="card mb-0 border-0 shadow-none">
-                    <div className="card-header">
-                      <h4 className="text-base font-semibold m-0">CRM</h4>
-                    </div>
-                    <div className="card-body pb-2">
-                      <div className="grid grid-cols-2 gap-3">
-                        {CRM_LINKS.map((link) => (
-                          <Link key={link.href} href={link.href} className="crm-link">
-                            <span className="flex items-center gap-2">
-                              <link.icon size={16} />
-                              {link.title}
-                            </span>
-                            <IconArrowRight size={14} />
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               <Link href="/admin/settings" className="btn-menubar">
                 <IconSettingsCog size={18} />
               </Link>
@@ -341,33 +287,21 @@ export function Header() {
                 </ActionTooltip>
               </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <a href="#" className="btn-menubar me-2">
-                    <IconLayoutGrid size={18} />
-                  </a>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="app-launcher" align="end">
-                  {APP_LINKS.map((link) => (
-                    <Link key={link.href} href={link.href} className="app-launcher-item">
-                      <link.icon size={18} />
-                      {link.title}
-                    </Link>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <div className="me-2">
-                <Link href="/chat" className="btn-menubar relative">
-                  <IconMessage size={18} />
-                  <span className="msg-status-dot"></span>
-                </Link>
-              </div>
-
-              <div className="me-2">
-                <Link href="/email" className="btn-menubar">
-                  <IconMail size={18} />
-                </Link>
+              <div className="me-2 notification_item">
+                <ActionTooltip label="Inbox">
+                  <Link
+                    href="/communication/inbox"
+                    className="btn-menubar relative"
+                    aria-label="Inbox"
+                  >
+                    <IconMail size={18} />
+                    {emailUnreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
+                        {emailUnreadCount > 99 ? "99+" : emailUnreadCount}
+                      </span>
+                    )}
+                  </Link>
+                </ActionTooltip>
               </div>
 
               <div className="me-2 notification_item">
