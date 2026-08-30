@@ -97,7 +97,7 @@ function BroadcastsListContent() {
   const allQuery = useBroadcastsList({ limit: 200 });
   const allBroadcasts = React.useMemo(() => allQuery.data?.data ?? [], [allQuery.data]);
 
-  const total = data?.total ?? 0;
+  const total = data?.meta?.total ?? 0;
   const broadcasts = React.useMemo(() => data?.data ?? [], [data]);
 
   const sent = allBroadcasts.filter((b) => b.status === "sent").length;
@@ -160,7 +160,7 @@ function BroadcastsListContent() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Broadcasts"
-          value={allQuery.data?.total ?? allBroadcasts.length}
+          value={allQuery.data?.meta?.total ?? allBroadcasts.length}
           icon={<Megaphone className="h-4 w-4" />}
         />
         <StatsCard

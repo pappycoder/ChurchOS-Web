@@ -26,9 +26,16 @@ export interface Template {
   updatedAt: string;
 }
 
+export interface PaginatedMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface TemplateListResponse {
   data: Template[];
-  total: number;
+  meta: PaginatedMeta;
 }
 
 export interface ListTemplatesParams {

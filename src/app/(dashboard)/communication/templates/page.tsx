@@ -122,7 +122,7 @@ function TemplatesListContent() {
 
   const allQuery = useTemplatesList({ limit: 200, archived: archivedView ? true : undefined });
   const allTemplates = React.useMemo(() => allQuery.data?.data ?? [], [allQuery.data]);
-  const total = data?.total ?? 0;
+  const total = data?.meta?.total ?? 0;
   const templates = React.useMemo(() => data?.data ?? [], [data]);
 
   const published = allTemplates.filter((t) => t.status === "published").length;
@@ -243,7 +243,7 @@ function TemplatesListContent() {
           value={
             archivedView
               ? allTemplates.length
-              : allQuery.data?.total ?? allTemplates.length
+              : allQuery.data?.meta?.total ?? allTemplates.length
           }
           icon={<FileText className="h-4 w-4" />}
         />

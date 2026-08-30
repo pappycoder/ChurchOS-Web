@@ -37,9 +37,16 @@ export interface Broadcast {
   updatedAt: string;
 }
 
+export interface PaginatedMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface BroadcastListResponse {
   data: Broadcast[];
-  total: number;
+  meta: PaginatedMeta;
 }
 
 export interface ListBroadcastsParams {
