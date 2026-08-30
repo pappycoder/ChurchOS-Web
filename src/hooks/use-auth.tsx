@@ -63,7 +63,8 @@ interface AuthContextValue {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (input: LoginInput) => Promise<void>;
+  login: (input: LoginInput) => Promise<LoginResponse>;
+  verifyTwoFactor: (input: { email: string; code: string }) => Promise<void>;
   register: (input: RegisterInput) => Promise<RegisterResponse>;
   logout: () => Promise<void>;
 }
@@ -91,20 +92,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = React.useCallback(
-    async (input: LoginInput) => {
-      const res = await api.post<LoginResponse>("/auth/login", input, {
-        skipAuth: true,
-      });
+  const finalizeLogin = React.useCallback(
+    async (res: LoginResponse) => {
+      if (!res.accessToken) return;
       setToken(res.accessToken);
       setTokenState(res.accessToken);
       setUser({
         userId: res.userId,
-        email: res.email,
+        email: res.email ?? "",
         profile: res.profile,
       });
       toast.success("Welcome back!", {
-        description: `Signed in as ${res.email}`,
+        description: `Signed in as ${res.email ?? ""}`,
       });
       // Prime the session cache (profile + permissions) before navigating so
       // permission gates render instantly instead of flashing skeletons.
@@ -119,6 +118,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/dashboard");
     },
     [router, queryClient]
+  );
+
+  const login = React.useCallback(
+    async (input: LoginInput) => {
+      const res = await api.post<LoginResponse>("/auth/login", input, {
+        skipAuth: true,
+      });
+      if (res.requiresTwoFactor) {
+        // Account has email-OTP 2FA enabled: no token is issued yet. The login
+        // page must collect the emailed code and call verifyTwoFactor.
+        return res;
+      }
+      await finalizeLogin(res);
+      return res;
+    },
+    [finalizeLogin]
+  );
+
+  const verifyTwoFactor = React.useCallback(
+    async ({ email, code }: { email: string; code: string }) => {
+      const res = await api.post<LoginResponse>("/auth/login/2fa", { email, code }, {
+        skipAuth: true,
+      });
+      await finalizeLogin(res);
+    },
+    [finalizeLogin]
   );
 
   const register = React.useCallback(async (input: RegisterInput) => {
@@ -150,6 +175,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: !!token && !!user,
         isLoading,
         login,
+        verifyTwoFactor,
         register,
         logout,
       }}
@@ -171,6 +197,13 @@ export function useLogin() {
   const { login } = useAuth();
   return useMutation({
     mutationFn: login,
+  });
+}
+
+export function useVerifyTwoFactor() {
+  const { verifyTwoFactor } = useAuth();
+  return useMutation({
+    mutationFn: verifyTwoFactor,
   });
 }
 

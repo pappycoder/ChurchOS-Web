@@ -39,6 +39,9 @@ import {
   useCurrentProfile,
   useUpdateCurrentProfile,
   useUploadAvatar,
+  useSendTwoFactorCode,
+  useToggleTwoFactor,
+  useResendTwoFactor,
   type CurrentProfile,
 } from "@/hooks/use-profile";
 import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
@@ -83,7 +86,7 @@ function IdentityCard({ profile }: { profile: CurrentProfile }) {
             <Badge variant={isActive ? "default" : "destructive"}>
               {isActive ? "Active" : "Inactive"}
             </Badge>
-            {profile.mfaEnabled && <Badge variant="secondary">MFA Enabled</Badge>}
+            {profile.twoFactorEnabled && <Badge variant="secondary">2FA Enabled</Badge>}
           </div>
           <div className="flex flex-wrap justify-center gap-1.5 mt-3">
             {roles.map((role) => (
@@ -391,6 +394,59 @@ function PhotoCard({ profile }: { profile: CurrentProfile }) {
 function SecurityCard() {
   const { data: profile } = useCurrentProfile();
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [step, setStep] = React.useState<"idle" | "enable" | "disable">("idle");
+  const [code, setCode] = React.useState("");
+  const sendCode = useSendTwoFactorCode();
+  const toggle = useToggleTwoFactor();
+  const resend = useResendTwoFactor();
+
+  const enabled = profile?.twoFactorEnabled ?? false;
+
+  const reset = React.useCallback(() => {
+    setStep("idle");
+    setCode("");
+  }, []);
+
+  const handleSend = (purpose: "enable" | "disable") => {
+    sendCode.mutate(purpose, {
+      onSuccess: () => {
+        setStep(purpose);
+        setCode("");
+        toast.success("Code sent", {
+          description: "Check your inbox for the verification code.",
+        });
+      },
+      onError: (err: Error) => toast.error(err.message),
+    });
+  };
+
+  const handleToggle = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!/^\d{6}$/.test(code)) {
+      toast.error("Invalid code", { description: "Enter the 6-digit code from your email." });
+      return;
+    }
+    const purpose = step === "enable" ? "enable" : "disable";
+    toggle.mutate(
+      { purpose, code },
+      {
+        onSuccess: () => {
+          toast.success(
+            purpose === "enable" ? "Two-factor authentication enabled." : "Two-factor authentication disabled."
+          );
+          reset();
+        },
+        onError: (err: Error) => toast.error(err.message),
+      }
+    );
+  };
+
+  const handleResend = () => {
+    resend.mutate(undefined, {
+      onSuccess: () => toast.success("New code sent", { description: "Check your inbox." }),
+      onError: (err: Error) => toast.error(err.message),
+    });
+  };
 
   return (
     <Card>
@@ -401,7 +457,7 @@ function SecurityCard() {
       <CardContent className="pt-4">
         <div className="flex items-center justify-between gap-4 py-1">
           <div className="flex items-start gap-3">
-            {profile?.mfaEnabled ? (
+            {enabled ? (
               <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
             ) : (
               <ShieldOff className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
@@ -409,16 +465,68 @@ function SecurityCard() {
             <div>
               <p className="text-sm font-medium">Two-factor authentication</p>
               <p className="text-sm text-muted-foreground">
-                {profile?.mfaEnabled
-                  ? "Enabled — an extra code is required at sign-in."
-                  : "Not enabled. Ask an admin about enabling MFA for your account."}
+                {enabled
+                  ? "Enabled — an emailed code is required at sign-in."
+                  : "Not enabled — add a second layer of security to your account."}
               </p>
             </div>
           </div>
-          <Badge variant={profile?.mfaEnabled ? "secondary" : "outline"}>
-            {profile?.mfaEnabled ? "Enabled" : "Disabled"}
-          </Badge>
+          {enabled ? (
+            <Button variant="outline" size="sm" onClick={() => handleSend("disable")} disabled={sendCode.isPending}>
+              Disable
+            </Button>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => handleSend("enable")} disabled={sendCode.isPending}>
+              Enable
+            </Button>
+          )}
         </div>
+
+        {(step === "enable" || step === "disable") && (
+        <form onSubmit={handleToggle} className="mt-4 rounded-md border p-4 space-y-3">
+          <p className="text-sm text-muted-foreground">
+            {step === "enable"
+              ? "We sent a 6-digit code to your email. Enter it below to enable two-factor authentication."
+              : "We sent a 6-digit code to your email. Enter it below to disable two-factor authentication."}
+          </p>
+          <div className="flex items-center gap-2">
+            <Input
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              placeholder="6-digit code"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="max-w-[160px]"
+            />
+            <Button type="submit" disabled={toggle.isPending}>
+              {toggle.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={toggle.isPending}>
+              Cancel
+            </Button>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Didn&apos;t get it?</span>
+            <button
+              type="button"
+              className="text-primary hover:underline"
+              onClick={handleResend}
+              disabled={resend.isPending}
+            >
+              {resend.isPending ? "Resending..." : "Resend code"}
+            </button>
+          </div>
+        </form>
+        )}
+
         <Separator className="my-3" />
         <div className="flex items-center justify-between gap-4 py-1">
           <div>

@@ -33,11 +33,13 @@ export interface RegisterResponse {
 }
 
 export interface LoginResponse {
-  accessToken: string;
+  accessToken?: string;
   refreshToken?: string;
-  expiresAt: number;
+  expiresAt?: number;
   userId: string;
-  email: string;
+  email?: string;
+  requiresTwoFactor?: boolean;
+  twoFactorEmail?: string;
   profile?: {
     profileId: string;
     churchId: string;

@@ -23,6 +23,7 @@ export interface CurrentProfile {
   phone?: string;
   avatarUrl?: string;
   mfaEnabled: boolean;
+  twoFactorEnabled: boolean;
   status: string;
   createdAt: string;
   updatedAt?: string;
@@ -97,5 +98,35 @@ export function useChangePassword() {
   return useMutation({
     mutationFn: (input: ChangePasswordInput) =>
       api.put<unknown>("/auth/password", input),
+  });
+}
+
+/** Sends the emailed 6-digit code to start enabling/disabling 2FA. */
+export function useSendTwoFactorCode() {
+  return useMutation({
+    mutationFn: (purpose: "enable" | "disable") =>
+      api.post<{ email: string }>(
+        `/profiles/me/2fa/${purpose === "enable" ? "enable" : "disable"}-code`,
+        {}
+      ),
+  });
+}
+
+/** Verifies the emailed code and toggles 2FA on/off. */
+export function useToggleTwoFactor() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ purpose, code }: { purpose: "enable" | "disable"; code: string }) =>
+      api.post<CurrentProfile>(`/profiles/me/2fa/${purpose}`, { code }),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(["current-profile"], updated);
+    },
+  });
+}
+
+/** Re-sends the emailed code, bypassing the cooldown. */
+export function useResendTwoFactor() {
+  return useMutation({
+    mutationFn: () => api.post<{ email: string }>("/profiles/me/2fa/resend", {}),
   });
 }

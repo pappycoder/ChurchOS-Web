@@ -9,7 +9,7 @@
 
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
-import { KeyRound, MailCheck, ShieldCheck, ShieldOff } from "lucide-react";
+import { KeyRound, MailCheck, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,7 +55,6 @@ export function SecuritySettingsTab() {
   const [passwordOpen, setPasswordOpen] = React.useState(false);
 
   const profile = profileQuery.data;
-  const mfaEnabled = profile?.mfaEnabled ?? false;
 
   return (
     <>
@@ -85,17 +84,13 @@ export function SecuritySettingsTab() {
 
           <SecurityRow
             id="two-factor"
-            icon={mfaEnabled ? ShieldCheck : ShieldOff}
+            icon={ShieldCheck}
             title="Two-Factor Authentication"
-            badge={
-              <Badge variant={mfaEnabled ? "secondary" : "outline"}>
-                {mfaEnabled ? "Enabled" : "Disabled"}
-              </Badge>
-            }
-            description={
-              mfaEnabled
-                ? "An extra code is required every time you sign in."
-                : "Not enabled. Ask an admin about enabling MFA for your account."
+            description="Enabling and disabling 2FA is self-service on your own profile page."
+            action={
+              <Button asChild variant="outline" size="sm">
+                <a href="/profile">Manage on Profile</a>
+              </Button>
             }
           />
 
