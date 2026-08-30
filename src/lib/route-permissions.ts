@@ -16,12 +16,13 @@ export interface RoutePermissionRule {
 }
 
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
-  // Role-specific dashboards (legacy role gating, no dedicated resource)
+  // Role-specific dashboards (legacy role gating, no dedicated resource).
+  // super_admin/church_admin can view every dashboard.
   { prefix: "/dashboard/admin", roles: ["super_admin", "church_admin"] },
-  { prefix: "/dashboard/pastor", roles: ["senior_pastor", "branch_pastor"] },
-  { prefix: "/dashboard/secretary", roles: ["secretary"] },
-  { prefix: "/dashboard/treasurer", roles: ["treasurer"] },
-  { prefix: "/dashboard/department", roles: ["department_head"] },
+  { prefix: "/dashboard/pastor", roles: ["senior_pastor", "branch_pastor", "super_admin", "church_admin"] },
+  { prefix: "/dashboard/secretary", roles: ["secretary", "super_admin", "church_admin"] },
+  { prefix: "/dashboard/treasurer", roles: ["treasurer", "super_admin", "church_admin"] },
+  { prefix: "/dashboard/department", roles: ["department_head", "super_admin", "church_admin"] },
 
   // Members
   { prefix: "/members/import", permission: "members:create" },

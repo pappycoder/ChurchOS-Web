@@ -14,6 +14,15 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **All role dashboards now live at their own routes and are reachable by admins from the sidebar.** Previously only `/dashboard` (the auto-branching shell) existed — the sidebar's Dashboard submenu pointed at `/dashboard/admin`, `/dashboard/pastor`, `/dashboard/secretary`, `/dashboard/treasurer`, `/dashboard/department`, all of which **404'd**, and their per-role `roles` gates hid all but "Admin Dashboard" from admins.
+  - **New pages** under `src/app/(dashboard)/dashboard/`, each reusing the `/dashboard/page.tsx` grammar (`<PageHeader>` + the shell's matching component) so every submenu link renders that role's dashboard directly:
+    - `/dashboard/admin` → `LeaderDashboard` · `/dashboard/pastor` → `LeaderDashboard`
+    - `/dashboard/secretary` → `OperationsDashboard` · `/dashboard/treasurer` → `GivingDashboard` · `/dashboard/department` → `OperationsDashboard`
+    - `My Dashboard` stays → `/dashboard` (the shell).
+  - **Sidebar** (`components/layouts/sidebar.tsx`): the main-menu Dashboard parent lists all six dashboards as submenu items; each child's `roles` now also includes `super_admin`/`church_admin` so an admin sees **all** of them (the Admin Dashboard stays under this Dashboard parent, alongside the others).
+  - **Route gating** (`lib/route-permissions.ts`): `super_admin`/`church_admin` added to the `roles` of `/dashboard/pastor`, `/dashboard/secretary`, `/dashboard/treasurer`, `/dashboard/department` so the (stricter) route gate doesn't block admins navigating to the other dashboards.
+  - Verification: `npx tsc --noEmit` clean; scoped eslint clean; `npm run build` green with all six `/dashboard*` routes registered (static).
+
 - **Admin HQ (`isAdminHq`) surfaced in admin user management.** Backend counterpart (a per-profile `is_admin_hq` boolean granting cross-branch read access) shipped this round — see backend changelog. Web now exposes and edits it:
   - **`use-users.ts`**: `UserProfile` gains `isAdminHq: boolean`; `UpdateUserInput` gains `isAdminHq?: boolean` (persisted via the existing admin `PATCH /profiles/:profileId`, which the backend maps through `AdminUpdateUserDto.isAdminHq`).
   - **Admin user detail — Role & Permissions tab** (`user-detail-content.tsx`): new **Admin HQ Access** card — a `Switch` toggling cross-branch access, wired to `useUpdateUser(profileId)` with optimistic local state (reverts + error toast on failure) and a success toast clarifying the resulting scope. Kept under the *Assigned Roles* card; role changes never auto-clear it.
