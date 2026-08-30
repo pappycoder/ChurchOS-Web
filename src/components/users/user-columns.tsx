@@ -181,6 +181,17 @@ export function UserRoleCell({ roles }: { roles: string[] }) {
   );
 }
 
+export function UserAdminHqCell({ isAdminHq }: { isAdminHq: boolean }) {
+  return (
+    <Badge
+      variant="secondary"
+      className={isAdminHq ? "text-[11px] font-medium" : "text-[11px] opacity-70"}
+    >
+      {isAdminHq ? "Admin HQ" : "Branch-scoped"}
+    </Badge>
+  );
+}
+
 export function UserStatusCell({ status }: { status: string }) {
   const isActive = status === "active";
   return (

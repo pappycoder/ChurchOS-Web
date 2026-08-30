@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -365,6 +366,36 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
   const assignableRoles = useAssignableRoles();
   const roleLabels = useRoleLabelMap();
   const updateUserRoles = useUpdateUserRoles(user.profileId);
+  const updateUser = useUpdateUser(user.profileId);
+
+  const [isAdminHq, setIsAdminHq] = React.useState(!!user.isAdminHq);
+
+  React.useEffect(() => {
+    setIsAdminHq(!!user.isAdminHq);
+  }, [user.isAdminHq]);
+
+  const toggleAdminHq = () => {
+    const next = !isAdminHq;
+    setIsAdminHq(next);
+    updateUser.mutate(
+      { isAdminHq: next },
+      {
+        onSuccess: () => {
+          toast.success(
+            next
+              ? "Admin HQ access enabled — user can now view all branches"
+              : "Admin HQ access disabled — user scoped to their own branch",
+          );
+        },
+        onError: (error) => {
+          setIsAdminHq(!next);
+          toast.error("Failed to update Admin HQ access", {
+            description: error?.message || "Please try again.",
+          });
+        },
+      },
+    );
+  };
 
   React.useEffect(() => {
     setSelected(new Set(user.role ?? []));
@@ -472,6 +503,36 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
               </div>
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Shield className="h-5 w-5 text-muted-foreground" />
+            Admin HQ Access
+          </CardTitle>
+          <CardDescription>
+            Grants cross-branch read access within this user&apos;s permission scope. Without it,
+            users see only data from their own branch (cell leaders see only the cell groups
+            they lead).
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-sm font-medium">Admin HQ (cross-branch access)</p>
+              <p className="text-xs text-muted-foreground">
+                Enabled by default for church admins; keep off for branch-scoped staff.
+              </p>
+            </div>
+            <Switch
+              checked={isAdminHq}
+              onCheckedChange={toggleAdminHq}
+              disabled={updateUser.isPending}
+              aria-label="Toggle Admin HQ access"
+            />
+          </div>
         </CardContent>
       </Card>
 

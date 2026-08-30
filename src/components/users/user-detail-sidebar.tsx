@@ -61,6 +61,11 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
           {user.mfaEnabled && (
             <Badge variant="secondary">MFA Enabled</Badge>
           )}
+          {user.isAdminHq && (
+            <Badge variant="secondary" title="Admin HQ — cross-branch access enabled">
+              Admin HQ
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

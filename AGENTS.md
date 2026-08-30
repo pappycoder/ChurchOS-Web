@@ -14,6 +14,13 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **Admin HQ (`isAdminHq`) surfaced in admin user management.** Backend counterpart (a per-profile `is_admin_hq` boolean granting cross-branch read access) shipped this round — see backend changelog. Web now exposes and edits it:
+  - **`use-users.ts`**: `UserProfile` gains `isAdminHq: boolean`; `UpdateUserInput` gains `isAdminHq?: boolean` (persisted via the existing admin `PATCH /profiles/:profileId`, which the backend maps through `AdminUpdateUserDto.isAdminHq`).
+  - **Admin user detail — Role & Permissions tab** (`user-detail-content.tsx`): new **Admin HQ Access** card — a `Switch` toggling cross-branch access, wired to `useUpdateUser(profileId)` with optimistic local state (reverts + error toast on failure) and a success toast clarifying the resulting scope. Kept under the *Assigned Roles* card; role changes never auto-clear it.
+  - **Badges**: the user-list table gains an **Access** column (`UserAdminHqCell` — "Admin HQ" / "Branch-scoped") and the user-detail sidebar shows an **Admin HQ** badge when set.
+  - **`use-profile.ts`**: `CurrentProfile` gains `isAdminHq: boolean`, so the current user's own flag is available to web consumers.
+  - Verification: `npx tsc --noEmit` clean; scoped eslint clean (only the 4 pre-existing users-page warnings).
+
 - **Role-aware dashboard (`/dashboard`).** The static zero-placeholder dashboard is replaced by a client-side shell that branches on the user's primary role, reusing the existing `/analytics` + list endpoints — no new backend surface. All queries are permission/role-gated (via `usePermissions()` + list hooks) so a 403 can never be surfaced.
   - **New components** `src/components/dashboard/`:
     - `dashboard-shell.tsx` — the branching client shell; shows a skeleton until `["current-profile"]` (permissions/roles) loads, then picks the dashboard by `profile.role[0]`.

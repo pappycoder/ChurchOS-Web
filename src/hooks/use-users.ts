@@ -37,6 +37,8 @@ export interface UserProfile {
   branchId?: string;
   /** All roles held by the user, ordered by rank descending (first = primary) */
   role: string[];
+  /** Admin HQ flag — grants cross-branch read access within the user's permission scope. */
+  isAdminHq: boolean;
   /** Assigned roles with descriptions (populated on detail responses) */
   roles?: RoleInfo[];
   /** Permissions accumulated across all assigned roles */
@@ -102,6 +104,7 @@ export interface UpdateUserInput {
   phone?: string;
   branchId?: string;
   status?: "active" | "inactive";
+  isAdminHq?: boolean;
 }
 
 export interface BranchOption {

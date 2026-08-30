@@ -59,6 +59,7 @@ import {
   UserRoleCell,
   UserStatusCell,
   UserCreatedCell,
+  UserAdminHqCell,
 } from "@/components/users/user-columns";
 import { UserFormDialog } from "@/components/users/user-form-dialog";
 import { DeleteUserDialog } from "@/components/users/delete-user-dialog";
@@ -444,6 +445,7 @@ export default function UsersPage() {
                         <TableHead>Created Date</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Access</TableHead>
                         {canManageUsers && (
                           <TableHead className="text-right">Actions</TableHead>
                         )}
@@ -479,6 +481,9 @@ export default function UsersPage() {
                           </TableCell>
                           <TableCell>
                             <UserStatusCell status={user.status} />
+                          </TableCell>
+                          <TableCell>
+                            <UserAdminHqCell isAdminHq={user.isAdminHq} />
                           </TableCell>
                           {canManageUsers && (
                             <TableCell

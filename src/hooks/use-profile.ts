@@ -24,6 +24,8 @@ export interface CurrentProfile {
   avatarUrl?: string;
   mfaEnabled: boolean;
   twoFactorEnabled: boolean;
+  /** Admin HQ flag — grants cross-branch read access within the user's permission scope. */
+  isAdminHq: boolean;
   status: string;
   createdAt: string;
   updatedAt?: string;
