@@ -14,6 +14,19 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **Role-aware dashboard (`/dashboard`).** The static zero-placeholder dashboard is replaced by a client-side shell that branches on the user's primary role, reusing the existing `/analytics` + list endpoints — no new backend surface. All queries are permission/role-gated (via `usePermissions()` + list hooks) so a 403 can never be surfaced.
+  - **New components** `src/components/dashboard/`:
+    - `dashboard-shell.tsx` — the branching client shell; shows a skeleton until `["current-profile"]` (permissions/roles) loads, then picks the dashboard by `profile.role[0]`.
+    - `leader-dashboard.tsx` — **church_admin / senior_pastor / branch_pastor**: an 8-stat grid fed by `useAnalyticsDashboard` (members/attendance/giving/events/active/new/branches/at-risk) + Upcoming Events + Recent Giving + Engagement Distribution.
+    - `giving-dashboard.tsx` — **treasurer**: giving-focused via `useAnalyticsGiving` (total/transactions/average/recurring stats + by-category + top-donors) + Upcoming Events.
+    - `operations-dashboard.tsx` — **secretary / department_head**: list-based counts (`limit:1 → meta.total` for members + attendance + giving) + Upcoming Events + Recent Giving + Recent Attendance.
+    - `cell-leader-dashboard.tsx` — **cell_leader**: cell-groups count (via `useCellGroupsList`) + member/giving transaction counts + "My Cell Groups" list + Recent Giving.
+    - `member-dashboard.tsx` — **member**: church/branch info from `["current-profile"]` + Recent Sermons (`sermons:read`) + Upcoming Events (`events:read`).
+    - `super-admin-dashboard.tsx` — **super_admin**: list-based (NOT analytics — super_admin is outside the `/analytics/*` role ceilings, so those calls would 403); members/attendance/giving/cell-groups counts + Upcoming Events + Recent Giving + Recent Attendance.
+  - **Shared widgets** `dashboard-widgets.tsx`: `UpcomingEvents` (upcoming `useEventsList`, links to detail/list) and `RecentGiving` (recent `useGivingTransactions`, `formatNaira`).
+  - **`dashboard/page.tsx`** now just renders `PageHeader` + `<DashboardShell />`.
+  - **Analytics-preservation note**: `/analytics` pages are untouched; the shell only gates which *dashboard* widgets render for each role.
+  - Verification: web `npx tsc --noEmit` clean, scoped eslint clean (0 errors), `npm run build` green (static `/dashboard`).
 - **Login 2FA (email OTP) step + self-service 2FA toggle on Profile.** Backend counterpart (email-OTP 2FA replacing legacy TOTP MFA, staged-login `/auth/login/2fa`, per-profile `/profiles/me/2fa/*` endpoints) shipped this round — see backend changelog.
   - **`use-auth.tsx` login rework**: `AuthContextValue.login` now returns the raw `LoginResponse` and the provider exposes a new `verifyTwoFactor({ email, code })`. A shared private `finalizeLogin(res)` applies the session (token state + user + toast + primes `["current-profile"]` cache + navigates to `/dashboard`). `login()` only finalizes when the response has no `requiresTwoFactor` — for 2FA-enabled accounts it returns the staged response so the login page can collect the emailed code. `verifyTwoFactor` posts to `POST /auth/login/2fa` (`skipAuth`) then finalizes. New `useVerifyTwoFactor()` mutation hook (alongside `useLogin`).
   - **Login page two-step flow** (`src/app/(auth)/login/page.tsx`): when `useLogin` succeeds with `res.requiresTwoFactor`, the form switches to an OTP step — a "Two-factor authentication required" banner showing the (masked) recipient email, a 6-digit numeric input (digits-only, maxLength 6), **Verify & Sign In** via `useVerifyTwoFactor`, and a Back-to-sign-in link that resets to step one.
