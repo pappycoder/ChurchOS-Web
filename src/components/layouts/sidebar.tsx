@@ -563,7 +563,11 @@ export function Sidebar() {
   }, [mobileOpen, closeMobile]);
 
   const toggleMenu = (key: string) => {
-    setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
+    setOpenMenus((prev) => {
+      // Single-open accordion: clicking a menu collapses every other one.
+      // Clicking the already-open menu just closes it (empty object).
+      return { [key]: !prev[key] };
+    });
   };
 
   // Every leaf link's href in the (permission-filtered) tree.

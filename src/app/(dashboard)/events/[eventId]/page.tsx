@@ -208,7 +208,7 @@ export default function EventDetailPage({
             </span>
           </p>
           {(canUpdate || canDelete) && !event.archivedAt && (
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex flex-wrap items-center gap-2 mt-4">
               {canUpdate && (
                 <Button
                   variant="outline"
@@ -253,7 +253,7 @@ export default function EventDetailPage({
             </div>
           )}
           {event.archivedAt && (canUpdate || canDelete) && (
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex flex-wrap items-center gap-2 mt-4">
               {canUpdate && (
                 <Button
                   variant="outline"

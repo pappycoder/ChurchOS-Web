@@ -232,7 +232,7 @@ export default function FormDetailPage() {
   }
 
   const headerAction = (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       {form.archivedAt && (
         <Badge variant="destructive" className="mr-2">
           Archived
@@ -453,10 +453,21 @@ export default function FormDetailPage() {
                           className="text-emerald-600"
                           onClick={(e) => {
                             e.stopPropagation();
-                            statusMutation.mutate({
-                              submissionId: s.id,
-                              input: { status: "approved" },
-                            });
+                            statusMutation.mutate(
+                              {
+                                submissionId: s.id,
+                                input: { status: "approved" },
+                              },
+                              {
+                                onSuccess: () => toast.success("Submission approved"),
+                                onError: (err) =>
+                                  toast.error(
+                                    err instanceof Error
+                                      ? err.message
+                                      : "Failed to approve submission"
+                                  ),
+                              }
+                            );
                           }}
                         >
                           <CheckCircle2 className="mr-1 h-3 w-3" />

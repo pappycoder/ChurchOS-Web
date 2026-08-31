@@ -211,7 +211,7 @@ export default function CellGroupDetailPage({
                   <span>Added {formatDate(group.createdAt)}</span>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {group.archivedAt ? (
                   <>
                     {canUpdate && (

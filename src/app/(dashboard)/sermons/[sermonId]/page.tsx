@@ -202,7 +202,7 @@ export default function SermonDetailPage() {
           { label: sermon.title },
         ]}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {sermon.archivedAt && (
               <Badge variant="destructive">
                 <Archive className="mr-1 h-3 w-3" />

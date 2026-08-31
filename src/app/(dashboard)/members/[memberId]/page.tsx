@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Pencil,
@@ -177,7 +178,10 @@ export default function MemberDetailPage({
     addNoteMutation.mutate(note, {
       onSuccess: () => {
         setNoteDraft("");
+        toast.success("Note added");
       },
+      onError: (e) =>
+        toast.error(e instanceof Error ? e.message : "Failed to add note"),
     });
   };
 
@@ -230,7 +234,7 @@ export default function MemberDetailPage({
             </div>
           </div>
           {(canUpdateMembers || canDeleteMembers) && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {display.archivedAt ? (
                 <>
                   {canUpdateMembers && (

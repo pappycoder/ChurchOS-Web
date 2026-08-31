@@ -47,7 +47,7 @@ export function PageHeader({ title, breadcrumbs, action }: PageHeaderProps) {
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      {action && <div>{action}</div>}
+      {action && <div className="flex flex-wrap items-center gap-2">{action}</div>}
     </div>
   );
 }

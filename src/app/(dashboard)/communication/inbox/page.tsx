@@ -33,6 +33,7 @@ import {
   useDeleteEmailForever,
   useEmailUnread,
   type EmailBox,
+  type EmailContact,
 } from "@/hooks/use-email";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -73,6 +74,7 @@ function InboxContent() {
     id: string;
     subject: string;
     body: string;
+    recipients: EmailContact[];
   } | null>(null);
   // Mobile-only: when true, the reading pane replaces the mail list.
   const [mobileDetailOpen, setMobileDetailOpen] = React.useState(false);
@@ -113,7 +115,20 @@ function InboxContent() {
 
   const handleReply = () => {
     if (!detail) return;
-    setReplyCtx({ id: detail.id, subject: detail.subject, body: detail.body });
+    setReplyCtx({
+      id: detail.id,
+      subject: detail.subject,
+      body: detail.body,
+      recipients: detail.senderId
+        ? [
+            {
+              id: detail.senderId,
+              name: detail.senderName || "Unknown sender",
+              role: "",
+            },
+          ]
+        : [],
+    });
     setComposeOpen(true);
   };
 
@@ -123,6 +138,7 @@ function InboxContent() {
       onSuccess: () => {
         setSelectedId(null);
         backToList();
+        toast.success("Message moved to trash");
       },
       onError: (e) =>
         toast.error(e instanceof Error ? e.message : "Failed to move to trash"),
@@ -135,6 +151,7 @@ function InboxContent() {
       onSuccess: () => {
         setSelectedId(null);
         backToList();
+        toast.success("Message deleted forever");
       },
       onError: (e) =>
         toast.error(e instanceof Error ? e.message : "Failed to delete"),
@@ -152,6 +169,7 @@ function InboxContent() {
       onSuccess: () => {
         setSelectedId(null);
         backToList();
+        toast.success("Message restored");
       },
       onError: (e) =>
         toast.error(e instanceof Error ? e.message : "Failed to restore"),
@@ -172,6 +190,7 @@ function InboxContent() {
 
   const backToList = () => {
     setMobileDetailOpen(false);
+    setSelectedId(null);
   };
 
   return (
@@ -483,6 +502,7 @@ function InboxContent() {
         onOpenChange={setComposeOpen}
         replyToId={replyCtx?.id}
         replySubject={replyCtx?.subject}
+        initialRecipients={replyCtx?.recipients}
         initialBody={replyCtx ? `\n\n---\nOn ${format(new Date(detail?.createdAt ?? new Date()), "MMM d, yyyy")}, ${detail?.senderName ?? ""} wrote:\n${replyCtx.body}\n` : ""}
       />
     </div>

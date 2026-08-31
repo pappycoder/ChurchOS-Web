@@ -394,7 +394,10 @@ export default function LifeEventsPage() {
         onConfirm={() => {
           if (!deleteTarget) return;
           deleteMutation.mutate(deleteTarget.id, {
-            onSuccess: () => setDeleteTarget(null),
+            onSuccess: () => {
+              setDeleteTarget(null);
+              toast.success("Life event deleted");
+            },
             onError: (error) => {
               toast.error("Failed to delete life event", {
                 description: error?.message || "Please try again.",

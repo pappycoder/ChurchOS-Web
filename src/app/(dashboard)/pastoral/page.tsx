@@ -375,7 +375,10 @@ export default function PastoralNotesPage() {
         onConfirm={() => {
           if (!deleteTarget) return;
           deleteMutation.mutate(deleteTarget.id, {
-            onSuccess: () => setDeleteTarget(null),
+            onSuccess: () => {
+              setDeleteTarget(null);
+              toast.success("Note deleted");
+            },
             onError: (error) => {
               toast.error("Failed to delete note", {
                 description: error?.message || "Please try again.",

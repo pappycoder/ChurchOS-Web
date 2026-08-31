@@ -4,6 +4,7 @@ import * as React from "react";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
 import { SettingsPanel } from "@/components/layouts/settings-panel";
+import { TopProgressBar } from "@/components/layouts/top-progress-bar";
 import { useSettings } from "@/contexts/settings-context";
 import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
 
@@ -38,6 +39,7 @@ export default function DashboardLayout({
 
   return (
     <div className="main-wrapper min-h-screen">
+      <TopProgressBar />
       <div id="global-loader" style={{ display: loading ? "block" : "none" }}>
         <div className="page-loader" />
       </div>

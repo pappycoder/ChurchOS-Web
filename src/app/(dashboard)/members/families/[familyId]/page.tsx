@@ -150,7 +150,7 @@ export default function FamilyDetailPage({
             </div>
           </div>
           {(canUpdateFamilies || canDeleteFamilies) && (
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               {display.archivedAt ? (
                 <>
                   {canUpdateFamilies && (

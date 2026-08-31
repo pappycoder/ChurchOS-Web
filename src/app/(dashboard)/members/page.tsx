@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   Users,
   Plus,
@@ -672,7 +673,14 @@ export default function MembersPage() {
                                                   next.delete(member.memberId);
                                                   return next;
                                                 });
+                                                toast.success("Member restored to active");
                                               },
+                                              onError: (e) =>
+                                                toast.error(
+                                                  e instanceof Error
+                                                    ? e.message
+                                                    : "Failed to restore member"
+                                                ),
                                             },
                                           )
                                         }

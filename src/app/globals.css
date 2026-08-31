@@ -1547,7 +1547,7 @@ button:not(:disabled):not([aria-disabled="true"]),
     gap: 2px;
     height: 52px;
     z-index: 10;
-    margin-right: auto;
+    margin-left: auto;
     flex-shrink: 0;
   }
 
@@ -1631,6 +1631,19 @@ button:not(:disabled):not([aria-disabled="true"]),
   100% {
     transform: rotate(360deg);
   }
+}
+
+@keyframes progress-slide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
+
+.progress-slide {
+  animation: progress-slide 1s ease-in-out infinite;
 }
 
 /* ========================

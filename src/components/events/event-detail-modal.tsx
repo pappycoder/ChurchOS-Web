@@ -148,7 +148,7 @@ export function EventDetailModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t">
+        <div className="flex flex-wrap items-center justify-end gap-2 px-6 py-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>

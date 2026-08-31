@@ -28,6 +28,8 @@ interface ComposeEmailDialogProps {
   replyToId?: string;
   replySubject?: string;
   initialBody?: string;
+  /** Pre-fill the "To" field — used when replying so the original sender is already selected. */
+  initialRecipients?: EmailContact[];
 }
 
 export function ComposeEmailDialog({
@@ -36,6 +38,7 @@ export function ComposeEmailDialog({
   replyToId,
   replySubject,
   initialBody = "",
+  initialRecipients = [],
 }: ComposeEmailDialogProps) {
   const [selected, setSelected] = React.useState<EmailContact[]>([]);
   const [subject, setSubject] = React.useState("");
@@ -48,11 +51,11 @@ export function ComposeEmailDialog({
   // Reset draft whenever the dialog opens or the target changes.
   React.useEffect(() => {
     if (open) {
-      setSelected([]);
+      setSelected(initialRecipients);
       setSubject("");
       setBody(initialBody);
     }
-  }, [open, initialBody]);
+  }, [open, initialBody, initialRecipients]);
 
   const toggleSelect = (contact: EmailContact) => {
     setSelected((prev) =>

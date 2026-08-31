@@ -177,7 +177,7 @@ export default function BranchDetailPage({
               </div>
             </div>
             {(canUpdateBranches || canDeleteBranches) && display && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {display.archivedAt ? (
                   <>
                     {canUpdateBranches && (

@@ -254,7 +254,7 @@ export default function VisitorDetailPage({
             </div>
           </div>
           {(canUpdateVisitors || canDeleteVisitors) && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {display.archivedAt ? (
                 <>
                   {canUpdateVisitors && (

@@ -212,7 +212,7 @@ export default function ServiceDetailPage({
             )}
           </p>
           {(canUpdate || canDelete) && !service.archivedAt && (
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex flex-wrap items-center gap-2 mt-4">
               {canDelete && (
                 <Button
                   variant="outline"
@@ -226,7 +226,7 @@ export default function ServiceDetailPage({
             </div>
           )}
           {service.archivedAt && (canUpdate || canDelete) && (
-            <div className="flex items-center gap-2 mt-4">
+            <div className="flex flex-wrap items-center gap-2 mt-4">
               {canUpdate && (
                 <Button
                   variant="outline"
