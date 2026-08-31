@@ -3,6 +3,10 @@ import { Button } from "@/components/ui/button";
 
 export const metadata = {
   title: "You're Offline - ChurchOS",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function OfflinePage() {

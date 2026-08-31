@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Providers } from "@/components/providers/providers";
 import { SonnerProvider } from "@/components/providers/sonner-provider";
+import { SITE_DESCRIPTION, SITE_NAME, absoluteUrl } from "@/lib/site";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -15,9 +16,12 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-  title: "ChurchOS - Church Management Platform",
-  description:
-    "Church Management & Digital Ministry Platform for Nigerian churches",
+  metadataBase: new URL(absoluteUrl("/")),
+  title: {
+    default: `${SITE_NAME} - Church Management Platform`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -36,6 +40,39 @@ export const metadata: Metadata = {
   },
   other: {
     "mobile-web-app-capable": "yes",
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - Church Management Platform`,
+    description: SITE_DESCRIPTION,
+    url: "/",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: `${SITE_NAME} - Church Management Platform`,
+      },
+    ],
+    locale: "en_NG",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} - Church Management Platform`,
+    description: SITE_DESCRIPTION,
+    images: ["/og.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 
@@ -61,6 +98,22 @@ export default function RootLayout({
       )}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: SITE_NAME,
+              url: absoluteUrl("/"),
+              description: SITE_DESCRIPTION,
+              logo: absoluteUrl("/icons/icon-512x512.png"),
+              sameAs: [],
+            }),
+          }}
+        />
+      </head>
       <body
         className="min-h-full flex flex-col bg-background text-foreground"
         style={{ fontFamily: "Roboto, sans-serif" }}
