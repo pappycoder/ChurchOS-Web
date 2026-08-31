@@ -1,12 +1,23 @@
 import type { AuthError } from "@/types/auth";
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  setTokens,
+} from "@/lib/session";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const API_PREFIX = "/api/v1";
 
-function getToken(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )churchos_token=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : null;
+/**
+ * Registered by the auth provider. Invoked when a session cannot be
+ * recovered (refresh token missing, expired, or refresh failed) so the
+ * app can log the user out and redirect to /login.
+ */
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
 }
 
 interface BackendErrorResponse {
@@ -58,6 +69,60 @@ function getErrorMessage(status: number, body: BackendErrorResponse): string {
   }
 }
 
+interface SessionStorage {
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
+}
+
+/**
+ * Attempts a single silent refresh of the access token using the stored
+ * refresh token. Requires a still-valid access token in the Authorization
+ * header (the backend's /auth/refresh endpoint is JWT-guarded). New tokens
+ * are persisted before the caller retries the original request.
+ *
+ * Returns the refreshed session data on success, or null when the refresh
+ * token is missing, the refresh failed (expired/revoked/network), or the
+ * response was malformed.
+ */
+async function tryRefreshSession(): Promise<SessionStorage | null> {
+  const refreshToken = getRefreshToken();
+  const accessToken = getAccessToken();
+  if (!refreshToken || !accessToken) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}${API_PREFIX}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as BackendResponse<SessionStorage>;
+    if (!json || !json.success || !json.data?.accessToken) return null;
+
+    const { accessToken: newAccess, refreshToken: newRefresh } = json.data;
+    // Persist the (possibly rotated) tokens so the retried request succeeds.
+    setTokens(newAccess, newRefresh || refreshToken);
+    return json.data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Public wrapper used by the auth provider to proactively refresh the access
+ * token shortly before it expires. Returns the refreshed session on success
+ * or null if the session can no longer be extended.
+ */
+export async function refreshSession(): Promise<SessionStorage | null> {
+  return tryRefreshSession();
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -69,7 +134,8 @@ class ApiClient {
     method: string,
     path: string,
     body?: unknown,
-    options?: { skipAuth?: boolean }
+    options?: { skipAuth?: boolean },
+    allowRefresh = true
   ): Promise<T> {
     const headers: Record<string, string> = {};
 
@@ -80,7 +146,7 @@ class ApiClient {
     }
 
     if (!options?.skipAuth) {
-      const token = getToken();
+      const token = getAccessToken();
       if (token) {
         headers["Authorization"] = `Bearer ${token}`;
       }
@@ -100,6 +166,20 @@ class ApiClient {
         statusCode: 0,
       };
       throw error;
+    }
+
+    // Recoverable authentication failure: try a silent refresh and retry once.
+    // If the retry (allowRefresh === false) also 401s, or refresh cannot
+    // recover the session, force logout + redirect.
+    if (res.status === 401 && !options?.skipAuth) {
+      if (allowRefresh) {
+        const refreshed = await tryRefreshSession();
+        if (refreshed) {
+          return this.request<T>(method, path, body, options, false);
+        }
+      }
+      clearTokens();
+      unauthorizedHandler?.();
     }
 
     let json: BackendResponse<T> | undefined;
@@ -154,13 +234,34 @@ class ApiClient {
    * body as JSON when the server replies with an error envelope.
    */
   async getBlob(path: string): Promise<Blob> {
-    const headers: Record<string, string> = {};
-    const token = getToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
+    const doFetch = async (token: string | null): Promise<Response> => {
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      return fetch(`${this.baseUrl}${path}`, { headers });
+    };
+
+    let res = await doFetch(getAccessToken());
+    let sessionUnrecoverable = false;
+
+    if (res.status === 401) {
+      const refreshed = await tryRefreshSession();
+      if (refreshed) {
+        const retry = await doFetch(getAccessToken());
+        if (retry.ok) return retry.blob();
+        res = retry;
+      } else {
+        sessionUnrecoverable = true;
+      }
     }
 
-    const res = await fetch(`${this.baseUrl}${path}`, { headers });
+    if (sessionUnrecoverable || res.status === 401) {
+      // Refresh failed, or retry still 401 → logout.
+      clearTokens();
+      unauthorizedHandler?.();
+    }
+
     if (!res.ok) {
       let message = `Request failed (${res.status}). Please try again.`;
       try {
@@ -179,15 +280,38 @@ class ApiClient {
    * symmetric with getBlob for future exports).
    */
   async postForBlob(path: string, body: unknown): Promise<Blob> {
-    const token = getToken();
-    const res = await fetch(`${this.baseUrl}${path}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: JSON.stringify(body),
-    });
+    const doFetch = async (): Promise<Response> => {
+      const token = getAccessToken();
+      return fetch(`${this.baseUrl}${path}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+    };
+
+    let res = await doFetch();
+    let sessionUnrecoverable = false;
+
+    if (res.status === 401) {
+      const refreshed = await tryRefreshSession();
+      if (refreshed) {
+        const retry = await doFetch();
+        if (retry.ok) return retry.blob();
+        res = retry;
+      } else {
+        sessionUnrecoverable = true;
+      }
+    }
+
+    if (sessionUnrecoverable || res.status === 401) {
+      // Refresh failed, or retry still 401 → logout.
+      clearTokens();
+      unauthorizedHandler?.();
+    }
+
     if (!res.ok) {
       throw new Error(`Request failed (${res.status})`);
     }
