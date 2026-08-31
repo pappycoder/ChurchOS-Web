@@ -1545,7 +1545,6 @@ button:not(:disabled):not([aria-disabled="true"]),
     gap: 2px;
     height: 52px;
     z-index: 10;
-    margin-left: auto;
     flex-shrink: 0;
   }
 
