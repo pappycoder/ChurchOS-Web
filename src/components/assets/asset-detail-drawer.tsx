@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
 import QRCode from "qrcode";
 import { format, parseISO } from "date-fns";
 import { Boxes, RefreshCw } from "lucide-react";
@@ -215,7 +216,15 @@ export function AssetDetailDrawer({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => generateQrMutation.mutate()}
+                    onClick={() =>
+                      generateQrMutation.mutate(undefined, {
+                        onSuccess: () => toast.success("QR code generated"),
+                        onError: (e) =>
+                          toast.error(
+                            e instanceof Error ? e.message : "Failed to generate QR code"
+                          ),
+                      })
+                    }
                     disabled={generateQrMutation.isPending}
                   >
                     <RefreshCw className="h-4 w-4 mr-1" />

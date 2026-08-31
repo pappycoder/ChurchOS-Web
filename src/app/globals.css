@@ -1142,9 +1142,7 @@ button:not(:disabled):not([aria-disabled="true"]),
 @media (max-width: 991.98px) {
   .header-left {
     display: flex;
-    position: absolute;
-    width: 100%;
-    justify-content: center;
+    margin-right: auto;
   }
 
   .mobile_btn {
@@ -1574,7 +1572,6 @@ button:not(:disabled):not([aria-disabled="true"]),
     height: 52px;
     z-index: 10;
     padding: 0 15px;
-    margin-left: auto;
     flex-shrink: 0;
   }
 
