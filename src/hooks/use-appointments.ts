@@ -32,11 +32,16 @@ export interface Appointment {
   id: string;
   title: string;
   scheduledAt: string;
-  secretaryId: string;
-  secretaryName?: string;
+  /** With party — pastor Profile ID. */
   pastorId: string;
   pastorName?: string;
   pastorRole?: string;
+  /** Who party — person Profile ID (also the booker's when Who is a visitor). */
+  personId: string;
+  personName?: string;
+  whoKind?: "profile" | "visitor";
+  visitorId?: string;
+  visitorName?: string;
   location?: string;
   notes?: string;
   status: string;
@@ -50,10 +55,14 @@ export interface AppointmentListResponse {
   summary: Record<string, number>;
 }
 
+export type AppointmentContactKind = "with" | "who";
+
 export interface AppointmentContact {
   id: string;
   name: string;
   role: string;
+  /** Which picker this contact is for. A "who" contact with role "visitor" is a visitor. */
+  kind: AppointmentContactKind;
   isPastor: boolean;
   branchId?: string;
   branchName?: string;
@@ -65,10 +74,17 @@ export interface AppointmentContactsResponse {
   total: number;
 }
 
+export type AppointmentWhoKind = "profile" | "visitor";
+
 export interface AppointmentMutationInput {
   title: string;
   scheduledAt: string;
-  counterpartId?: string;
+  /** With party — pastor Profile ID. */
+  withId: string;
+  /** Who party kind: "profile" via `whoId`, or "visitor" via `visitorId`. */
+  whoKind?: AppointmentWhoKind;
+  whoId?: string;
+  visitorId?: string;
   location?: string;
   notes?: string;
   status?: string;
@@ -127,14 +143,18 @@ export function useAppointment(id: string | null) {
   });
 }
 
-/** List counterpart contacts for the pairing picker. */
+/** List participant contacts for the With/Who pickers. */
 export function useAppointmentContacts(
-  params: { search?: string; pastorsOnly?: boolean } = {}
+  params: {
+    kind: "with" | "who";
+    search?: string;
+    includeVisitors?: boolean;
+  } = { kind: "with" }
 ) {
   const query = new URLSearchParams();
+  query.set("kind", params.kind);
   if (params.search) query.set("search", params.search);
-  if (params.pastorsOnly !== undefined)
-    query.set("pastorsOnly", String(params.pastorsOnly));
+  if (params.includeVisitors) query.set("includeVisitors", "true");
   const qs = query.toString();
   return useQuery({
     queryKey: ["appointment-contacts", params],

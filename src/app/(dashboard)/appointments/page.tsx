@@ -257,6 +257,7 @@ function AppointmentsContent() {
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Appointment</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">With</th>
+                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Who</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Scheduled</th>
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
                 {(canUpdate || canDelete) && (
@@ -285,6 +286,23 @@ function AppointmentsContent() {
                         {initials(a.pastorName || "") || "?"}
                       </span>
                       <span className="font-medium">{a.pastorName || "—"}</span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">
+                        {initials(
+                          a.whoKind === "visitor" ? a.visitorName || "" : a.personName || ""
+                        ) || "?"}
+                      </span>
+                      <span className="font-medium">
+                        {a.whoKind === "visitor" ? a.visitorName : a.personName || "—"}
+                      </span>
+                      {a.whoKind === "visitor" && (
+                        <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
+                          Visitor
+                        </span>
+                      )}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">

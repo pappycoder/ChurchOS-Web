@@ -47,10 +47,12 @@ function PersonRow({
   name,
   role,
   isPastor,
+  isVisitor,
 }: {
   name?: string;
   role?: string;
   isPastor: boolean;
+  isVisitor?: boolean;
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -63,8 +65,9 @@ function PersonRow({
       <div className="min-w-0">
         <p className="truncate text-sm font-medium">{name || "—"}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {role && (ROLE_LABEL[role] ?? role)}
+          {role && !isVisitor && (ROLE_LABEL[role] ?? role)}
           {isPastor ? " · Pastor" : ""}
+          {isVisitor ? `${role ? " · " : ""}Visitor` : ""}
         </p>
       </div>
     </div>
@@ -107,17 +110,32 @@ export function AppointmentDetailDialog({
         {appointment && (
           <div className="space-y-5">
             {/* People */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <PersonRow
-                name={appointment.secretaryName}
-                role="secretary"
-                isPastor={false}
-              />
-              <PersonRow
-                name={appointment.pastorName}
-                role={appointment.pastorRole}
-                isPastor
-              />
+            <div className="space-y-3">
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  With
+                </p>
+                <PersonRow
+                  name={appointment.pastorName}
+                  role={appointment.pastorRole}
+                  isPastor
+                />
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Who
+                </p>
+                <PersonRow
+                  name={
+                    appointment.whoKind === "visitor"
+                      ? appointment.visitorName
+                      : appointment.personName
+                  }
+                  role={appointment.whoKind === "visitor" ? "visitor" : "person"}
+                  isPastor={false}
+                  isVisitor={appointment.whoKind === "visitor"}
+                />
+              </div>
             </div>
 
             {/* Scheduled */}
