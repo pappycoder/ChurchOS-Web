@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Loader2, Search, Send, UserRound, X } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +16,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RecipientCombobox } from "@/components/email/recipient-combobox";
 import {
-  useEmailContacts,
   useSendEmail,
   type EmailContact,
 } from "@/hooks/use-email";
@@ -31,26 +30,6 @@ interface ComposeEmailDialogProps {
   initialBody?: string;
 }
 
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
-const ROLE_LABEL: Record<string, string> = {
-  super_admin: "Super Admin",
-  senior_pastor: "Senior Pastor",
-  church_admin: "Church Admin",
-  branch_pastor: "Branch Pastor",
-  department_head: "Department Head",
-  secretary: "Secretary",
-  treasurer: "Treasurer",
-  cell_leader: "Cell Leader",
-};
-
 export function ComposeEmailDialog({
   open,
   onOpenChange,
@@ -58,29 +37,22 @@ export function ComposeEmailDialog({
   replySubject,
   initialBody = "",
 }: ComposeEmailDialogProps) {
-  const [search, setSearch] = React.useState("");
   const [selected, setSelected] = React.useState<EmailContact[]>([]);
   const [subject, setSubject] = React.useState("");
   const [body, setBody] = React.useState("");
 
   const resolvedSubject = subject || (replySubject ? `Re: ${replySubject}` : "");
 
-  const { data: contacts, isLoading } = useEmailContacts({ search: search || undefined });
   const sendEmail = useSendEmail();
 
   // Reset draft whenever the dialog opens or the target changes.
   React.useEffect(() => {
     if (open) {
-      setSearch("");
       setSelected([]);
       setSubject("");
       setBody(initialBody);
     }
   }, [open, initialBody]);
-
-  const unselected = (contacts?.data ?? []).filter(
-    (c) => !selected.some((s) => s.id === c.id)
-  );
 
   const toggleSelect = (contact: EmailContact) => {
     setSelected((prev) =>
@@ -88,7 +60,6 @@ export function ComposeEmailDialog({
         ? prev.filter((s) => s.id !== contact.id)
         : [...prev, contact]
     );
-    setSearch("");
   };
 
   const handleSend = async () => {
@@ -151,56 +122,11 @@ export function ComposeEmailDialog({
               </div>
             )}
 
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by name, role, branch, or email…"
-                className="pl-8"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-
-            {isLoading && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                <Loader2 className="size-4 animate-spin" /> Loading contacts…
-              </div>
-            )}
-
-            {!isLoading && unselected.length > 0 && (
-              <div className="max-h-44 overflow-y-auto rounded-md border divide-y">
-                {unselected.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-muted transition-colors"
-                    onClick={() => toggleSelect(c)}
-                  >
-                    <Avatar className="size-8">
-                      <AvatarImage src={c.avatarUrl} alt={c.name} />
-                      <AvatarFallback>
-                        {initials(c.name) || <UserRound className="size-4" />}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{c.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {ROLE_LABEL[c.role] ?? c.role}
-                        {c.branchName ? ` · ${c.branchName}` : ""}
-                        {c.email ? ` · ${c.email}` : ""}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="flex-none">Add</Badge>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {!isLoading && search && unselected.length === 0 && selected.length > 0 && (
-              <p className="text-sm text-muted-foreground">
-                All matching contacts are already selected.
-              </p>
-            )}
+            <RecipientCombobox
+              excludeIds={selected.map((s) => s.id)}
+              onToggle={toggleSelect}
+              placeholder="Click to add recipients…"
+            />
           </div>
 
           {/* Subject */}

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Search, UserRound, UserPlus, X } from "lucide-react";
+import { Loader2, UserPlus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,14 +26,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSearchVisitors, useCreateVisitor } from "@/hooks/use-visitors";
+import { ContactCombobox } from "@/components/shared/contact-combobox";
+import { VisitorCombobox } from "@/components/visitors/visitor-combobox";
+import { useCreateVisitor } from "@/hooks/use-visitors";
 import {
-  useAppointmentContacts,
   useCreateAppointment,
   useUpdateAppointment,
   APPOINTMENT_STATUSES,
@@ -75,26 +74,6 @@ const APPOINTMENT_SCHEMA = z
 
 type AppointmentFormValues = z.infer<typeof APPOINTMENT_SCHEMA>;
 
-const ROLE_LABEL: Record<string, string> = {
-  super_admin: "Super Admin",
-  senior_pastor: "Senior Pastor",
-  church_admin: "Church Admin",
-  branch_pastor: "Branch Pastor",
-  department_head: "Department Head",
-  secretary: "Secretary",
-  treasurer: "Treasurer",
-  cell_leader: "Cell Leader",
-};
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 function toLocalDatetime(iso?: string): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -132,87 +111,6 @@ function toFormValues(appointment?: Appointment | null): AppointmentFormValues {
   };
 }
 
-/** Searchable single-select picker shared by the With and Who (profile) fields. */
-function ContactPicker({
-  contacts,
-  loading,
-  search,
-  onSearchChange,
-  selectedId,
-  onSelect,
-  kindLabel,
-}: {
-  contacts: AppointmentContact[];
-  loading: boolean;
-  search: string;
-  onSearchChange: (v: string) => void;
-  selectedId: string;
-  onSelect: (contact: AppointmentContact) => void;
-  kindLabel: string;
-}) {
-  const selected = contacts.find((c) => c.id === selectedId);
-  const unselected = contacts.filter((c) => c.id !== selectedId);
-  return (
-    <div className="space-y-2">
-      {selected && (
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="secondary" className="gap-1 pr-1.5">
-            {selected.name}
-            <button
-              type="button"
-              onClick={() => onSelect({ ...selected, id: "" } as AppointmentContact)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              <X className="size-3" />
-            </button>
-          </Badge>
-        </div>
-      )}
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-        <Input
-          placeholder={kindLabel}
-          className="pl-8"
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
-      {loading && (
-        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Loading…
-        </div>
-      )}
-      {!loading && unselected.length > 0 && (
-        <div className="max-h-40 overflow-y-auto rounded-md border divide-y">
-          {unselected.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => onSelect(c)}
-              className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-muted transition-colors"
-            >
-              <Avatar className="size-8">
-                <AvatarImage src={c.avatarUrl} alt={c.name} />
-                <AvatarFallback>{initials(c.name) || <UserRound className="size-4" />}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{c.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {ROLE_LABEL[c.role] ?? c.role}
-                  {c.branchName ? ` · ${c.branchName}` : ""}
-                </p>
-              </div>
-              <Badge variant="outline" className="flex-none">
-                {c.role === "visitor" ? "Visitor" : c.isPastor ? "Pastor" : "Person"}
-              </Badge>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function AppointmentFormDialog({
   open,
   onOpenChange,
@@ -224,32 +122,18 @@ export function AppointmentFormDialog({
   const updateMutation = useUpdateAppointment();
   const createVisitor = useCreateVisitor();
 
-  const [withSearch, setWithSearch] = React.useState("");
-  const [whoSearch, setWhoSearch] = React.useState("");
   const [whoTab, setWhoTab] = React.useState<"profile" | "visitor" | "new">("profile");
   const [newVisitor, setNewVisitor] = React.useState({ firstName: "", lastName: "", phone: "", email: "" });
-
-  const { data: withContacts, isLoading: withLoading } = useAppointmentContacts({
-    kind: "with",
-    search: withSearch || undefined,
-  });
-  const { data: whoContacts, isLoading: whoLoading } = useAppointmentContacts({
-    kind: "who",
-    search: whoSearch || undefined,
-  });
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(APPOINTMENT_SCHEMA),
     defaultValues: toFormValues(appointment),
   });
 
-  const whoId = form.watch("whoId");
   const visitorId = form.watch("visitorId");
 
   React.useEffect(() => {
     if (open) {
-      setWithSearch("");
-      setWhoSearch("");
       setWhoTab("profile");
       setNewVisitor({ firstName: "", lastName: "", phone: "", email: "" });
       form.reset(toFormValues(appointment));
@@ -259,20 +143,23 @@ export function AppointmentFormDialog({
 
   const pickWith = (contact: AppointmentContact) => {
     form.setValue("withId", contact.id, { shouldValidate: true, shouldDirty: true });
-    setWithSearch("");
   };
 
   const pickWhoProfile = (contact: AppointmentContact) => {
     form.setValue("whoKind", "profile", { shouldValidate: true, shouldDirty: true });
     form.setValue("whoId", contact.id, { shouldValidate: true, shouldDirty: true });
     form.setValue("visitorId", "", { shouldDirty: true });
-    setWhoSearch("");
   };
 
   const pickWhoVisitor = (visitorIdValue: string) => {
     form.setValue("whoKind", "visitor", { shouldValidate: true, shouldDirty: true });
     form.setValue("visitorId", visitorIdValue, { shouldValidate: true, shouldDirty: true });
     form.setValue("whoId", "", { shouldDirty: true });
+  };
+
+  const handleVisitorChange = (id: string) => {
+    if (id) pickWhoVisitor(id);
+    else clearWho();
   };
 
   const clearWho = () => {
@@ -400,14 +287,11 @@ export function AppointmentFormDialog({
                 <FormItem>
                   <FormLabel>With (Pastor) *</FormLabel>
                   <FormControl>
-                    <ContactPicker
-                      contacts={withContacts?.data ?? []}
-                      loading={withLoading}
-                      search={withSearch}
-                      onSearchChange={setWithSearch}
-                      selectedId={field.value}
+                    <ContactCombobox
+                      kind="with"
+                      value={field.value}
                       onSelect={pickWith}
-                      kindLabel="Search by name, role, or branch…"
+                      placeholder="Search by name, role, or branch…"
                     />
                   </FormControl>
                   <FormMessage />
@@ -423,64 +307,39 @@ export function AppointmentFormDialog({
                 <FormItem>
                   <FormLabel>Who (Person / Visitor) *</FormLabel>
                   <FormControl>
-                    <div className="space-y-2">
-                      {whoId && (
-                        <div className="flex flex-wrap gap-1.5">
-                          <Badge variant="secondary" className="gap-1 pr-1.5">
-                            {whoContacts?.data.find((c) => c.id === whoId)?.name ?? "Selected person"}
-                            <button type="button" onClick={clearWho} className="text-muted-foreground hover:text-foreground">
-                              <X className="size-3" />
-                            </button>
-                          </Badge>
-                        </div>
-                      )}
-                      {!whoId && visitorId && (
-                        <div className="flex flex-wrap gap-1.5">
-                          <Badge variant="secondary" className="gap-1 pr-1.5">
-                            Visitor selected
-                            <button type="button" onClick={clearWho} className="text-muted-foreground hover:text-foreground">
-                              <X className="size-3" />
-                            </button>
-                          </Badge>
-                        </div>
-                      )}
-                      <Tabs
-                        value={whoTab}
-                        onValueChange={(v) => {
-                          setWhoTab(v as "profile" | "visitor" | "new");
-                          if (v === "visitor" && !visitorId) {
-                            pickWhoVisitor("");
-                          }
-                        }}
-                      >
-                        <TabsList className="grid w-full grid-cols-3">
-                          <TabsTrigger value="profile">Person</TabsTrigger>
-                          <TabsTrigger value="visitor">Visitor</TabsTrigger>
-                          {!isEdit && (
-                            <TabsTrigger value="new">New Visitor</TabsTrigger>
-                          )}
-                        </TabsList>
+                    <Tabs
+                      value={whoTab}
+                      onValueChange={(v) => {
+                        setWhoTab(v as "profile" | "visitor" | "new");
+                        if (v === "visitor" && !visitorId) {
+                          pickWhoVisitor("");
+                        }
+                      }}
+                    >
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="profile">Person</TabsTrigger>
+                        <TabsTrigger value="visitor">Visitor</TabsTrigger>
+                        {!isEdit && (
+                          <TabsTrigger value="new">New Visitor</TabsTrigger>
+                        )}
+                      </TabsList>
 
-                        <TabsContent value="profile" className="pt-3 space-y-2">
-                          <ContactPicker
-                            contacts={whoContacts?.data ?? []}
-                            loading={whoLoading}
-                            search={whoSearch}
-                            onSearchChange={setWhoSearch}
-                            selectedId={field.value ?? ""}
-                            onSelect={pickWhoProfile}
-                            kindLabel="Search staff or members…"
-                          />
-                        </TabsContent>
+                      <TabsContent value="profile" className="pt-3 space-y-2">
+                        <ContactCombobox
+                          kind="who"
+                          value={field.value ?? ""}
+                          onSelect={pickWhoProfile}
+                          placeholder="Search staff or members…"
+                        />
+                      </TabsContent>
 
-                        <TabsContent value="visitor" className="pt-3 space-y-2">
-                          <VisitorPickerForForm
-                            whoSearch={whoSearch}
-                            onSearchChange={(v) => setWhoSearch(v)}
-                            selectedId={visitorId ?? ""}
-                            onSelect={pickWhoVisitor}
-                          />
-                        </TabsContent>
+                      <TabsContent value="visitor" className="pt-3 space-y-2">
+                        <VisitorCombobox
+                          value={visitorId ?? ""}
+                          onChange={(id) => handleVisitorChange(id)}
+                          placeholder="Search existing visitors…"
+                        />
+                      </TabsContent>
 
                         {!isEdit && (
                           <TabsContent value="new" className="pt-3 space-y-3">
@@ -540,7 +399,6 @@ export function AppointmentFormDialog({
                           </TabsContent>
                         )}
                       </Tabs>
-                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -649,68 +507,5 @@ export function AppointmentFormDialog({
         </Form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-/** Searchable visitor picker using the shared visitor search hook. */
-function VisitorPickerForForm({
-  whoSearch,
-  onSearchChange,
-  selectedId,
-  onSelect,
-}: {
-  whoSearch: string;
-  onSearchChange: (v: string) => void;
-  selectedId: string;
-  onSelect: (visitorId: string) => void;
-}) {
-  const { data, isLoading } = useSearchVisitors(whoSearch);
-  const visitors = data?.data ?? [];
-  const unselected = visitors.filter((v) => v.id !== selectedId);
-  return (
-    <div className="space-y-2">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-        <Input
-          placeholder="Search existing visitors…"
-          className="pl-8"
-          value={whoSearch}
-          onChange={(e) => onSearchChange(e.target.value)}
-        />
-      </div>
-      {isLoading && (
-        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Searching…
-        </div>
-      )}
-      {!isLoading && unselected.length > 0 && (
-        <div className="max-h-40 overflow-y-auto rounded-md border divide-y">
-          {unselected.map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => onSelect(v.id)}
-              className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-muted transition-colors"
-            >
-              <Avatar className="size-8">
-                <AvatarFallback>{initials(`${v.firstName} ${v.lastName ?? ""}`) || <UserRound className="size-4" />}</AvatarFallback>
-              </Avatar>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">
-                  {v.firstName} {v.lastName}
-                </p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {v.email || v.phone || "Visitor"}
-                </p>
-              </div>
-              <Badge variant="outline" className="flex-none">Visitor</Badge>
-            </button>
-          ))}
-        </div>
-      )}
-      {!isLoading && whoSearch.trim().length >= 2 && unselected.length === 0 && (
-        <p className="text-sm text-muted-foreground">No matching visitors.</p>
-      )}
-    </div>
   );
 }
