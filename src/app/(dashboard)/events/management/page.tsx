@@ -250,7 +250,7 @@ function TicketTypesTab() {
             value={selectedEventId}
             onValueChange={setSelectedEventId}
           >
-            <SelectTrigger className="w-[300px]">
+            <SelectTrigger className="w-full sm:w-[300px]">
               <SelectValue placeholder="Select an event" />
             </SelectTrigger>
             <SelectContent>
@@ -377,7 +377,7 @@ function TicketTypesTab() {
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="tier-price">Price (₦) *</Label>
                 <Input
@@ -534,7 +534,7 @@ function AssignedTicketsTab() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="All Events" />
             </SelectTrigger>
             <SelectContent>
@@ -553,7 +553,7 @@ function AssignedTicketsTab() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -953,7 +953,7 @@ function AssignTicketDialog({
                     </Button>
                   </div>
                   <div className="space-y-3 rounded-md border p-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
                         <Label htmlFor="nv-first" className="text-xs">
                           First Name *
@@ -981,7 +981,7 @@ function AssignTicketDialog({
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <Label htmlFor="nv-phone" className="text-xs">
                           Phone

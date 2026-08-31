@@ -1024,6 +1024,7 @@ button:not(:disabled):not([aria-disabled="true"]),
 
   .sidebar.slide-nav {
     margin-left: 0;
+    max-width: 85vw;
   }
 
   .mini-sidebar .sidebar {
@@ -1033,6 +1034,7 @@ button:not(:disabled):not([aria-disabled="true"]),
 
   .sidebar.slide-nav.mini-sidebar {
     margin-left: 0;
+    max-width: 85vw;
   }
 
   .mini-sidebar .sidebar .sidebar-menu > ul > li > a span,
@@ -1528,6 +1530,31 @@ button:not(:disabled):not([aria-disabled="true"]),
 [data-theme="dark"] .dark-mode-btn {
   background: var(--muted);
   border-color: var(--border);
+}
+
+/* ========================
+   MOBILE HEADER ACTIONS (bell + inbox)
+   ======================== */
+
+.mobile-header-actions {
+  display: none;
+}
+
+@media (max-width: 991.98px) {
+  .mobile-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 52px;
+    z-index: 10;
+    margin-right: auto;
+    flex-shrink: 0;
+  }
+
+  .mobile-header-actions .btn-menubar {
+    width: 34px;
+    height: 34px;
+  }
 }
 
 /* ========================

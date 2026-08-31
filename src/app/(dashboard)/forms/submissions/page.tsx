@@ -162,7 +162,7 @@ export default function SubmissionsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-full sm:w-[220px]">
                 <SelectValue placeholder="Select a form" />
               </SelectTrigger>
               <SelectContent>
@@ -180,7 +180,7 @@ export default function SubmissionsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

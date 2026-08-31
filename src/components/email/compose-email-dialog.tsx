@@ -92,7 +92,7 @@ export function ComposeEmailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{replyToId ? "Reply" : "Compose"}</DialogTitle>
           <DialogDescription>
@@ -145,7 +145,8 @@ export function ComposeEmailDialog({
             <Label htmlFor="email-body">Message</Label>
             <Textarea
               id="email-body"
-              rows={7}
+              rows={4}
+              className="sm:min-h-[160px]"
               placeholder="Write your message…"
               value={body}
               onChange={(e) => setBody(e.target.value)}

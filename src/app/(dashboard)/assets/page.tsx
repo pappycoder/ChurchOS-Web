@@ -256,7 +256,7 @@ export default function AssetsPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-[150px] h-9">
+                <SelectTrigger className="w-full sm:w-[150px] h-9">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -275,7 +275,7 @@ export default function AssetsPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-[150px] h-9">
+                <SelectTrigger className="w-full sm:w-[150px] h-9">
                   <SelectValue placeholder="Condition" />
                 </SelectTrigger>
                 <SelectContent>
@@ -294,7 +294,7 @@ export default function AssetsPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-[170px] h-9">
+                <SelectTrigger className="w-full sm:w-[170px] h-9">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
@@ -313,7 +313,7 @@ export default function AssetsPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-[160px] h-9">
+                <SelectTrigger className="w-full sm:w-[160px] h-9">
                   <SelectValue placeholder="Branch" />
                 </SelectTrigger>
                 <SelectContent>

@@ -198,6 +198,87 @@ function MonthView({
   );
 }
 
+function AgendaView({
+  allEvents,
+  currentDate,
+  onDateClick,
+  onEventClick,
+}: {
+  allEvents: CalendarEvent[];
+  currentDate: Date;
+  onDateClick: (d: Date) => void;
+  onEventClick: (e: EventItem) => void;
+}) {
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  const rows: { day: Date; events: CalendarEvent[] }[] = days
+    .map((day) => ({ day, events: eventsForDay(allEvents, day) }))
+    .filter((r) => r.events.length > 0)
+    .sort((a, b) => a.day.getTime() - b.day.getTime());
+
+  if (rows.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-16 text-center text-muted-foreground">
+        <p className="font-medium text-foreground">No events this month</p>
+        <p className="text-sm">Tap a day to add an event.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="divide-y rounded-lg border">
+      {rows.map(({ day, events }) => (
+        <div key={day.toISOString()} className="px-3 py-2.5">
+          <div className="mb-1 flex items-center gap-2">
+            <span
+              className={cn(
+                "inline-flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
+                isToday(day) && "bg-primary text-primary-foreground",
+              )}
+            >
+              {format(day, "d")}
+            </span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {format(day, "EEE")}
+            </span>
+            <button
+              type="button"
+              className="ml-auto text-xs text-muted-foreground hover:text-primary"
+              onClick={() => onDateClick(day)}
+            >
+              Add
+            </button>
+          </div>
+          <div className="space-y-1">
+            {events.map((ev) => (
+              <button
+                key={ev.id}
+                type="button"
+                className={cn(
+                  "flex w-full items-center gap-2 rounded px-2 py-1.5 text-left",
+                  ev.colorClass,
+                )}
+                onClick={() => {
+                  if (ev.type === "event") onEventClick(ev.item as EventItem);
+                }}
+              >
+                {ev.type === "event" && ev.start && (
+                  <span className="shrink-0 text-xs font-medium text-white/90">
+                    {format(ev.start, "h:mm a")}
+                  </span>
+                )}
+                <span className="truncate text-sm font-medium text-white">{ev.title}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TimeGridView({
   allEvents,
   days,
@@ -239,7 +320,7 @@ function TimeGridView({
         {/* Time rows */}
         {hours.map((hour) => (
           <React.Fragment key={hour}>
-            <div className="border-b border-r px-1 py-2 text-right text-[10px] text-muted-foreground">
+            <div className="border-b border-r px-1 py-2 text-right text-xs sm:text-[10px] text-muted-foreground">
               {hour === 0 ? "12 AM" : hour < 12 ? `${hour} AM` : hour === 12 ? "12 PM" : `${hour - 12} PM`}
             </div>
             {days.map((day) => {
@@ -369,11 +450,11 @@ export function CalendarView({
   return (
     <div className="p-4">
       {/* Toolbar */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">{titleText}</h3>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-md border">
             {(["month", "week", "day"] as ViewMode[]).map((v) => (
               <button
@@ -406,12 +487,26 @@ export function CalendarView({
 
       {/* Calendar body */}
       {viewMode === "month" ? (
-        <MonthView
-          allEvents={allEvents}
-          currentDate={currentDate}
-          onDateClick={onDateClick}
-          onEventClick={onEventClick}
-        />
+        <>
+          {/* Mobile: agenda/list month view */}
+          <div className="md:hidden">
+            <AgendaView
+              allEvents={allEvents}
+              currentDate={currentDate}
+              onDateClick={onDateClick}
+              onEventClick={onEventClick}
+            />
+          </div>
+          {/* Desktop: 7-column month grid */}
+          <div className="hidden md:block">
+            <MonthView
+              allEvents={allEvents}
+              currentDate={currentDate}
+              onDateClick={onDateClick}
+              onEventClick={onEventClick}
+            />
+          </div>
+        </>
       ) : viewMode === "week" ? (
         <TimeGridView
           allEvents={allEvents}

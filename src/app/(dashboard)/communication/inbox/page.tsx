@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import {
   ArchiveRestore,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
   Inbox,
   Mail,
   MailOpen,
@@ -71,6 +74,10 @@ function InboxContent() {
     subject: string;
     body: string;
   } | null>(null);
+  // Mobile-only: when true, the reading pane replaces the mail list.
+  const [mobileDetailOpen, setMobileDetailOpen] = React.useState(false);
+  // Mobile-only: expand/collapse the folder icon rail.
+  const [mobileFoldersOpen, setMobileFoldersOpen] = React.useState(false);
 
   const includeTrashed = folder === "trash";
   const box: EmailBox = folder === "trash" ? "inbox" : folder;
@@ -113,7 +120,10 @@ function InboxContent() {
   const handleTrash = () => {
     if (!selectedId) return;
     trash.mutate(selectedId, {
-      onSuccess: () => setSelectedId(null),
+      onSuccess: () => {
+        setSelectedId(null);
+        backToList();
+      },
       onError: (e) =>
         toast.error(e instanceof Error ? e.message : "Failed to move to trash"),
     });
@@ -122,7 +132,10 @@ function InboxContent() {
   const handleDeleteForever = () => {
     if (!selectedId) return;
     deleteForever.mutate(selectedId, {
-      onSuccess: () => setSelectedId(null),
+      onSuccess: () => {
+        setSelectedId(null);
+        backToList();
+      },
       onError: (e) =>
         toast.error(e instanceof Error ? e.message : "Failed to delete"),
     });
@@ -136,10 +149,29 @@ function InboxContent() {
   const handleRestore = () => {
     if (!selectedId) return;
     restore.mutate(selectedId, {
-      onSuccess: () => setSelectedId(null),
+      onSuccess: () => {
+        setSelectedId(null);
+        backToList();
+      },
       onError: (e) =>
         toast.error(e instanceof Error ? e.message : "Failed to restore"),
     });
+  };
+
+  const selectFolder = (next: Folder) => {
+    setFolder(next);
+    setSelectedId(null);
+    setPage(1);
+    setMobileDetailOpen(false);
+  };
+
+  const openMessage = (id: string) => {
+    setSelectedId(id);
+    setMobileDetailOpen(true);
+  };
+
+  const backToList = () => {
+    setMobileDetailOpen(false);
   };
 
   return (
@@ -149,60 +181,138 @@ function InboxContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Communication" }, { label: "Inbox" }]}
       />
 
-      {/* Three-pane email layout */}
-      <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.3fr)]">
+      {/* Email layout: 3-pane on desktop, folder-rail→list→detail on mobile */}
+      <div className="grid grid-cols-[auto_1fr] gap-4 items-start lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.3fr)]">
         {/* ── Folder sidebar ─────────────────────────────── */}
         <aside className="rounded-xl border bg-card p-3 md:sticky md:top-20">
-          {canSend && (
-            <Button className="w-full justify-start gap-2" onClick={() => { setReplyCtx(null); setComposeOpen(true); }}>
-              <Pencil className="size-4" /> Compose
-            </Button>
-          )}
+          {/* Desktop: full-width vertical folder list */}
+          <div className="hidden lg:block">
+            {canSend && (
+              <Button className="w-full justify-start gap-2" onClick={() => { setReplyCtx(null); setComposeOpen(true); }}>
+                <Pencil className="size-4" /> Compose
+              </Button>
+            )}
 
-          <nav className="mt-4 space-y-1 text-sm">
-            <button
-              type="button"
-              onClick={() => { setFolder("inbox"); setSelectedId(null); setPage(1); }}
-              className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
-                folder === "inbox" ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Inbox className="size-4" /> Inbox
-              </span>
-              {(unread?.count ?? 0) > 0 && (
-                <Badge variant="destructive" className="rounded-full px-2">{unread?.count}</Badge>
+            <nav className="mt-4 space-y-1 text-sm">
+              <button
+                type="button"
+                onClick={() => selectFolder("inbox")}
+                className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
+                  folder === "inbox" ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Inbox className="size-4" /> Inbox
+                </span>
+                {(unread?.count ?? 0) > 0 && (
+                  <Badge variant="destructive" className="rounded-full px-2">{unread?.count}</Badge>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => selectFolder("sent")}
+                className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
+                  folder === "sent" ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Send className="size-4" /> Sent
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => selectFolder("trash")}
+                className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
+                  folder === "trash" ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Trash2 className="size-4" /> Trash
+                </span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Mobile: minimizable icon rail (collapsed → expandable) */}
+          <div className="flex lg:hidden">
+            <div className="flex flex-col items-center gap-1 w-fit">
+              <button
+                type="button"
+                onClick={() => setMobileFoldersOpen((v) => !v)}
+                aria-label="Toggle folders"
+                title={mobileFoldersOpen ? "Collapse folders" : "Expand folders"}
+                className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-muted-foreground transition-colors hover:bg-muted"
+              >
+                {mobileFoldersOpen ? <ChevronsLeft className="size-4" /> : <ChevronsRight className="size-4" />}
+                {mobileFoldersOpen && <span className="text-sm">Folders</span>}
+              </button>
+
+              {canSend && (
+                <button
+                  type="button"
+                  onClick={() => { setReplyCtx(null); setComposeOpen(true); }}
+                  aria-label="Compose"
+                  title="Compose"
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-2 transition-colors ${
+                    "text-primary hover:bg-primary/10"
+                  }`}
+                >
+                  <Pencil className="size-4" />
+                  {mobileFoldersOpen && <span className="text-sm whitespace-nowrap">Compose</span>}
+                </button>
               )}
-            </button>
 
-            <button
-              type="button"
-              onClick={() => { setFolder("sent"); setSelectedId(null); setPage(1); }}
-              className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
-                folder === "sent" ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Send className="size-4" /> Sent
-              </span>
-            </button>
+              <button
+                type="button"
+                onClick={() => selectFolder("inbox")}
+                aria-label="Inbox"
+                title="Inbox"
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-2 transition-colors ${
+                  folder === "inbox" && !mobileFoldersOpen ? "text-primary" : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <span className="relative">
+                  <Inbox className="size-4" />
+                  {(unread?.count ?? 0) > 0 && (
+                    <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+                  )}
+                </span>
+                {mobileFoldersOpen && <span className="text-sm whitespace-nowrap">Inbox</span>}
+              </button>
 
-            <button
-              type="button"
-              onClick={() => { setFolder("trash"); setSelectedId(null); setPage(1); }}
-              className={`flex w-full items-center justify-between rounded-md px-3 py-2 transition-colors ${
-                folder === "trash" ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted"
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Trash2 className="size-4" /> Trash
-              </span>
-            </button>
-          </nav>
+              <button
+                type="button"
+                onClick={() => selectFolder("sent")}
+                aria-label="Sent"
+                title="Sent"
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-2 transition-colors ${
+                  folder === "sent" && !mobileFoldersOpen ? "text-primary" : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Send className="size-4" />
+                {mobileFoldersOpen && <span className="text-sm whitespace-nowrap">Sent</span>}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => selectFolder("trash")}
+                aria-label="Trash"
+                title="Trash"
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-2 transition-colors ${
+                  folder === "trash" && !mobileFoldersOpen ? "text-primary" : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                <Trash2 className="size-4" />
+                {mobileFoldersOpen && <span className="text-sm whitespace-nowrap">Trash</span>}
+              </button>
+            </div>
+          </div>
         </aside>
 
-        {/* ── Mail list / reading pane ───────────────────── */}
-        <section className="rounded-xl border bg-card overflow-hidden">
+        {/* ── Mail list ──────────────────────────────────── */}
+        <section className={`min-w-0 rounded-xl border bg-card overflow-hidden ${mobileDetailOpen ? "hidden lg:block" : ""}`}>
           {listLoading ? (
             <div className="space-y-3 p-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -249,7 +359,7 @@ function InboxContent() {
                     <li key={m.id}>
                       <button
                         type="button"
-                        onClick={() => setSelectedId(m.id)}
+                        onClick={() => openMessage(m.id)}
                         className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${
                           isSelected
                             ? "bg-primary/5"
@@ -286,7 +396,7 @@ function InboxContent() {
         </section>
 
         {/* ── Detail pane ────────────────────────────────── */}
-        <section className="rounded-xl border bg-card overflow-hidden">
+        <section className={`min-w-0 rounded-xl border bg-card overflow-hidden ${!selectedId ? "hidden lg:block" : ""}`}>
           {selectedId && detailLoading ? (
             <div className="space-y-4 p-5">
               <Skeleton className="h-6 w-2/3" />
@@ -305,6 +415,9 @@ function InboxContent() {
             <div className="flex h-full flex-col">
               {/* Actions */}
               <div className="flex flex-wrap items-center gap-1 border-b p-2">
+                <Button variant="ghost" size="sm" className="lg:hidden" onClick={backToList}>
+                  <ChevronLeft className="size-4" /> Back
+                </Button>
                 {!isTrashView && (
                   <>
                     <Button variant="ghost" size="sm" onClick={handleReply}>

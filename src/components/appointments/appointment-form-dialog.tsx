@@ -316,7 +316,7 @@ export function AppointmentFormDialog({
                         }
                       }}
                     >
-                      <TabsList className="grid w-full grid-cols-3">
+                      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3">
                         <TabsTrigger value="profile">Person</TabsTrigger>
                         <TabsTrigger value="visitor">Visitor</TabsTrigger>
                         {!isEdit && (

@@ -153,7 +153,7 @@ export function UserFormDialog({
               onSubmit={inviteForm.handleSubmit(handleInviteSubmit)}
               className="space-y-4"
             >
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={inviteForm.control}
                   name="firstName"

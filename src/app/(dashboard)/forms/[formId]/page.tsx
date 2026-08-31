@@ -69,7 +69,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 function DataRow({ label, value }: { label: string; value?: React.ReactNode }) {
   if (!value) return null;
   return (
-    <div className="grid grid-cols-[140px_1fr] gap-2 py-2 text-sm">
+    <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] gap-2 py-2 text-sm">
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="font-medium">{value}</dd>
     </div>
@@ -396,7 +396,7 @@ export default function FormDetailPage() {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

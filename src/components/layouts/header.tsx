@@ -188,7 +188,6 @@ export function Header() {
         {/* header-user with display:contents */}
         <div className="header-user">
           <div className="nav user-menu nav-list">
-            {/* LEFT-ALIGNED group: toggle, search, CRM, settings */}
             <div className="me-auto flex items-center" id="header-search">
               <a
                 id="toggle_btn"
@@ -208,7 +207,7 @@ export function Header() {
                 />
               </a>
 
-              <div className="input-group input-group-flat inline-flex me-2">
+              <div className="input-group input-group-flat inline-flex me-2 max-w-[180px] xl:max-w-none">
                 <span className="input-icon-addon">
                   <IconSearch size={14} />
                 </span>
@@ -260,7 +259,7 @@ export function Header() {
             <div className="header-right flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <a href="#" className="btn-primary-gradient me-1">
+                  <a href="#" className="btn-primary-gradient me-1 hidden xl:inline-flex whitespace-nowrap shrink-0">
                     <IconSparkles size={16} />
                     AI Center
                     <IconChevronDown size={14} />
@@ -374,6 +373,29 @@ export function Header() {
                 </DropdownMenu>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile header actions: notification bell + inbox */}
+        <div className="mobile-header-actions">
+          <div className="me-1 notification_item">
+            <NotificationBell compact />
+          </div>
+          <div className="me-1 notification_item">
+            <ActionTooltip label="Inbox">
+              <Link
+                href="/communication/inbox"
+                className="btn-menubar relative"
+                aria-label="Inbox"
+              >
+                <IconMail size={20} />
+                {emailUnreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
+                    {emailUnreadCount > 99 ? "99+" : emailUnreadCount}
+                  </span>
+                )}
+              </Link>
+            </ActionTooltip>
           </div>
         </div>
 

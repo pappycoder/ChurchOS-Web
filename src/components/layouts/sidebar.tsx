@@ -552,6 +552,16 @@ export function Sidebar() {
     setOpenMenus((prev) => ({ ...prev, ...expanded }));
   }, [pathname]);
 
+  // Close the mobile (off-canvas) sidebar with the Escape key.
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeMobile();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen, closeMobile]);
+
   const toggleMenu = (key: string) => {
     setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
   };

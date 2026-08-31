@@ -28,7 +28,15 @@ import { NotificationDetailDialog } from "@/components/notifications/notificatio
 
 const PREVIEW_LIMIT = 5;
 
-export function NotificationBell() {
+interface NotificationBellProps {
+  /**
+   * Compact trigger for the mobile header. Uses a slightly smaller trigger
+   * size and no outer margin so it fits the narrow mobile actions row.
+   */
+  compact?: boolean;
+}
+
+export function NotificationBell({ compact = false }: NotificationBellProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<Notification | null>(null);
 
@@ -53,11 +61,11 @@ export function NotificationBell() {
 
   return (
     <>
-      <div className="me-2">
+      <div className={compact ? "" : "me-2"}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <a href="#" className="btn-menubar relative me-1" id="notification_popup" aria-label="Notifications">
-              <IconBell size={18} />
+              <IconBell size={compact ? 20 : 18} />
               {unreadCount > 0 && (
                 <span className="notification-status-dot" aria-hidden />
               )}
