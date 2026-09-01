@@ -26,7 +26,9 @@ export default function DashboardLayout({
 
   React.useEffect(() => {
     const resizePageWrapper = () => {
-      const pageWrapper = document.querySelector(".page-wrapper") as HTMLElement | null;
+      const pageWrapper = document.querySelector(
+        ".page-wrapper",
+      ) as HTMLElement | null;
       if (pageWrapper) {
         pageWrapper.style.minHeight = `${window.innerHeight}px`;
       }
