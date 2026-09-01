@@ -3,7 +3,6 @@
 import * as React from "react";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
-import { SettingsPanel } from "@/components/layouts/settings-panel";
 import { TopProgressBar } from "@/components/layouts/top-progress-bar";
 import { useSettings } from "@/contexts/settings-context";
 import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
@@ -45,7 +44,6 @@ export default function DashboardLayout({
       </div>
       <Sidebar />
       <Header />
-      <SettingsPanel />
 
       <main className="page-wrapper">
         <div className="px-4 pt-4 pb-0 md:px-6 md:pt-6 md:pb-6">

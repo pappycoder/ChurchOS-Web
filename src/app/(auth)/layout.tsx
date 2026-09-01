@@ -4,7 +4,6 @@ import "./auth.css";
 
 import { motion, useReducedMotion } from "motion/react";
 import { Users, BarChart3, Sparkles } from "lucide-react";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { BrandLogo } from "@/components/shared/brand-logo";
 
 export default function AuthLayout({
@@ -150,8 +149,6 @@ export default function AuthLayout({
         </div>
       </div>
 
-      {/* Floating Theme Toggle */}
-      <ThemeToggle />
     </div>
   );
 }
