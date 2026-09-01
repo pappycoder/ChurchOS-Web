@@ -56,6 +56,12 @@ jobs:
     needs: lint
     env:
       NEXT_TELEMETRY_DISABLED: '1'
+      # Sentry — source map upload + client DSN at build time. Secrets are
+      # optional: the build stays green until they are configured in GitHub.
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

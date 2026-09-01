@@ -45,6 +45,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# sentry
+.sentryclirc
+
 # vercel
 .vercel
 

@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withSerwistInit from "@serwist/next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 const withSerwist = withSerwistInit({
   // Note: This is only an option in the webpack plugin. In the Vite plugin,
@@ -15,4 +16,32 @@ const nextConfig: NextConfig = withSerwist({
   /* config options here */
 });
 
-export default nextConfig;
+// Sentry must wrap outermost. Build-time instrumentation + source map upload
+// are applied here; runtime SDKs are initialized in src/instrumentation*.ts.
+// org/project/authToken are read from env so the build stays green without them
+// (source map upload is simply skipped until SENTRY_AUTH_TOKEN is provided).
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Only print upload/log info in CI.
+  silent: !process.env.CI,
+
+  // Keep source maps out of the browser; Sentry uploads them and strips the
+  // <sourceMappingURL> refs from browser bundles (and removes them after upload)
+  // so they are only used for readable stack traces in the Sentry dashboard.
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+
+  // Auto-instrument App Router pages/components + middleware, and tree-shake
+  // Sentry's debug logging from the production bundle.
+  webpack: {
+    autoInstrumentAppDirectory: true,
+    autoInstrumentMiddleware: true,
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
+});
