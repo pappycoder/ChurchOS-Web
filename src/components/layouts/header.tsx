@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { useAuth } from "@/hooks/use-auth";
@@ -101,7 +102,8 @@ const HORIZONTAL_NAV: HorizontalNavItem[] = [
 ];
 
 export function Header() {
-  const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } = useSidebar();
+  const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } =
+    useSidebar();
   const { settings } = useSettings();
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
@@ -112,7 +114,10 @@ export function Header() {
   const emailUnreadCount = emailUnread?.count ?? 0;
 
   const visibleNav = React.useMemo(
-    () => HORIZONTAL_NAV.filter((item) => !item.permission || canAny(item.permission)),
+    () =>
+      HORIZONTAL_NAV.filter(
+        (item) => !item.permission || canAny(item.permission),
+      ),
     [canAny],
   );
 
@@ -120,9 +125,10 @@ export function Header() {
     [currentProfile?.firstName, currentProfile?.lastName]
       .filter(Boolean)
       .join(" ") || "My Account";
-  const initials = `${currentProfile?.firstName?.charAt(0) ?? ""}${
-    currentProfile?.lastName?.charAt(0) ?? ""
-  }`.toUpperCase() || "U";
+  const initials =
+    `${currentProfile?.firstName?.charAt(0) ?? ""}${
+      currentProfile?.lastName?.charAt(0) ?? ""
+    }`.toUpperCase() || "U";
 
   const handleLogout = async () => {
     await logout();
@@ -149,9 +155,12 @@ export function Header() {
     }
   };
 
-  const isHorizontal = ["horizontal", "horizontal-single", "horizontal-overlay", "horizontal-sidemenu"].includes(
-    settings.layout
-  );
+  const isHorizontal = [
+    "horizontal",
+    "horizontal-single",
+    "horizontal-overlay",
+    "horizontal-sidemenu",
+  ].includes(settings.layout);
 
   return (
     <header className="header">
@@ -159,25 +168,20 @@ export function Header() {
         {/* Logo — hidden on desktop via CSS, visible on mobile */}
         <div className="header-left">
           <Link href="/dashboard" className="logo">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-bold">C</span>
-              </div>
-              <span className="text-lg font-bold text-foreground">ChurchOS</span>
-            </div>
+            <BrandLogo emblemClassName="h-20" />
           </Link>
           <Link href="/dashboard" className="logo dark-logo">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-bold">C</span>
-              </div>
-              <span className="text-lg font-bold text-foreground">ChurchOS</span>
-            </div>
+            <BrandLogo emblemClassName="h-20" />
           </Link>
         </div>
 
         {/* Mobile hamburger */}
-        <a id="mobile_btn" className="mobile_btn" href="#sidebar" onClick={handleMobileToggle}>
+        <a
+          id="mobile_btn"
+          className="mobile_btn"
+          href="#sidebar"
+          onClick={handleMobileToggle}
+        >
           <span className="bar-icon">
             <span></span>
             <span></span>
@@ -211,7 +215,11 @@ export function Header() {
                 <span className="input-icon-addon">
                   <IconSearch size={14} />
                 </span>
-                <input type="text" className="form-control" placeholder="Search in ChurchOS" />
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search in ChurchOS"
+                />
               </div>
 
               <Link href="/admin/settings" className="btn-menubar">
@@ -221,7 +229,10 @@ export function Header() {
 
             {/* Horizontal Single Menu */}
             {isHorizontal && (
-              <div className="sidebar sidebar-horizontal" id="horizontal-single">
+              <div
+                className="sidebar sidebar-horizontal"
+                id="horizontal-single"
+              >
                 <div className="sidebar-menu">
                   <div className="main-menu">
                     <ul className="nav-menu">
@@ -259,7 +270,10 @@ export function Header() {
             <div className="header-right flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <a href="#" className="btn-primary-gradient me-1 hidden xl:inline-flex whitespace-nowrap shrink-0">
+                  <a
+                    href="#"
+                    className="btn-primary-gradient me-1 hidden xl:inline-flex whitespace-nowrap shrink-0"
+                  >
                     <IconSparkles size={16} />
                     AI Center
                     <IconChevronDown size={14} />
@@ -267,7 +281,11 @@ export function Header() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="app-launcher" align="end">
                   {AI_LINKS.map((link) => (
-                    <Link key={link.href} href={link.href} className="app-launcher-item">
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="app-launcher-item"
+                    >
                       {link.title}
                     </Link>
                   ))}
@@ -275,13 +293,21 @@ export function Header() {
               </DropdownMenu>
 
               <div className="me-2">
-                <ActionTooltip label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}>
+                <ActionTooltip
+                  label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
                   <button
                     className="btn-menubar btnFullscreen"
                     onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                    aria-label={
+                      isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
+                    }
                   >
-                    {isFullscreen ? <IconMinimize size={18} /> : <IconMaximize size={18} />}
+                    {isFullscreen ? (
+                      <IconMinimize size={18} />
+                    ) : (
+                      <IconMaximize size={18} />
+                    )}
                   </button>
                 </ActionTooltip>
               </div>
@@ -317,12 +343,18 @@ export function Header() {
                             src={currentProfile?.avatarUrl}
                             alt={displayName}
                           />
-                          <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                          <AvatarFallback className="text-xs font-semibold">
+                            {initials}
+                          </AvatarFallback>
                         </Avatar>
                       </span>
                     </a>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="dropdown-menu shadow-none p-0" align="end" style={{ minWidth: 240 }}>
+                  <DropdownMenuContent
+                    className="dropdown-menu shadow-none p-0"
+                    align="end"
+                    style={{ minWidth: 240 }}
+                  >
                     <div className="card mb-0 border-0 shadow-none">
                       <div className="card-header">
                         <div className="flex items-center gap-3">
@@ -332,11 +364,15 @@ export function Header() {
                                 src={currentProfile?.avatarUrl}
                                 alt={displayName}
                               />
-                              <AvatarFallback className="text-sm font-semibold">{initials}</AvatarFallback>
+                              <AvatarFallback className="text-sm font-semibold">
+                                {initials}
+                              </AvatarFallback>
                             </Avatar>
                           </span>
                           <div>
-                            <h5 className="font-semibold m-0 text-sm">{displayName}</h5>
+                            <h5 className="font-semibold m-0 text-sm">
+                              {displayName}
+                            </h5>
                             <p className="text-muted-foreground m-0 text-xs font-medium">
                               {currentProfile?.email || "—"}
                             </p>
@@ -350,12 +386,18 @@ export function Header() {
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/admin/settings" className="dropdown-item py-2">
+                          <Link
+                            href="/admin/settings"
+                            className="dropdown-item py-2"
+                          >
                             <IconSettings size={16} /> Account Settings
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href="/knowledge-base" className="dropdown-item py-2">
+                          <Link
+                            href="/knowledge-base"
+                            className="dropdown-item py-2"
+                          >
                             <IconQuestionMark size={16} /> Knowledge Base
                           </Link>
                         </DropdownMenuItem>

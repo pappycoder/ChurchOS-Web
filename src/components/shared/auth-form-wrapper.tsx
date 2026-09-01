@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
-import Image from "next/image";
+import { motion } from "motion/react";
+import { fadeUp, staggerContainer } from "@/lib/auth-motion";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 interface AuthFormWrapperProps {
   heading: string;
@@ -15,35 +19,43 @@ export function AuthFormWrapper({
   footer,
 }: AuthFormWrapperProps) {
   return (
-    <>
+    <motion.div
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+      className="flex h-full flex-col py-6"
+    >
       {/* Logo at top */}
-      <div className="text-center mb-5">
-        <Link href="/" className="inline-block">
-          <Image src="/auth/logo.svg" alt="ChurchOS" width={140} height={40} className="w-auto h-auto" priority />
+      <motion.div variants={fadeUp} className="mb-8 flex justify-center">
+        <Link href="/" aria-label="ChurchOS home">
+          <motion.div
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          >
+            <BrandLogo emblemClassName="h-24" />
+          </motion.div>
         </Link>
-      </div>
+      </motion.div>
 
       {/* Form content in middle */}
-      <div className="flex-grow flex flex-col justify-center">
-        <div className="text-center mb-3">
-          <h2 className="mb-2 font-bold text-2xl" style={{ color: "#202C4B", fontSize: "24px" }}>
-            {heading}
-          </h2>
-          <p className="mb-0 text-sm" style={{ color: "#6B7280" }}>
+      <div className="flex flex-1 flex-col justify-center">
+        <motion.div variants={fadeUp} className="mb-6 text-center">
+          <h2 className="text-2xl font-bold text-foreground">{heading}</h2>
+          <p className="mx-auto mt-1.5 text-sm text-muted-foreground">
             {subtitle}
           </p>
-        </div>
-        {children}
+        </motion.div>
+        <motion.div variants={fadeUp}>{children}</motion.div>
       </div>
 
       {/* Footer at bottom */}
-      <div className="mt-12 pb-6 text-center">
+      <motion.div variants={fadeUp} className="pt-8 pb-4 text-center">
         {footer ?? (
-          <p className="text-sm" style={{ color: "#111827" }}>
+          <p className="text-sm text-muted-foreground">
             Copyright &copy; 2026 - ChurchOS
           </p>
         )}
-      </div>
-    </>
+      </motion.div>
+    </motion.div>
   );
 }

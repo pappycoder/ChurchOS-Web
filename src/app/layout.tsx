@@ -25,6 +25,15 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-64.png", sizes: "64x64", type: "image/png" },
+      { url: "/favicon-128.png", sizes: "128x128", type: "image/png" },
+      { url: "/favicon-256.png", sizes: "256x256", type: "image/png" },
+      {
+        url: "/brand/churchos-favicon-white.png",
+        sizes: "1024x1024",
+        type: "image/png",
+      },
       { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
@@ -92,10 +101,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(
-        roboto.variable,
-        "h-full antialiased"
-      )}
+      className={cn(roboto.variable, "h-full antialiased")}
       suppressHydrationWarning
     >
       <head>

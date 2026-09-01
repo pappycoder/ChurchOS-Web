@@ -198,6 +198,20 @@ button:not(:disabled):not([aria-disabled="true"]),
   --primary: oklch(0.669 0.198 27.358); /* #F26522 */
 }
 
+.theme-green {
+  --auth-gradient-start: #22c55e;
+  --auth-gradient-end: #14532d;
+  --auth-overlay-bg: rgba(240, 253, 244, 0.25);
+  --primary: #16a34a;
+}
+
+.theme-purple {
+  --auth-gradient-start: #8b5cf6;
+  --auth-gradient-end: #4c1d95;
+  --auth-overlay-bg: rgba(245, 243, 255, 0.25);
+  --primary: #7c3aed;
+}
+
 /* ========================
    SmartHR Login Page
    ======================== */

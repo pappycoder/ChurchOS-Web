@@ -3,9 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
-import { useForgotPassword } from "@/hooks/use-auth";
+import { motion } from "motion/react";
 import { Mail } from "lucide-react";
+
+import { scaleIn } from "@/lib/auth-motion";
+import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
+import { AuthField } from "@/components/shared/auth-field";
+import { Button } from "@/components/ui/button";
+import { useForgotPassword } from "@/hooks/use-auth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState("");
@@ -31,53 +36,40 @@ export default function ForgotPasswordPage() {
       subtitle="If you forgot your password, well, then we'll email you instructions to reset your password."
     >
       {forgotPasswordMutation.isSuccess ? (
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: "rgba(37, 99, 235, 0.1)" }}>
-            <Mail className="w-8 h-8" style={{ color: "var(--primary)" }} />
+        <motion.div variants={scaleIn} initial="hidden" animate="visible" className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+            <Mail className="h-8 w-8 text-primary" />
           </div>
-          <h3 className="font-semibold mb-2" style={{ color: "#202C4B", fontSize: 18 }}>
-            Check your email
-          </h3>
-          <p className="mb-6" style={{ color: "#6B7280", fontSize: 14 }}>
-            We&apos;ve sent a password reset link to <strong>{email}</strong>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">Check your email</h3>
+          <p className="mb-6 text-sm text-muted-foreground">
+            We&apos;ve sent a password reset link to <strong className="text-foreground">{email}</strong>
           </p>
-          <Link href="/login">
-            <button type="button" className="smart-btn w-full" style={{ backgroundColor: "transparent", border: "1px solid #ededed", color: "#374151" }}>
-              Back to Sign In
-            </button>
-          </Link>
-        </div>
+          <Button asChild variant="outline" className="w-full" size="lg">
+            <Link href="/login">Back to Sign In</Link>
+          </Button>
+        </motion.div>
       ) : (
         <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="smart-form-label">Email Address</label>
-            <div className="flex items-stretch">
-              <input
-                type="email"
-                className="smart-form-control flex-1"
-                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
-                <Mail className="w-4 h-4" />
-              </span>
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={forgotPasswordMutation.isPending}>
+          <div className="space-y-4">
+            <AuthField
+              label="Email Address"
+              type="email"
+              icon={<Mail className="h-4 w-4" />}
+              placeholder="Enter your email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            <Button type="submit" size="lg" className="w-full" disabled={forgotPasswordMutation.isPending}>
               {forgotPasswordMutation.isPending ? "Sending..." : "Submit"}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <h6 className="font-normal mb-0" style={{ color: "#202C4B", fontSize: 14 }}>
+            </Button>
+            <div className="text-center text-sm text-muted-foreground">
               Return to{" "}
-              <Link href="/login" className="hover-a">Sign In</Link>
-            </h6>
+              <Link href="/login" className="font-medium text-primary hover:underline">
+                Sign In
+              </Link>
+            </div>
           </div>
         </form>
       )}

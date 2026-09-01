@@ -2,19 +2,23 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { toast } from "sonner";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowLeft, Mail, ShieldCheck, Zap } from "lucide-react";
+
+import { AUTH_EASE } from "@/lib/auth-motion";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
+import { AuthField } from "@/components/shared/auth-field";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useLogin, useVerifyTwoFactor } from "@/hooks/use-auth";
-import { Eye, EyeOff, Mail, ShieldCheck, ArrowLeft } from "lucide-react";
-import { ActionTooltip } from "@/components/ui/tooltip";
 
 export default function LoginPage() {
   const loginMutation = useLogin();
   const verifyMutation = useVerifyTwoFactor();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [showPassword, setShowPassword] = React.useState(false);
   const [rememberMe, setRememberMe] = React.useState(false);
   const [otpStep, setOtpStep] = React.useState(false);
   const [twoFactorEmail, setTwoFactorEmail] = React.useState("");
@@ -36,17 +40,21 @@ export default function LoginPage() {
         },
         onError: (error) => {
           toast.error("Sign in failed", {
-            description: (error as { message: string })?.message || "Invalid email or password.",
+            description:
+              (error as { message: string })?.message ||
+              "Invalid email or password.",
           });
         },
-      }
+      },
     );
   };
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^\d{6}$/.test(otpCode)) {
-      toast.error("Invalid code", { description: "Enter the 6-digit code from your email." });
+      toast.error("Invalid code", {
+        description: "Enter the 6-digit code from your email.",
+      });
       return;
     }
     verifyMutation.mutate(
@@ -54,171 +62,158 @@ export default function LoginPage() {
       {
         onError: (error) => {
           toast.error("Verification failed", {
-            description: (error as { message: string })?.message || "Invalid or expired code.",
+            description:
+              (error as { message: string })?.message ||
+              "Invalid or expired code.",
           });
         },
-      }
+      },
     );
   };
 
   return (
-    <AuthFormWrapper heading={otpStep ? "Verify Your Identity" : "Sign In"} subtitle="Please enter your details to sign in">
-      {otpStep ? (
-        <form onSubmit={handleVerify}>
-          <div className="mb-4 flex items-center gap-3 rounded-[5px] border border-[#E7EAF0] bg-[#F8FAFC] p-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#E7F0FF] text-[#1B84FF]">
-              <ShieldCheck className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-sm font-medium" style={{ color: "#202C4B" }}>
-                Two-factor authentication required
-              </p>
-              <p className="text-xs" style={{ color: "#6B7280" }}>
-                Sent a code to {twoFactorEmail}
-              </p>
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <label className="smart-form-label">Verification Code</label>
-            <div className="flex items-stretch">
-              <input
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]*"
-                maxLength={6}
-                className="smart-form-control flex-1"
-                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
-                placeholder="6-digit code"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                required
-              />
-              <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
-                <ShieldCheck className="w-4 h-4" />
+    <AuthFormWrapper
+      heading={otpStep ? "Verify Your Identity" : "Sign In"}
+      subtitle={
+        otpStep
+          ? "Enter the 6-digit code we emailed to you."
+          : "Please enter your details to sign in"
+      }
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {otpStep ? (
+          <motion.form
+            key="otp"
+            onSubmit={handleVerify}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.35, ease: AUTH_EASE }}
+          >
+            <div className="mb-5 flex items-center gap-3 rounded-lg border bg-muted/40 p-3.5">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <ShieldCheck className="h-5 w-5" />
               </span>
+              <div className="text-left">
+                <p className="text-sm font-medium text-foreground">
+                  Two-factor authentication required
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Sent a code to {twoFactorEmail}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="mb-3">
-            <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={verifyMutation.isPending}>
-              {verifyMutation.isPending ? "Verifying..." : "Verify & Sign In"}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <button
-              type="button"
-              className="inline-flex items-center gap-1 text-sm"
-              style={{ color: "#202C4B" }}
-              onClick={() => {
-                setOtpStep(false);
-                setOtpCode("");
-              }}
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              Back to sign in
-            </button>
-          </div>
-        </form>
-      ) : (
-      <form onSubmit={handleSubmit}>
-        {/* Email */}
-        <div className="mb-3">
-          <label className="smart-form-label">Email Address</label>
-          <div className="flex items-stretch">
-            <input
-              type="email"
-              className="smart-form-control flex-1"
-              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, borderRight: 0 }}
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+            <AuthField
+              label="Verification Code"
+              icon={<ShieldCheck className="h-4 w-4" />}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]*"
+              maxLength={6}
+              placeholder="6-digit code"
+              value={otpCode}
+              onChange={(e) =>
+                setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
               required
             />
-            <span className="flex items-center justify-center px-2.5 bg-white border border-[#ededed] border-l-0 rounded-r-[5px] text-[#6B7280] min-h-[40px]">
-              <Mail className="w-4 h-4" />
-            </span>
-          </div>
-        </div>
 
-        {/* Password */}
-        <div className="mb-3">
-          <label className="smart-form-label">Password</label>
-          <div className="pass-group">
-            <input
-              type={showPassword ? "text" : "password"}
-              className="smart-form-control pr-10"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <ActionTooltip label={showPassword ? "Hide password" : "Show password"}>
+            <div className="mt-5">
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={verifyMutation.isPending}
+              >
+                {verifyMutation.isPending ? "Verifying..." : "Verify & Sign In"}
+              </Button>
+            </div>
+
+            <div className="mt-4 text-center">
               <button
                 type="button"
-                className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                onClick={() => {
+                  setOtpStep(false);
+                  setOtpCode("");
+                }}
               >
-                {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Back to sign in
               </button>
-            </ActionTooltip>
-          </div>
-        </div>
+            </div>
+          </motion.form>
+        ) : (
+          <motion.form
+            key="credentials"
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 24 }}
+            transition={{ duration: 0.35, ease: AUTH_EASE }}
+          >
+            <div className="space-y-4">
+              <AuthField
+                label="Email Address"
+                type="email"
+                icon={<Mail className="h-4 w-4" />}
+                placeholder="Enter your email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <AuthField
+                label="Password"
+                type="password"
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
 
-        {/* Remember Me + Forgot Password */}
-        <div className="flex items-center justify-between mb-3">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              className="smart-checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <span className="smart-checkbox-label">Remember Me</span>
-          </label>
-          <Link href="/forgot-password" className="text-sm" style={{ color: "#E70D0D" }}>
-            Forgot Password?
-          </Link>
-        </div>
+            <div className="mt-4 flex items-center justify-between">
+              <Label className="flex cursor-pointer items-center gap-2 font-normal">
+                <Checkbox
+                  checked={rememberMe}
+                  onCheckedChange={(c) => setRememberMe(c === true)}
+                />
+                Remember Me
+              </Label>
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-destructive hover:underline"
+              >
+                Forgot Password?
+              </Link>
+            </div>
 
-        {/* Sign In Button */}
-        <div className="mb-3">
-          <button type="submit" className="smart-btn smart-btn-primary w-full" disabled={loginMutation.isPending}>
-            {loginMutation.isPending ? "Signing in..." : "Sign In"}
-          </button>
-        </div>
+            <div className="mt-5">
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={loginMutation.isPending}
+              >
+                {loginMutation.isPending ? "Signing in..." : "Sign In"}
+              </Button>
+            </div>
 
-        {/* Create Account */}
-        <div className="text-center">
-          <p className="text-sm" style={{ color: "#202C4B" }}>
-            Don&apos;t have an account?{" "}
-            <Link href="/register" className="hover-a">Create Account</Link>
-          </p>
-        </div>
-
-        {/* Or Divider */}
-        <div className="login-or">
-          <span className="span-or">Or</span>
-        </div>
-
-        {/* Social Login Buttons */}
-        <div className="mt-2">
-          <div className="flex items-center justify-center flex-wrap gap-2">
-            <button type="button" className="social-btn flex-1" style={{ backgroundColor: "#1B84FF", borderColor: "#1B84FF" }}>
-              <Image src="/auth/facebook-logo.svg" alt="Facebook" width={24} height={24} />
-            </button>
-            <button type="button" className="social-btn flex-1" style={{ backgroundColor: "transparent", border: "1px solid #F8F9FA" }}>
-              <Image src="/auth/google-logo.svg" alt="Google" width={24} height={24} />
-            </button>
-            <button type="button" className="social-btn flex-1" style={{ backgroundColor: "#212529", borderColor: "#212529" }}>
-              <Image src="/auth/apple-logo.svg" alt="Apple" width={24} height={24} />
-            </button>
-          </div>
-        </div>
-      </form>
-      )}
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/register"
+                className="font-medium text-primary hover:underline"
+              >
+                Create Account
+              </Link>
+            </div>
+          </motion.form>
+        )}
+      </AnimatePresence>
     </AuthFormWrapper>
   );
 }

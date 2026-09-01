@@ -8,6 +8,7 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BrandLogo } from "@/components/shared/brand-logo";
 import {
   LayoutDashboard,
   Users,
@@ -19,7 +20,6 @@ import {
   Heart,
   Settings,
   UserCog,
-  Home,
   Search,
   Calendar as CalendarIcon,
   MessageSquare,
@@ -81,10 +81,26 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: Users,
         permission: "members:read",
         children: [
-          { title: "All Members", href: "/members", permission: "members:read" },
-          { title: "Add Member", href: "/members/new", permission: "members:create" },
-          { title: "Import Members", href: "/members/import", permission: "members:create" },
-          { title: "Families", href: "/members/families", permission: "families:read" },
+          {
+            title: "All Members",
+            href: "/members",
+            permission: "members:read",
+          },
+          {
+            title: "Add Member",
+            href: "/members/new",
+            permission: "members:create",
+          },
+          {
+            title: "Import Members",
+            href: "/members/import",
+            permission: "members:create",
+          },
+          {
+            title: "Families",
+            href: "/members/families",
+            permission: "families:read",
+          },
         ],
       },
       {
@@ -93,11 +109,31 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: CalendarCheck,
         permission: "attendance:read",
         children: [
-          { title: "Dashboard", href: "/attendance", permission: "attendance:read" },
-          { title: "Services", href: "/attendance/services", permission: "attendance:read" },
-          { title: "Check-In", href: "/attendance/check-in", permission: "attendance:read" },
-          { title: "Records", href: "/attendance/records", permission: "attendance:read" },
-          { title: "Reports", href: "/attendance/reports", permission: "attendance:read" },
+          {
+            title: "Dashboard",
+            href: "/attendance",
+            permission: "attendance:read",
+          },
+          {
+            title: "Services",
+            href: "/attendance/services",
+            permission: "attendance:read",
+          },
+          {
+            title: "Check-In",
+            href: "/attendance/check-in",
+            permission: "attendance:read",
+          },
+          {
+            title: "Records",
+            href: "/attendance/records",
+            permission: "attendance:read",
+          },
+          {
+            title: "Reports",
+            href: "/attendance/reports",
+            permission: "attendance:read",
+          },
         ],
       },
       {
@@ -107,10 +143,26 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "giving:read",
         children: [
           { title: "Dashboard", href: "/giving", permission: "giving:read" },
-          { title: "Categories", href: "/giving/categories", permission: "giving:read" },
-          { title: "Records", href: "/giving/records", permission: "giving:read" },
-          { title: "Reports", href: "/giving/reports", permission: "giving:read" },
-          { title: "Recurring Giving", href: "/giving/recurring", permission: "giving:read" },
+          {
+            title: "Categories",
+            href: "/giving/categories",
+            permission: "giving:read",
+          },
+          {
+            title: "Records",
+            href: "/giving/records",
+            permission: "giving:read",
+          },
+          {
+            title: "Reports",
+            href: "/giving/reports",
+            permission: "giving:read",
+          },
+          {
+            title: "Recurring Giving",
+            href: "/giving/recurring",
+            permission: "giving:read",
+          },
         ],
       },
       {
@@ -120,10 +172,26 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "events:read",
         children: [
           { title: "Calendar", href: "/events", permission: "events:read" },
-          { title: "All Events", href: "/events/list", permission: "events:read" },
-          { title: "Check-In", href: "/events/check-in", permission: "events:update" },
-          { title: "Registrations", href: "/events/registrations", permission: "events:read" },
-          { title: "Tickets", href: "/events/management", permission: "events:read" },
+          {
+            title: "All Events",
+            href: "/events/list",
+            permission: "events:read",
+          },
+          {
+            title: "Check-In",
+            href: "/events/check-in",
+            permission: "events:update",
+          },
+          {
+            title: "Registrations",
+            href: "/events/registrations",
+            permission: "events:read",
+          },
+          {
+            title: "Tickets",
+            href: "/events/management",
+            permission: "events:read",
+          },
         ],
       },
       {
@@ -132,10 +200,26 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: BookOpen,
         permission: "sermons:read",
         children: [
-          { title: "All Sermons", href: "/sermons", permission: "sermons:read" },
-          { title: "Add Sermon", href: "/sermons/new", permission: "sermons:create" },
-          { title: "Series", href: "/sermons/series", permission: "sermons:read" },
-          { title: "Speakers", href: "/sermons/speakers", permission: "sermons:read" },
+          {
+            title: "All Sermons",
+            href: "/sermons",
+            permission: "sermons:read",
+          },
+          {
+            title: "Add Sermon",
+            href: "/sermons/new",
+            permission: "sermons:create",
+          },
+          {
+            title: "Series",
+            href: "/sermons/series",
+            permission: "sermons:read",
+          },
+          {
+            title: "Speakers",
+            href: "/sermons/speakers",
+            permission: "sermons:read",
+          },
         ],
       },
       {
@@ -145,8 +229,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "media:read",
         children: [
           { title: "Library", href: "/media", permission: "media:read" },
-          { title: "Upload", href: "/media/upload", permission: "media:create" },
-          { title: "Folders", href: "/media/folders", permission: "media:read" },
+          {
+            title: "Upload",
+            href: "/media/upload",
+            permission: "media:create",
+          },
+          {
+            title: "Folders",
+            href: "/media/folders",
+            permission: "media:read",
+          },
         ],
       },
       {
@@ -156,9 +248,21 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "pastoral:read",
         children: [
           { title: "Notes", href: "/pastoral", permission: "pastoral:read" },
-          { title: "Life Events", href: "/pastoral/life-events", permission: "pastoral:read" },
-          { title: "Risk Scores", href: "/pastoral/risk-scores", permission: "pastoral:read" },
-          { title: "Engagement", href: "/pastoral/engagement", permission: "pastoral:read" },
+          {
+            title: "Life Events",
+            href: "/pastoral/life-events",
+            permission: "pastoral:read",
+          },
+          {
+            title: "Risk Scores",
+            href: "/pastoral/risk-scores",
+            permission: "pastoral:read",
+          },
+          {
+            title: "Engagement",
+            href: "/pastoral/engagement",
+            permission: "pastoral:read",
+          },
         ],
       },
       {
@@ -167,9 +271,21 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: UserPlus,
         permission: "visitors:read",
         children: [
-          { title: "All Visitors", href: "/visitors", permission: "visitors:read" },
-          { title: "Add Visitor", href: "/visitors/new", permission: "visitors:create" },
-          { title: "Follow-Up", href: "/visitors/follow-up", permission: "visitors:update" },
+          {
+            title: "All Visitors",
+            href: "/visitors",
+            permission: "visitors:read",
+          },
+          {
+            title: "Add Visitor",
+            href: "/visitors/new",
+            permission: "visitors:create",
+          },
+          {
+            title: "Follow-Up",
+            href: "/visitors/follow-up",
+            permission: "visitors:update",
+          },
         ],
       },
     ],
@@ -218,8 +334,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: Building2,
         permission: "departments:read",
         children: [
-          { title: "All Departments", href: "/departments", permission: "departments:read" },
-          { title: "Cell Groups", href: "/departments/cell-groups", permission: "cell_groups:read" },
+          {
+            title: "All Departments",
+            href: "/departments",
+            permission: "departments:read",
+          },
+          {
+            title: "Cell Groups",
+            href: "/departments/cell-groups",
+            permission: "cell_groups:read",
+          },
         ],
       },
       {
@@ -229,8 +353,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "assets:read",
         children: [
           { title: "All Assets", href: "/assets", permission: "assets:read" },
-          { title: "Categories", href: "/assets/categories", permission: "assets:read" },
-          { title: "Maintenance", href: "/assets/maintenance", permission: "assets:read" },
+          {
+            title: "Categories",
+            href: "/assets/categories",
+            permission: "assets:read",
+          },
+          {
+            title: "Maintenance",
+            href: "/assets/maintenance",
+            permission: "assets:read",
+          },
           { title: "Loans", href: "/assets/loans", permission: "assets:read" },
         ],
       },
@@ -241,7 +373,11 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "forms:read",
         children: [
           { title: "All Forms", href: "/forms", permission: "forms:read" },
-          { title: "Submissions", href: "/forms/submissions", permission: "forms:read" },
+          {
+            title: "Submissions",
+            href: "/forms/submissions",
+            permission: "forms:read",
+          },
         ],
       },
       {
@@ -282,8 +418,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: Settings,
         permission: "church_settings:update",
         children: [
-          { title: "General", href: "/admin/settings", permission: "church_settings:update" },
-          { title: "Branches", href: "/admin/branches", permission: "branches:read" },
+          {
+            title: "General",
+            href: "/admin/settings",
+            permission: "church_settings:update",
+          },
+          {
+            title: "Branches",
+            href: "/admin/branches",
+            permission: "branches:read",
+          },
         ],
       },
       {
@@ -292,10 +436,31 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: BarChart3,
         roles: ["church_admin", "senior_pastor", "branch_pastor", "treasurer"],
         children: [
-          { title: "Overview", href: "/analytics", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
-          { title: "Giving", href: "/analytics/giving", roles: ["church_admin", "senior_pastor", "branch_pastor", "treasurer"] },
-          { title: "Attendance", href: "/analytics/attendance", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
-          { title: "Members", href: "/analytics/members", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
+          {
+            title: "Overview",
+            href: "/analytics",
+            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+          },
+          {
+            title: "Giving",
+            href: "/analytics/giving",
+            roles: [
+              "church_admin",
+              "senior_pastor",
+              "branch_pastor",
+              "treasurer",
+            ],
+          },
+          {
+            title: "Attendance",
+            href: "/analytics/attendance",
+            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+          },
+          {
+            title: "Members",
+            href: "/analytics/members",
+            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+          },
         ],
       },
     ],
@@ -384,10 +549,12 @@ function MenuArrow({ open, level }: { open: boolean; level: number }) {
       className={cn(
         "menu-arrow",
         level === 2 && "inside-submenu",
-        level === 3 && "inside-submenu inside-submenu-two"
+        level === 3 && "inside-submenu inside-submenu-two",
       )}
       style={{
-        transform: open ? "translateY(-50%) rotate(90deg)" : "translateY(-50%) rotate(0deg)",
+        transform: open
+          ? "translateY(-50%) rotate(90deg)"
+          : "translateY(-50%) rotate(0deg)",
       }}
     />
   );
@@ -426,7 +593,13 @@ function NavLink({
 
   if (hasChildren) {
     return (
-      <li className={cn("submenu", level >= 2 && "submenu-two", level >= 3 && "submenu-three")}>
+      <li
+        className={cn(
+          "submenu",
+          level >= 2 && "submenu-two",
+          level >= 3 && "submenu-three",
+        )}
+      >
         <a
           href="#"
           className={cn(active && "active", open && "subdrop")}
@@ -438,7 +611,12 @@ function NavLink({
           {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
           <span className="truncate">{item.title}</span>
           {item.badge && (
-            <span className={cn("badge badge-danger ml-auto flex-shrink-0", item.badgeVariant && `badge-${item.badgeVariant}`)}>
+            <span
+              className={cn(
+                "badge badge-danger ml-auto flex-shrink-0",
+                item.badgeVariant && `badge-${item.badgeVariant}`,
+              )}
+            >
               {item.badge}
             </span>
           )}
@@ -462,7 +640,8 @@ function NavLink({
               toggleMenu={toggleMenu}
               isLinkActive={isLinkActive}
             />
-          ))}        </ul>
+          ))}{" "}
+        </ul>
       </li>
     );
   }
@@ -471,13 +650,21 @@ function NavLink({
     <li>
       <Link
         href={item.href || "#"}
-        className={cn("flex items-center gap-2", isLinkActive(item.href) && "active")}
+        className={cn(
+          "flex items-center gap-2",
+          isLinkActive(item.href) && "active",
+        )}
         onClick={closeMobile}
       >
         {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
         <span className="truncate">{item.title}</span>
         {item.badge && (
-          <span className={cn("badge badge-danger ms-auto", item.badgeVariant && `badge-${item.badgeVariant}`)}>
+          <span
+            className={cn(
+              "badge badge-danger ms-auto",
+              item.badgeVariant && `badge-${item.badgeVariant}`,
+            )}
+          >
             {item.badge}
           </span>
         )}
@@ -539,7 +726,7 @@ export function Sidebar() {
           const childActive = item.children.some(
             (child) =>
               pathname === child.href ||
-              (child.href && pathname.startsWith(child.href + "/"))
+              (child.href && pathname.startsWith(child.href + "/")),
           );
           if (childActive) {
             expanded[key] = true;
@@ -588,11 +775,15 @@ export function Sidebar() {
     (href?: string) => {
       if (!href) return false;
       const matches = (candidate?: string) =>
-        !!candidate && (pathname === candidate || pathname.startsWith(candidate + "/"));
+        !!candidate &&
+        (pathname === candidate || pathname.startsWith(candidate + "/"));
       if (!matches(href)) return false;
-      return !leafHrefs.some((other) => other !== href && other.length > href.length && matches(other));
+      return !leafHrefs.some(
+        (other) =>
+          other !== href && other.length > href.length && matches(other),
+      );
     },
-    [pathname, leafHrefs]
+    [pathname, leafHrefs],
   );
 
   const handleMouseEnter = React.useCallback(() => {
@@ -610,7 +801,9 @@ export function Sidebar() {
 
   return (
     <>
-      {mobileOpen && <div className="sidebar-overlay opened" onClick={closeMobile} />}
+      {mobileOpen && (
+        <div className="sidebar-overlay opened" onClick={closeMobile} />
+      )}
 
       <aside
         ref={sidebarRef}
@@ -618,57 +811,58 @@ export function Sidebar() {
           "sidebar",
           collapsed && "mini-sidebar",
           collapsed && hoverExpand && "expand-menu",
-          mobileOpen && "slide-nav"
+          mobileOpen && "slide-nav",
         )}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         <div className="sidebar-logo">
-          <Link href="/dashboard" className="logo logo-normal">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Home className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold text-foreground">ChurchOS</span>
-            </div>
-          </Link>
-          <Link href="/dashboard" className="logo-small">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center mx-auto">
-              <Home className="w-5 h-5 text-primary-foreground" />
-            </div>
+          <Link href="/dashboard" className="logo">
+            <BrandLogo emblemClassName="h-20" />
           </Link>
           <Link href="/dashboard" className="logo dark-logo">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Home className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-bold text-foreground">ChurchOS</span>
-            </div>
+            <BrandLogo emblemClassName="h-20" />
+          </Link>
+          <Link href="/dashboard" className="logo-small">
+            <BrandLogo variant="mark" emblemClassName="h-14 w-14" />
           </Link>
         </div>
 
         {/* Modern Profile */}
         {isModern && (
           <div className="modern-profile p-3 pb-0">
-            <div className="text-center rounded p-3 mb-4 user-profile" style={{ background: "var(--muted)" }}>
+            <div
+              className="text-center rounded p-3 mb-4 user-profile"
+              style={{ background: "var(--muted)" }}
+            >
               <div className="avatar avatar-lg online mb-3">
                 <Avatar className="w-12 h-12">
                   <AvatarImage src="" alt="Img" />
-                  <AvatarFallback className="text-sm font-semibold">AD</AvatarFallback>
+                  <AvatarFallback className="text-sm font-semibold">
+                    AD
+                  </AvatarFallback>
                 </Avatar>
               </div>
               <h6 className="text-xs font-normal mb-1">Admin User</h6>
-              <p className="text-[10px] text-muted-foreground m-0">System Admin</p>
+              <p className="text-[10px] text-muted-foreground m-0">
+                System Admin
+              </p>
             </div>
             <div className="sidebar-nav mb-3">
               <ul className="flex list-none m-0 p-0 bg-transparent rounded">
                 <li className="flex-1">
-                  <a href="#" className="block text-center text-xs font-medium py-1.5 px-2 rounded bg-primary text-primary-foreground">
+                  <a
+                    href="#"
+                    className="block text-center text-xs font-medium py-1.5 px-2 rounded bg-primary text-primary-foreground"
+                  >
                     Menu
                   </a>
                 </li>
                 <li className="flex-1">
-                  <Link href="/communication/inbox" className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted">
+                  <Link
+                    href="/communication/inbox"
+                    className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted"
+                  >
                     Inbox
                   </Link>
                 </li>
@@ -686,7 +880,9 @@ export function Sidebar() {
             <div className="avatar avatar-md online">
               <Avatar className="w-9 h-9">
                 <AvatarImage src="" alt="Img" />
-                <AvatarFallback className="text-xs font-semibold">AD</AvatarFallback>
+                <AvatarFallback className="text-xs font-semibold">
+                  AD
+                </AvatarFallback>
               </Avatar>
             </div>
             <div className="text-start sidebar-profile-info ms-2">
@@ -699,7 +895,11 @@ export function Sidebar() {
             <span className="input-icon-addon">
               <Search size={14} />
             </span>
-            <input type="text" className="form-control" placeholder="Search in ChurchOS" />
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search in ChurchOS"
+            />
           </div>
 
           <div className="flex items-center justify-between menu-item mb-3">
