@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import {
@@ -678,12 +679,21 @@ export function Sidebar() {
   const { collapsed, mobileOpen, closeMobile } = useSidebar();
   const { settings } = useSettings();
   const { ready, can, hasRole } = usePermissions();
+  const { data: currentProfile } = useCurrentProfile();
   const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
   const [hoverExpand, setHoverExpand] = React.useState(false);
   const sidebarRef = React.useRef<HTMLElement>(null);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const isModern = settings.layout === "modern";
+
+  const profileName = currentProfile
+    ? `${currentProfile.firstName ?? ""} ${currentProfile.lastName ?? ""}`.trim() ||
+      "Admin User"
+    : "Admin User";
+  const profileRole = currentProfile?.role?.[0] || "Administrator";
+  const profileInitials = (currentProfile?.firstName?.[0] ?? "") +
+    `${currentProfile?.lastName?.[0] ?? ""}`.toUpperCase() || "AD";
 
   // Permission-filtered nav: items without a gate stay visible; gated items
   // require their permission (or legacy role). Parents survive only when at
@@ -837,15 +847,15 @@ export function Sidebar() {
             >
               <div className="avatar avatar-lg online mb-3">
                 <Avatar className="w-12 h-12">
-                  <AvatarImage src="" alt="Img" />
+                  <AvatarImage src={currentProfile?.avatarUrl ?? ""} alt={profileName} />
                   <AvatarFallback className="text-sm font-semibold">
-                    AD
+                    {profileInitials}
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <h6 className="text-xs font-normal mb-1">Admin User</h6>
+              <h6 className="text-xs font-normal mb-1">{profileName}</h6>
               <p className="text-[10px] text-muted-foreground m-0">
-                System Admin
+                {profileRole}
               </p>
             </div>
             <div className="sidebar-nav mb-3">
@@ -879,15 +889,15 @@ export function Sidebar() {
           >
             <div className="avatar avatar-md online">
               <Avatar className="w-9 h-9">
-                <AvatarImage src="" alt="Img" />
+                <AvatarImage src={currentProfile?.avatarUrl ?? ""} alt={profileName} />
                 <AvatarFallback className="text-xs font-semibold">
-                  AD
+                  {profileInitials}
                 </AvatarFallback>
               </Avatar>
             </div>
             <div className="text-start sidebar-profile-info ms-2">
-              <h6>Admin User</h6>
-              <p>System Admin</p>
+              <h6>{profileName}</h6>
+              <p>{profileRole}</p>
             </div>
           </div>
 

@@ -175,7 +175,18 @@ export function NotificationsDrawer({
         <SheetHeader className="px-5 py-4 border-b border-border">
           <SheetTitle className="flex items-center justify-between">
             <span>All notifications</span>
-            <Badge variant="secondary">{total}</Badge>
+            <span className="flex items-center gap-2">
+              <Badge variant="secondary">{total}</Badge>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onOpenChange(false)}
+                aria-label="Close notifications"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </span>
           </SheetTitle>
           <SheetDescription>Your in-app activity and updates.</SheetDescription>
         </SheetHeader>

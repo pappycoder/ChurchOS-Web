@@ -64,6 +64,7 @@ import { MemberCombobox } from "@/components/members/member-combobox";
 import { VisitorCombobox } from "@/components/visitors/visitor-combobox";
 import { useCreateVisitor } from "@/hooks/use-visitors";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { generateTicketPDF } from "@/lib/ticket-pdf";
 
 // ─── Status Badge ─────────────────────────────────────────
@@ -86,26 +87,33 @@ function TicketStatusBadge({ status }: { status: string }) {
 // ─── Main Page ────────────────────────────────────────────
 
 export default function ManagementPage() {
+  const { ready, can } = usePermissions();
+  const canCreate = can("events", "create");
+
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Tickets"
+        title={canCreate ? "Tickets" : "My Tickets"}
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Events", href: "/events" },
-          { label: "Tickets" },
+          { label: canCreate ? "Tickets" : "My Tickets" },
         ]}
       />
 
-      <Tabs defaultValue="types">
-        <TabsList>
-          <TabsTrigger value="types">Ticket Types</TabsTrigger>
-          <TabsTrigger value="assigned">Assigned Tickets</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue={canCreate ? "types" : "assigned"}>
+        {canCreate && (
+          <TabsList>
+            <TabsTrigger value="types">Ticket Types</TabsTrigger>
+            <TabsTrigger value="assigned">Assigned Tickets</TabsTrigger>
+          </TabsList>
+        )}
 
-        <TabsContent value="types">
-          <TicketTypesTab />
-        </TabsContent>
+        {canCreate && (
+          <TabsContent value="types">
+            <TicketTypesTab />
+          </TabsContent>
+        )}
 
         <TabsContent value="assigned">
           <AssignedTicketsTab />
@@ -470,6 +478,7 @@ function AssignedTicketsTab() {
   const [page, setPage] = React.useState(1);
   const [limit, setLimit] = React.useState(25);
   const [assignOpen, setAssignOpen] = React.useState(false);
+  const [claimOpen, setClaimOpen] = React.useState(false);
 
   const eventsQuery = useEventsSummary();
   const events = eventsQuery.data?.data ?? [];
@@ -503,10 +512,15 @@ function AssignedTicketsTab() {
       }
       description="View and manage individual tickets assigned to members."
       action={
-        canCreate && (
+        canCreate ? (
           <Button onClick={() => setAssignOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Assign Ticket
+          </Button>
+        ) : (
+          <Button onClick={() => setClaimOpen(true)}>
+            <Ticket className="h-4 w-4 mr-2" />
+            Claim a Ticket
           </Button>
         )
       }
@@ -606,7 +620,22 @@ function AssignedTicketsTab() {
         onOpenChange={setAssignOpen}
         events={events}
       />
+
+      <ClaimTicketDialog
+        open={claimOpen}
+        onOpenChange={setClaimOpen}
+        events={events}
+        assignedEventIds={assignedEventIds(tickets)}
+      />
     </TableCard>
+  );
+}
+
+function assignedEventIds(tickets: AllTicketItem[]): Set<string> {
+  return new Set(
+    tickets
+      .filter((t) => t.status !== "cancelled" && t.status !== "refunded")
+      .map((t) => t.eventId),
   );
 }
 
@@ -1027,6 +1056,179 @@ function AssignTicketDialog({
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
             {createTicket.isPending ? "Assigning..." : "Assign Ticket"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Claim Ticket Dialog (member self-assign) ─────────────
+
+function ClaimTicketDialog({
+  open,
+  onOpenChange,
+  events,
+  assignedEventIds,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  events: EventItem[];
+  assignedEventIds: Set<string>;
+}) {
+  const { data: currentProfile } = useCurrentProfile();
+
+  const [selectedEventId, setSelectedEventId] = React.useState("");
+  const [selectedTierId, setSelectedTierId] = React.useState("");
+
+  const eligibleEvents = React.useMemo(() => {
+    if (!currentProfile?.branchId) {
+      // No branch on record — fall back to church-wide events only.
+      return events.filter((e) => !e.branchId);
+    }
+    // Members can only claim tickets for events in their own branch,
+    // or church-wide events (no branch). Already-having a ticket is blocked below.
+    return events.filter(
+      (e) => !e.branchId || e.branchId === currentProfile.branchId,
+    );
+  }, [events, currentProfile?.branchId]);
+
+  const claimableEvents = eligibleEvents.filter(
+    (e) => !assignedEventIds.has(e.eventId),
+  );
+
+  const createTicket = useCreateTicket();
+  const tiersQuery = useEventTiers(selectedEventId);
+
+  const tiers = React.useMemo(() => {
+    if (!selectedEventId) return [] as EventTicketTier[];
+    return tiersQuery.data ?? [];
+  }, [selectedEventId, tiersQuery.data]);
+
+  const selectedEvent = React.useMemo(
+    () => claimableEvents.find((e) => e.eventId === selectedEventId),
+    [claimableEvents, selectedEventId],
+  );
+
+  React.useEffect(() => {
+    if (open) {
+      setSelectedEventId("");
+      setSelectedTierId("");
+    }
+  }, [open]);
+
+  React.useEffect(() => {
+    setSelectedTierId("");
+  }, [selectedEventId]);
+
+  const canSubmit = !!selectedEventId && !createTicket.isPending;
+
+  const handleSubmit = async () => {
+    if (!canSubmit || !currentProfile?.memberId) return;
+
+    try {
+      await createTicket.mutateAsync({
+        eventId: selectedEventId,
+        input: {
+          memberId: currentProfile.memberId,
+          tierId: selectedTierId || undefined,
+        },
+      });
+      toast.success("Ticket claimed successfully");
+      onOpenChange(false);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to claim ticket";
+      toast.error(message);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Claim a Ticket</DialogTitle>
+          <DialogDescription>
+            Claim an available ticket for yourself. You can hold at most one ticket
+            per event, for events in your branch.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Event *</Label>
+            <Select
+              value={selectedEventId}
+              onValueChange={setSelectedEventId}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    claimableEvents.length === 0
+                      ? "No available tickets"
+                      : "Select an event"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {claimableEvents.length === 0 && (
+                  <div className="py-2 px-2 text-sm text-muted-foreground">
+                    No events available to claim. You may already hold a ticket
+                    for each eligible event.
+                  </div>
+                )}
+                {claimableEvents.map((ev) => (
+                  <SelectItem key={ev.eventId} value={ev.eventId}>
+                    {ev.title}
+                    {ev.isFree
+                      ? " (Free)"
+                      : ` (₦${ev.price?.toLocaleString() ?? 0})`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!currentProfile?.memberId && (
+              <p className="text-xs text-muted-foreground">
+                No linked member profile found. Contact your church admin to
+                assign a ticket.
+              </p>
+            )}
+          </div>
+
+          {selectedEvent && !selectedEvent.isFree && tiers.length > 0 && (
+            <div className="space-y-2">
+              <Label>Ticket Type</Label>
+              <Select value={selectedTierId} onValueChange={setSelectedTierId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={tiers[0]?.name ?? "Select a type"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {tiers.map((tier) => (
+                    <SelectItem key={tier.id} value={tier.id}>
+                      {tier.name} — ₦{tier.price.toLocaleString()}
+                      {tier.capacity != null &&
+                        ` (${tier.capacity} capacity)`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={createTicket.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!canSubmit || !currentProfile?.memberId}
+          >
+            {createTicket.isPending ? "Claiming..." : "Claim Ticket"}
           </Button>
         </DialogFooter>
       </DialogContent>
