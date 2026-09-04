@@ -60,6 +60,7 @@ import {
   type ListSermonsParams,
 } from "@/hooks/use-sermons";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useIsMember } from "@/hooks/use-is-member";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
@@ -82,6 +83,7 @@ function formatDuration(seconds?: number | null): string {
 function SermonsListContent() {
   const router = useRouter();
   const { can } = usePermissions();
+  const { isMember } = useIsMember();
   const canCreate = can("sermons", "create");
   const canUpdate = can("sermons", "update");
   const canDelete = can("sermons", "delete");
@@ -208,22 +210,24 @@ function SermonsListContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Sermons" }]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              columns={[
-                { key: "title", label: "Title" },
-                { key: "speaker", label: "Speaker" },
-                { key: "date", label: "Date" },
-                { key: "series", label: "Series" },
-                { key: "scripture", label: "Scripture" },
-                { key: "duration", label: "Duration" },
-                { key: "tags", label: "Tags" },
-              ]}
-              data={buildExportRows(sermons)}
-              fetchAllRows={fetchAllExportRows}
-              title="Sermons"
-              filename="sermons-export"
-              disabled={sermons.length === 0}
-            />
+            {!isMember && (
+              <ExportDropdown
+                columns={[
+                  { key: "title", label: "Title" },
+                  { key: "speaker", label: "Speaker" },
+                  { key: "date", label: "Date" },
+                  { key: "series", label: "Series" },
+                  { key: "scripture", label: "Scripture" },
+                  { key: "duration", label: "Duration" },
+                  { key: "tags", label: "Tags" },
+                ]}
+                data={buildExportRows(sermons)}
+                fetchAllRows={fetchAllExportRows}
+                title="Sermons"
+                filename="sermons-export"
+                disabled={sermons.length === 0}
+              />
+            )}
             {canCreate && (
               <Button onClick={() => router.push("/sermons/new")}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -251,7 +255,9 @@ function SermonsListContent() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              {!isMember && (
+                <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              )}
             {(speaker || series) && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">Filtered by:</span>

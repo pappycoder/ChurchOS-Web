@@ -32,6 +32,20 @@ export const DOCS_SECTIONS: DocsSection[] = [
   { id: "permissions-matrix", label: "Permissions Matrix" },
 ];
 
+/** Sections a `member` may view (subset of DOCS_SECTIONS). */
+const MEMBER_DOC_SECTIONS = new Set([
+  "getting-started",
+  "events",
+  "sermons",
+  "media",
+]);
+
+/** Returns the docs section list appropriate for the viewer's role. */
+export function docsSectionsForRole(isMember: boolean): DocsSection[] {
+  if (!isMember) return DOCS_SECTIONS;
+  return DOCS_SECTIONS.filter((s) => MEMBER_DOC_SECTIONS.has(s.id));
+}
+
 export function DocsSideNav({
   sections,
   activeId,

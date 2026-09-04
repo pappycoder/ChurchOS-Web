@@ -1121,16 +1121,22 @@ function ClaimTicketDialog({
     setSelectedTierId("");
   }, [selectedEventId]);
 
-  const canSubmit = !!selectedEventId && !createTicket.isPending;
+  const requiresTier =
+    !!selectedEvent && !selectedEvent.isFree && tiers.length > 0;
+
+  const canSubmit =
+    !!selectedEventId &&
+    (!requiresTier || !!selectedTierId) &&
+    !createTicket.isPending;
 
   const handleSubmit = async () => {
-    if (!canSubmit || !currentProfile?.memberId) return;
+    if (!canSubmit) return;
 
     try {
       await createTicket.mutateAsync({
         eventId: selectedEventId,
         input: {
-          memberId: currentProfile.memberId,
+          memberId: currentProfile?.memberId,
           tierId: selectedTierId || undefined,
         },
       });
@@ -1187,12 +1193,10 @@ function ClaimTicketDialog({
                 ))}
               </SelectContent>
             </Select>
-            {!currentProfile?.memberId && (
-              <p className="text-xs text-muted-foreground">
-                No linked member profile found. Contact your church admin to
-                assign a ticket.
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">
+              Your ticket will be assigned to your member profile. If you have
+              no linked profile yet, one is created automatically on claim.
+            </p>
           </div>
 
           {selectedEvent && !selectedEvent.isFree && tiers.length > 0 && (
@@ -1226,7 +1230,7 @@ function ClaimTicketDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!canSubmit || !currentProfile?.memberId}
+            disabled={!canSubmit}
           >
             {createTicket.isPending ? "Claiming..." : "Claim Ticket"}
           </Button>

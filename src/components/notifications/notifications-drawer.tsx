@@ -171,7 +171,7 @@ export function NotificationsDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
+      <SheetContent side="right" showCloseButton={false} className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="px-5 py-4 border-b border-border">
           <SheetTitle className="flex items-center justify-between">
             <span>All notifications</span>
@@ -180,7 +180,7 @@ export function NotificationsDrawer({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent"
                 onClick={() => onOpenChange(false)}
                 aria-label="Close notifications"
               >

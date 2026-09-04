@@ -58,6 +58,7 @@ import {
   type MediaSortBy,
 } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useIsMember } from "@/hooks/use-is-member";
 import { cn } from "@/lib/utils";
 
 const KIND_FILTERS: { value: "all" | "image" | "audio" | "video" | "document"; label: string }[] = [
@@ -203,6 +204,7 @@ function MediaCard({
 function MediaLibraryContent() {
   const router = useRouter();
   const { can } = usePermissions();
+  const { isMember } = useIsMember();
   const canCreate = can("media", "create");
   const canUpdate = can("media", "update");
   const canDelete = can("media", "delete");
@@ -251,7 +253,11 @@ function MediaLibraryContent() {
   const deleteMutation = useDeleteMediaAsset();
   const permissionsMutation = useUpdateMediaPermissions();
 
-  const assets = React.useMemo(() => data?.data ?? [], [data]);
+  const assets = React.useMemo(() => {
+    const list = data?.data ?? [];
+    // Members only see public/members assets; leadership assets are staff-only.
+    return isMember ? list.filter((a) => a.permissions !== "leadership") : list;
+  }, [data, isMember]);
   const total = data?.total ?? 0;
   const folders = foldersQuery.data ?? [];
 
@@ -383,7 +389,9 @@ function MediaLibraryContent() {
               }}
               className="h-8 rounded-md border border-input bg-background px-2 text-sm"
             >
-              {PERMISSION_FILTERS.map((p) => (
+              {PERMISSION_FILTERS.filter(
+                (p) => p.value !== "leadership" || !isMember,
+              ).map((p) => (
                 <option key={p.value || "all"} value={p.value}>
                   {p.label}
                 </option>
