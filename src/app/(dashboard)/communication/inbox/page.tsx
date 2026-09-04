@@ -386,7 +386,7 @@ function InboxContent() {
                         }`}
                       >
                         <Avatar className={`size-9 ${unreadMsg ? "ring-2 ring-primary/30" : ""}`}>
-                          <AvatarImage src={undefined} alt={senderLabel} />
+                          <AvatarImage src={m.senderAvatarUrl} alt={senderLabel} />
                           <AvatarFallback>
                             {initials(senderLabel) || <UserRound className="size-4" />}
                           </AvatarFallback>
@@ -476,7 +476,7 @@ function InboxContent() {
               <div className="flex-1 overflow-y-auto p-5">
                 <div className="mb-4 flex items-start gap-3">
                   <Avatar className="size-10">
-                    <AvatarImage src={undefined} alt={detail.senderName ?? ""} />
+                    <AvatarImage src={detail.senderAvatarUrl} alt={detail.senderName ?? ""} />
                     <AvatarFallback>
                       {initials(detail.senderName ?? "?") || <UserRound className="size-4" />}
                     </AvatarFallback>

@@ -50,6 +50,8 @@ import {
   type EventAttendanceRecord,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useIsMember } from "@/hooks/use-is-member";
+import { EmptyState } from "@/components/shared/empty-state";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -73,6 +75,7 @@ export default function EventDetailPage({
   const { eventId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
+  const { isMember } = useIsMember();
   const canUpdate = can("events", "update");
   const canDelete = can("events", "delete");
 
@@ -106,6 +109,18 @@ export default function EventDetailPage({
 
   const isLoading = eventQuery.isLoading || statsQuery.isLoading;
   const event = eventQuery.data;
+
+  if (isMember) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <EmptyState
+          icon={<AlertTriangle className="h-12 w-12" />}
+          title="Access denied"
+          description="You don't have permission to view this page. Contact your church admin if you believe this is a mistake."
+        />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

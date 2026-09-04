@@ -48,16 +48,18 @@ function PersonRow({
   role,
   isPastor,
   isVisitor,
+  avatarUrl,
 }: {
   name?: string;
   role?: string;
   isPastor: boolean;
   isVisitor?: boolean;
+  avatarUrl?: string;
 }) {
   return (
     <div className="flex items-center gap-3">
       <Avatar className="size-9">
-        <AvatarImage src={undefined} alt={name ?? ""} />
+        <AvatarImage src={avatarUrl} alt={name ?? ""} />
         <AvatarFallback>
           {initials(name ?? "?") || <UserRound className="size-4" />}
         </AvatarFallback>
@@ -119,6 +121,7 @@ export function AppointmentDetailDialog({
                   name={appointment.pastorName}
                   role={appointment.pastorRole}
                   isPastor
+                  avatarUrl={appointment.pastorAvatarUrl}
                 />
               </div>
               <div>
@@ -134,6 +137,7 @@ export function AppointmentDetailDialog({
                   role={appointment.whoKind === "visitor" ? "visitor" : "person"}
                   isPastor={false}
                   isVisitor={appointment.whoKind === "visitor"}
+                  avatarUrl={appointment.whoKind === "visitor" ? undefined : appointment.personAvatarUrl}
                 />
               </div>
             </div>

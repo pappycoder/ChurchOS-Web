@@ -60,6 +60,7 @@ import {
   type ListEventsParams,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useIsMember } from "@/hooks/use-is-member";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
@@ -75,6 +76,7 @@ const SORT_OPTIONS: { value: ListEventsParams["sortBy"]; label: string }[] = [
 export default function EventsListPage() {
   const router = useRouter();
   const { can } = usePermissions();
+  const { isMember } = useIsMember();
   const canCreate = can("events", "create");
   const canUpdate = can("events", "update");
   const canDelete = can("events", "delete");
@@ -174,6 +176,18 @@ export default function EventsListPage() {
       setDeleteTarget(null);
     }
   };
+
+  if (isMember) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <EmptyState
+          icon={<AlertTriangle className="h-12 w-12" />}
+          title="Access denied"
+          description="You don't have permission to view this page. Contact your church admin if you believe this is a mistake."
+        />
+      </div>
+    );
+  }
 
   if (error) {
     return (

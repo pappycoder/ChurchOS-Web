@@ -10,7 +10,6 @@ import {
   EventType,
   EVENT_TYPE_MAP,
 } from "@/hooks/use-events";
-
 export const EVENT_TYPE_COLORS: Record<EventType | "service", string> = {
   service: "bg-blue-500",
   conference: "bg-purple-500",
@@ -60,6 +59,11 @@ export function CalendarSidebar({
       .slice(0, 5);
   }, [events]);
 
+  const eventDates = useMemo(
+    () => events.map((e) => format(new Date(e.startDate), "yyyy-MM-dd")),
+    [events],
+  );
+
   return (
     <Card className="sticky top-4">
       <CardContent className="space-y-0 divide-y">
@@ -73,6 +77,7 @@ export function CalendarSidebar({
             onSelect={(date) => {
               if (date) onDateSelect(date);
             }}
+            eventDates={eventDates}
             className="w-full"
           />
         </div>

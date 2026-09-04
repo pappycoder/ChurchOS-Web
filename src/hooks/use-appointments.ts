@@ -36,9 +36,11 @@ export interface Appointment {
   pastorId: string;
   pastorName?: string;
   pastorRole?: string;
+  pastorAvatarUrl?: string;
   /** Who party — person Profile ID (also the booker's when Who is a visitor). */
   personId: string;
   personName?: string;
+  personAvatarUrl?: string;
   whoKind?: "profile" | "visitor";
   visitorId?: string;
   visitorName?: string;
