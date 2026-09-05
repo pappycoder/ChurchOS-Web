@@ -484,6 +484,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Help & Documentation",
         href: "/docs",
         icon: BookOpen,
+        hideForMember: true,
       },
     ],
   },
@@ -713,7 +714,10 @@ export function Sidebar() {
   // the profile loads. Members are additionally stripped of staff sections
   // and items flagged hideForMember (even for reads their seed grants).
   const visibleNav = React.useMemo(() => {
-    if (!ready) return [];
+    // Wait for both the permission system AND the raw profile data so role
+    // checks (isMember) are deterministic — otherwise the section filter can
+    // run against a stale isMember=false and leak staff sections to members.
+    if (!ready || !currentProfile) return [];
     // Sections shown to members (roles may still gate further below).
     const memberSectionAllowed: Record<string, boolean> = {
       "MAIN MENU": true,
@@ -747,7 +751,7 @@ export function Sidebar() {
           group.items.length > 0 &&
           (!isMember || memberSectionAllowed[group.section]),
       );
-  }, [ready, can, hasRole, isMember]);
+  }, [ready, can, hasRole, isMember, currentProfile]);
 
   React.useEffect(() => {
     const expanded: Record<string, boolean> = {};

@@ -14,6 +14,12 @@ All notable changes to this project are documented below. Update this section wi
 
 ### [Unreleased]
 
+- **Support / Docs section fully hidden from members — race-condition fix.** The previous `memberSectionAllowed` section filter was correct in isolation, but the sidebar's `visibleNav` memo gated only on `usePermissions().ready` (`!isLoading && !!profile`) while role membership (`useIsMember().isMember`) could briefly read stale `false` during the profile hydration window — letting the SUPPORT section flash through for members. Two hardening changes in `src/components/layouts/sidebar.tsx`:
+  - The `Help & Documentation` nav item now carries `hideForMember: true` — the existing per-item member filter (`isMember && item.hideForMember`) removes it regardless of section.
+  - The `visibleNav` early return now also requires `!!currentProfile`, not just `ready` (`if (!ready || !currentProfile) return [];`), so the whole sidebar stays blank until the profile — and therefore the role check — has actually resolved. `currentProfile` was added to the memo's dependency array so the memo recomputes once it arrives.
+  - The `/docs` page's existing Access-denied `EmptyState` guard (via `useIsMember`) is unchanged and remains the route-level backstop.
+  - Verification: `npx tsc --noEmit` green (see below), scoped eslint clean.
+
 - **Avatar URLs wired into appointment detail and email inbox.** The three hardcoded `<AvatarImage src={undefined}>` sites (appointment detail dialog's With/Who person rows, email inbox list sender avatar, email reading-pane sender avatar) now render real avatar images from the backend.
   - **`src/hooks/use-appointments.ts`**: `Appointment` type gains `pastorAvatarUrl?: string` and `personAvatarUrl?: string`.
   - **`src/hooks/use-email.ts`**: `EmailItem` and `EmailDetail` types gain `senderAvatarUrl?: string`.
