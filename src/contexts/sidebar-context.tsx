@@ -45,11 +45,23 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const openMobile = useCallback(() => {
     setMobileOpen(true);
     document.body.classList.add("menu-opened");
+    document.documentElement.classList.add("menu-opened");
   }, []);
 
   const closeMobile = useCallback(() => {
     setMobileOpen(false);
     document.body.classList.remove("menu-opened");
+    document.documentElement.classList.remove("menu-opened");
+  }, []);
+
+  // Safety net: if this provider unmounts (e.g. navigation out of the
+  // dashboard layout) while the mobile menu is open, never leave the
+  // scroll-lock class behind — a hard refresh would otherwise be needed.
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove("menu-opened");
+      document.documentElement.classList.remove("menu-opened");
+    };
   }, []);
 
   if (!hydrated) {

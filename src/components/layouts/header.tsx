@@ -147,10 +147,8 @@ export function Header() {
     e.preventDefault();
     if (mobileOpen) {
       closeMobile();
-      document.documentElement.classList.remove("menu-opened");
     } else {
       openMobile();
-      document.documentElement.classList.add("menu-opened");
     }
   };
 

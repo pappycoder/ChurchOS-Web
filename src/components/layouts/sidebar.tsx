@@ -785,6 +785,14 @@ export function Sidebar() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [mobileOpen, closeMobile]);
 
+  // Close the mobile menu on every route change (covers the logo links and
+  // any future nav path that doesn't call closeMobile) so the scroll-lock
+  // `menu-opened` class can never survive a navigation. closeMobile is a
+  // stable callback, so this only re-runs when the pathname actually changes.
+  React.useEffect(() => {
+    closeMobile();
+  }, [pathname, closeMobile]);
+
   const toggleMenu = (key: string) => {
     setOpenMenus((prev) => {
       // Single-open accordion: clicking a menu collapses every other one.
@@ -853,13 +861,13 @@ export function Sidebar() {
         onMouseLeave={handleMouseLeave}
       >
         <div className="sidebar-logo">
-          <Link href="/dashboard" className="logo">
+          <Link href="/dashboard" className="logo" onClick={closeMobile}>
             <BrandLogo emblemClassName="h-20" />
           </Link>
-          <Link href="/dashboard" className="logo dark-logo">
+          <Link href="/dashboard" className="logo dark-logo" onClick={closeMobile}>
             <BrandLogo emblemClassName="h-20" />
           </Link>
-          <Link href="/dashboard" className="logo-small">
+          <Link href="/dashboard" className="logo-small" onClick={closeMobile}>
             <BrandLogo variant="mark" emblemClassName="h-14 w-14" />
           </Link>
         </div>
