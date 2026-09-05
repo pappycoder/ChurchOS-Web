@@ -14,6 +14,7 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { useIsMember } from "@/hooks/use-is-member";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useEmailUnread } from "@/hooks/use-email";
 import { cn } from "@/lib/utils";
@@ -109,16 +110,35 @@ export function Header() {
 
   const { logout } = useAuth();
   const { data: currentProfile } = useCurrentProfile();
+  const { isMember } = useIsMember();
   const { canAny } = usePermissions();
   const { data: emailUnread } = useEmailUnread();
   const emailUnreadCount = emailUnread?.count ?? 0;
 
+  // Top-level horizontal items members must not see (staff modules).
+  const MEMBER_HIDDEN_HORIZONTAL = new Set([
+    "Members",
+    "Attendance",
+    "Giving",
+    "Pastoral Care",
+  ]);
+
   const visibleNav = React.useMemo(
     () =>
-      HORIZONTAL_NAV.filter(
-        (item) => !item.permission || canAny(item.permission),
-      ),
-    [canAny],
+      HORIZONTAL_NAV.filter((item) => {
+        if (isMember && MEMBER_HIDDEN_HORIZONTAL.has(item.title)) return false;
+        if (isMember && item.title === "Events") {
+          // Members keep the Calendar child but not staff event subpages.
+          item = {
+            ...item,
+            children: item.children?.filter(
+              (child) => child.href === "/events",
+            ),
+          };
+        }
+        return !item.permission || canAny(item.permission);
+      }),
+    [isMember, canAny],
   );
 
   const displayName =
@@ -222,9 +242,11 @@ export function Header() {
                 />
               </div>
 
-              <Link href="/admin/settings" className="btn-menubar">
-                <IconSettingsCog size={18} />
-              </Link>
+              {!isMember && (
+                <Link href="/admin/settings" className="btn-menubar">
+                  <IconSettingsCog size={18} />
+                </Link>
+              )}
             </div>
 
             {/* Horizontal Single Menu */}
@@ -312,22 +334,24 @@ export function Header() {
                 </ActionTooltip>
               </div>
 
-              <div className="me-2 notification_item">
-                <ActionTooltip label="Inbox">
-                  <Link
-                    href="/communication/inbox"
-                    className="btn-menubar relative"
-                    aria-label="Inbox"
-                  >
-                    <IconMail size={18} />
-                    {emailUnreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
-                        {emailUnreadCount > 99 ? "99+" : emailUnreadCount}
-                      </span>
-                    )}
-                  </Link>
-                </ActionTooltip>
-              </div>
+              {!isMember && (
+                <div className="me-2 notification_item">
+                  <ActionTooltip label="Inbox">
+                    <Link
+                      href="/communication/inbox"
+                      className="btn-menubar relative"
+                      aria-label="Inbox"
+                    >
+                      <IconMail size={18} />
+                      {emailUnreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
+                          {emailUnreadCount > 99 ? "99+" : emailUnreadCount}
+                        </span>
+                      )}
+                    </Link>
+                  </ActionTooltip>
+                </div>
+              )}
 
               <div className="me-2 notification_item">
                 <NotificationBell />
@@ -385,22 +409,26 @@ export function Header() {
                             <IconUser size={16} /> My Profile
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href="/admin/settings"
-                            className="dropdown-item py-2"
-                          >
-                            <IconSettings size={16} /> Account Settings
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href="/knowledge-base"
-                            className="dropdown-item py-2"
-                          >
-                            <IconQuestionMark size={16} /> Knowledge Base
-                          </Link>
-                        </DropdownMenuItem>
+                        {!isMember && (
+                          <>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href="/admin/settings"
+                                className="dropdown-item py-2"
+                              >
+                                <IconSettings size={16} /> Account Settings
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href="/knowledge-base"
+                                className="dropdown-item py-2"
+                              >
+                                <IconQuestionMark size={16} /> Knowledge Base
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
+                        )}
                       </div>
                       <div className="card-footer py-2">
                         <DropdownMenuItem
@@ -423,22 +451,24 @@ export function Header() {
           <div className="me-1 notification_item">
             <NotificationBell compact />
           </div>
-          <div className="me-1 notification_item">
-            <ActionTooltip label="Inbox">
-              <Link
-                href="/communication/inbox"
-                className="btn-menubar relative"
-                aria-label="Inbox"
-              >
-                <IconMail size={20} />
-                {emailUnreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
-                    {emailUnreadCount > 99 ? "99+" : emailUnreadCount}
-                  </span>
-                )}
-              </Link>
-            </ActionTooltip>
-          </div>
+          {!isMember && (
+            <div className="me-1 notification_item">
+              <ActionTooltip label="Inbox">
+                <Link
+                  href="/communication/inbox"
+                  className="btn-menubar relative"
+                  aria-label="Inbox"
+                >
+                  <IconMail size={20} />
+                  {emailUnreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
+                      {emailUnreadCount > 99 ? "99+" : emailUnreadCount}
+                    </span>
+                  )}
+                </Link>
+              </ActionTooltip>
+            </div>
+          )}
         </div>
 
         {/* Mobile 3-dot menu */}
@@ -455,11 +485,13 @@ export function Header() {
                   <IconUser size={16} /> My Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/admin/settings" className="dropdown-item">
-                  <IconSettings size={16} /> Account Settings
-                </Link>
-              </DropdownMenuItem>
+              {!isMember && (
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/settings" className="dropdown-item">
+                    <IconSettings size={16} /> Account Settings
+                  </Link>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={handleLogout}
                 className="dropdown-item text-destructive"

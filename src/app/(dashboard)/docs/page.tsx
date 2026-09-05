@@ -3,11 +3,28 @@
 import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
-import { DocsSideNav, DOCS_SECTIONS, useDocsScrollSpy } from "@/components/docs/docs-nav";
+import { DocsSideNav, docsSectionsForRole, useDocsScrollSpy } from "@/components/docs/docs-nav";
 import { DocsContent } from "@/components/docs/docs-content";
+import { useIsMember } from "@/hooks/use-is-member";
+import { EmptyState } from "@/components/shared/empty-state";
+import { BookOpen } from "lucide-react";
 
 export default function DocsPage() {
   const activeSection = useDocsScrollSpy();
+  const { isMember } = useIsMember();
+  const sections = React.useMemo(() => docsSectionsForRole(isMember), [isMember]);
+
+  if (isMember) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24">
+        <EmptyState
+          icon={<BookOpen className="h-12 w-12" />}
+          title="Access denied"
+          description="You don't have permission to view this page. Contact your church admin if you believe this is a mistake."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -20,7 +37,7 @@ export default function DocsPage() {
         <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
           <Card>
             <CardContent className="py-3">
-              <DocsSideNav sections={DOCS_SECTIONS} activeId={activeSection} />
+              <DocsSideNav sections={sections} activeId={activeSection} />
             </CardContent>
           </Card>
         </aside>

@@ -22,6 +22,8 @@ export interface CurrentProfile {
   email?: string;
   phone?: string;
   avatarUrl?: string;
+  /** Linked member id — present when the profile is linked to a member record. */
+  memberId?: string;
   mfaEnabled: boolean;
   twoFactorEnabled: boolean;
   /** Admin HQ flag — grants cross-branch read access within the user's permission scope. */

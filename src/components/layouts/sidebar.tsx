@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useIsMember } from "@/hooks/use-is-member";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import {
@@ -64,6 +66,8 @@ interface NavItem {
   roles?: string[];
   /** Required `resource:action` permission, e.g. "members:read". */
   permission?: string;
+  /** Hide from members entirely (member role), regardless of granted reads. */
+  hideForMember?: boolean;
 }
 
 const navItems: { section: string; items: NavItem[] }[] = [
@@ -80,6 +84,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/members",
         icon: Users,
         permission: "members:read",
+        hideForMember: true,
         children: [
           {
             title: "All Members",
@@ -108,6 +113,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/attendance",
         icon: CalendarCheck,
         permission: "attendance:read",
+        hideForMember: true,
         children: [
           {
             title: "Dashboard",
@@ -141,6 +147,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/giving",
         icon: HandCoins,
         permission: "giving:read",
+        hideForMember: true,
         children: [
           { title: "Dashboard", href: "/giving", permission: "giving:read" },
           {
@@ -176,16 +183,19 @@ const navItems: { section: string; items: NavItem[] }[] = [
             title: "All Events",
             href: "/events/list",
             permission: "events:read",
+            hideForMember: true,
           },
           {
             title: "Check-In",
             href: "/events/check-in",
             permission: "events:update",
+            hideForMember: true,
           },
           {
             title: "Registrations",
             href: "/events/registrations",
             permission: "events:read",
+            hideForMember: true,
           },
           {
             title: "Tickets",
@@ -246,6 +256,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/pastoral",
         icon: HeartHandshake,
         permission: "pastoral:read",
+        hideForMember: true,
         children: [
           { title: "Notes", href: "/pastoral", permission: "pastoral:read" },
           {
@@ -270,6 +281,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/visitors",
         icon: UserPlus,
         permission: "visitors:read",
+        hideForMember: true,
         children: [
           {
             title: "All Visitors",
@@ -472,6 +484,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Help & Documentation",
         href: "/docs",
         icon: BookOpen,
+        hideForMember: true,
       },
     ],
   },
@@ -678,6 +691,8 @@ export function Sidebar() {
   const { collapsed, mobileOpen, closeMobile } = useSidebar();
   const { settings } = useSettings();
   const { ready, can, hasRole } = usePermissions();
+  const { data: currentProfile } = useCurrentProfile();
+  const { isMember } = useIsMember();
   const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
   const [hoverExpand, setHoverExpand] = React.useState(false);
   const sidebarRef = React.useRef<HTMLElement>(null);
@@ -685,13 +700,30 @@ export function Sidebar() {
 
   const isModern = settings.layout === "modern";
 
+  const profileName = currentProfile
+    ? `${currentProfile.firstName ?? ""} ${currentProfile.lastName ?? ""}`.trim() ||
+      "Admin User"
+    : "Admin User";
+  const profileRole = currentProfile?.role?.[0] || "Administrator";
+  const profileInitials = (currentProfile?.firstName?.[0] ?? "") +
+    `${currentProfile?.lastName?.[0] ?? ""}`.toUpperCase() || "AD";
+
   // Permission-filtered nav: items without a gate stay visible; gated items
   // require their permission (or legacy role). Parents survive only when at
   // least one child survives; empty sections are dropped. Fail-closed while
-  // the profile loads.
+  // the profile loads. Members are additionally stripped of staff sections
+  // and items flagged hideForMember (even for reads their seed grants).
   const visibleNav = React.useMemo(() => {
-    if (!ready) return [];
+    // Wait for both the permission system AND the raw profile data so role
+    // checks (isMember) are deterministic — otherwise the section filter can
+    // run against a stale isMember=false and leak staff sections to members.
+    if (!ready || !currentProfile) return [];
+    // Sections shown to members (roles may still gate further below).
+    const memberSectionAllowed: Record<string, boolean> = {
+      "MAIN MENU": true,
+    };
     const itemAllowed = (item: NavItem): boolean => {
+      if (isMember && item.hideForMember) return false;
       if (item.permission) {
         const [resource, action] = item.permission.split(":");
         if (!can(resource, action as Parameters<typeof can>[1])) return false;
@@ -714,8 +746,12 @@ export function Sidebar() {
           .map(filterItem)
           .filter((i): i is NavItem => i !== null),
       }))
-      .filter((group) => group.items.length > 0);
-  }, [ready, can, hasRole]);
+      .filter(
+        (group) =>
+          group.items.length > 0 &&
+          (!isMember || memberSectionAllowed[group.section]),
+      );
+  }, [ready, can, hasRole, isMember, currentProfile]);
 
   React.useEffect(() => {
     const expanded: Record<string, boolean> = {};
@@ -837,15 +873,15 @@ export function Sidebar() {
             >
               <div className="avatar avatar-lg online mb-3">
                 <Avatar className="w-12 h-12">
-                  <AvatarImage src="" alt="Img" />
+                  <AvatarImage src={currentProfile?.avatarUrl ?? ""} alt={profileName} />
                   <AvatarFallback className="text-sm font-semibold">
-                    AD
+                    {profileInitials}
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <h6 className="text-xs font-normal mb-1">Admin User</h6>
+              <h6 className="text-xs font-normal mb-1">{profileName}</h6>
               <p className="text-[10px] text-muted-foreground m-0">
-                System Admin
+                {profileRole}
               </p>
             </div>
             <div className="sidebar-nav mb-3">
@@ -858,14 +894,16 @@ export function Sidebar() {
                     Menu
                   </a>
                 </li>
-                <li className="flex-1">
-                  <Link
-                    href="/communication/inbox"
-                    className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted"
-                  >
-                    Inbox
-                  </Link>
-                </li>
+                {!isMember && (
+                  <li className="flex-1">
+                    <Link
+                      href="/communication/inbox"
+                      className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted"
+                    >
+                      Inbox
+                    </Link>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
@@ -879,15 +917,15 @@ export function Sidebar() {
           >
             <div className="avatar avatar-md online">
               <Avatar className="w-9 h-9">
-                <AvatarImage src="" alt="Img" />
+                <AvatarImage src={currentProfile?.avatarUrl ?? ""} alt={profileName} />
                 <AvatarFallback className="text-xs font-semibold">
-                  AD
+                  {profileInitials}
                 </AvatarFallback>
               </Avatar>
             </div>
             <div className="text-start sidebar-profile-info ms-2">
-              <h6>Admin User</h6>
-              <p>System Admin</p>
+              <h6>{profileName}</h6>
+              <p>{profileRole}</p>
             </div>
           </div>
 
@@ -914,11 +952,13 @@ export function Sidebar() {
                 <span className="notification-status-dot"></span>
               </Link>
             </div>
-            <div className="me-0">
-              <Link href="/communication/inbox" className="btn-menubar">
-                <Mail size={18} />
-              </Link>
-            </div>
+            {!isMember && (
+              <div className="me-0">
+                <Link href="/communication/inbox" className="btn-menubar">
+                  <Mail size={18} />
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 

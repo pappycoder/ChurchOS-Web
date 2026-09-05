@@ -13,6 +13,7 @@ export interface EmailItem {
   preview: string;
   senderId: string;
   senderName?: string;
+  senderAvatarUrl?: string;
   recipientId: string;
   recipientName: string;
   readAt?: string;
@@ -26,6 +27,7 @@ export interface EmailDetail {
   body: string;
   senderId: string;
   senderName?: string;
+  senderAvatarUrl?: string;
   recipientIds: string[];
   readAt?: string;
   deletedAt?: string;

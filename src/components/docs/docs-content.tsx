@@ -1,13 +1,8 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useIsMember } from "@/hooks/use-is-member";
 
 function PermBadge({ perm }: { perm: string }) {
   const action = perm.split(":")[1];
@@ -123,6 +118,7 @@ function FilterTable({ rows }: { rows: [string, string][] }) {
 }
 
 export function DocsContent() {
+  const { isMember } = useIsMember();
   return (
     <>
       {/* ─── Getting Started ──────────────────────────── */}
@@ -239,6 +235,7 @@ export function DocsContent() {
       </Section>
 
       {/* ─── Members ──────────────────────────────────── */}
+      {!isMember && (
       <Section id="members" title="Members">
         <Card>
           <CardHeader>
@@ -352,8 +349,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Families ─────────────────────────────────── */}
+      {!isMember && (
       <Section id="families" title="Families">
         <Card>
           <CardHeader>
@@ -436,8 +435,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Visitors ─────────────────────────────────── */}
+      {!isMember && (
       <Section id="visitors" title="Visitors">
         <Card>
           <CardHeader>
@@ -559,8 +560,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Attendance ───────────────────────────────── */}
+      {!isMember && (
       <Section id="attendance" title="Attendance">
         <Card>
           <CardHeader>
@@ -675,8 +678,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Giving ───────────────────────────────────── */}
+      {!isMember && (
       <Section id="giving" title="Giving">
         <Card>
           <CardHeader>
@@ -801,6 +806,7 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Events ───────────────────────────────────── */}
       <Section id="events" title="Events">
@@ -1119,6 +1125,7 @@ export function DocsContent() {
       </Section>
 
       {/* ─── Pastoral Care ─────────────────────────────── */}
+      {!isMember && (
       <Section id="pastoral" title="Pastoral Care">
         <Card>
           <CardHeader>
@@ -1226,8 +1233,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Reports ──────────────────────────────────── */}
+      {!isMember && (
       <Section id="reports" title="Reports">
         <Card>
           <CardHeader>
@@ -1296,8 +1305,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Analytics ─────────────────────────────────── */}
+      {!isMember && (
       <Section id="analytics" title="Analytics">
         <Card>
           <CardHeader>
@@ -1372,8 +1383,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Assets ─────────────────────────────────────── */}
+      {!isMember && (
       <Section id="assets" title="Assets">
         <Card>
           <CardHeader>
@@ -1451,8 +1464,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Departments ─────────────────────────────── */}
+      {!isMember && (
       <Section id="departments" title="Departments">
         <Card>
           <CardHeader>
@@ -1530,8 +1545,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Forms ─────────────────────────────────────── */}
+      {!isMember && (
       <Section id="forms" title="Forms">
         <Card>
           <CardHeader>
@@ -1605,8 +1622,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Communication ─────────────────────────────── */}
+      {!isMember && (
       <Section id="communication" title="Communication">
         <Card>
           <CardHeader>
@@ -1674,8 +1693,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Admin — Users ────────────────────────────── */}
+      {!isMember && (
       <Section id="admin-users" title="Admin — Users">
         <Card>
           <CardHeader>
@@ -1753,8 +1774,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Admin — Roles ────────────────────────────── */}
+      {!isMember && (
       <Section id="admin-roles" title="Admin — Roles & Permissions">
         <Card>
           <CardHeader>
@@ -1841,8 +1864,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Admin — Settings ─────────────────────────── */}
+      {!isMember && (
       <Section id="admin-settings" title="Admin — Church Settings">
         <Card>
           <CardHeader>
@@ -1906,8 +1931,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Admin — Branches ─────────────────────────── */}
+      {!isMember && (
       <Section id="admin-branches" title="Admin — Branches">
         <Card>
           <CardHeader>
@@ -1985,8 +2012,10 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
 
       {/* ─── Permissions Matrix ────────────────────────── */}
+      {!isMember && (
       <Section id="permissions-matrix" title="Permissions Matrix">
         <Card>
           <CardHeader>
@@ -2049,6 +2078,7 @@ export function DocsContent() {
           </CardContent>
         </Card>
       </Section>
+      )}
     </>
   );
 }
