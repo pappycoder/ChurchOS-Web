@@ -87,7 +87,7 @@ function TicketStatusBadge({ status }: { status: string }) {
 // ─── Main Page ────────────────────────────────────────────
 
 export default function ManagementPage() {
-  const { ready, can } = usePermissions();
+  const { can } = usePermissions();
   const canCreate = can("events", "create");
 
   return (

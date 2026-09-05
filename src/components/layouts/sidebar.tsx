@@ -887,12 +887,12 @@ export function Sidebar() {
             <div className="sidebar-nav mb-3">
               <ul className="flex list-none m-0 p-0 bg-transparent rounded">
                 <li className="flex-1">
-                  <a
-                    href="#"
-                    className="block text-center text-xs font-medium py-1.5 px-2 rounded bg-primary text-primary-foreground"
+                  <button
+                    type="button"
+                    className="block w-full text-center text-xs font-medium py-1.5 px-2 rounded bg-primary text-primary-foreground"
                   >
                     Menu
-                  </a>
+                  </button>
                 </li>
                 {!isMember && (
                   <li className="flex-1">

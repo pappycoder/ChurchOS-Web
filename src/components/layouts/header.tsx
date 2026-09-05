@@ -24,26 +24,15 @@ import {
   IconArrowBarToLeft,
   IconSearch,
   IconSettingsCog,
-  IconSparkles,
   IconMaximize,
   IconMinimize,
   IconUser,
   IconSettings,
   IconQuestionMark,
   IconLogout,
-  IconChevronDown,
-  IconMenu2,
   IconDotsVertical,
-  IconX,
   IconMail,
 } from "@tabler/icons-react";
-
-const AI_LINKS = [
-  { title: "AI Dashboard", href: "/ai-dashboard" },
-  { title: "AI Configuration", href: "/ai-configuration" },
-  { title: "AI Attendance", href: "/ai-attendance" },
-  { title: "AI Hiring Forecast", href: "/ai-hiring" },
-];
 
 interface HorizontalNavItem {
   title: string;
@@ -102,6 +91,14 @@ const HORIZONTAL_NAV: HorizontalNavItem[] = [
   },
 ];
 
+// Top-level horizontal items members must not see (staff modules).
+const MEMBER_HIDDEN_HORIZONTAL = new Set([
+  "Members",
+  "Attendance",
+  "Giving",
+  "Pastoral Care",
+]);
+
 export function Header() {
   const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } =
     useSidebar();
@@ -114,14 +111,6 @@ export function Header() {
   const { canAny } = usePermissions();
   const { data: emailUnread } = useEmailUnread();
   const emailUnreadCount = emailUnread?.count ?? 0;
-
-  // Top-level horizontal items members must not see (staff modules).
-  const MEMBER_HIDDEN_HORIZONTAL = new Set([
-    "Members",
-    "Attendance",
-    "Giving",
-    "Pastoral Care",
-  ]);
 
   const visibleNav = React.useMemo(
     () =>
@@ -265,7 +254,10 @@ export function Header() {
                         >
                           {item.children ? (
                             <>
-                              <a href="#">
+                              <a
+                                href="#"
+                                onClick={(e) => e.preventDefault()}
+                              >
                                 {item.title}
                                 <span className="menu-arrow"></span>
                               </a>
@@ -290,30 +282,6 @@ export function Header() {
 
             {/* RIGHT-ALIGNED group */}
             <div className="header-right flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <a
-                    href="#"
-                    className="btn-primary-gradient me-1 hidden xl:inline-flex whitespace-nowrap shrink-0"
-                  >
-                    <IconSparkles size={16} />
-                    AI Center
-                    <IconChevronDown size={14} />
-                  </a>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="app-launcher" align="end">
-                  {AI_LINKS.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="app-launcher-item"
-                    >
-                      {link.title}
-                    </Link>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               <div className="me-2">
                 <ActionTooltip
                   label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}

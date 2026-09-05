@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, Mail, ShieldCheck, Zap } from "lucide-react";
+import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
 
 import { AUTH_EASE } from "@/lib/auth-motion";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";

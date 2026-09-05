@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Users,
@@ -31,7 +30,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -42,8 +40,6 @@ import {
 } from "@/components/ui/select";
 import {
   useUsers,
-  useInviteUser,
-  useUpdateUserRole,
   useReactivateUser,
   useResetPassword,
   useForceSignout,
@@ -154,7 +150,6 @@ export default function UsersPage() {
   );
 
   const { data, isLoading, error } = useUsers(queryParams);
-  const updateRoleMutation = useUpdateUserRole();
   const reactivateMutation = useReactivateUser();
   const resetPasswordMutation = useResetPassword();
   const forceSignoutMutation = useForceSignout();
