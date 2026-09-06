@@ -344,7 +344,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Departments",
         href: "/departments",
         icon: Building2,
-        permission: "departments:read",
         children: [
           {
             title: "All Departments",

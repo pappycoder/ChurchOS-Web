@@ -43,6 +43,7 @@ export const ROLE_ORDER = [
   "secretary",
   "treasurer",
   "department_head",
+  "cell_leader",
   "member",
 ] as const;
 

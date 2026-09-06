@@ -28,7 +28,6 @@ import {
   IconMinimize,
   IconUser,
   IconSettings,
-  IconQuestionMark,
   IconLogout,
   IconDotsVertical,
   IconMail,
@@ -383,14 +382,6 @@ export function Header() {
                                 className="dropdown-item py-2"
                               >
                                 <IconSettings size={16} /> Account Settings
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href="/knowledge-base"
-                                className="dropdown-item py-2"
-                              >
-                                <IconQuestionMark size={16} /> Knowledge Base
                               </Link>
                             </DropdownMenuItem>
                           </>

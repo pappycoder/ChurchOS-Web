@@ -65,6 +65,7 @@ import { VisitorCombobox } from "@/components/visitors/visitor-combobox";
 import { useCreateVisitor } from "@/hooks/use-visitors";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { useIsMember } from "@/hooks/use-is-member";
 import { generateTicketPDF } from "@/lib/ticket-pdf";
 
 // ─── Status Badge ─────────────────────────────────────────
@@ -88,16 +89,19 @@ function TicketStatusBadge({ status }: { status: string }) {
 
 export default function ManagementPage() {
   const { can } = usePermissions();
+  const { isMember } = useIsMember();
   const canCreate = can("events", "create");
+
+  const title = isMember ? "My Tickets" : "Tickets";
 
   return (
     <div className="space-y-4">
       <PageHeader
-        title={canCreate ? "Tickets" : "My Tickets"}
+        title={title}
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Events", href: "/events" },
-          { label: canCreate ? "Tickets" : "My Tickets" },
+          { label: title },
         ]}
       />
 
@@ -1082,6 +1086,16 @@ function ClaimTicketDialog({
   const [selectedTierId, setSelectedTierId] = React.useState("");
 
   const eligibleEvents = React.useMemo(() => {
+    // Cell group leaders are pinned to their branch's events only (their
+    // backend claim uses strictBranch) — church-wide events are excluded.
+    const isCellLeader = currentProfile?.role?.includes("cell_leader");
+    const strictBranch = isCellLeader && !currentProfile?.isAdminHq;
+
+    if (strictBranch) {
+      return currentProfile?.branchId
+        ? events.filter((e) => e.branchId === currentProfile.branchId)
+        : [];
+    }
     if (!currentProfile?.branchId) {
       // No branch on record — fall back to church-wide events only.
       return events.filter((e) => !e.branchId);
@@ -1091,7 +1105,7 @@ function ClaimTicketDialog({
     return events.filter(
       (e) => !e.branchId || e.branchId === currentProfile.branchId,
     );
-  }, [events, currentProfile?.branchId]);
+  }, [events, currentProfile?.branchId, currentProfile?.role, currentProfile?.isAdminHq]);
 
   const claimableEvents = eligibleEvents.filter(
     (e) => !assignedEventIds.has(e.eventId),

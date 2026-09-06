@@ -16,6 +16,7 @@ import {
   Archive,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
 import { TableCard } from "@/components/shared/table-card";
@@ -47,9 +48,13 @@ import {
 
 export default function CellGroupsPage() {
   const { can } = usePermissions();
-  const canCreate = can("cell_groups", "create");
-  const canUpdate = can("cell_groups", "update");
-  const canDelete = can("cell_groups", "delete");
+  const { data: profile } = useCurrentProfile();
+  // Cell group leaders only record attendance for their own group — they get
+  // no group-level create/update/delete affordances here.
+  const isCellLeader = !!profile?.role?.includes("cell_leader");
+  const canCreate = can("cell_groups", "create") && !isCellLeader;
+  const canUpdate = can("cell_groups", "update") && !isCellLeader;
+  const canDelete = can("cell_groups", "delete") && !isCellLeader;
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");

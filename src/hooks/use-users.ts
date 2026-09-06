@@ -126,6 +126,7 @@ export const VALID_ROLES = [
   { value: "secretary", label: "Secretary" },
   { value: "treasurer", label: "Treasurer" },
   { value: "department_head", label: "Department Head" },
+  { value: "cell_leader", label: "Cell Group Leader" },
   { value: "member", label: "Member" },
 ] as const;
 

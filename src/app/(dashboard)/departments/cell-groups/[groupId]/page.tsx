@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { CellGroupFormDialog } from "@/components/departments/cell-group-form-dialog";
 import { DeleteCellGroupDialog } from "@/components/departments/delete-cell-group-dialog";
 import { CellGroupMemberDialog } from "@/components/departments/cell-group-member-dialog";
@@ -76,9 +77,13 @@ export default function CellGroupDetailPage({
   const { groupId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
-  const canCreate = can("cell_groups", "create");
-  const canUpdate = can("cell_groups", "update");
-  const canDelete = can("cell_groups", "delete");
+  const { data: profile } = useCurrentProfile();
+  // Cell group leaders may only record attendance for their own group — they
+  // don't get Add/Remove member, Edit, Archive, or Delete affordances.
+  const isCellLeader = !!profile?.role?.includes("cell_leader");
+  const canManageMembers = can("cell_groups", "create") && !isCellLeader;
+  const canUpdate = can("cell_groups", "update") && !isCellLeader;
+  const canDelete = can("cell_groups", "delete") && !isCellLeader;
 
   const { data: group, isLoading, error } = useCellGroup(groupId);
   const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(groupId);
@@ -274,7 +279,7 @@ export default function CellGroupDetailPage({
                   <p className="text-sm font-medium flex items-center gap-2">
                     <Users className="h-4 w-4" /> Members ({members.length})
                   </p>
-                  {canCreate && (
+                  {canManageMembers && (
                     <Button size="sm" onClick={() => setMemberDialogOpen(true)}>
                       <UserPlus className="h-3.5 w-3.5 mr-1" /> Add Member
                     </Button>
@@ -324,7 +329,7 @@ export default function CellGroupDetailPage({
                   <p className="text-sm font-medium flex items-center gap-2">
                     <ClipboardCheck className="h-4 w-4" /> Attendance Records ({attendance.length})
                   </p>
-                  {canCreate && (
+                  {can("cell_groups", "create") && (
                     <Button size="sm" onClick={() => setAttendanceDialogOpen(true)}>
                       <ClipboardCheck className="h-3.5 w-3.5 mr-1" /> Record Attendance
                     </Button>
