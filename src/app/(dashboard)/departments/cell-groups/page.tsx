@@ -161,7 +161,9 @@ export default function CellGroupsPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
-            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            {!isCellLeader && (
+              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            )}
             <div className="relative sm:w-72">
               <input
                 type="text"

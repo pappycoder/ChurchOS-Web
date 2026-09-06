@@ -24,6 +24,7 @@ interface MemberComboboxProps {
   selectedName?: string;
   placeholder?: string;
   excludeIds?: string[];
+  disabled?: boolean;
 }
 
 export function MemberCombobox({
@@ -32,6 +33,7 @@ export function MemberCombobox({
   selectedName,
   placeholder = "Select member...",
   excludeIds = [],
+  disabled = false,
 }: MemberComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -55,10 +57,11 @@ export function MemberCombobox({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open && !disabled} onOpenChange={(next) => !disabled && setOpen(next)}>
       <PopoverTrigger asChild>
         <button
           type="button"
+          disabled={disabled}
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm",
             "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",

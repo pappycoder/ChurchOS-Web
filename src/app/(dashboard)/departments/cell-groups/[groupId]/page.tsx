@@ -78,14 +78,21 @@ export default function CellGroupDetailPage({
   const router = useRouter();
   const { can } = usePermissions();
   const { data: profile } = useCurrentProfile();
-  // Cell group leaders may only record attendance for their own group — they
-  // don't get Add/Remove member, Edit, Archive, or Delete affordances.
+  // Cell group leaders may manage their own group — edit details (minus branch
+  // + leader), add/remove members, and record attendance — but get no Archive
+  // or Delete affordances.
   const isCellLeader = !!profile?.role?.includes("cell_leader");
-  const canManageMembers = can("cell_groups", "create") && !isCellLeader;
-  const canUpdate = can("cell_groups", "update") && !isCellLeader;
-  const canDelete = can("cell_groups", "delete") && !isCellLeader;
 
   const { data: group, isLoading, error } = useCellGroup(groupId);
+  // Only the group's own leader (reading their linked member id) may manage it.
+  const isOwnGroup =
+    isCellLeader &&
+    !!group &&
+    !!profile?.memberId &&
+    profile.memberId === group.leaderId;
+  const canManageMembers = can("cell_groups", "create") && (!isCellLeader || isOwnGroup);
+  const canUpdate = can("cell_groups", "update") && (!isCellLeader || isOwnGroup);
+  const canDelete = can("cell_groups", "delete") && !isCellLeader;
   const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(groupId);
   const { data: summary } = useCellGroupAttendanceSummary(groupId);
   const { data: nearestGroups } = useNearestCellGroups(group?.latitude, group?.longitude);
@@ -476,6 +483,7 @@ export default function CellGroupDetailPage({
         open={editOpen}
         onOpenChange={setEditOpen}
         group={group ?? null}
+        lockedLeaderBranch={isOwnGroup}
       />
 
       <DeleteCellGroupDialog

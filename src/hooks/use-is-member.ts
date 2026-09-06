@@ -14,7 +14,9 @@ import { useCurrentProfile } from "@/hooks/use-profile";
 
 export function useIsMember(): { isMember: boolean } {
   const { data: profile } = useCurrentProfile();
-  const isMember = !!profile?.role?.includes("member");
+  const isMember =
+    !!profile?.role?.includes("member") ||
+    !!profile?.role?.includes("cell_leader");
   return { isMember };
 }
 

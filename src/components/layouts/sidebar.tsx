@@ -725,6 +725,7 @@ export function Sidebar() {
     // Sections shown to members (roles may still gate further below).
     const memberSectionAllowed: Record<string, boolean> = {
       "MAIN MENU": true,
+      "OPERATIONS": true,
     };
     const itemAllowed = (item: NavItem): boolean => {
       if (isMember && item.hideForMember) return false;

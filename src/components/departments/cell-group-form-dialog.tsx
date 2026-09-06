@@ -68,6 +68,8 @@ interface CellGroupFormDialogProps {
   onOpenChange: (open: boolean) => void;
   group?: CellGroup | null;
   onSaved?: (group: CellGroup) => void;
+  /** When set, the branch + leader fields are locked (read-only) and dropped from the submit payload. */
+  lockedLeaderBranch?: boolean;
 }
 
 function toFormValues(group?: CellGroup | null): CellGroupFormValues {
@@ -88,6 +90,7 @@ export function CellGroupFormDialog({
   onOpenChange,
   group,
   onSaved,
+  lockedLeaderBranch = false,
 }: CellGroupFormDialogProps) {
   const isEdit = !!group;
   const createMutation = useCreateCellGroup();
@@ -113,8 +116,10 @@ export function CellGroupFormDialog({
   const onSubmit = (values: CellGroupFormValues) => {
     const payload = {
       name: values.name.trim(),
-      branchId: values.branchId?.trim() || undefined,
-      leaderId: values.leaderId?.trim() || undefined,
+      branchId:
+        lockedLeaderBranch || !values.branchId?.trim() ? undefined : values.branchId.trim(),
+      leaderId:
+        lockedLeaderBranch || !values.leaderId?.trim() ? undefined : values.leaderId.trim(),
       address: values.address?.trim() || undefined,
       meetingDay: values.meetingDay?.trim() || undefined,
       meetingTime: values.meetingTime?.trim() || undefined,
@@ -176,9 +181,13 @@ export function CellGroupFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Branch</FormLabel>
-                    <Select value={field.value || undefined} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                      disabled={lockedLeaderBranch}
+                    >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger disabled={lockedLeaderBranch}>
                           <SelectValue placeholder="No branch" />
                         </SelectTrigger>
                       </FormControl>
@@ -210,6 +219,7 @@ export function CellGroupFormDialog({
                         }}
                         selectedName={leaderName}
                         placeholder="Select leader..."
+                        disabled={lockedLeaderBranch}
                       />
                     </FormControl>
                     <FormMessage />
