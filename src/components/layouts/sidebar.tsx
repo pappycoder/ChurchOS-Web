@@ -64,6 +64,10 @@ interface NavItem {
   children?: NavItem[];
   /** Legacy any-of role gate (no dedicated permission resource). */
   roles?: string[];
+  /** OR-role gate: shown to ANY of these roles, bypassing the permission check.
+   * For items whose permission data may be missing or stale but whose role is
+   * the source of truth for access (e.g. cell group leaders). */
+  anyRole?: string[];
   /** Required `resource:action` permission, e.g. "members:read". */
   permission?: string;
   /** Hide from members entirely (member role), regardless of granted reads. */
@@ -354,6 +358,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
             title: "Cell Groups",
             href: "/departments/cell-groups",
             permission: "cell_groups:read",
+            anyRole: ["cell_leader"],
           },
         ],
       },
@@ -723,6 +728,9 @@ export function Sidebar() {
     };
     const itemAllowed = (item: NavItem): boolean => {
       if (isMember && item.hideForMember) return false;
+      // Role-first gate: any matching role sees the item even if the cached
+      // permission set is missing or stale for them.
+      if (item.anyRole?.length && hasRole(...item.anyRole)) return true;
       if (item.permission) {
         const [resource, action] = item.permission.split(":");
         if (!can(resource, action as Parameters<typeof can>[1])) return false;
