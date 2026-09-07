@@ -10,6 +10,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+### [Unreleased]
+
+- **Cell Groups list gains an Export dropdown for staff + HQ cell leaders.** The list page (`src/app/(dashboard)/departments/cell-groups/page.tsx`) now renders the shared `ExportDropdown` (CSV/PDF/XLSX) in the page header for any non-cell-leader viewer (all `cell_groups:read` staff) and for **HQ cell leaders** (`isAdminHq`). Branch-scoped cell leaders see no export button here — they manage their own group via its detail page. Gated via `canExport = !isCellLeader || !!profile?.isAdminHq` (deliberately NOT `can("cell_groups","read")`, whose cache has historically gone stale for cell leaders; the sidebar already works around it via `anyRole`). Exports the currently loaded/search-filtered rows (the page fetches the full list client-side, so no `fetchAllRows` is needed) with module-level `EXPORT_COLUMNS` — Name, Leader (combined first/last), Branch, Address, Meeting Day, Meeting Time, Latitude, Longitude, Date Added — and `exportRows` memo mapping `CellGroup → Record<string, unknown>` with empty-string fallbacks and a formatted date. `disabled` while the list is empty. The backend `GET /admin/cell-groups/export` endpoint remains available server-side (and stays scope-enforced); the dropdown exports client-side like Members/Sermons/Events.
+  - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; `npm run build` green — `/departments/cell-groups` registers (static).
+
 All notable changes to this project are documented below. Update this section with every change.
 
 ### [Unreleased]

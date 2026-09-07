@@ -36,6 +36,8 @@ import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
 } from "@/components/shared/archive-confirm-dialog";
+import { ExportDropdown } from "@/components/shared/export-dropdown";
+import type { ExportColumn } from "@/lib/export-utils";
 import { CellGroupFormDialog } from "@/components/departments/cell-group-form-dialog";
 import { DeleteCellGroupDialog } from "@/components/departments/delete-cell-group-dialog";
 import {
@@ -46,12 +48,27 @@ import {
   type CellGroup,
 } from "@/hooks/use-admin";
 
+const EXPORT_COLUMNS: ExportColumn[] = [
+  { key: "name", label: "Name" },
+  { key: "leader", label: "Leader" },
+  { key: "branch", label: "Branch" },
+  { key: "address", label: "Address" },
+  { key: "meetingDay", label: "Meeting Day" },
+  { key: "meetingTime", label: "Meeting Time" },
+  { key: "latitude", label: "Latitude" },
+  { key: "longitude", label: "Longitude" },
+  { key: "createdAt", label: "Date Added" },
+];
+
 export default function CellGroupsPage() {
   const { can } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Cell group leaders only record attendance for their own group — they get
   // no group-level create/update/delete affordances here.
   const isCellLeader = !!profile?.role?.includes("cell_leader");
+  // Export stays available to staff and HQ cell leaders (they see all groups);
+  // branch cell leaders export their own group from its detail page instead.
+  const canExport = !isCellLeader || !!profile?.isAdminHq;
   const canCreate = can("cell_groups", "create") && !isCellLeader;
   const canUpdate = can("cell_groups", "update") && !isCellLeader;
   const canDelete = can("cell_groups", "delete") && !isCellLeader;
@@ -95,6 +112,22 @@ export default function CellGroupsPage() {
     );
   }, [groups, search]);
 
+  const exportRows = React.useMemo(
+    () =>
+      filtered.map((group) => ({
+        name: group.name,
+        leader: [group.leaderFirstName, group.leaderLastName].filter(Boolean).join(" "),
+        branch: group.branchName ?? "",
+        address: group.address ?? "",
+        meetingDay: group.meetingDay ?? "",
+        meetingTime: group.meetingTime ?? "",
+        latitude: group.latitude ?? "",
+        longitude: group.longitude ?? "",
+        createdAt: new Date(group.createdAt).toLocaleDateString(),
+      })),
+    [filtered]
+  );
+
   const paged = React.useMemo(
     () => filtered.slice((page - 1) * perPage, page * perPage),
     [filtered, page, perPage]
@@ -115,16 +148,29 @@ export default function CellGroupsPage() {
           { label: "Cell Groups" },
         ]}
         action={
-          canCreate ? (
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Cell Group
-            </Button>
+          canCreate || canExport ? (
+            <div className="flex items-center gap-2">
+              {canExport && (
+                <ExportDropdown
+                  columns={EXPORT_COLUMNS}
+                  data={exportRows}
+                  title="Cell Groups"
+                  filename="cell-groups-export"
+                  disabled={exportRows.length === 0}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={() => {
+                    setEditing(null);
+                    setFormOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Cell Group
+                </Button>
+              )}
+            </div>
           ) : undefined
         }
       />
