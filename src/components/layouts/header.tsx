@@ -33,10 +33,16 @@ import {
   IconMail,
 } from "@tabler/icons-react";
 
+interface HorizontalChild {
+  title: string;
+  href: string;
+  permission?: string;
+}
+
 interface HorizontalNavItem {
   title: string;
   href: string;
-  children?: { title: string; href: string }[];
+  children?: HorizontalChild[];
   permission?: string;
 }
 
@@ -48,45 +54,90 @@ const HORIZONTAL_NAV: HorizontalNavItem[] = [
   {
     title: "Members",
     href: "#",
+    permission: "members:view",
     children: [
-      { title: "All Members", href: "/members" },
-      { title: "Add Member", href: "/members/new" },
+      {
+        title: "All Members",
+        href: "/members",
+        permission: "members:all:read",
+      },
+      {
+        title: "Add Member",
+        href: "/members/new",
+        permission: "members:new:create",
+      },
     ],
   },
   {
     title: "Attendance",
     href: "#",
+    permission: "attendance:view",
     children: [
-      { title: "Dashboard", href: "/attendance" },
-      { title: "Records", href: "/attendance/records" },
-      { title: "Reports", href: "/attendance/reports" },
+      {
+        title: "Dashboard",
+        href: "/attendance",
+        permission: "attendance:dashboard:read",
+      },
+      {
+        title: "Records",
+        href: "/attendance/records",
+        permission: "attendance:records:read",
+      },
+      {
+        title: "Reports",
+        href: "/attendance/reports",
+        permission: "attendance:reports:read",
+      },
     ],
   },
   {
     title: "Giving",
     href: "#",
+    permission: "giving:view",
     children: [
-      { title: "Dashboard", href: "/giving" },
-      { title: "Records", href: "/giving/records" },
-      { title: "Reports", href: "/giving/reports" },
+      {
+        title: "Dashboard",
+        href: "/giving",
+        permission: "giving:dashboard:read",
+      },
+      {
+        title: "Records",
+        href: "/giving/records",
+        permission: "giving:records:read",
+      },
+      {
+        title: "Reports",
+        href: "/giving/reports",
+        permission: "giving:reports:read",
+      },
     ],
   },
   {
     title: "Events",
     href: "#",
+    permission: "events:view",
     children: [
-      { title: "Calendar", href: "/events" },
-      { title: "All Events", href: "/events/list" },
+      {
+        title: "Calendar",
+        href: "/events",
+        permission: "events:calendar:read",
+      },
+      {
+        title: "All Events",
+        href: "/events/list",
+        permission: "events:list:read",
+      },
     ],
   },
   {
     title: "Media",
     href: "/media",
-    permission: "media:read",
+    permission: "media:library:read",
   },
   {
     title: "Pastoral Care",
     href: "/pastoral",
+    permission: "pastoral:notes:read",
   },
 ];
 
@@ -119,10 +170,18 @@ export function Header() {
           // Members keep the Calendar child but not staff event subpages.
           item = {
             ...item,
-            children: item.children?.filter(
-              (child) => child.href === "/events",
-            ),
+            children: item.children?.filter((child) => {
+              if (child.href !== "/events") return false;
+              return !child.permission || canAny(child.permission);
+            }),
           };
+        } else if (item.children) {
+          // Drop children gated by a surface permission the user lacks.
+          const children = item.children.filter(
+            (child) => !child.permission || canAny(child.permission),
+          );
+          if (children.length === 0) return false;
+          item = { ...item, children };
         }
         return !item.permission || canAny(item.permission);
       }),

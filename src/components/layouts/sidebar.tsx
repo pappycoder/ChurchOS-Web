@@ -132,7 +132,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Check-In",
             href: "/attendance/check-in",
-            permission: "attendance:read",
+            permission: "attendance:checkin:create",
           },
           {
             title: "Records",
@@ -192,7 +192,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Check-In",
             href: "/events/check-in",
-            permission: "events:update",
+            permission: "events:checkin:create",
             hideForMember: true,
           },
           {
@@ -694,7 +694,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, mobileOpen, closeMobile } = useSidebar();
   const { settings } = useSettings();
-  const { ready, can, hasRole } = usePermissions();
+  const { ready, canAny, hasRole } = usePermissions();
   const { data: currentProfile } = useCurrentProfile();
   const { isMember } = useIsMember();
   const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
@@ -732,10 +732,7 @@ export function Sidebar() {
       // Role-first gate: any matching role sees the item even if the cached
       // permission set is missing or stale for them.
       if (item.anyRole?.length && hasRole(...item.anyRole)) return true;
-      if (item.permission) {
-        const [resource, action] = item.permission.split(":");
-        if (!can(resource, action as Parameters<typeof can>[1])) return false;
-      }
+      if (item.permission && !canAny(item.permission)) return false;
       if (item.roles?.length && !hasRole(...item.roles)) return false;
       return true;
     };
@@ -759,7 +756,7 @@ export function Sidebar() {
           group.items.length > 0 &&
           (!isMember || memberSectionAllowed[group.section]),
       );
-  }, [ready, can, hasRole, isMember, currentProfile]);
+  }, [ready, canAny, hasRole, isMember, currentProfile]);
 
   React.useEffect(() => {
     const expanded: Record<string, boolean> = {};

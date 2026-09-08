@@ -21,15 +21,12 @@ import {
 
 export function PermissionRouteGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { ready, can, hasRole } = usePermissions();
+  const { ready, canAny, hasRole } = usePermissions();
 
   const rule = matchRoutePermission(pathname);
   const allowed = !ready
     ? null
-    : checkRule(rule, (name) => {
-        const [resource, action] = name.split(":");
-        return can(resource, action as Parameters<typeof can>[1]);
-      }, hasRole);
+    : checkRule(rule, (name) => canAny(name), hasRole);
 
   if (!ready) {
     return (

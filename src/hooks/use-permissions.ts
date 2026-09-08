@@ -16,7 +16,7 @@ import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCurrentProfile } from "@/hooks/use-profile";
 
-export type PermissionAction = "create" | "read" | "update" | "delete";
+export type PermissionAction = "create" | "read" | "update" | "delete" | "view";
 
 /** `resource:action` permission name, e.g. "branches:create". */
 export type PermissionName = string;

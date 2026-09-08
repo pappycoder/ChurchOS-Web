@@ -9,7 +9,8 @@
 
 export interface RoutePermissionRule {
   prefix: string;
-  /** Required `resource:action` permission, e.g. "members:read". */
+  /** Required `resource:surface:action` permission, e.g. "members:all:read".
+   * Single-page resources keep coarse `resource:action` codes. */
   permission?: string;
   /** Any-of role fallback for areas without a dedicated permission resource. */
   roles?: string[];
@@ -17,42 +18,55 @@ export interface RoutePermissionRule {
 
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   // Members
-  { prefix: "/members/import", permission: "members:create" },
-  { prefix: "/members/new", permission: "members:create" },
+  { prefix: "/members/import", permission: "members:import:create" },
+  { prefix: "/members/new", permission: "members:new:create" },
   { prefix: "/members/families", permission: "families:read" },
-  { prefix: "/members", permission: "members:read" },
+  { prefix: "/members", permission: "members:all:read" },
 
-  // Attendance · Giving · Events
-  { prefix: "/attendance/check-in", permission: "attendance:create" },
-  { prefix: "/attendance/services", permission: "attendance:read" },
-  { prefix: "/attendance", permission: "attendance:read" },
-  { prefix: "/giving", permission: "giving:read" },
-  { prefix: "/events/check-in", permission: "events:create" },
+  // Attendance
+  { prefix: "/attendance/check-in", permission: "attendance:checkin:create" },
+  { prefix: "/attendance/services", permission: "attendance:services:read" },
+  { prefix: "/attendance/records", permission: "attendance:records:read" },
+  { prefix: "/attendance/reports", permission: "attendance:reports:read" },
+  { prefix: "/attendance", permission: "attendance:dashboard:read" },
+
+  // Giving
+  { prefix: "/giving/categories", permission: "giving:categories:read" },
+  { prefix: "/giving/records", permission: "giving:records:read" },
+  { prefix: "/giving/reports", permission: "giving:reports:read" },
+  { prefix: "/giving/recurring", permission: "giving:recurring:read" },
+  { prefix: "/giving", permission: "giving:dashboard:read" },
+
+  // Events
+  { prefix: "/events/check-in", permission: "events:checkin:create" },
   { prefix: "/events/new", permission: "events:create" },
-  { prefix: "/events/management", permission: "events:read" },
-  { prefix: "/events/list", permission: "events:read" },
-  { prefix: "/events/registrations", permission: "events:read" },
+  { prefix: "/events/management", permission: "events:tickets:read" },
+  { prefix: "/events/list", permission: "events:list:read" },
+  { prefix: "/events/registrations", permission: "events:registrations:read" },
   { prefix: "/events/[eventId]/edit", permission: "events:update" },
   { prefix: "/events/[eventId]/tiers", permission: "events:update" },
-  { prefix: "/events", permission: "events:read" },
+  { prefix: "/events", permission: "events:calendar:read" },
 
   // Sermons
-  { prefix: "/sermons/new", permission: "sermons:create" },
-  { prefix: "/sermons/series", permission: "sermons:read" },
-  { prefix: "/sermons/speakers", permission: "sermons:read" },
+  { prefix: "/sermons/new", permission: "sermons:new:create" },
+  { prefix: "/sermons/series", permission: "sermons:series:read" },
+  { prefix: "/sermons/speakers", permission: "sermons:speakers:read" },
   { prefix: "/sermons/[sermonId]/edit", permission: "sermons:update" },
-  { prefix: "/sermons", permission: "sermons:read" },
+  { prefix: "/sermons", permission: "sermons:list:read" },
 
   // Media
-  { prefix: "/media/upload", permission: "media:create" },
-  { prefix: "/media/folders", permission: "media:read" },
-  { prefix: "/media", permission: "media:read" },
+  { prefix: "/media/upload", permission: "media:upload:create" },
+  { prefix: "/media/folders", permission: "media:folders:read" },
+  { prefix: "/media", permission: "media:library:read" },
 
   // Pastoral care · Visitors
-  { prefix: "/pastoral", permission: "pastoral:read" },
-  { prefix: "/visitors/new", permission: "visitors:create" },
-  { prefix: "/visitors/follow-up", permission: "visitors:update" },
-  { prefix: "/visitors", permission: "visitors:read" },
+  { prefix: "/pastoral/life-events", permission: "pastoral:life-events:read" },
+  { prefix: "/pastoral/risk-scores", permission: "pastoral:risk-scores:read" },
+  { prefix: "/pastoral/engagement", permission: "pastoral:engagement:read" },
+  { prefix: "/pastoral", permission: "pastoral:notes:read" },
+  { prefix: "/visitors/new", permission: "visitors:new:create" },
+  { prefix: "/visitors/follow-up", permission: "visitors:followup:update" },
+  { prefix: "/visitors", permission: "visitors:list:read" },
 
   // Communication
   { prefix: "/communication/templates", permission: "templates:read" },
@@ -64,12 +78,15 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   // Departments · Assets · Forms
   { prefix: "/departments/cell-groups", permission: "cell_groups:read" },
   { prefix: "/departments", permission: "departments:read" },
-  { prefix: "/assets", permission: "assets:read" },
-  { prefix: "/forms/new", permission: "forms:create" },
-  { prefix: "/forms/[formId]/edit", permission: "forms:update" },
-  { prefix: "/forms/[formId]/fill", permission: "forms:read" },
-  { prefix: "/forms/submissions", permission: "forms:read" },
-  { prefix: "/forms", permission: "forms:read" },
+  { prefix: "/assets/categories", permission: "assets:categories:read" },
+  { prefix: "/assets/maintenance", permission: "assets:maintenance:read" },
+  { prefix: "/assets/loans", permission: "assets:loans:read" },
+  { prefix: "/assets", permission: "assets:list:read" },
+  { prefix: "/forms/new", permission: "forms:list:create" },
+  { prefix: "/forms/[formId]/edit", permission: "forms:list:update" },
+  { prefix: "/forms/[formId]/fill", permission: "forms:list:read" },
+  { prefix: "/forms/submissions", permission: "forms:submissions:read" },
+  { prefix: "/forms", permission: "forms:list:read" },
 
   // Reports — single generator page guarded by the reports:read permission
   { prefix: "/reports", permission: "reports:read" },

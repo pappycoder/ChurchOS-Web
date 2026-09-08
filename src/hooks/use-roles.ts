@@ -33,7 +33,7 @@ export interface RolesSummaryResponse {
   roles: RoleWithPermissions[];
 }
 
-export const PERMISSION_ACTIONS = ["create", "read", "update", "delete"] as const;
+export const PERMISSION_ACTIONS = ["create", "read", "update", "delete", "view"] as const;
 
 export const ROLE_ORDER = [
   "super_admin",

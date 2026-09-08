@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 
 /** Canonical action column order for the permission matrix; extras are appended. */
-const PERMISSION_ACTIONS = ["create", "read", "update", "delete"];
+const PERMISSION_ACTIONS = ["create", "read", "update", "delete", "view"];
 
 type PermissionRow = [resource: string, actions: Map<string, EffectivePermission>];
 
