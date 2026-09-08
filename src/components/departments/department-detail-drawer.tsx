@@ -110,8 +110,8 @@ export function DepartmentDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto p-5">
+        <SheetHeader className="px-0 py-0">
           <SheetTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             {isLoading ? "Department" : department?.name}
@@ -187,6 +187,7 @@ export function DepartmentDetailDrawer({
                     selectedName={selectedMemberName}
                     excludeIds={department.members.map((m) => m.memberId)}
                     placeholder="Select a member..."
+                    branchId={department.branchId}
                   />
                   <Select value={role} onValueChange={setRole}>
                     <SelectTrigger>
@@ -207,7 +208,7 @@ export function DepartmentDetailDrawer({
           </div>
         )}
 
-        <SheetFooter className="mt-6">
+        <SheetFooter className="mt-6 px-0 py-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>

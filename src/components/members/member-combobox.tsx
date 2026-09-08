@@ -25,6 +25,8 @@ interface MemberComboboxProps {
   placeholder?: string;
   excludeIds?: string[];
   disabled?: boolean;
+  /** Restrict the picker to members of this branch (mirrors the backend rule). */
+  branchId?: string;
 }
 
 export function MemberCombobox({
@@ -34,11 +36,12 @@ export function MemberCombobox({
   placeholder = "Select member...",
   excludeIds = [],
   disabled = false,
+  branchId,
 }: MemberComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const initialQuery = useMembersList({ limit: 20 });
+  const initialQuery = useMembersList({ limit: 20, branchId });
   const searchQuery = useSearchMembers(searchTerm.trim());
 
   const excluded = React.useMemo(() => new Set(excludeIds), [excludeIds]);
@@ -48,8 +51,10 @@ export function MemberCombobox({
       searchTerm.trim().length >= 2
         ? (searchQuery.data?.data ?? [])
         : (initialQuery.data?.data ?? []);
-    return source.filter((m) => !excluded.has(m.memberId));
-  }, [searchTerm, searchQuery.data, initialQuery.data, excluded]);
+    return source.filter(
+      (m) => !excluded.has(m.memberId) && (!branchId || m.branchId === branchId)
+    );
+  }, [searchTerm, searchQuery.data, initialQuery.data, excluded, branchId]);
 
   const handleSelect = (member: Member) => {
     onChange(member.memberId, member);
