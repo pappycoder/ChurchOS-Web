@@ -18,6 +18,11 @@ export interface Department {
   name: string;
   description?: string;
   parentId?: string;
+  branchId?: string;
+  branchName?: string;
+  headMemberId?: string;
+  headFirstName?: string;
+  headLastName?: string;
   members: DepartmentMember[];
   memberCount: number;
   archivedAt?: string;
@@ -79,6 +84,8 @@ export interface CreateDepartmentInput {
   name: string;
   description?: string;
   parentId?: string;
+  branchId?: string;
+  headMemberId?: string;
 }
 
 export type UpdateDepartmentInput = Partial<CreateDepartmentInput>;

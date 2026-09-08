@@ -16,19 +16,22 @@ export function useIsMember(): { isMember: boolean } {
   const { data: profile } = useCurrentProfile();
   const isMember =
     !!profile?.role?.includes("member") ||
-    !!profile?.role?.includes("cell_leader");
+    !!profile?.role?.includes("cell_leader") ||
+    !!profile?.role?.includes("department_head");
   return { isMember };
 }
 
 /**
  * Whether the viewer is treated like a member for the tickets surface.
- * Cell group leaders are deliberately included: their ticket flow (list +
- * self-claim) is identical to a member's, so the page title and claim dialog
- * should behave the same for both.
+ * Cell group leaders and department heads are deliberately included: their
+ * ticket flow (list + self-claim) is identical to a member's, so the page
+ * title and claim dialog should behave the same for both.
  */
 export function useIsTicketMember(): { isTicketMember: boolean } {
   const { data: profile } = useCurrentProfile();
   const isTicketMember =
-    !!profile?.role?.includes("member") || !!profile?.role?.includes("cell_leader");
+    !!profile?.role?.includes("member") ||
+    !!profile?.role?.includes("cell_leader") ||
+    !!profile?.role?.includes("department_head");
   return { isTicketMember };
 }

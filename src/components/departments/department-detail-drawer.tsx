@@ -23,6 +23,7 @@ import {
 import { MemberCombobox } from "@/components/members/member-combobox";
 import { useDepartment, useAddDepartmentMember, useRemoveDepartmentMember } from "@/hooks/use-admin";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 
 function formatDate(value: string | undefined): string {
   if (!value) return "—";
@@ -54,7 +55,12 @@ export function DepartmentDetailDrawer({
   departmentId,
 }: DepartmentDetailDrawerProps) {
   const { can } = usePermissions();
-  const canUpdate = can("departments", "update");
+  const { data: profile } = useCurrentProfile();
+  // HQ department heads view departments church-wide but are read-only — the
+  // backend rejects member add/remove for them, so hide the affordances.
+  const isHeadHq =
+    !!profile?.role?.includes("department_head") && !!profile?.isAdminHq;
+  const canUpdate = can("departments", "update") && !isHeadHq;
   const { data: department, isLoading, error } = useDepartment(departmentId);
   const addMember = useAddDepartmentMember(departmentId);
   const removeMember = useRemoveDepartmentMember(departmentId);

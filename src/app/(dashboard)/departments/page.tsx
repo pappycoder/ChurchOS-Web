@@ -3,11 +3,13 @@
 import * as React from "react";
 import { Building2, Pencil, Plus, Trash2, Users, RotateCcw, Archive } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -21,6 +23,8 @@ import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
 } from "@/components/shared/archive-confirm-dialog";
+import { ExportDropdown } from "@/components/shared/export-dropdown";
+import type { ExportColumn } from "@/lib/export-utils";
 import { DepartmentFormDialog } from "@/components/departments/department-form-dialog";
 import { DeleteDepartmentDialog } from "@/components/departments/delete-department-dialog";
 import { DepartmentDetailDrawer } from "@/components/departments/department-detail-drawer";
@@ -32,11 +36,28 @@ import {
   type Department,
 } from "@/hooks/use-admin";
 
+const EXPORT_COLUMNS: ExportColumn[] = [
+  { key: "name", label: "Name" },
+  { key: "head", label: "Head" },
+  { key: "branch", label: "Branch" },
+  { key: "parent", label: "Parent" },
+  { key: "members", label: "Members" },
+  { key: "createdAt", label: "Date Added" },
+];
+
 export default function DepartmentsPage() {
   const { can } = usePermissions();
-  const canCreate = can("departments", "create");
-  const canUpdate = can("departments", "update");
-  const canDelete = can("departments", "delete");
+  const { data: profile } = useCurrentProfile();
+  // Department heads only ever see the department they head (backend-scoped);
+  // HQ department heads see every department church-wide but are read-only.
+  const isDepartmentHead = !!profile?.role?.includes("department_head");
+  const isAdminHq = !!profile?.isAdminHq;
+  // Export stays available to staff and HQ department heads (they see all
+  // departments); branch-scoped heads manage their own department directly.
+  const canExport = !isDepartmentHead || isAdminHq;
+  const canCreate = can("departments", "create") && !isDepartmentHead;
+  const canUpdate = can("departments", "update") && !(isDepartmentHead && isAdminHq);
+  const canDelete = can("departments", "delete") && !isDepartmentHead;
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -73,9 +94,27 @@ export default function DepartmentsPage() {
     return rows.filter(
       (d) =>
         d.name.toLowerCase().includes(q) ||
-        (d.description ?? "").toLowerCase().includes(q)
+        (d.description ?? "").toLowerCase().includes(q) ||
+        (d.branchName ?? "").toLowerCase().includes(q) ||
+        `${d.headFirstName ?? ""} ${d.headLastName ?? ""}`.toLowerCase().includes(q)
     );
   }, [departments, search]);
+
+  const exportRows = React.useMemo(
+    () =>
+      filtered.map((department) => {
+        const parent = (departments ?? []).find((d) => d.id === department.parentId);
+        return {
+          name: department.name,
+          head: [department.headFirstName, department.headLastName].filter(Boolean).join(" "),
+          branch: department.branchName ?? "",
+          parent: parent?.name ?? "",
+          members: department.memberCount,
+          createdAt: new Date(department.createdAt).toLocaleDateString(),
+        };
+      }),
+    [filtered, departments]
+  );
 
   const paged = React.useMemo(
     () => filtered.slice((page - 1) * perPage, page * perPage),
@@ -101,16 +140,29 @@ export default function DepartmentsPage() {
           { label: "Departments" },
         ]}
         action={
-          canCreate ? (
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Department
-            </Button>
+          canCreate || canExport ? (
+            <div className="flex items-center gap-2">
+              {canExport && (
+                <ExportDropdown
+                  columns={EXPORT_COLUMNS}
+                  data={exportRows}
+                  title="Departments"
+                  filename="departments-export"
+                  disabled={exportRows.length === 0}
+                />
+              )}
+              {canCreate && (
+                <Button
+                  onClick={() => {
+                    setEditing(null);
+                    setFormOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Department
+                </Button>
+              )}
+            </div>
           ) : undefined
         }
       />
@@ -142,7 +194,9 @@ export default function DepartmentsPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
-            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            {!isDepartmentHead && (
+              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            )}
             <div className="relative sm:w-72">
               <input
                 type="text"
@@ -162,6 +216,8 @@ export default function DepartmentsPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Department</TableHead>
+              <TableHead>Branch</TableHead>
+              <TableHead>Head</TableHead>
               <TableHead>Parent</TableHead>
               <TableHead className="text-right">Members</TableHead>
               <TableHead className="text-right">Date Added</TableHead>
@@ -172,14 +228,14 @@ export default function DepartmentsPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={canUpdate || canDelete ? 5 : 4}>
+                  <TableCell colSpan={canUpdate || canDelete ? 7 : 6}>
                     <Skeleton className="h-5 w-full" />
                   </TableCell>
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canUpdate || canDelete ? 5 : 4} className="h-32 text-center">
+                <TableCell colSpan={canUpdate || canDelete ? 7 : 6} className="h-32 text-center">
                   <p className="text-muted-foreground">
                     {archivedView
                       ? "No archived departments."
@@ -200,6 +256,24 @@ export default function DepartmentsPage() {
                         <p className="text-xs text-muted-foreground line-clamp-1 max-w-md">
                           {department.description}
                         </p>
+                      )}
+                    </TableCell>
+                    <TableCell onClick={() => openDetail(department)}>
+                      {department.branchName ? (
+                        <Badge variant="secondary">{department.branchName}</Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">Unassigned</span>
+                      )}
+                    </TableCell>
+                    <TableCell onClick={() => openDetail(department)}>
+                      {department.headFirstName || department.headLastName ? (
+                        <span className="text-sm">
+                          {[department.headFirstName, department.headLastName]
+                            .filter(Boolean)
+                            .join(" ")}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No head assigned</span>
                       )}
                     </TableCell>
                     <TableCell onClick={() => openDetail(department)}>
@@ -308,6 +382,7 @@ export default function DepartmentsPage() {
         onOpenChange={setFormOpen}
         department={editing}
         departments={departments}
+        lockedLeaderBranch={isDepartmentHead && !isAdminHq}
       />
 
       <DeleteDepartmentDialog

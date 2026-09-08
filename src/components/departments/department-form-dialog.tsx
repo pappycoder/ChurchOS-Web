@@ -31,6 +31,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MemberCombobox } from "@/components/members/member-combobox";
+import { useBranchesList } from "@/hooks/use-branches";
 import {
   useCreateDepartment,
   useUpdateDepartment,
@@ -41,6 +43,8 @@ const departmentSchema = z.object({
   name: z.string().min(1, "Department name is required").max(100),
   description: z.string().max(500).optional(),
   parentId: z.string().optional(),
+  branchId: z.string().optional(),
+  headMemberId: z.string().optional(),
 });
 
 type DepartmentFormValues = z.infer<typeof departmentSchema>;
@@ -51,6 +55,8 @@ interface DepartmentFormDialogProps {
   department?: Department | null;
   departments?: Department[];
   onSaved?: (department: Department) => void;
+  /** When set, the branch + head fields are locked (read-only) and dropped from the submit payload. */
+  lockedLeaderBranch?: boolean;
 }
 
 function toFormValues(department?: Department | null): DepartmentFormValues {
@@ -58,6 +64,8 @@ function toFormValues(department?: Department | null): DepartmentFormValues {
     name: department?.name ?? "",
     description: department?.description ?? "",
     parentId: department?.parentId ?? "",
+    branchId: department?.branchId ?? "",
+    headMemberId: department?.headMemberId ?? "",
   };
 }
 
@@ -67,10 +75,14 @@ export function DepartmentFormDialog({
   department,
   departments = [],
   onSaved,
+  lockedLeaderBranch = false,
 }: DepartmentFormDialogProps) {
   const isEdit = !!department;
   const createMutation = useCreateDepartment();
   const updateMutation = useUpdateDepartment(department?.id ?? "");
+  const { data: branchesData } = useBranchesList({ limit: 100 });
+
+  const [headName, setHeadName] = React.useState("");
 
   const parentOptions = React.useMemo(
     () => departments.filter((d) => d.id !== department?.id),
@@ -85,6 +97,11 @@ export function DepartmentFormDialog({
   React.useEffect(() => {
     if (open) {
       form.reset(toFormValues(department));
+      setHeadName(
+        department
+          ? [department.headFirstName, department.headLastName].filter(Boolean).join(" ")
+          : ""
+      );
     }
   }, [open, department, form]);
 
@@ -93,6 +110,10 @@ export function DepartmentFormDialog({
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
       parentId: values.parentId?.trim() || undefined,
+      branchId:
+        lockedLeaderBranch || !values.branchId?.trim() ? undefined : values.branchId.trim(),
+      headMemberId:
+        lockedLeaderBranch || !values.headMemberId?.trim() ? undefined : values.headMemberId.trim(),
     };
 
     const mutation = isEdit ? updateMutation : createMutation;
@@ -112,9 +133,11 @@ export function DepartmentFormDialog({
     });
   };
 
+  const branches = branchesData?.data ?? [];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Department" : "Add Department"}</DialogTitle>
           <DialogDescription>
@@ -174,6 +197,60 @@ export function DepartmentFormDialog({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Branch</FormLabel>
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                      disabled={lockedLeaderBranch}
+                    >
+                      <FormControl>
+                        <SelectTrigger disabled={lockedLeaderBranch}>
+                          <SelectValue placeholder="No branch" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {branches.map((b) => (
+                          <SelectItem key={b.branchId} value={b.branchId}>
+                            {b.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="headMemberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Head</FormLabel>
+                    <FormControl>
+                      <MemberCombobox
+                        value={field.value ?? ""}
+                        onChange={(id, member) => {
+                          field.onChange(id);
+                          setHeadName(member ? `${member.firstName} ${member.lastName}` : "");
+                        }}
+                        selectedName={headName}
+                        placeholder="Select head..."
+                        disabled={lockedLeaderBranch}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}

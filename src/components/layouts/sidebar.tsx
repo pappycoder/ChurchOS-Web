@@ -353,6 +353,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
             title: "All Departments",
             href: "/departments",
             permission: "departments:read",
+            anyRole: ["department_head"],
           },
           {
             title: "Cell Groups",
