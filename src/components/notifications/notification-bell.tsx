@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { IconBell } from "@tabler/icons-react";
 import {
@@ -29,6 +30,8 @@ import { NotificationDetailDialog } from "@/components/notifications/notificatio
 
 const PREVIEW_LIMIT = 5;
 
+let lastSeenUnreadCount: number | undefined;
+
 interface NotificationBellProps {
   /**
    * Compact trigger for the mobile header. Uses a slightly smaller trigger
@@ -42,6 +45,7 @@ export function NotificationBell({ compact = false }: NotificationBellProps) {
   const [previewOpen, setPreviewOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<Notification | null>(null);
 
+  const queryClient = useQueryClient();
   const unread = useNotificationsUnread();
   const { data, isLoading } = useNotificationsList(
     { page: 1, limit: NOTIFICATIONS_LIST_LIMIT, read: "all" },
@@ -52,6 +56,13 @@ export function NotificationBell({ compact = false }: NotificationBellProps) {
 
   const unreadCount = unread.data?.count ?? 0;
   const preview = (data?.data ?? []).slice(0, PREVIEW_LIMIT);
+
+  React.useEffect(() => {
+    if (lastSeenUnreadCount !== undefined && unreadCount !== lastSeenUnreadCount) {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    }
+    lastSeenUnreadCount = unreadCount;
+  }, [unreadCount, queryClient]);
 
   const handleOpenNotification = (n: Notification) => {
     if (!n.readAt) markAsRead.mutate(n.id);
