@@ -48,7 +48,7 @@ export default function DashboardLayout({
       <Header />
 
       <main className="page-wrapper">
-        <div className="px-4 pt-4 pb-0 md:px-6 md:pt-6 md:pb-6">
+        <div className="px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10">
           <PermissionRouteGate>{children}</PermissionRouteGate>
         </div>
       </main>
