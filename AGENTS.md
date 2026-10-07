@@ -12,6 +12,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- **Record Attendance button on a cell-group detail page is now gated by the leader's ownership, not the raw write permission.** The `/departments/cell-groups/[groupId]` page header used `can("cell_groups", "create")`, which let any cell leader (including an HQ leader whose own group is filtered out of the list view) record attendance on a group they don't lead — contradicting the `canManageMembers` gate already on Add Member and the backend's ownership enforcement. The button now uses `canManageMembers` (`can("cell_groups","create") && (!isCellLeader || isOwnGroup)`), so a cell leader only ever sees "Record Attendance" for a group `isOwnGroup` covers (they lead it).
+  - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; vitest **222/222**.
+
 - **Media library filter toolbar now wraps instead of overflowing.** The `/media` toolbar (`CardHeader`) used the app's two-group grammar but was the one toolbar wide enough to overflow: the parent row became a non-wrapping `lg:flex-row` (left group — 5-tab segmented control + Folder + Permissions selects — plus the right group already exceeded the ~724px content column at 1024w), and the right group (`flex items-center gap-2`, no wrap: Search `w-full sm:w-64` + Sort select + Asc/Desc button) spilled past the card edge at several widths. Fixed in `media/page.tsx`: the parent row now carries `lg:flex-wrap` and the right group `flex flex-wrap`, so below-lg the groups still stack and at-lg the right group wraps to its own line instead of leaving the container. All other pages keep their identical-but-narrower toolbars untouched (no reported overflow; consistent look).
   - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; vitest **222/222**.
 

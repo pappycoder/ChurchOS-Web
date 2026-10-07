@@ -336,7 +336,7 @@ export default function CellGroupDetailPage({
                   <p className="text-sm font-medium flex items-center gap-2">
                     <ClipboardCheck className="h-4 w-4" /> Attendance Records ({attendance.length})
                   </p>
-                  {can("cell_groups", "create") && (
+                  {canManageMembers && (
                     <Button size="sm" onClick={() => setAttendanceDialogOpen(true)}>
                       <ClipboardCheck className="h-3.5 w-3.5 mr-1" /> Record Attendance
                     </Button>
