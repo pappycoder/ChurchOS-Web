@@ -48,6 +48,7 @@ import {
   MEDIA_PERMISSION_TEXT,
   classifyMime,
   formatBytes,
+  formatDate,
   mimePrefixForKind,
   useDeleteMediaAsset,
   useMediaFolders,
@@ -186,7 +187,7 @@ function MediaCard({
 
       <div className="mt-2 truncate pr-6 text-sm font-medium">{asset.filename}</div>
       <div className="mt-0.5 text-xs text-muted-foreground">
-        {formatBytes(asset.sizeBytes)} · {format(new Date(asset.createdAt), "MMM d, yyyy")}
+        {formatBytes(asset.sizeBytes)} · {formatDate(asset.createdAt)}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-1.5">
         <Badge variant="secondary" className="gap-1">

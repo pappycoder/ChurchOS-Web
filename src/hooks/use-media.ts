@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
@@ -83,7 +84,8 @@ const MIME_KIND_PREFIXES: Record<MediaKind, string> = {
   document: "application/",
 };
 
-export function classifyMime(mimeType: string): MediaKind {
+export function classifyMime(mimeType: string | undefined): MediaKind {
+  if (!mimeType) return "document";
   for (const kind of Object.keys(MIME_KIND_PREFIXES) as MediaKind[]) {
     if (mimeType.startsWith(MIME_KIND_PREFIXES[kind])) return kind;
   }
@@ -103,6 +105,13 @@ export function formatBytes(bytes: number): string {
   );
   const value = bytes / 1024 ** i;
   return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
+export function formatDate(createdAt: string | undefined): string {
+  if (!createdAt) return "No date";
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return "No date";
+  return format(date, "MMM d, yyyy");
 }
 
 // ─── Helpers ─────────────────────────────────────────────
