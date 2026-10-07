@@ -95,7 +95,12 @@ export function useNotificationsUnread() {
   return useQuery({
     queryKey: ["notifications-unread"],
     queryFn: () => api.get<{ count: number }>("/notifications/unread-count"),
-    refetchInterval: 60_000,
+    // Poll every 60s, but stop while the endpoint is failing — otherwise a
+    // 5xx would re-trigger a full fetch/retry cycle every minute, forever.
+    // Polling resumes automatically once a refetch succeeds (e.g. after the
+    // user retries, the session refreshes, or the component remounts).
+    refetchInterval: (query) =>
+      query.state.status === "error" ? false : 60_000,
   });
 }
 

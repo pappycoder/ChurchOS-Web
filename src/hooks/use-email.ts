@@ -113,7 +113,9 @@ export function useEmailUnread(enabled = true) {
   return useQuery({
     queryKey: ["email-unread"],
     queryFn: () => api.get<{ count: number }>("/email/unread-count"),
-    refetchInterval: 60_000,
+    // Pause the 60s poll while the endpoint errors (see useNotificationsUnread).
+    refetchInterval: (query) =>
+      query.state.status === "error" ? false : 60_000,
     enabled,
   });
 }
