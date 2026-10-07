@@ -53,9 +53,12 @@ export function RecordCashDialog({
   onOpenChange: (open: boolean) => void;
   onRecorded?: (transaction: GivingTransaction) => void;
 }) {
-  const categoriesQuery = useGivingCategories({ limit: 100 });
-  const servicesQuery = useAttendanceServices({ isActive: true, limit: 100 });
-  const eventsQuery = useEventsList({ limit: 50 });
+  const categoriesQuery = useGivingCategories({ limit: 100 }, { enabled: open });
+  const servicesQuery = useAttendanceServices(
+    { isActive: true, limit: 100 },
+    { enabled: open }
+  );
+  const eventsQuery = useEventsList({ limit: 50 }, { enabled: open });
   const createCategoryMutation = useCreateGivingCategory();
   const recordMutation = useRecordCashGiving();
 

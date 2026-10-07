@@ -24,12 +24,13 @@ import {
   useBulkMarkAsRead,
   useBulkDeleteNotifications,
   NOTIFICATION_TYPE_LABELS,
+  NOTIFICATIONS_LIST_LIMIT,
   formatRelativeTime,
   type Notification,
   type NotificationType,
 } from "@/hooks/use-notifications";
 
-const PAGE_SIZE = 15;
+const PAGE_SIZE = NOTIFICATIONS_LIST_LIMIT;
 
 interface NotificationsDrawerProps {
   open: boolean;
@@ -71,13 +72,16 @@ export function NotificationsDrawer({
   const [endDate, setEndDate] = React.useState("");
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
 
-  const { data, isLoading, isFetching } = useNotificationsList({
-    page,
-    limit: PAGE_SIZE,
-    read: readFilter,
-    startDate: startDate || undefined,
-    endDate: endDate || undefined,
-  });
+  const { data, isLoading, isFetching } = useNotificationsList(
+    {
+      page,
+      limit: PAGE_SIZE,
+      read: readFilter,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
+    },
+    { enabled: open }
+  );
 
   const markAsRead = useMarkAsRead();
   const deleteNotification = useDeleteNotification();

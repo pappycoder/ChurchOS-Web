@@ -165,11 +165,15 @@ function invalidateAttendanceCaches(queryClient: ReturnType<typeof useQueryClien
 
 // ─── Services ────────────────────────────────────────────
 
-export function useAttendanceServices(params: ListServicesParams = {}) {
+export function useAttendanceServices(
+  params: ListServicesParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["attendance-services", params],
     queryFn: () =>
       api.get<PaginatedResponse<ChurchService>>(`/services${buildQuery({ ...params })}`),
+    enabled: options.enabled ?? true,
   });
 }
 

@@ -156,11 +156,15 @@ export function useEventsSummary() {
 
 // ─── Events list (paginated) ─────────────────────────────
 
-export function useEventsList(params: ListEventsParams = {}) {
+export function useEventsList(
+  params: ListEventsParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["events-list", params],
     queryFn: () =>
       api.get<EventsListResponse>(`/events${buildQuery({ ...params })}`),
+    enabled: options.enabled ?? true,
   });
 }
 

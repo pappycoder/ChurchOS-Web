@@ -33,10 +33,10 @@ import {
   SERVICE_CATEGORIES,
   type ChurchService,
 } from "@/hooks/use-attendance";
-import type { GivingTransaction } from "@/hooks/use-giving";
+import {
+  useGivingTransactionsAll,
+} from "@/hooks/use-giving";
 import { usePermissions } from "@/hooks/use-permissions";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -78,48 +78,21 @@ export default function ServiceDetailPage({
   } | null>(null);
 
   // Giving tagged to this service — paged fetch of all successful gifts.
-  const [giving, setGiving] = React.useState<{
-    loading: boolean;
-    total: number;
-    byCategory: { name: string; amount: number }[];
-  }>({ loading: true, total: 0, byCategory: [] });
-
-  React.useEffect(() => {
-    let cancelled = false;
-    if (!serviceId) return;
-
-    fetchAllPages<GivingTransaction>((p) =>
-      api.get(
-        listUrl("/giving/transactions", {
-          serviceId,
-          status: "success",
-          page: p,
-          limit: 200,
-        })
-      )
-    )
-      .then((rows) => {
-        if (cancelled) return;
-        const map = new Map<string, number>();
-        let total = 0;
-        for (const t of rows) {
-          total += t.amount;
-          map.set(t.categoryName, (map.get(t.categoryName) ?? 0) + t.amount);
-        }
-        setGiving({
-          loading: false,
-          total,
-          byCategory: Array.from(map.entries())
-            .map(([name, amount]) => ({ name, amount }))
-            .sort((a, b) => b.amount - a.amount),
-        });
-      })
-      .catch(() => !cancelled && setGiving({ loading: false, total: 0, byCategory: [] }));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [serviceId]);
+  const givingQuery = useGivingTransactionsAll({ serviceId });
+  const givingRows = React.useMemo(() => givingQuery.data ?? [], [givingQuery.data]);
+  const givingTotal = React.useMemo(
+    () => givingRows.reduce((sum, t) => sum + t.amount, 0),
+    [givingRows]
+  );
+  const givingByCategory = React.useMemo(() => {
+    const map = new Map<string, number>();
+    for (const t of givingRows) {
+      map.set(t.categoryName, (map.get(t.categoryName) ?? 0) + t.amount);
+    }
+    return Array.from(map.entries())
+      .map(([name, amount]) => ({ name, amount }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [givingRows]);
 
   const attendance = attendanceQuery.data?.data ?? [];
   const totalCheckIns = attendanceQuery.data?.total ?? 0;
@@ -283,7 +256,7 @@ export default function ServiceDetailPage({
           <CardContent className="pt-6">
             <div className="text-2xl font-semibold flex items-center gap-2">
               <HandCoins className="h-5 w-5 text-muted-foreground" />
-              {giving.loading ? "..." : giving.total.toLocaleString()}
+              {givingQuery.isLoading ? "..." : givingTotal.toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Total Giving (₦)</p>
           </CardContent>
@@ -316,15 +289,15 @@ export default function ServiceDetailPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {giving.loading ? (
+            {givingQuery.isLoading ? (
               <Skeleton className="h-64 w-full" />
-            ) : giving.byCategory.length === 0 ? (
+            ) : givingByCategory.length === 0 ? (
               <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
                 No gifts recorded against this service yet.
               </div>
             ) : (
               <ChartContainer config={givingConfig} className="h-64 w-full">
-                <BarChart data={giving.byCategory} layout="vertical" margin={{ left: 32 }}>
+                <BarChart data={givingByCategory} layout="vertical" margin={{ left: 32 }}>
                   <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                   <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />
                   <ChartTooltip content={<ChartTooltipContent />} />

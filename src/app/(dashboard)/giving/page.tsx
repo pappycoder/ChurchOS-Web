@@ -31,11 +31,9 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import {
+  useGivingSummary,
   useGivingTransactions,
-  type GivingTransaction,
 } from "@/hooks/use-giving";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
-import { api } from "@/lib/api";
 import { usePermissions } from "@/hooks/use-permissions";
 import { RecordCashDialog } from "@/components/giving/record-cash-dialog";
 
@@ -51,8 +49,7 @@ export default function GivingDashboardPage() {
 
   const recentQuery = useGivingTransactions({ limit: 8 });
 
-  // Totals derived from paged success transactions (works for any
-  // giving:read holder — the analytics endpoint is role-restricted).
+  // Calendar-month-start bound for the "Gifts This Month" count query.
   const monthStart = React.useMemo(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
@@ -61,77 +58,13 @@ export default function GivingDashboardPage() {
   const monthQuery = useGivingTransactions({
     status: "success",
     startDate: monthStart,
-    limit: 100,
+    limit: 1,
   });
 
-  const monthTotal = React.useMemo(
-    () =>
-      fetchAllPages<GivingTransaction>((p) =>
-        api.get(listUrl("/giving/transactions", {
-          status: "success",
-          startDate: monthStart,
-          page: p,
-          limit: 200,
-        }))
-      ).then((rows) => rows.reduce((sum, t) => sum + t.amount, 0)),
-    [monthStart]
-  );
+  const summaryQuery = useGivingSummary();
+  const summary = summaryQuery.data;
 
-  const allTimeTotal = React.useMemo(
-    () =>
-      fetchAllPages<GivingTransaction>((p) =>
-        api.get(listUrl("/giving/transactions", { status: "success", page: p, limit: 200 }))
-      ).then((rows) => rows.reduce((sum, t) => sum + t.amount, 0)),
-    []
-  );
-
-  const [totals, setTotals] = React.useState<{ month: number; allTime: number } | null>(null);
-  React.useEffect(() => {
-    let cancelled = false;
-    Promise.all([monthTotal, allTimeTotal]).then(([month, allTime]) => {
-      if (!cancelled) setTotals({ month, allTime });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [monthTotal, allTimeTotal]);
-
-  // 30-day trend derived from paged success transactions.
-  const [chartRows, setChartRows] = React.useState<{ date: string; total: number }[]>([]);
-  const chartConfig = trendConfig;
-  React.useEffect(() => {
-    let cancelled = false;
-    const windowStart = new Date();
-    windowStart.setDate(windowStart.getDate() - 30);
-    fetchAllPages<GivingTransaction>((p) =>
-      api.get(
-        listUrl("/giving/transactions", {
-          status: "success",
-          page: p,
-          limit: 200,
-        })
-      )
-    )
-      .then((rows) => {
-        if (cancelled) return;
-        const grouped = new Map<string, number>();
-        for (const t of rows) {
-          const d = new Date(t.createdAt);
-          if (d < windowStart) continue;
-          const key = d.toISOString().slice(0, 10);
-          grouped.set(key, (grouped.get(key) ?? 0) + t.amount);
-        }
-        setChartRows(
-          Array.from(grouped.entries())
-            .map(([date, total]) => ({ date, total }))
-            .sort((a, b) => a.date.localeCompare(b.date))
-        );
-      })
-      .catch(() => setChartRows([]));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const hasTrend = (summary?.trend ?? []).some((point) => point.total > 0);
 
   return (
     <div className="space-y-4">
@@ -160,12 +93,12 @@ export default function GivingDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="This Month"
-          value={totals ? `${totals.month.toLocaleString()}` : "..."}
+          value={summary ? `${summary.monthTotal.toLocaleString()}` : "..."}
           icon={<HandCoins className="h-4 w-4" />}
         />
         <StatsCard
           title="All-Time Total"
-          value={totals ? `${totals.allTime.toLocaleString()}` : "..."}
+          value={summary ? `${summary.allTimeTotal.toLocaleString()}` : "..."}
           icon={<Banknote className="h-4 w-4" />}
         />
         <StatsCard
@@ -188,15 +121,15 @@ export default function GivingDashboardPage() {
             <CardDescription>Successful gifts over the last 30 days.</CardDescription>
           </CardHeader>
           <CardContent>
-            {!totals ? (
+            {!summary ? (
               <Skeleton className="h-64 w-full" />
-            ) : chartRows.length === 0 ? (
+            ) : !hasTrend ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
                 No giving recorded in this period.
               </div>
             ) : (
-              <ChartContainer config={chartConfig} className="h-64 w-full">
-                <AreaChart data={chartRows} margin={{ left: -8, right: 8 }}>
+              <ChartContainer config={trendConfig} className="h-64 w-full">
+                <AreaChart data={summary?.trend ?? []} margin={{ left: -8, right: 8 }}>
                   <defs>
                     <linearGradient id="fillGiven" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-total)" stopOpacity={0.35} />

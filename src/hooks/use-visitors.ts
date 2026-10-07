@@ -89,6 +89,14 @@ export interface ConvertVisitorInput {
   branchId?: string;
 }
 
+/** Shape returned by GET /visitors/stats (VisitorSummaryResponseDto). */
+export interface VisitorSummary {
+  total: number;
+  newThisMonth: number;
+  inFollowUp: number;
+  converted: number;
+}
+
 function buildListPath(params: ListVisitorsParams): string {
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.set("page", String(params.page));
@@ -108,6 +116,7 @@ function invalidateVisitorCaches(
   visitorId?: string
 ) {
   queryClient.invalidateQueries({ queryKey: ["visitors-list"] });
+  queryClient.invalidateQueries({ queryKey: ["visitors-stats"] });
   queryClient.invalidateQueries({ queryKey: ["visitor"] });
   if (visitorId) queryClient.removeQueries({ queryKey: ["visitor", visitorId] });
 }
@@ -135,6 +144,14 @@ export function useVisitor(visitorId: string) {
     queryKey: ["visitor", visitorId],
     queryFn: () => api.get<Visitor>(`/visitors/${visitorId}`),
     enabled: !!visitorId,
+  });
+}
+
+export function useVisitorsStats() {
+  return useQuery({
+    queryKey: ["visitors-stats"],
+    queryFn: () => api.get<VisitorSummary>("/visitors/stats"),
+    staleTime: 60 * 1000,
   });
 }
 

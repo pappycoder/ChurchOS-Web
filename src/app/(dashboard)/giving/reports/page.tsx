@@ -18,11 +18,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import {
-  useGivingTransactions,
-  type GivingTransaction,
+  useGivingTransactionsAll,
 } from "@/hooks/use-giving";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
 
 const categoryConfig = {
   amount: { label: "Amount", color: "var(--chart-1)" },
@@ -32,37 +29,15 @@ export default function GivingReportsPage() {
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
 
-  const listQuery = useGivingTransactions({
-    status: "success",
+  // Everything below derives from a fetch-all of successful gifts in range.
+  const {
+    data: rows,
+    isLoading: loadingRows,
+    error,
+  } = useGivingTransactionsAll({
     startDate: startDate || undefined,
     endDate: endDate || undefined,
-    limit: 100,
   });
-
-  // Everything below derives from a fetch-all of successful gifts in range.
-  const [rows, setRows] = React.useState<GivingTransaction[] | null>(null);
-  const [loadingRows, setLoadingRows] = React.useState(true);
-  React.useEffect(() => {
-    let cancelled = false;
-    setLoadingRows(true);
-    fetchAllPages<GivingTransaction>((p) =>
-      api.get(
-        listUrl("/giving/transactions", {
-          status: "success",
-          startDate: startDate || undefined,
-          endDate: endDate || undefined,
-          page: p,
-          limit: 200,
-        })
-      )
-    )
-      .then((r) => !cancelled && setRows(r))
-      .catch(() => !cancelled && setRows([]))
-      .finally(() => !cancelled && setLoadingRows(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [startDate, endDate]);
 
   const totalAmount = React.useMemo(
     () => (rows ?? []).reduce((sum, t) => sum + t.amount, 0),
@@ -103,7 +78,7 @@ export default function GivingReportsPage() {
     [rows]
   );
 
-  if (listQuery.error) {
+  if (error) {
     return (
       <div>
         <PageHeader

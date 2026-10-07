@@ -376,8 +376,8 @@ function MediaLibraryContent() {
             >
               <option value="">All folders</option>
               {folders.map((f) => (
-                <option key={f} value={f}>
-                  {f}
+                <option key={f.folder} value={f.folder}>
+                  {f.folder}
                 </option>
               ))}
             </select>

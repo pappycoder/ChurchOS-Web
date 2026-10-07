@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
 import { Boxes, Eye, Pencil, Plus, Trash2, Archive, RotateCcw } from "lucide-react";
@@ -37,14 +36,13 @@ import { toast } from "sonner";
 import { AssetFormDialog } from "@/components/assets/asset-form-dialog";
 import { AssetDetailDrawer } from "@/components/assets/asset-detail-drawer";
 import { StatusBadge } from "@/components/assets/status-badge";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { exportCSV } from "@/lib/export-utils";
 import { useBranchesList } from "@/hooks/use-branches";
 import {
   formatCurrency,
   useAssetCategories,
   useAssetsList,
+  useAssetStats,
   useDeleteAsset,
   useArchiveAsset,
   useRestoreAsset,
@@ -113,6 +111,8 @@ export default function AssetsPage() {
   );
 
   const { data, isLoading, error } = useAssetsList(queryParams);
+  const statsQuery = useAssetStats();
+  const stats = statsQuery.data;
   const deleteMutation = useDeleteAsset();
   const archiveMutation = useArchiveAsset();
   const restoreMutation = useRestoreAsset();
@@ -122,30 +122,6 @@ export default function AssetsPage() {
 
   const assets = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
-
-  const statsQuery = useQuery({
-    queryKey: ["assets-list", "all"],
-    queryFn: () =>
-      fetchAllPages(
-        (p) =>
-          api.get<{ data: Asset[]; meta: { total: number } }>(
-            listUrl("/assets", { page: p, limit: 100 })
-          ),
-        { perRequest: 100 }
-      ),
-    staleTime: 60 * 1000,
-  });
-
-  const techStats = React.useMemo(() => {
-    const all = statsQuery.data ?? [];
-    let purchaseValue = 0;
-    let currentValue = 0;
-    for (const asset of all) {
-      purchaseValue += asset.purchasePrice ?? 0;
-      currentValue += asset.currentValue ?? asset.purchasePrice ?? 0;
-    }
-    return { total: all.length, purchaseValue, currentValue };
-  }, [statsQuery.data]);
 
   const openDetail = (asset: Asset) => {
     setDetailAsset(asset);
@@ -218,17 +194,17 @@ export default function AssetsPage() {
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatsCard
           title="Total Assets"
-          value={statsQuery.isLoading ? "..." : techStats.total}
+          value={statsQuery.isLoading ? "..." : (stats?.totalAssets ?? 0)}
           icon={<Boxes className="h-4 w-4" />}
         />
         <StatsCard
           title="Purchase Value"
-          value={statsQuery.isLoading ? "..." : formatCurrency(techStats.purchaseValue)}
+          value={statsQuery.isLoading ? "..." : formatCurrency(stats?.totalPurchaseValue)}
           icon={<Boxes className="h-4 w-4" />}
         />
         <StatsCard
           title="Current Value"
-          value={statsQuery.isLoading ? "..." : formatCurrency(techStats.currentValue)}
+          value={statsQuery.isLoading ? "..." : formatCurrency(stats?.totalCurrentValue)}
           icon={<Boxes className="h-4 w-4" />}
         />
       </div>
@@ -508,18 +484,22 @@ export default function AssetsPage() {
         </CardContent>
       </Card>
 
-      <AssetFormDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSaved={(saved) => openDetail(saved)}
-      />
-      <AssetFormDialog
-        open={!!editAsset}
-        onOpenChange={(open) => {
-          if (!open) setEditAsset(null);
-        }}
-        asset={editAsset}
-      />
+      {createDialogOpen && (
+        <AssetFormDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          onSaved={(saved) => openDetail(saved)}
+        />
+      )}
+      {editAsset && (
+        <AssetFormDialog
+          open={!!editAsset}
+          onOpenChange={(open) => {
+            if (!open) setEditAsset(null);
+          }}
+          asset={editAsset}
+        />
+      )}
       <ConfirmDeleteDialog
         open={!!deleteTarget}
         onOpenChange={(open) => {

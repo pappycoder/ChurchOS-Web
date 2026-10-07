@@ -96,26 +96,38 @@ export function monthLabel(month: string): string {
 
 // ─── Queries ─────────────────────────────────────────────
 
-export function useFinancialReport(params: ReportQueryParams = {}) {
+export function useFinancialReport(
+  params: ReportQueryParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["reports", "financial", params],
     queryFn: () => api.get<FinancialReport>(`/reports/financial${buildQuery(params)}`),
     staleTime: 5 * 60 * 1000,
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useAttendanceReport(params: ReportQueryParams = {}) {
+export function useAttendanceReport(
+  params: ReportQueryParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["reports", "attendance", params],
     queryFn: () => api.get<AttendanceReport>(`/reports/attendance${buildQuery(params)}`),
     staleTime: 5 * 60 * 1000,
+    enabled: options.enabled ?? true,
   });
 }
 
-export function useMemberReport(params: ReportQueryParams = {}) {
+export function useMemberReport(
+  params: ReportQueryParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["reports", "members", params],
     queryFn: () => api.get<MemberReport>(`/reports/members${buildQuery(params)}`),
     staleTime: 10 * 60 * 1000,
+    enabled: options.enabled ?? true,
   });
 }

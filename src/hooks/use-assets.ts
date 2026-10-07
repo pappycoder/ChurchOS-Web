@@ -133,6 +133,13 @@ export interface AssetsListResponse {
   meta: AssetsListMeta;
 }
 
+/** Shape returned by GET /assets/stats (AssetSummaryResponseDto). */
+export interface AssetSummary {
+  totalAssets: number;
+  totalPurchaseValue: number;
+  totalCurrentValue: number;
+}
+
 export interface CreateAssetInput {
   assetTag: string;
   name: string;
@@ -309,6 +316,14 @@ export function useAsset(assetId: string | undefined) {
   });
 }
 
+export function useAssetStats() {
+  return useQuery({
+    queryKey: ["assets-stats"],
+    queryFn: () => api.get<AssetSummary>("/assets/stats"),
+    staleTime: 60 * 1000,
+  });
+}
+
 export function useAssetCategories(archived?: boolean) {
   return useQuery({
     queryKey: ["assets-categories", archived ?? false],
@@ -359,6 +374,7 @@ export function useAssetQr(assetId: string | undefined) {
 function invalidateAssetQueries(client: ReturnType<typeof useQueryClient>) {
   client.invalidateQueries({ queryKey: ["assets-list"] });
   client.invalidateQueries({ queryKey: ["assets-categories"] });
+  client.invalidateQueries({ queryKey: ["assets-stats"] });
   client.invalidateQueries({ queryKey: ["assets"] });
 }
 

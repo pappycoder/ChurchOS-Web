@@ -85,9 +85,15 @@ export default function ReportsGeneratorPage() {
     branchId: branchId || undefined,
   };
 
-  const financial = useFinancialReport(params);
-  const attendance = useAttendanceReport(params);
-  const members = useMemberReport(params);
+  const financial = useFinancialReport(params, {
+    enabled: blocks.includes("financial"),
+  });
+  const attendance = useAttendanceReport(params, {
+    enabled: blocks.includes("attendance"),
+  });
+  const members = useMemberReport(params, {
+    enabled: blocks.includes("members"),
+  });
   const branchesQuery = useBranchesList({ limit: 100 });
 
   const queryFor = (block: ReportBlock) =>

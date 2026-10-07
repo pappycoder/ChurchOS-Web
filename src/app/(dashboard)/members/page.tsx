@@ -730,15 +730,19 @@ export default function MembersPage() {
         )}
       </TableCard>
 
-      <MemberFormDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-      />
-      <MemberFormDialog
-        open={!!editMember}
-        onOpenChange={(open) => !open && setEditMember(null)}
-        member={editMember}
-      />
+      {createDialogOpen && (
+        <MemberFormDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+        />
+      )}
+      {editMember && (
+        <MemberFormDialog
+          open={!!editMember}
+          onOpenChange={(open) => !open && setEditMember(null)}
+          member={editMember}
+        />
+      )}
       <DeleteMemberDialog
         open={!!deleteTargets}
         onOpenChange={(open) => !open && setDeleteTargets(null)}

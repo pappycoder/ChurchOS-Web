@@ -377,13 +377,15 @@ export default function DepartmentsPage() {
         departmentId={detailDepartment?.id ?? ""}
       />
 
-      <DepartmentFormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        department={editing}
-        departments={departments}
-        lockedLeaderBranch={isDepartmentHead && !isAdminHq}
-      />
+      {formOpen && (
+        <DepartmentFormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          department={editing}
+          departments={departments}
+          lockedLeaderBranch={isDepartmentHead && !isAdminHq}
+        />
+      )}
 
       <DeleteDepartmentDialog
         open={!!deleting}

@@ -55,6 +55,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   useVisitorsList,
+  useVisitorsStats,
   useArchiveVisitor,
   useRestoreArchiveVisitor,
   useDeleteVisitor,
@@ -95,8 +96,6 @@ const STATUS_BADGE: Record<FollowUpStatus, { variant: "default" | "secondary" | 
   converted: { variant: "secondary", dot: "bg-emerald-600" },
   dropped_off: { variant: "destructive", dot: "bg-gray-400" },
 };
-
-const ACTIVE_FOLLOW_UP: FollowUpStatus[] = ["new", "contacted", "follow_up_scheduled", "interested"];
 
 function getInitials(visitor: Pick<Visitor, "firstName" | "lastName">): string {
   const first = visitor.firstName.charAt(0);
@@ -178,8 +177,8 @@ export default function VisitorsPage() {
   const restoreArchiveMutation = useRestoreArchiveVisitor();
   const purgeMutation = useDeleteVisitor();
 
-  // Unfiltered fetch powers the stats cards.
-  const statsQuery = useVisitorsList({ limit: 200 });
+  // Stats cards come from the aggregate endpoint.
+  const statsQuery = useVisitorsStats();
 
   // Assignee display names resolved client-side from profiles.
   const usersQuery = useUsers({ limit: 100, status: "active" });
@@ -193,21 +192,7 @@ export default function VisitorsPage() {
 
   const visitors = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
-
-  const stats = React.useMemo(() => {
-    const rows = statsQuery.data?.data ?? [];
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    return {
-      total: statsQuery.data?.meta.total ?? 0,
-      newThisMonth: rows.filter((v) => new Date(v.firstVisitDate) >= monthStart).length,
-      inFollowUp: rows.filter(
-        (v) => !v.convertedMemberId && ACTIVE_FOLLOW_UP.includes(v.followUpStatus)
-      ).length,
-      converted: rows.filter((v) => !!v.convertedMemberId || v.followUpStatus === "converted")
-        .length,
-    };
-  }, [statsQuery.data]);
+  const stats = statsQuery.data;
 
   const allSelected =
     visitors.length > 0 && visitors.every((v) => selectedIds.has(v.id));
@@ -330,22 +315,22 @@ export default function VisitorsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Visitors"
-          value={stats.total}
+          value={stats?.total ?? 0}
           icon={<UserPlus className="h-4 w-4" />}
         />
         <StatsCard
           title="New This Month"
-          value={stats.newThisMonth}
+          value={stats?.newThisMonth ?? 0}
           icon={<UserPlus className="h-4 w-4" />}
         />
         <StatsCard
           title="In Follow-Up"
-          value={stats.inFollowUp}
+          value={stats?.inFollowUp ?? 0}
           icon={<UserPlus className="h-4 w-4" />}
         />
         <StatsCard
           title="Converted"
-          value={stats.converted}
+          value={stats?.converted ?? 0}
           icon={<Repeat className="h-4 w-4" />}
         />
       </div>
@@ -642,11 +627,13 @@ export default function VisitorsPage() {
         onOpenChange={(open) => !open && setEditVisitor(null)}
         visitor={editVisitor}
       />
-      <ConvertVisitorDialog
-        open={!!convertVisitor}
-        onOpenChange={(open) => !open && setConvertVisitor(null)}
-        visitor={convertVisitor}
-      />
+      {convertVisitor && (
+        <ConvertVisitorDialog
+          open={!!convertVisitor}
+          onOpenChange={(open) => !open && setConvertVisitor(null)}
+          visitor={convertVisitor}
+        />
+      )}
       <DeleteVisitorDialog
         open={!!deleteTargets}
         onOpenChange={(open) => !open && setDeleteTargets(null)}

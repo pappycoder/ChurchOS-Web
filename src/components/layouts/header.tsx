@@ -159,7 +159,7 @@ export function Header() {
   const { data: currentProfile } = useCurrentProfile();
   const { isMember } = useIsMember();
   const { canAny } = usePermissions();
-  const { data: emailUnread } = useEmailUnread();
+  const { data: emailUnread } = useEmailUnread(!isMember);
   const emailUnreadCount = emailUnread?.count ?? 0;
 
   const visibleNav = React.useMemo(

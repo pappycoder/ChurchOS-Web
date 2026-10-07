@@ -208,10 +208,10 @@ function MediaUploadPage() {
                 >
                   <option value="uploads">uploads</option>
                   {folders
-                    .filter((f) => f !== "uploads")
+                    .filter((f) => f.folder !== "uploads")
                     .map((f) => (
-                      <option key={f} value={f}>
-                        {f}
+                      <option key={f.folder} value={f.folder}>
+                        {f.folder}
                       </option>
                     ))}
                   <option value="__new__">+ New folder…</option>

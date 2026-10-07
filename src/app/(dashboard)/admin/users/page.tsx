@@ -504,13 +504,15 @@ export default function UsersPage() {
         </>
       )}
 
-      <UserFormDialog
-        open={inviteDialogOpen}
-        onOpenChange={setInviteDialogOpen}
-        mode="invite"
-      />
+      {inviteDialogOpen && (
+        <UserFormDialog
+          open={inviteDialogOpen}
+          onOpenChange={setInviteDialogOpen}
+          mode="invite"
+        />
+      )}
 
-      {selectedUser && (
+      {selectedUser && editRoleDialogOpen && (
         <UserFormDialog
           open={editRoleDialogOpen}
           onOpenChange={(open) => { setEditRoleDialogOpen(open); if (!open) setSelectedUser(null); }}

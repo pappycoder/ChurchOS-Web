@@ -23,6 +23,13 @@ export interface MediaLibraryResponse {
   total: number;
 }
 
+/** Shape returned by the media folder summary endpoint (MediaFolderSummaryDto). */
+export interface MediaFolderSummary {
+  folder: string;
+  count: number;
+  newestAt: string | null;
+}
+
 export interface UploadMediaResponse {
   assetId: string;
   url: string;
@@ -137,9 +144,12 @@ export function useMediaFolders() {
   return useQuery({
     queryKey: ["media-folders"],
     queryFn: async () => {
-      const res = await api.get<{ data: string[] }>("/media/library/folders");
+      const res = await api.get<{ data: MediaFolderSummary[] }>(
+        "/media/library/folders"
+      );
       return res.data;
     },
+    staleTime: 60 * 1000,
   });
 }
 

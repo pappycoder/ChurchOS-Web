@@ -15,6 +15,7 @@ import {
   useMarkAsRead,
   formatRelativeTime,
   NOTIFICATION_TYPE_LABELS,
+  NOTIFICATIONS_LIST_LIMIT,
   type Notification,
 } from "@/hooks/use-notifications";
 import { NotificationsDrawer } from "@/components/notifications/notifications-drawer";
@@ -55,7 +56,12 @@ export function MyDashboard() {
   const profile = useCurrentProfile();
   const labels = useRoleLabelMap();
   const auditLogs = useMyAuditLogs({ limit: 8 });
-  const notifications = useNotificationsList({ read: "all", limit: 8 });
+  const notifications = useNotificationsList({
+    page: 1,
+    limit: NOTIFICATIONS_LIST_LIMIT,
+    read: "all",
+  });
+  const recentNotifications = (notifications.data?.data ?? []).slice(0, 8);
   const markAsRead = useMarkAsRead();
 
   const [drawerOpen, setDrawerOpen] = React.useState(false);
@@ -211,9 +217,9 @@ export function MyDashboard() {
                   <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
                 ))}
               </div>
-            ) : notifications.data?.data.length ? (
+            ) : recentNotifications.length ? (
               <ul className="divide-y">
-                {notifications.data.data.map((n) => (
+                {recentNotifications.map((n) => (
                   <li key={n.id}>
                     <button
                       type="button"

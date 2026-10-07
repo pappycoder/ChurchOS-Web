@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
 import { HandCoins } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { PageHeader } from "@/components/shared/page-header";
@@ -20,12 +19,12 @@ import { AssetDetailDrawer } from "@/components/assets/asset-detail-drawer";
 import { LoanFormDialog } from "@/components/assets/loan-form-dialog";
 import { ReturnLoanDialog } from "@/components/assets/return-loan-dialog";
 import { StatusBadge } from "@/components/assets/status-badge";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
 import {
   formatCurrency,
   useAssetLoans,
+  useAssetsList,
   type Asset,
+  type AssetsListParams,
 } from "@/hooks/use-assets";
 
 export default function AssetLoansPage() {
@@ -42,41 +41,27 @@ export default function AssetLoansPage() {
   const [perPage, setPerPage] = React.useState(15);
 
   React.useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput), 300);
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const assetsQuery = useQuery({
-    queryKey: ["assets-list", "all"],
-    queryFn: () =>
-      fetchAllPages(
-        (page) =>
-          api.get<{ data: Asset[]; meta: { total: number } }>(
-            listUrl("/assets", { page, limit: 100 })
-          ),
-        { perRequest: 100 }
-      ),
-    staleTime: 30 * 1000,
-  });
+  const queryParams: AssetsListParams = React.useMemo(
+    () => ({
+      page,
+      limit: perPage,
+      search: search || undefined,
+    }),
+    [page, perPage, search]
+  );
+
+  const { data, isLoading } = useAssetsList(queryParams);
+  const assets = React.useMemo(() => data?.data ?? [], [data]);
+  const meta = data?.meta;
 
   const loansQuery = useAssetLoans(drawerOpen && detailAsset ? detailAsset.id : undefined);
-
-  const assets = React.useMemo(() => {
-    const rows = assetsQuery.data ?? [];
-    if (!search.trim()) return rows;
-    const q = search.toLowerCase();
-    return rows.filter(
-      (a) =>
-        a.name.toLowerCase().includes(q) ||
-        a.assetTag.toLowerCase().includes(q) ||
-        (a.serialNumber ?? "").toLowerCase().includes(q)
-    );
-  }, [assetsQuery.data, search]);
-
-  const pagedAssets = React.useMemo(
-    () => assets.slice((page - 1) * perPage, page * perPage),
-    [assets, page, perPage]
-  );
 
   const activeLoan = (loansQuery.data ?? []).find(
     (loan) => loan.status === "borrowed" || loan.status === "overdue"
@@ -108,7 +93,7 @@ export default function AssetLoansPage() {
         itemName="assets"
         page={page}
         perPage={perPage}
-        total={assets.length}
+        total={meta?.total ?? 0}
         onPageChange={setPage}
         onPerPageChange={(size) => {
           setPerPage(size);
@@ -140,7 +125,7 @@ export default function AssetLoansPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {assetsQuery.isLoading ? (
+            {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={5}>
@@ -157,7 +142,7 @@ export default function AssetLoansPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              pagedAssets.map((asset) => (
+              assets.map((asset) => (
                 <TableRow key={asset.id} className="cursor-pointer">
                   <TableCell onClick={() => openDetail(asset)}>
                     <p className="font-medium">{asset.name}</p>

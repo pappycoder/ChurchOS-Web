@@ -19,6 +19,7 @@ import {
   useMarkAsRead,
   useMarkAllAsRead,
   NOTIFICATION_TYPE_LABELS,
+  NOTIFICATIONS_LIST_LIMIT,
   formatRelativeTime,
   type Notification,
   type NotificationType,
@@ -38,15 +39,19 @@ interface NotificationBellProps {
 
 export function NotificationBell({ compact = false }: NotificationBellProps) {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [previewOpen, setPreviewOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<Notification | null>(null);
 
   const unread = useNotificationsUnread();
-  const { data, isLoading } = useNotificationsList({ page: 1, limit: PREVIEW_LIMIT });
+  const { data, isLoading } = useNotificationsList(
+    { page: 1, limit: NOTIFICATIONS_LIST_LIMIT, read: "all" },
+    { enabled: previewOpen }
+  );
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
 
   const unreadCount = unread.data?.count ?? 0;
-  const preview = data?.data ?? [];
+  const preview = (data?.data ?? []).slice(0, PREVIEW_LIMIT);
 
   const handleOpenNotification = (n: Notification) => {
     if (!n.readAt) markAsRead.mutate(n.id);
@@ -62,7 +67,7 @@ export function NotificationBell({ compact = false }: NotificationBellProps) {
   return (
     <>
       <div className={compact ? "" : "me-2"}>
-        <DropdownMenu>
+        <DropdownMenu open={previewOpen} onOpenChange={setPreviewOpen}>
           <DropdownMenuTrigger asChild>
             <a href="#" className="btn-menubar relative me-1" id="notification_popup" aria-label="Notifications">
               <IconBell size={compact ? 20 : 18} />

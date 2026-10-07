@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { fetchAllPages, listUrl } from "@/lib/export-all";
 import type { PaginatedResponse } from "@/hooks/use-attendance";
 
 // ─── Types ───────────────────────────────────────────────
@@ -79,6 +80,20 @@ export interface ListGivingTransactionsParams {
   sortOrder?: "asc" | "desc";
 }
 
+/** Daily total point from GET /giving/transactions/summary (GivingTrendPointDto). */
+export interface GivingTrendPoint {
+  date: string;
+  total: number;
+}
+
+/** Shape returned by GET /giving/transactions/summary (TransactionSummaryResponseDto). */
+export interface GivingSummary {
+  monthTotal: number;
+  allTimeTotal: number;
+  count: number;
+  trend: GivingTrendPoint[];
+}
+
 export interface RecordCashGivingInput {
   categoryId: string;
   amount: number;
@@ -127,17 +142,22 @@ function invalidateGivingCaches(queryClient: ReturnType<typeof useQueryClient>) 
   queryClient.invalidateQueries({ queryKey: ["giving-categories"] });
   queryClient.invalidateQueries({ queryKey: ["giving-transactions"] });
   queryClient.invalidateQueries({ queryKey: ["giving-recurring"] });
+  queryClient.invalidateQueries({ queryKey: ["giving-summary"] });
 }
 
 // ─── Categories ──────────────────────────────────────────
 
-export function useGivingCategories(params: ListCategoriesParams = {}) {
+export function useGivingCategories(
+  params: ListCategoriesParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["giving-categories", params],
     queryFn: () =>
       api.get<PaginatedResponse<GivingCategory>>(
         `/giving/categories${buildQuery({ ...params })}`
       ),
+    enabled: options.enabled ?? true,
   });
 }
 
@@ -194,6 +214,38 @@ export function useGivingTransactions(params: ListGivingTransactionsParams = {})
     queryFn: () =>
       api.get<PaginatedResponse<GivingTransaction>>(
         `/giving/transactions${buildQuery({ ...params })}`
+      ),
+  });
+}
+
+export function useGivingSummary() {
+  return useQuery({
+    queryKey: ["giving-summary"],
+    queryFn: () => api.get<GivingSummary>("/giving/transactions/summary"),
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * Fetches EVERY successful gift matching the given filters by walking pages
+ * at the endpoint cap (max 5,000). Used by derived report views (giving
+ * reports, service giving breakdown) that need exact totals/per-category
+ * sums that a single page can't provide. Shares the giving-transactions
+ * invalidate prefix so new gifts refresh these views too.
+ */
+export function useGivingTransactionsAll(params: ListGivingTransactionsParams = {}) {
+  return useQuery({
+    queryKey: ["giving-transactions-all", params],
+    queryFn: () =>
+      fetchAllPages<GivingTransaction>((page) =>
+        api.get<PaginatedResponse<GivingTransaction>>(
+          listUrl("/giving/transactions", {
+            status: "success",
+            ...params,
+            page,
+            limit: 200,
+          })
+        )
       ),
   });
 }

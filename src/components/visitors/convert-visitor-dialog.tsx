@@ -59,7 +59,7 @@ export function ConvertVisitorDialog({
 }) {
   const router = useRouter();
   const convertMutation = useConvertVisitor(visitor?.id ?? "");
-  const branchesQuery = useBranchesList({ limit: 100 });
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: open });
   const [pending, setPending] = React.useState(false);
 
   const form = useForm<ConvertFormValues>({

@@ -109,11 +109,12 @@ export function useEmailDetail(messageId: string | null) {
 }
 
 /** Poll the unread inbox count (drives the header badge + sidebar item). */
-export function useEmailUnread() {
+export function useEmailUnread(enabled = true) {
   return useQuery({
     queryKey: ["email-unread"],
     queryFn: () => api.get<{ count: number }>("/email/unread-count"),
     refetchInterval: 60_000,
+    enabled,
   });
 }
 

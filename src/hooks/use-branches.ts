@@ -61,10 +61,14 @@ function buildListPath(params: ListBranchesParams): string {
   return `/branches${queryString ? `?${queryString}` : ""}`;
 }
 
-export function useBranchesList(params: ListBranchesParams = {}) {
+export function useBranchesList(
+  params: ListBranchesParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["branches-list", params],
     queryFn: () => api.get<BranchListResponse>(buildListPath(params)),
+    enabled: options.enabled ?? true,
   });
 }
 

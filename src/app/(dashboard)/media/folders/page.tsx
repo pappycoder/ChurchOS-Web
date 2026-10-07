@@ -18,40 +18,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useMediaFolders, useMediaLibrary } from "@/hooks/use-media";
+import {
+  useMediaFolders,
+  type MediaFolderSummary,
+} from "@/hooks/use-media";
 
-function FolderRow({ name }: { name: string }) {
+function FolderRow({ folder }: { folder: MediaFolderSummary }) {
   const router = useRouter();
-  const { data, isLoading } = useMediaLibrary({ folder: name, limit: 1 });
 
-  const newest = data?.data?.[0]?.createdAt;
+  const newest = folder.newestAt;
 
   return (
     <TableRow
       className="cursor-pointer"
-      onClick={() => router.push(`/media?folder=${encodeURIComponent(name)}`)}
+      onClick={() =>
+        router.push(`/media?folder=${encodeURIComponent(folder.folder)}`)
+      }
     >
       <TableCell className="font-medium">
         <span className="flex items-center gap-2">
           <Folder className="h-4 w-4 text-primary" />
-          {name}
+          {folder.folder}
         </span>
       </TableCell>
       <TableCell>
-        {isLoading ? (
-          <Skeleton className="h-5 w-10" />
-        ) : (
-          <Badge variant="secondary">{data?.total ?? 0}</Badge>
-        )}
+        <Badge variant="secondary">{folder.count}</Badge>
       </TableCell>
       <TableCell className="text-muted-foreground">
-        {isLoading ? (
-          <Skeleton className="h-4 w-28" />
-        ) : newest ? (
-          format(new Date(newest), "MMM d, yyyy")
-        ) : (
-          "-"
-        )}
+        {newest ? format(new Date(newest), "MMM d, yyyy") : "-"}
       </TableCell>
       <TableCell className="text-right text-muted-foreground">View files →</TableCell>
     </TableRow>
@@ -131,8 +125,8 @@ function MediaFoldersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pagedFolders.map((name) => (
-                <FolderRow key={name} name={name} />
+              {pagedFolders.map((folder) => (
+                <FolderRow key={folder.folder} folder={folder} />
               ))}
             </TableBody>
           </Table>

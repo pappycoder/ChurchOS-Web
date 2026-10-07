@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   useEventsList,
-  useEventsSummary,
   type EventItem,
 } from "@/hooks/use-events";
 import { useAttendanceServices } from "@/hooks/use-attendance";
@@ -27,11 +26,10 @@ export default function EventsDashboardPage() {
   const [detailModalOpen, setDetailModalOpen] = React.useState(false);
   const [selectedEvent, setSelectedEvent] = React.useState<EventItem | null>(null);
 
-  const summaryQuery = useEventsSummary();
   const eventsQuery = useEventsList({ limit: 100, sortBy: "startDate", sortOrder: "asc" });
   const servicesQuery = useAttendanceServices({ limit: 100 });
 
-  const allEvents = summaryQuery.data?.data ?? [];
+  const allEvents = eventsQuery.data?.data ?? [];
   const listEvents = eventsQuery.data?.data ?? [];
   const services = servicesQuery.data?.data ?? [];
 
@@ -78,7 +76,7 @@ export default function EventsDashboardPage() {
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
             events={allEvents}
-            isLoading={summaryQuery.isLoading}
+            isLoading={eventsQuery.isLoading}
           />
         </div>
 

@@ -116,7 +116,7 @@ export default function VisitorDetailPage({
     sortBy: "checkinAt",
     sortOrder: "desc",
   });
-  const totalVisits = useAttendanceRecords({ visitorId, limit: 1 });
+  const totalVisits = visitsQuery.data?.meta.total;
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [convertOpen, setConvertOpen] = React.useState(false);
@@ -396,17 +396,17 @@ export default function VisitorDetailPage({
         title="Visit History"
         action={
           <span className="text-xs text-muted-foreground">
-            {(totalVisits.data?.meta.total ?? 0) === 0
+            {(totalVisits ?? 0) === 0
               ? visitsQuery.isLoading
                 ? ""
                 : "No check-ins yet"
-              : `${totalVisits.data?.meta.total ?? 0} check-in(s)`}
+              : `${totalVisits ?? 0} check-in(s)`}
           </span>
         }
         itemName="check-ins"
         page={visitPage}
         perPage={visitPerPage}
-        total={totalVisits.data?.meta.total ?? visitsRows.length}
+        total={totalVisits ?? visitsRows.length}
         onPageChange={setVisitPage}
         onPerPageChange={(n) => {
           setVisitPerPage(n);

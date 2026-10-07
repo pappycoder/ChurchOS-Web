@@ -41,6 +41,9 @@ export interface NotificationsListParams {
   endDate?: string;
 }
 
+/** Shared list page size for the bell preview, dashboard widget, and drawer, so all three share one cache entry. */
+export const NOTIFICATIONS_LIST_LIMIT = 15;
+
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   system: "System",
   attendance: "Attendance",
@@ -60,7 +63,10 @@ export function formatRelativeTime(iso: string): string {
 
 // ─── Queries ─────────────────────────────────────────────
 
-export function useNotificationsList(params: NotificationsListParams = {}) {
+export function useNotificationsList(
+  params: NotificationsListParams = {},
+  options: { enabled?: boolean } = {}
+) {
   const query = new URLSearchParams();
   if (params.page && params.page > 1) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
@@ -73,6 +79,7 @@ export function useNotificationsList(params: NotificationsListParams = {}) {
     queryKey: ["notifications", params],
     queryFn: () =>
       api.get<NotificationsListResponse>(`/notifications${qs ? `?${qs}` : ""}`),
+    enabled: options.enabled ?? true,
   });
 }
 
