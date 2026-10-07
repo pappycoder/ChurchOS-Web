@@ -69,9 +69,9 @@ export default function EventsDashboardPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-4">
+      <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
         {/* Sidebar */}
-        <div className="lg:col-span-1">
+        <div>
           <CalendarSidebar
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
@@ -81,7 +81,7 @@ export default function EventsDashboardPage() {
         </div>
 
         {/* Calendar */}
-        <div className="lg:col-span-3">
+        <div className="min-w-0">
           <Card className="p-0 overflow-hidden">
             <CalendarView
               events={listEvents}

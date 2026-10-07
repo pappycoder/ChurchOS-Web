@@ -12,6 +12,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- **Events calendar: the datepicker always gets room, the big calendar shrinks.** The `/events` grid used equal `lg:grid-cols-4` fractions with a `col-span-1` sidebar, so at lg/xl the sidebar column was only ~170–235px while the mini datepicker (`ui/calendar.tsx`) needs ~248px (7 day cells × 32px `min-w-(--cell-size)` + its own `p-3`) — it overflowed the narrow column. The layout is now two explicit tracks at `lg`: `lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]` — the sidebar keeps ≥280px (growing to 360px when there's room) and the calendar track is `minmax(0, 1fr)` with `min-w-0` on its wrapper (default grid `min-width: auto` would block the track collapsing below the calendar's content width). The calendar itself is already width-flexible (`grid-cols-7` / `1fr` week grid), so it absorbs the remainder. Below `lg` the columns still stack full-width as before; on wide screens the sidebar caps at 360px so it doesn't balloon (a 5-col 2/3 split would hit ~664px at 1920w).
+  - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; vitest **222/222**.
+
 - **Dashboard content gets bottom breathing room.** The shared content wrapper in `(dashboard)/layout.tsx` padded the bottom `pb-0` on mobile and only `md:pb-6` (24px) on desktop, so the last component on a page sat flush against the viewport edge when scrolled to the end (`.page-wrapper` itself only compensates the fixed header with `padding-top`). Now `px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10` (32px mobile / 40px desktop), uniformly across every dashboard page. `admin/roles/[roleName]` keeps its own `pb-24` (clears its floating dirty-state save bar).
   - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean.
 
