@@ -12,6 +12,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- **Media library filter toolbar now wraps instead of overflowing.** The `/media` toolbar (`CardHeader`) used the app's two-group grammar but was the one toolbar wide enough to overflow: the parent row became a non-wrapping `lg:flex-row` (left group — 5-tab segmented control + Folder + Permissions selects — plus the right group already exceeded the ~724px content column at 1024w), and the right group (`flex items-center gap-2`, no wrap: Search `w-full sm:w-64` + Sort select + Asc/Desc button) spilled past the card edge at several widths. Fixed in `media/page.tsx`: the parent row now carries `lg:flex-wrap` and the right group `flex flex-wrap`, so below-lg the groups still stack and at-lg the right group wraps to its own line instead of leaving the container. All other pages keep their identical-but-narrower toolbars untouched (no reported overflow; consistent look).
+  - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; vitest **222/222**.
+
 - **Series & Speakers list rows are now fully clickable** (matching the sermons/events/branches row grammar). Each `TableRow` on `/sermons/series` and `/sermons/speakers` is `cursor-pointer` with an `onClick` that navigates to the filtered sermons list (`/sermons?series=…` / `?speaker=…` — the deep-link filtering already consumed by the sermons page). The redundant "View Sermons" ghost button in the trailing Actions column is removed along with the Actions header, since it duplicated the entire row's action; both tables are now Series Name · Sermons · Last Preached / Speaker · Sermons · Last Spoke. (`Button` stays imported in both files for the error-state Retry button.)
   - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; vitest **222/222**.
 

@@ -344,7 +344,7 @@ function MediaLibraryContent() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex h-8 items-center gap-1 rounded-md border border-input bg-background p-1">
               {KIND_FILTERS.map((k) => (
@@ -398,7 +398,7 @@ function MediaLibraryContent() {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <SearchInput
               value={searchInput}
               onChange={(v) => setSearchInput(v)}
