@@ -9,6 +9,7 @@ import { useSettings } from "@/contexts/settings-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useIsMember } from "@/hooks/use-is-member";
+import { usePrefetchRoute } from "@/lib/prefetch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import {
@@ -599,6 +600,7 @@ function NavLink({
   const hasChildren = !!item.children?.length;
   const itemKey = `${level}-${item.title}`;
   const open = openMenus[itemKey];
+  const prefetch = usePrefetchRoute();
 
   const isActive = (href?: string) => {
     if (!href) return false;
@@ -673,6 +675,8 @@ function NavLink({
           isLinkActive(item.href) && "active",
         )}
         onClick={closeMobile}
+        onMouseEnter={() => prefetch(item.href)}
+        onFocusCapture={() => prefetch(item.href)}
       >
         {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
         <span className="truncate">{item.title}</span>

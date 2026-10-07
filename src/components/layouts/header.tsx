@@ -17,6 +17,7 @@ import { useCurrentProfile } from "@/hooks/use-profile";
 import { useIsMember } from "@/hooks/use-is-member";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useEmailUnread } from "@/hooks/use-email";
+import { usePrefetchRoute } from "@/lib/prefetch";
 import { cn } from "@/lib/utils";
 import { ActionTooltip } from "@/components/ui/tooltip";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -210,6 +211,8 @@ export function Header() {
     }
   };
 
+  const prefetch = usePrefetchRoute();
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen();
@@ -320,13 +323,25 @@ export function Header() {
                               <ul>
                                 {item.children.map((child) => (
                                   <li key={child.href}>
-                                    <Link href={child.href}>{child.title}</Link>
+                                    <Link
+                                      href={child.href}
+                                      onMouseEnter={() => prefetch(child.href)}
+                                      onFocusCapture={() => prefetch(child.href)}
+                                    >
+                                      {child.title}
+                                    </Link>
                                   </li>
                                 ))}
                               </ul>
                             </>
                           ) : (
-                            <Link href={item.href}>{item.title}</Link>
+                            <Link
+                              href={item.href}
+                              onMouseEnter={() => prefetch(item.href)}
+                              onFocusCapture={() => prefetch(item.href)}
+                            >
+                              {item.title}
+                            </Link>
                           )}
                         </li>
                       ))}
