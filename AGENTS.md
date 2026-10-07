@@ -12,6 +12,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- **Series & Speakers list rows are now fully clickable** (matching the sermons/events/branches row grammar). Each `TableRow` on `/sermons/series` and `/sermons/speakers` is `cursor-pointer` with an `onClick` that navigates to the filtered sermons list (`/sermons?series=…` / `?speaker=…` — the deep-link filtering already consumed by the sermons page). The redundant "View Sermons" ghost button in the trailing Actions column is removed along with the Actions header, since it duplicated the entire row's action; both tables are now Series Name · Sermons · Last Preached / Speaker · Sermons · Last Spoke. (`Button` stays imported in both files for the error-state Retry button.)
+  - Verification: `npx tsc --noEmit` clean; scoped `eslint` clean; vitest **222/222**.
+
 - **Mobile sidebar drawer no longer inherits the desktop collapsed (mini-sidebar) state.** The desktop collapse toggle persists in `localStorage` (`sidebarCollapsed`), and that same `collapsed` state was applied to the mobile off-canvas drawer — the mobile CSS only *partially* un-did the desktop mini rules, so a previously-collapsed sidebar gave a broken mobile drawer. Three leaks fixed:
   - **Section headings stayed hidden** — desktop mini hides them with `.mini-sidebar … > ul > li.menu-title { display:none }`, but the mobile restore used a *descendant* selector (`.sidebar-menu > ul > li .menu-title`) that never matched our markup (`<li className="menu-title">`). The mobile rule now targets the `<li>` itself.
   - **Item rows stayed centered/cramped** — desktop mini centers anchors (`justify-content:center; padding:10px`, globals.css 921–925); mobile now restores `flex-start` + `10px 15px 10px 32px`.

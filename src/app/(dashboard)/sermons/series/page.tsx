@@ -106,12 +106,17 @@ export default function SermonsSeriesPage() {
                 <TableHead>Series Name</TableHead>
                 <TableHead>Sermons</TableHead>
                 <TableHead>Last Preached</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {pagedSeries.map((s) => (
-                <TableRow key={s.name}>
+                <TableRow
+                  key={s.name}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    router.push(`/sermons?series=${encodeURIComponent(s.name)}`)
+                  }
+                >
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">
@@ -127,17 +132,6 @@ export default function SermonsSeriesPage() {
                     ) : (
                       "-"
                     )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        router.push(`/sermons?series=${encodeURIComponent(s.name)}`)
-                      }
-                    >
-                      View Sermons
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}

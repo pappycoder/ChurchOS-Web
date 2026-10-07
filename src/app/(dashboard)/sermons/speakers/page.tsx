@@ -107,12 +107,17 @@ export default function SermonsSpeakersPage() {
                 <TableHead>Speaker</TableHead>
                 <TableHead>Sermons</TableHead>
                 <TableHead>Last Spoke</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {pagedSpeakers.map((s) => (
-                <TableRow key={s.name}>
+                <TableRow
+                  key={s.name}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    router.push(`/sermons?speaker=${encodeURIComponent(s.name)}`)
+                  }
+                >
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">
@@ -128,17 +133,6 @@ export default function SermonsSpeakersPage() {
                     ) : (
                       "-"
                     )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        router.push(`/sermons?speaker=${encodeURIComponent(s.name)}`)
-                      }
-                    >
-                      View Sermons
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
