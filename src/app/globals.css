@@ -1056,7 +1056,7 @@ button:not(:disabled):not([aria-disabled="true"]),
     display: inline-block;
   }
 
-  .mini-sidebar .sidebar .sidebar-menu > ul > li .menu-title {
+  .mini-sidebar .sidebar .sidebar-menu > ul > li.menu-title {
     font-size: 9px;
     padding: 0;
     display: flex;
@@ -1064,10 +1064,61 @@ button:not(:disabled):not([aria-disabled="true"]),
 
   .mini-sidebar .sidebar .sidebar-menu > ul > li > ul {
     display: block !important;
+    margin-bottom: 19px;
   }
 
   .mini-sidebar .sidebar .menu-arrow {
     display: inline-flex;
+  }
+
+  /* Neutralize every remaining mini/expand rule so the off-canvas drawer
+     always renders the full, left-aligned vertical menu on mobile even when
+     the desktop `sidebarCollapsed` state is persisted. */
+  .mini-sidebar .sidebar .sidebar-menu > ul > li > ul > li > a,
+  .mini-sidebar .sidebar .sidebar-menu > ul > li > ul > li.submenu > a {
+    justify-content: flex-start;
+    padding: 10px 15px;
+    padding-right: 32px;
+  }
+
+  .mini-sidebar .sidebar .sidebar-menu > ul > li > ul > li.submenu > ul {
+    display: none;
+  }
+
+  .mini-sidebar
+    .sidebar
+    .sidebar-menu
+    > ul
+    > li
+    > ul
+    > li.submenu
+    > ul.subdrop-show {
+    display: block !important;
+    max-height: 500px;
+  }
+
+  .expand-menu.mini-sidebar
+    .sidebar
+    .sidebar-menu
+    > ul
+    > li
+    > ul
+    > li.submenu
+    > ul {
+    display: none !important;
+    max-height: 0;
+  }
+
+  .expand-menu.mini-sidebar
+    .sidebar
+    .sidebar-menu
+    > ul
+    > li
+    > ul
+    > li.submenu
+    > ul.subdrop-show {
+    display: block !important;
+    max-height: 500px;
   }
 }
 

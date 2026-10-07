@@ -840,18 +840,28 @@ export function Sidebar() {
     [pathname, leafHrefs],
   );
 
+  // Hover-expand is a mouse-pointer affordance only; without this guard a
+  // tap/touch that synthesizes a mouseenter would flip the mobile off-canvas
+  // drawer into the half-expanded `expand-menu` state on a collapsed sidebar.
+  const hoverCapable = React.useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover)").matches,
+    [],
+  );
+
   const handleMouseEnter = React.useCallback(() => {
-    if (!collapsed) return;
+    if (!collapsed || !hoverCapable) return;
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     setHoverExpand(true);
-  }, [collapsed]);
+  }, [collapsed, hoverCapable]);
 
   const handleMouseLeave = React.useCallback(() => {
-    if (!collapsed) return;
+    if (!collapsed || !hoverCapable) return;
     hoverTimeoutRef.current = setTimeout(() => {
       setHoverExpand(false);
     }, 100);
-  }, [collapsed]);
+  }, [collapsed, hoverCapable]);
 
   return (
     <>
