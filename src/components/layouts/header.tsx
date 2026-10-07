@@ -235,10 +235,20 @@ export function Header() {
       <div className="main-header">
         {/* Logo — hidden on desktop via CSS, visible on mobile */}
         <div className="header-left">
-          <Link href="/dashboard" className="logo">
+          <Link
+            href="/dashboard"
+            className="logo"
+            onMouseEnter={() => prefetch("/dashboard")}
+            onFocusCapture={() => prefetch("/dashboard")}
+          >
             <BrandLogo emblemClassName="h-20" />
           </Link>
-          <Link href="/dashboard" className="logo dark-logo">
+          <Link
+            href="/dashboard"
+            className="logo dark-logo"
+            onMouseEnter={() => prefetch("/dashboard")}
+            onFocusCapture={() => prefetch("/dashboard")}
+          >
             <BrandLogo emblemClassName="h-20" />
           </Link>
         </div>
