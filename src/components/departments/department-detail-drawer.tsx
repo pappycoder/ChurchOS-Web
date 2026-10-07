@@ -56,12 +56,14 @@ export function DepartmentDetailDrawer({
 }: DepartmentDetailDrawerProps) {
   const { can } = usePermissions();
   const { data: profile } = useCurrentProfile();
-  // HQ department heads view departments church-wide but are read-only — the
-  // backend rejects member add/remove for them, so hide the affordances.
-  const isHeadHq =
-    !!profile?.role?.includes("department_head") && !!profile?.isAdminHq;
-  const canUpdate = can("departments", "update") && !isHeadHq;
+  // Department heads manage members only in the department they head (the
+  // backend rejects add/remove elsewhere), so the Add/Remove affordances are
+  // also gated on ownership for any department head.
+  const isDepartmentHead = !!profile?.role?.includes("department_head");
+  const canUpdate = can("departments", "update");
   const { data: department, isLoading, error } = useDepartment(departmentId);
+  const isOwnDepartment =
+    isDepartmentHead && !!profile?.memberId && department?.headMemberId === profile.memberId;
   const addMember = useAddDepartmentMember(departmentId);
   const removeMember = useRemoveDepartmentMember(departmentId);
 
@@ -154,7 +156,7 @@ export function DepartmentDetailDrawer({
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">{m.role}</p>
                       </div>
-                      {canUpdate && (
+                      {canUpdate && (!isDepartmentHead || isOwnDepartment) && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -171,7 +173,7 @@ export function DepartmentDetailDrawer({
                 )}
               </div>
 
-              {canUpdate && (
+              {canUpdate && (!isDepartmentHead || isOwnDepartment) && (
                 <div className="mt-4 space-y-3 rounded-lg border p-4">
                   <p className="text-sm font-medium flex items-center gap-2">
                     <UserPlus className="h-4 w-4" /> Add Member
