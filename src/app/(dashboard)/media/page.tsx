@@ -59,6 +59,7 @@ import {
 } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useIsMember } from "@/hooks/use-is-member";
+import { reportQueryError } from "@/lib/report-query-error";
 import { cn } from "@/lib/utils";
 
 const KIND_FILTERS: { value: "all" | "image" | "audio" | "video" | "document"; label: string }[] = [
@@ -224,6 +225,7 @@ function MediaLibraryContent() {
   const [preview, setPreview] = React.useState<MediaAsset | null>(null);
   const [permissionsTarget, setPermissionsTarget] = React.useState<MediaAsset | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<MediaAsset | null>(null);
+  const [retrying, setRetrying] = React.useState(false);
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -247,11 +249,17 @@ function MediaLibraryContent() {
     [page, perPage, folder, kind, permissions, search, sortBy, sortOrder]
   );
 
-  const { data, isLoading, error } = useMediaLibrary(queryParams);
+  const { data, isLoading, error, refetch } = useMediaLibrary(queryParams);
   const foldersQuery = useMediaFolders();
   const totalsQuery = useMediaLibrary({ limit: 1 });
   const deleteMutation = useDeleteMediaAsset();
   const permissionsMutation = useUpdateMediaPermissions();
+
+  // The inline error state below never reaches the dashboard error boundary,
+  // so report failed fetches here — otherwise this page fails silently in Sentry.
+  React.useEffect(() => {
+    if (error) reportQueryError(error, "media-library");
+  }, [error]);
 
   const assets = React.useMemo(() => {
     const list = data?.data ?? [];
@@ -297,6 +305,18 @@ function MediaLibraryContent() {
     }
   };
 
+  // Retry refetches the queries directly instead of reloading the whole
+  // document: a reload re-enters the service-worker cache path, which is
+  // what made the error stick until a hard refresh.
+  const handleRetry = async () => {
+    setRetrying(true);
+    try {
+      await Promise.all([refetch(), foldersQuery.refetch(), totalsQuery.refetch()]);
+    } finally {
+      setRetrying(false);
+    }
+  };
+
   if (error) {
     return (
       <div>
@@ -307,8 +327,8 @@ function MediaLibraryContent() {
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <AlertTriangle className="h-12 w-12 text-destructive" />
           <p className="text-destructive">Failed to load media library.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
+          <Button variant="outline" onClick={() => void handleRetry()} disabled={retrying}>
+            {retrying ? "Retrying..." : "Retry"}
           </Button>
         </div>
       </div>

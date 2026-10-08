@@ -22,6 +22,7 @@ import {
   useMediaFolders,
   type MediaFolderSummary,
 } from "@/hooks/use-media";
+import { reportQueryError } from "@/lib/report-query-error";
 
 function FolderRow({ folder }: { folder: MediaFolderSummary }) {
   const router = useRouter();
@@ -53,14 +54,30 @@ function FolderRow({ folder }: { folder: MediaFolderSummary }) {
 }
 
 function MediaFoldersPage() {
-  const { data: folders, isLoading, error } = useMediaFolders();
+  const { data: folders, isLoading, error, refetch } = useMediaFolders();
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [retrying, setRetrying] = React.useState(false);
   const pagedFolders = React.useMemo(
     () => (folders ?? []).slice((page - 1) * perPage, page * perPage),
     [folders, page, perPage]
   );
+
+  // Inline error state — never reaches the dashboard error boundary, so
+  // report it here (same gap as the media library page).
+  React.useEffect(() => {
+    if (error) reportQueryError(error, "media-folders");
+  }, [error]);
+
+  const handleRetry = async () => {
+    setRetrying(true);
+    try {
+      await refetch();
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   if (error) {
     return (
@@ -72,8 +89,8 @@ function MediaFoldersPage() {
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <AlertTriangle className="h-12 w-12 text-destructive" />
           <p className="text-destructive">Failed to load media folders.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
+          <Button variant="outline" onClick={() => void handleRetry()} disabled={retrying}>
+            {retrying ? "Retrying..." : "Retry"}
           </Button>
         </div>
       </div>
