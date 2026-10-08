@@ -41,12 +41,12 @@ export type UpdateGivingCategoryInput = Partial<CreateGivingCategoryInput>;
 export interface GivingTransaction {
   transactionId: string;
   churchId: string;
-  branchId?: string;
   memberId?: string;
   memberName?: string;
   serviceId?: string;
   serviceName?: string;
   eventId?: string;
+  branchId?: string;
   eventName?: string;
   categoryId: string;
   categoryName: string;
@@ -71,6 +71,7 @@ export interface ListGivingTransactionsParams {
   memberId?: string;
   serviceId?: string;
   eventId?: string;
+  branchId?: string;
   status?: string;
   type?: string;
   gateway?: string;
@@ -218,10 +219,11 @@ export function useGivingTransactions(params: ListGivingTransactionsParams = {})
   });
 }
 
-export function useGivingSummary() {
+export function useGivingSummary(params: Pick<ListGivingTransactionsParams, "branchId"> = {}) {
   return useQuery({
-    queryKey: ["giving-summary"],
-    queryFn: () => api.get<GivingSummary>("/giving/transactions/summary"),
+    queryKey: ["giving-summary", params],
+    queryFn: () =>
+      api.get<GivingSummary>(`/giving/transactions/summary${buildQuery(params)}`),
     staleTime: 60_000,
   });
 }

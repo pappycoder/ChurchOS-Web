@@ -316,10 +316,10 @@ export function useAsset(assetId: string | undefined) {
   });
 }
 
-export function useAssetStats() {
+export function useAssetStats(branchId?: string) {
   return useQuery({
-    queryKey: ["assets-stats"],
-    queryFn: () => api.get<AssetSummary>("/assets/stats"),
+    queryKey: ["assets-stats", branchId],
+    queryFn: () => api.get<AssetSummary>(`/assets/stats${branchId ? `?branchId=${encodeURIComponent(branchId)}` : ""}`),
     staleTime: 60 * 1000,
   });
 }

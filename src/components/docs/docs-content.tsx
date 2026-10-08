@@ -1263,7 +1263,7 @@ export function DocsContent() {
           <CardContent>
             <PageTable
               rows={[
-                ["Generate Report", "/reports", "Compose Financial / Attendance / Members blocks with a date range (and branch for Financial & Attendance), pick PDF / XLSX / CSV, preview inline, and download"],
+                ["Generate Report", "/reports", "Compose Financial / Attendance / Members blocks with a date range and branch filter, pick PDF / XLSX / CSV, preview inline, and download"],
               ]}
             />
           </CardContent>
@@ -1300,7 +1300,7 @@ export function DocsContent() {
               rows={[
                 ["Data blocks", "Financial summary · Attendance summary · Members summary — at least one required"],
                 ["Date Range", "All time / This month / Last 30 days / This quarter / Year to date presets plus custom start/end dates"],
-                ["Branch", "All branches or a specific branch — available when Financial or Attendance is selected (Members is church-wide)"],
+                ["Branch", "HQ users can choose all branches or one branch; branch users are locked to their assigned branch. Applies to Financial, Attendance, and Members summaries."],
                 ["Format", "PDF (single combined document) · XLSX (one sheet per block) · CSV (one file per block)"],
               ]}
             />

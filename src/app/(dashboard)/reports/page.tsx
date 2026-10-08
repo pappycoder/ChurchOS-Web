@@ -34,6 +34,7 @@ import {
   type MemberReport,
 } from "@/hooks/use-reports";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { exportPDF, exportExcel, exportCSV } from "@/lib/export-utils";
 
 type ReportBlock = "financial" | "attendance" | "members";
@@ -73,16 +74,19 @@ function formatNaira(value: number): string {
 }
 
 export default function ReportsGeneratorPage() {
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
   const [blocks, setBlocks] = React.useState<ReportBlock[]>(["financial"]);
   const [range, setRange] = React.useState<ReportRange>({ startDate: "", endDate: "" });
   const [branchId, setBranchId] = React.useState<string>("");
   const [outputFormat, setOutputFormat] = React.useState<Format>("pdf");
   const [exporting, setExporting] = React.useState(false);
 
+  const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const params = {
     startDate: range.startDate || undefined,
     endDate: range.endDate || undefined,
-    branchId: branchId || undefined,
+    branchId: effectiveBranchId || undefined,
   };
 
   const financial = useFinancialReport(params, {
@@ -94,7 +98,7 @@ export default function ReportsGeneratorPage() {
   const members = useMemberReport(params, {
     enabled: blocks.includes("members"),
   });
-  const branchesQuery = useBranchesList({ limit: 100 });
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
 
   const queryFor = (block: ReportBlock) =>
     block === "financial" ? financial : block === "attendance" ? attendance : members;
@@ -117,8 +121,8 @@ export default function ReportsGeneratorPage() {
     ? `${range.startDate || "…"} → ${range.endDate || "…"}`
     : "All time";
 
-  const branchLabel = branchId
-    ? (branchesQuery.data?.data ?? []).find((br) => br.branchId === branchId)?.name || "Selected branch"
+  const branchLabel = effectiveBranchId
+    ? (branchesQuery.data?.data ?? []).find((br) => br.branchId === effectiveBranchId)?.name || profile?.branch?.name || "Selected branch"
     : "All branches";
 
   const summaryLabel =
@@ -324,7 +328,7 @@ export default function ReportsGeneratorPage() {
             </div>
             <div>
               <Label className="mb-1.5 block text-sm font-medium">Branch</Label>
-              {needsBranchFilter ? (
+              {needsBranchFilter && isAdminHq ? (
                 <Select value={branchId} onValueChange={(v) => setBranchId(v === "all" ? "" : v)}>
                   <SelectTrigger className="w-44 h-9" aria-label="Branch filter">
                     <SelectValue placeholder="All branches" />
@@ -334,6 +338,15 @@ export default function ReportsGeneratorPage() {
                     {(branchesQuery.data?.data ?? []).map((br) => (
                       <SelectItem key={br.branchId} value={br.branchId}>{br.name}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              ) : needsBranchFilter ? (
+                <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+                  <SelectTrigger className="w-44 h-9" aria-label="Branch filter locked to your branch">
+                    <SelectValue placeholder={profile?.branch?.name ?? "Your branch"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem>
                   </SelectContent>
                 </Select>
               ) : (

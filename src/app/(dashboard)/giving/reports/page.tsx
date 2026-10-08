@@ -20,12 +20,20 @@ import {
 import {
   useGivingTransactionsAll,
 } from "@/hooks/use-giving";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const categoryConfig = {
   amount: { label: "Amount", color: "var(--chart-1)" },
 } satisfies ChartConfig;
 
 export default function GivingReportsPage() {
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
+  const [branchId, setBranchId] = React.useState("");
+  const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
 
@@ -37,6 +45,7 @@ export default function GivingReportsPage() {
   } = useGivingTransactionsAll({
     startDate: startDate || undefined,
     endDate: endDate || undefined,
+    branchId: effectiveBranchId || undefined,
   });
 
   const totalAmount = React.useMemo(
@@ -152,6 +161,20 @@ export default function GivingReportsPage() {
             className="w-40"
             aria-label="End date"
           />
+          {isAdminHq ? (
+            <Select value={branchId || "all"} onValueChange={(value) => setBranchId(value === "all" ? "" : value)}>
+              <SelectTrigger className="w-44" aria-label="Branch filter"><SelectValue placeholder="All branches" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All branches</SelectItem>
+                {(branchesQuery.data?.data ?? []).map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+              <SelectTrigger className="w-44" aria-label="Branch filter locked to your branch"><SelectValue placeholder={profile?.branch?.name ?? "Your branch"} /></SelectTrigger>
+              <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
+            </Select>
+          )}
           {(startDate || endDate) && (
             <Button
               variant="ghost"

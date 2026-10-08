@@ -36,6 +36,10 @@ import {
 } from "@/hooks/use-giving";
 import { usePermissions } from "@/hooks/use-permissions";
 import { RecordCashDialog } from "@/components/giving/record-cash-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 
 const trendConfig = {
   total: { label: "Given", color: "var(--chart-1)" },
@@ -43,11 +47,16 @@ const trendConfig = {
 
 export default function GivingDashboardPage() {
   const { can } = usePermissions();
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
+  const [branchId, setBranchId] = React.useState("");
   const canCreate = can("giving", "create");
 
   const [recordOpen, setRecordOpen] = React.useState(false);
 
-  const recentQuery = useGivingTransactions({ limit: 8 });
+  const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
+  const recentQuery = useGivingTransactions({ limit: 8, branchId: effectiveBranchId || undefined });
 
   // Calendar-month-start bound for the "Gifts This Month" count query.
   const monthStart = React.useMemo(() => {
@@ -59,9 +68,10 @@ export default function GivingDashboardPage() {
     status: "success",
     startDate: monthStart,
     limit: 1,
+    branchId: effectiveBranchId || undefined,
   });
 
-  const summaryQuery = useGivingSummary();
+  const summaryQuery = useGivingSummary({ branchId: effectiveBranchId || undefined });
   const summary = summaryQuery.data;
 
   const hasTrend = (summary?.trend ?? []).some((point) => point.total > 0);
@@ -88,6 +98,32 @@ export default function GivingDashboardPage() {
           </div>
         }
       />
+
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card px-4 py-3">
+        <Label htmlFor="giving-branch-filter" className="text-sm font-medium">Branch</Label>
+        {isAdminHq ? (
+          <Select value={branchId || "all"} onValueChange={(value) => setBranchId(value === "all" ? "" : value)}>
+            <SelectTrigger id="giving-branch-filter" className="w-52" aria-label="Branch filter">
+              <SelectValue placeholder="All branches" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All branches</SelectItem>
+              {(branchesQuery.data?.data ?? []).map((branch) => (
+                <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+            <SelectTrigger id="giving-branch-filter" className="w-52" aria-label="Branch filter locked to your branch">
+              <SelectValue placeholder={profile?.branch?.name ?? "Your branch"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -88,13 +88,13 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Members",
         href: "/members",
         icon: Users,
-        permission: "members:read",
+        permission: "members:all:read",
         hideForMember: true,
         children: [
           {
             title: "All Members",
             href: "/members",
-            permission: "members:read",
+            permission: "members:all:read",
           },
           {
             title: "Add Member",
@@ -181,13 +181,13 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Events",
         href: "/events",
         icon: Calendar,
-        permission: "events:read",
+        permission: "events:calendar:read",
         children: [
           { title: "Calendar", href: "/events", permission: "events:read" },
           {
             title: "All Events",
             href: "/events/list",
-            permission: "events:read",
+            permission: "events:list:read",
             hideForMember: true,
           },
           {
@@ -199,7 +199,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Registrations",
             href: "/events/registrations",
-            permission: "events:read",
+            permission: "events:registrations:read",
             hideForMember: true,
           },
           {

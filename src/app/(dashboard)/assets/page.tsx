@@ -38,6 +38,7 @@ import { AssetDetailDrawer } from "@/components/assets/asset-detail-drawer";
 import { StatusBadge } from "@/components/assets/status-badge";
 import { exportCSV } from "@/lib/export-utils";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import {
   formatCurrency,
   useAssetCategories,
@@ -62,6 +63,8 @@ const STATUS_OPTIONS = [
 const CONDITION_OPTIONS = ["new", "good", "fair", "poor", "damaged"] as const;
 
 export default function AssetsPage() {
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
   const { can } = usePermissions();
   const canCreate = can("assets", "create");
   const canUpdate = can("assets", "update");
@@ -75,6 +78,7 @@ export default function AssetsPage() {
   const [conditionFilter, setConditionFilter] = React.useState<AssetCondition | "all">("all");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
   const [branchFilter, setBranchFilter] = React.useState<string>("all");
+  const effectiveBranchFilter = isAdminHq ? branchFilter : profile?.branchId ?? "";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
@@ -104,21 +108,21 @@ export default function AssetsPage() {
       status: statusFilter === "all" ? undefined : statusFilter,
       condition: conditionFilter === "all" ? undefined : conditionFilter,
       categoryId: categoryFilter === "all" ? undefined : categoryFilter,
-      branchId: branchFilter === "all" ? undefined : branchFilter,
+      branchId: effectiveBranchFilter || undefined,
       archived: archivedView ? true : undefined,
     }),
-    [page, perPage, search, statusFilter, conditionFilter, categoryFilter, branchFilter, archivedView]
+    [page, perPage, search, statusFilter, conditionFilter, categoryFilter, effectiveBranchFilter, archivedView]
   );
 
   const { data, isLoading, error } = useAssetsList(queryParams);
-  const statsQuery = useAssetStats();
+  const statsQuery = useAssetStats(effectiveBranchFilter || undefined);
   const stats = statsQuery.data;
   const deleteMutation = useDeleteAsset();
   const archiveMutation = useArchiveAsset();
   const restoreMutation = useRestoreAsset();
 
   const categoriesQuery = useAssetCategories();
-  const branchesQuery = useBranchesList({ limit: 100 });
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
 
   const assets = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -282,12 +286,9 @@ export default function AssetsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select
+              {isAdminHq ? <Select
                 value={branchFilter}
-                onValueChange={(v) => {
-                  setBranchFilter(v);
-                  setPage(1);
-                }}
+                onValueChange={(v) => { setBranchFilter(v); setPage(1); }}
               >
                 <SelectTrigger className="w-full sm:w-[160px] h-9">
                   <SelectValue placeholder="Branch" />
@@ -300,7 +301,12 @@ export default function AssetsPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> : <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+                <SelectTrigger className="w-full sm:w-[160px] h-9" aria-label="Branch filter locked to your branch">
+                  <SelectValue placeholder={profile?.branch?.name ?? "Your branch"} />
+                </SelectTrigger>
+                <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
+              </Select>}
             </div>
           </div>
 

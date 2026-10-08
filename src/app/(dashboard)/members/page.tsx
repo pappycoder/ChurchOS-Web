@@ -65,6 +65,7 @@ import {
   type MemberStatus,
 } from "@/hooks/use-members";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   ArchivedFilter,
@@ -121,6 +122,8 @@ function MemberStatusCell({ status }: { status: MemberStatus }) {
 }
 
 export default function MembersPage() {
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
   const router = useRouter();
   const { can } = usePermissions();
   const canCreateMembers = can("members", "create");
@@ -137,6 +140,7 @@ export default function MembersPage() {
     "all",
   );
   const [branchFilter, setBranchFilter] = React.useState<string>("all");
+  const effectiveBranchFilter = isAdminHq ? (branchFilter === "all" ? "" : branchFilter) : profile?.branchId ?? "";
   const [sortBy, setSortBy] =
     React.useState<NonNullable<ListMembersParams["sortBy"]>>("first_name");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
@@ -169,7 +173,7 @@ export default function MembersPage() {
       limit: perPage,
       search: search || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
-      branchId: branchFilter === "all" ? undefined : branchFilter,
+      branchId: effectiveBranchFilter || undefined,
       archived: archivedView ? true : undefined,
       sortBy,
       sortOrder,
@@ -179,7 +183,7 @@ export default function MembersPage() {
       perPage,
       search,
       statusFilter,
-      branchFilter,
+      effectiveBranchFilter,
       archivedView,
       sortBy,
       sortOrder,
@@ -193,15 +197,16 @@ export default function MembersPage() {
   const purgeMutation = useDeleteMember();
 
   // Unfiltered + active-only count queries power the stats cards.
-  const totalsQuery = useMembersList({ limit: 1 });
-  const activeQuery = useMembersList({ limit: 1, status: "active" });
+  const totalsQuery = useMembersList({ limit: 1, branchId: effectiveBranchFilter || undefined });
+  const activeQuery = useMembersList({ limit: 1, status: "active", branchId: effectiveBranchFilter || undefined });
 
-  const branchesQuery = useBranchesList({ limit: 100 });
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const branchNames = React.useMemo(() => {
     const map = new Map<string, string>();
+    if (profile?.branchId && profile.branch?.name) map.set(profile.branchId, profile.branch.name);
     for (const b of branchesQuery.data?.data ?? []) map.set(b.branchId, b.name);
     return map;
-  }, [branchesQuery.data]);
+  }, [branchesQuery.data, profile?.branchId, profile?.branch?.name]);
 
   const members = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -407,7 +412,7 @@ export default function MembersPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select
+              {isAdminHq ? <Select
                 value={branchFilter}
                 onValueChange={(v) => {
                   setBranchFilter(v);
@@ -425,7 +430,12 @@ export default function MembersPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select> : <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+                <SelectTrigger className="w-40" aria-label="Branch filter locked to your branch">
+                  <SelectValue placeholder={profile?.branch?.name ?? "Your branch"} />
+                </SelectTrigger>
+                <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
+              </Select>}
             </div>
             <div className="flex items-center gap-1">
               <Select value={sortBy} onValueChange={handleSortChange}>

@@ -160,6 +160,7 @@ export function Header() {
   const { data: currentProfile } = useCurrentProfile();
   const { isMember } = useIsMember();
   const { canAny, ready: permissionsReady, can } = usePermissions();
+  const canManageChurchSettings = permissionsReady && can("church_settings", "update");
   // Gate the inbox poll on the resolved permission (not the transient
   // `!isMember`): while the profile hydrates `isMember` is briefly false, which
   // used to fire `/email/unread-count` for members/cell-leaders/department
@@ -463,7 +464,7 @@ export function Header() {
                             <IconUser size={16} /> My Profile
                           </Link>
                         </DropdownMenuItem>
-                        {!isMember && (
+                        {canManageChurchSettings && (
                           <>
                             <DropdownMenuItem asChild>
                               <Link
@@ -531,7 +532,7 @@ export function Header() {
                   <IconUser size={16} /> My Profile
                 </Link>
               </DropdownMenuItem>
-              {!isMember && (
+              {canManageChurchSettings && (
                 <DropdownMenuItem asChild>
                   <Link href="/admin/settings" className="dropdown-item">
                     <IconSettings size={16} /> Account Settings

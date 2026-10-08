@@ -59,6 +59,8 @@ import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
 import { usePermissions } from "@/hooks/use-permissions";
 import { RecordCashDialog } from "@/components/giving/record-cash-dialog";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
 
 const STATUS_BADGE: Record<string, "default" | "secondary" | "destructive"> = {
   success: "default",
@@ -69,6 +71,11 @@ const STATUS_BADGE: Record<string, "default" | "secondary" | "destructive"> = {
 
 export default function GivingRecordsPage() {
   const { can } = usePermissions();
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
+  const [branchId, setBranchId] = React.useState("");
+  const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const canCreate = can("giving", "create");
 
   // Filters
@@ -94,10 +101,11 @@ export default function GivingRecordsPage() {
       serviceId: serviceId === "all" ? undefined : serviceId,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
+      branchId: effectiveBranchId || undefined,
       sortBy: "created_at" as const,
       sortOrder: "desc" as const,
     }),
-    [page, perPage, categoryId, status, type, serviceId, startDate, endDate]
+    [page, perPage, categoryId, status, type, serviceId, startDate, endDate, effectiveBranchId]
   );
 
   const { data, isLoading, error } = useGivingTransactions(queryParams);
@@ -249,6 +257,20 @@ export default function GivingRecordsPage() {
         }}
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
+          {isAdminHq ? (
+            <Select value={branchId || "all"} onValueChange={(v) => { setBranchId(v === "all" ? "" : v); setPage(1); }}>
+              <SelectTrigger className="w-full sm:w-44" aria-label="Branch filter"><SelectValue placeholder="All branches" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All branches</SelectItem>
+                {(branchesQuery.data?.data ?? []).map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+              <SelectTrigger className="w-full sm:w-44" aria-label="Branch filter locked to your branch"><SelectValue placeholder={profile?.branch?.name ?? "Your branch"} /></SelectTrigger>
+              <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
+            </Select>
+          )}
           <Select value={categoryId} onValueChange={(v) => { setCategoryId(v); setPage(1); }}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="All Categories" />
