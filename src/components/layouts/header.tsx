@@ -159,8 +159,13 @@ export function Header() {
   const { logout } = useAuth();
   const { data: currentProfile } = useCurrentProfile();
   const { isMember } = useIsMember();
-  const { canAny } = usePermissions();
-  const { data: emailUnread } = useEmailUnread(!isMember);
+  const { canAny, ready: permissionsReady, can } = usePermissions();
+  // Gate the inbox poll on the resolved permission (not the transient
+  // `!isMember`): while the profile hydrates `isMember` is briefly false, which
+  // used to fire `/email/unread-count` for members/cell-leaders/department
+  // heads — who lack `emails:read` — producing a 403 on every dashboard load.
+  const canViewInbox = permissionsReady && can("emails", "read");
+  const { data: emailUnread } = useEmailUnread(canViewInbox);
   const emailUnreadCount = emailUnread?.count ?? 0;
 
   const visibleNav = React.useMemo(
@@ -383,7 +388,7 @@ export function Header() {
                 </ActionTooltip>
               </div>
 
-              {!isMember && (
+              {canViewInbox && (
                 <div className="me-2 notification_item">
                   <ActionTooltip label="Inbox">
                     <Link
@@ -492,7 +497,7 @@ export function Header() {
           <div className="me-1 notification_item">
             <NotificationBell compact />
           </div>
-          {!isMember && (
+          {canViewInbox && (
             <div className="me-1 notification_item">
               <ActionTooltip label="Inbox">
                 <Link

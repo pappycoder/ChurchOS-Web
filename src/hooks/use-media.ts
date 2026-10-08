@@ -149,15 +149,23 @@ export function useMediaLibrary(params: ListMediaParams = {}) {
 
 // ─── Folders ─────────────────────────────────────────────
 
+/**
+ * Shared query fn for the folders endpoint. Exported so `lib/prefetch.ts`
+ * warms the cache with the EXACT same shape this hook reads — the two MUST
+ * stay in lockstep, or a prefetched entry can poison the mounted page
+ * (the `/media` "eA.map is not a function" boundary crash).
+ */
+export async function fetchMediaFolders(): Promise<MediaFolderSummary[]> {
+  const res = await api.get<{ data: MediaFolderSummary[] }>(
+    "/media/library/folders"
+  );
+  return res.data;
+}
+
 export function useMediaFolders() {
   return useQuery({
     queryKey: ["media-folders"],
-    queryFn: async () => {
-      const res = await api.get<{ data: MediaFolderSummary[] }>(
-        "/media/library/folders"
-      );
-      return res.data;
-    },
+    queryFn: fetchMediaFolders,
     staleTime: 60 * 1000,
   });
 }

@@ -54,13 +54,20 @@ function FolderRow({ folder }: { folder: MediaFolderSummary }) {
 }
 
 function MediaFoldersPage() {
-  const { data: folders, isLoading, error, refetch } = useMediaFolders();
+  const { data: foldersData, isLoading, error, refetch } = useMediaFolders();
+
+  // Defensive: a bad cache entry (e.g. a prefetch shape mismatch) must never
+  // reach `.length`/`.slice()` below and crash to the dashboard boundary.
+  const folders = React.useMemo(
+    () => (Array.isArray(foldersData) ? foldersData : []),
+    [foldersData]
+  );
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [retrying, setRetrying] = React.useState(false);
   const pagedFolders = React.useMemo(
-    () => (folders ?? []).slice((page - 1) * perPage, page * perPage),
+    () => folders.slice((page - 1) * perPage, page * perPage),
     [folders, page, perPage]
   );
 
@@ -123,7 +130,7 @@ function MediaFoldersPage() {
               <Skeleton key={i} className="h-12 w-full" />
             ))}
           </div>
-        ) : !folders || folders.length === 0 ? (
+        ) : folders.length === 0 ? (
           <div className="py-8">
             <EmptyState
               icon={<FolderOpen className="h-12 w-12" />}

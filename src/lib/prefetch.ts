@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { listUrl } from "@/lib/export-all";
 import { NOTIFICATIONS_LIST_LIMIT } from "@/hooks/use-notifications";
+import { fetchMediaFolders } from "@/hooks/use-media";
 
 /**
  * Route-level prefetch: hover/focus on a sidebar or header nav link warms the
@@ -95,7 +96,11 @@ const ROUTE_PREFETCH: Record<string, PrefetchTarget[]> = {
   "/media": [
     {
       key: ["media-folders"],
-      load: () => api.get("/media/library/folders"),
+      // IMPORTANT: reuse the hook's query fn so the prefetched cache entry has
+      // the exact shape `useMediaFolders` reads (a bare array, not the raw
+      // `{ data }` envelope). Using `api.get(...)` here directly previously
+      // poisoned the shared key and crashed `/media` with `.map is not a function`.
+      load: fetchMediaFolders,
     },
   ],
   "/events": [

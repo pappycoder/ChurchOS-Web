@@ -267,7 +267,7 @@ function MediaLibraryContent() {
     return isMember ? list.filter((a) => a.permissions !== "leadership") : list;
   }, [data, isMember]);
   const total = data?.total ?? 0;
-  const folders = foldersQuery.data ?? [];
+  const folders = Array.isArray(foldersQuery.data) ? foldersQuery.data : [];
 
   const toggleSortOrder = () => {
     setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
