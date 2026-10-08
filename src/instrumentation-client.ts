@@ -1,13 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 
-const dsn =
-  process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.SENTRY_DSN;
-
 export function register() {
-  if (!dsn) return;
 
   Sentry.init({
-    dsn,
+    dsn: "https://a8eb4e349c9519b2bd660f680ba5cfed@o4510969852395520.ingest.de.sentry.io/4512009714139216",
     // Only capture in production (or when explicitly enabled) — dev stays quiet,
     // but a real DSN set for a prod build will light up as expected.
     // NOTE: client bundles only ever see `NEXT_PUBLIC_*` env vars (the plain
