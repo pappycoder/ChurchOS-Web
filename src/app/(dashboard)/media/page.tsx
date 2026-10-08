@@ -18,7 +18,6 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";

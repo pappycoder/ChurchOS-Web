@@ -10,8 +10,12 @@ export function register() {
     dsn,
     // Only capture in production (or when explicitly enabled) — dev stays quiet,
     // but a real DSN set for a prod build will light up as expected.
+    // NOTE: client bundles only ever see `NEXT_PUBLIC_*` env vars (the plain
+    // `SENTRY_DEBUG` is server-only and resolves to undefined here), so the
+    // dev opt-in must be NEXT_PUBLIC_SENTRY_DEBUG=1.
     enabled:
-      process.env.NODE_ENV === "production" || process.env.SENTRY_DEBUG === "1",
+      process.env.NODE_ENV === "production" ||
+      process.env.NEXT_PUBLIC_SENTRY_DEBUG === "1",
     environment:
       process.env.NEXT_PUBLIC_VERCEL_ENV ||
       process.env.NODE_ENV ||
