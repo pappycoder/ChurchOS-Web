@@ -37,6 +37,7 @@ import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import { exportPDF, exportExcel, exportCSV } from "@/lib/export-utils";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 
 type ReportBlock = "financial" | "attendance" | "members";
 type Format = "pdf" | "xlsx" | "csv";
@@ -437,7 +438,7 @@ export default function ReportsGeneratorPage() {
 
       {/* Preview */}
       <div className="space-y-4">
-        {loading && <div className="text-sm text-muted-foreground py-4">Loading report data…</div>}
+        {loading && <div className="flex justify-center py-6"><LoadingIndicator label="Loading report data" /></div>}
 
         {blocks.map((b) => {
           if (b === "financial" && hasBlockData("financial")) return <FinancialPreview key="financial" report={financial.data} />;

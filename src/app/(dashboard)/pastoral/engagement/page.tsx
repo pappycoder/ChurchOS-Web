@@ -19,6 +19,7 @@ import {
   engagementBucketFor,
 } from "@/hooks/use-pastoral";
 import { PageHeader } from "@/components/shared/page-header";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -150,7 +151,7 @@ export default function EngagementPage() {
               variant={BUCKET_CARD_VARIANT[bucket]}
               subtitle={
                 distributionQuery.isLoading
-                  ? "Loading..."
+                  ? <LoadingIndicator label="Loading engagement distribution" size="sm" />
                   : count === 1
                     ? "1 member"
                     : `${count} members`

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -165,7 +166,7 @@ export default function CellGroupDetailPage({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{isLoading ? "Loading..." : group?.name}</BreadcrumbPage>
+            <BreadcrumbPage>{isLoading ? <LoadingIndicator label="Loading cell group" size="sm" /> : group?.name}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>

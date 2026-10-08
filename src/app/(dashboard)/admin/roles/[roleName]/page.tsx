@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -194,7 +195,7 @@ export default function RoleDetailPage({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbPage>
-              {isLoading ? "Loading..." : displayLabel}
+              {isLoading ? <LoadingIndicator label="Loading role" size="sm" /> : displayLabel}
             </BreadcrumbPage>
           </BreadcrumbList>
         </Breadcrumb>

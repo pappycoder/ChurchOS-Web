@@ -7,6 +7,7 @@ import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAnalyticsDashboard, formatNaira } from "@/hooks/use-analytics";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 
 export default function AnalyticsOverviewPage() {
   const query = useAnalyticsDashboard();
@@ -119,7 +120,7 @@ export default function AnalyticsOverviewPage() {
                   </div>
                 ) : (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    {query.isLoading ? "Loading…" : "No engagement data yet."}
+                    {query.isLoading ? <LoadingIndicator label="Loading engagement data" /> : "No engagement data yet."}
                   </p>
                 )}
               </CardContent>

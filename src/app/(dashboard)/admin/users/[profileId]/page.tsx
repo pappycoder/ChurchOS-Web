@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Breadcrumb,
@@ -62,7 +63,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isLoading ? "Loading..." : `${user?.firstName} ${user?.lastName}`}
+                {isLoading ? <LoadingIndicator label="Loading user" size="sm" /> : `${user?.firstName} ${user?.lastName}`}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>

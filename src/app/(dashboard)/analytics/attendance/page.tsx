@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { BreakdownBars } from "@/components/reports/breakdown-bars";
 import { AnalyticsTrendChart, AnalyticsLegend } from "@/components/analytics/analytics-charts";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { useAnalyticsAttendance } from "@/hooks/use-analytics";
 
 export default function AnalyticsAttendancePage() {
@@ -140,7 +141,7 @@ export default function AnalyticsAttendancePage() {
                 )}
                 {(!data || (Object.keys(data.bySource).length === 0 && data.byBranch.length === 0)) && (
                   <p className="py-4 text-center text-sm text-muted-foreground">
-                    {query.isLoading ? "Loading…" : "No breakdown data yet."}
+                    {query.isLoading ? <LoadingIndicator label="Loading attendance breakdown" /> : "No breakdown data yet."}
                   </p>
                 )}
               </CardContent>

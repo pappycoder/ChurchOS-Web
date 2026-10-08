@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -18,7 +19,7 @@ const statsCardVariants = cva("rounded-lg border p-4 bg-muted/50", {
 interface StatsCardProps extends VariantProps<typeof statsCardVariants> {
   title: string;
   value: string | number;
-  subtitle?: string;
+  subtitle?: ReactNode;
   icon?: React.ReactNode;
   trend?: { value: number; label: string };
   className?: string;
@@ -54,9 +55,7 @@ export function StatsCard({
               </span>
             )}
           </div>
-          {subtitle && (
-            <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-          )}
+          {subtitle && <div className="text-xs text-muted-foreground mt-1">{subtitle}</div>}
         </div>
         {icon && (
           <div className="p-2 rounded-lg bg-primary/10 text-primary">{icon}</div>

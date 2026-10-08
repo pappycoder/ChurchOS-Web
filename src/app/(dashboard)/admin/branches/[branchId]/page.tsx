@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -133,7 +134,7 @@ export default function BranchDetailPage({
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isLoading ? "Loading..." : display?.name}
+                {isLoading ? <LoadingIndicator label="Loading branch" size="sm" /> : display?.name}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
