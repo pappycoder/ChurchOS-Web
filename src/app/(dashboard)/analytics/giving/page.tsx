@@ -17,18 +17,40 @@ import { AnalyticsTrendChart, AnalyticsBars } from "@/components/analytics/analy
 import { BarsChart } from "@/components/analytics/bars-chart";
 import { useAnalyticsGiving, formatNaira } from "@/hooks/use-analytics";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 
 export default function AnalyticsGivingPage() {
+  const { data: profile } = useCurrentProfile();
+  // HQ viewers (is_admin_hq) see every branch and may filter to any one; a
+  // branch-scoped viewer is locked to their own branch (the backend enforces
+  // this too — this just makes the UI honest about the scope being shown).
+  const isHq = !!profile?.isAdminHq;
+  const myBranchId = profile?.branchId;
+  const myBranchName = profile?.branch?.name;
+
   const [range, setRange] = React.useState<ReportRange>({ startDate: "", endDate: "" });
   const [branchId, setBranchId] = React.useState<string>("");
 
-  const query = useAnalyticsGiving({
-    startDate: range.startDate || undefined,
-    endDate: range.endDate || undefined,
-    branchId: branchId || undefined,
-  });
-  const branchesQuery = useBranchesList({ limit: 100 });
+  // For HQ the selected branch (or "" = all) drives the query; for a branch
+  // user the query is pinned to their own branch.
+  const effectiveBranchId = isHq ? branchId : myBranchId ?? "";
+
+  const query = useAnalyticsGiving(
+    {
+      startDate: range.startDate || undefined,
+      endDate: range.endDate || undefined,
+      branchId: effectiveBranchId || undefined,
+    },
+    // Wait for the profile so a branch user's first (and only) fetch already
+    // carries their branch scope — no church-wide flash, no duplicate request.
+    { enabled: !!profile }
+  );
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isHq });
   const data = query.data;
+  const { isLoading: queryLoading } = query;
+  // Treat the pre-profile window as loading so stats/charts show their pending
+  // state instead of an empty "—" while the query is still gated.
+  const loading = queryLoading || !profile;
 
   const byStatus = data?.byStatus ?? {};
 
@@ -42,7 +64,7 @@ export default function AnalyticsGivingPage() {
           { label: "Giving" },
         ]}
         action={
-          <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isLoading}>
+          <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={loading}>
             Refresh
           </Button>
         }
@@ -64,19 +86,36 @@ export default function AnalyticsGivingPage() {
               <ReportDateRange value={range} onChange={setRange} />
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium">Branch</Label>
-                <Select value={branchId} onValueChange={(v) => setBranchId(v === "all" ? "" : v)}>
-                  <SelectTrigger className="w-44 h-9" aria-label="Branch filter">
-                    <SelectValue placeholder="All branches" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All branches</SelectItem>
-                    {(branchesQuery.data?.data ?? []).map((b) => (
-                      <SelectItem key={b.branchId} value={b.branchId}>
-                        {b.name}
+                {isHq ? (
+                  <Select value={branchId} onValueChange={(v) => setBranchId(v === "all" ? "" : v)}>
+                    <SelectTrigger className="w-44 h-9" aria-label="Branch filter">
+                      <SelectValue placeholder="All branches" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All branches</SelectItem>
+                      {(branchesQuery.data?.data ?? []).map((b) => (
+                        <SelectItem key={b.branchId} value={b.branchId}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  // Branch-scoped viewer: locked to their own branch (read-only).
+                  <Select value={myBranchId ?? "__self__"} disabled>
+                    <SelectTrigger
+                      className="w-44 h-9"
+                      aria-label="Branch filter (locked to your branch)"
+                    >
+                      <SelectValue placeholder={myBranchName ?? "Your branch"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={myBranchId ?? "__self__"}>
+                        {myBranchName ?? "Your branch"}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -85,18 +124,18 @@ export default function AnalyticsGivingPage() {
           <div className="grid gap-4 sm:grid-cols-3">
             <StatsCard
               title="Total Giving"
-              value={data ? formatNaira(data.total) : query.isLoading ? "..." : "—"}
+              value={data ? formatNaira(data.total) : loading ? "..." : "—"}
               icon={<Banknote className="h-4 w-4" />}
               variant="primary"
             />
             <StatsCard
               title="Transactions"
-              value={data?.count ?? (query.isLoading ? "..." : "—")}
+              value={data?.count ?? (loading ? "..." : "—")}
               icon={<ListOrdered className="h-4 w-4" />}
             />
             <StatsCard
               title="Average Gift"
-              value={data ? formatNaira(data.average) : query.isLoading ? "..." : "—"}
+              value={data ? formatNaira(data.average) : loading ? "..." : "—"}
               icon={<Ratio className="h-4 w-4" />}
             />
           </div>
@@ -108,7 +147,7 @@ export default function AnalyticsGivingPage() {
               <CardDescription>Total successful giving over time.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AnalyticsTrendChart data={data?.trend ?? []} loading={query.isLoading} formatValue={formatNaira} />
+              <AnalyticsTrendChart data={data?.trend ?? []} loading={loading} formatValue={formatNaira} />
             </CardContent>
           </Card>
 
@@ -124,7 +163,7 @@ export default function AnalyticsGivingPage() {
                     label: c.categoryName,
                     value: c.total,
                   }))}
-                  loading={query.isLoading}
+                  loading={loading}
                   formatValue={formatNaira}
                   color="var(--chart-1)"
                   height={240}
@@ -152,7 +191,7 @@ export default function AnalyticsGivingPage() {
                     label: d.memberName,
                     value: d.total,
                   }))}
-                  loading={query.isLoading}
+                  loading={loading}
                   formatValue={formatNaira}
                   color="var(--chart-3)"
                   height={240}
@@ -179,7 +218,7 @@ export default function AnalyticsGivingPage() {
               <CardContent>
                 <AnalyticsBars
                   data={(data?.byType ?? []).map((t) => ({ label: t.type, value: t.total }))}
-                  loading={query.isLoading}
+                  loading={loading}
                   formatValue={formatNaira}
                 />
               </CardContent>
@@ -196,20 +235,20 @@ export default function AnalyticsGivingPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Active schedules</p>
                     <p className="text-xl font-semibold">
-                      {data?.recurring.active ?? (query.isLoading ? "..." : "—")}
+                      {data?.recurring.active ?? (loading ? "..." : "—")}
                     </p>
                   </div>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total scheduled per month</p>
                   <p className="text-2xl font-semibold">
-                    {data ? formatNaira(data.recurring.totalMonthlyAmount) : query.isLoading ? "..." : "—"}
+                    {data ? formatNaira(data.recurring.totalMonthlyAmount) : loading ? "..." : "—"}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Total scheduled (all time)</p>
                   <p className="text-2xl font-semibold">
-                    {data ? formatNaira(data.recurring.totalScheduled) : query.isLoading ? "..." : "—"}
+                    {data ? formatNaira(data.recurring.totalScheduled) : loading ? "..." : "—"}
                   </p>
                 </div>
                 {Object.keys(byStatus).length > 0 && (

@@ -140,11 +140,15 @@ export function useAnalyticsDashboard(params: AnalyticsDateRangeParams = {}) {
   });
 }
 
-export function useAnalyticsGiving(params: AnalyticsDateRangeParams = {}) {
+export function useAnalyticsGiving(
+  params: AnalyticsDateRangeParams = {},
+  options: { enabled?: boolean } = {}
+) {
   return useQuery({
     queryKey: ["analytics", "giving", params],
     queryFn: () => api.get<GivingAnalytics>(`/analytics/giving${buildQuery(params)}`),
     staleTime: 5 * 60 * 1000,
+    enabled: options.enabled ?? true,
   });
 }
 
