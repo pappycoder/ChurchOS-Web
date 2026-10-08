@@ -35,6 +35,7 @@ import {
 } from "@/hooks/use-reports";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { usePermissions } from "@/hooks/use-permissions";
 import { exportPDF, exportExcel, exportCSV } from "@/lib/export-utils";
 
 type ReportBlock = "financial" | "attendance" | "members";
@@ -58,6 +59,12 @@ const BLOCKS: { key: ReportBlock; label: string; description: string }[] = [
   },
 ];
 
+const BLOCK_PERMISSION: Record<ReportBlock, string> = {
+  financial: "reports:financial:read",
+  attendance: "reports:attendance:read",
+  members: "reports:members:read",
+};
+
 const FORMATS: {
   key: Format;
   label: string;
@@ -74,6 +81,7 @@ function formatNaira(value: number): string {
 }
 
 export default function ReportsGeneratorPage() {
+  const { canAny, ready: permissionsReady } = usePermissions();
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
   const [blocks, setBlocks] = React.useState<ReportBlock[]>(["financial"]);
@@ -81,6 +89,20 @@ export default function ReportsGeneratorPage() {
   const [branchId, setBranchId] = React.useState<string>("");
   const [outputFormat, setOutputFormat] = React.useState<Format>("pdf");
   const [exporting, setExporting] = React.useState(false);
+  const availableBlocks = BLOCKS.filter((block) => canAny(BLOCK_PERMISSION[block.key]));
+  const availableBlockKey = availableBlocks.map((block) => block.key).join(",");
+
+  React.useEffect(() => {
+    if (!permissionsReady) return;
+    const permittedBlockKeys = availableBlockKey
+      .split(",")
+      .filter(Boolean) as ReportBlock[];
+    const allowed = new Set(permittedBlockKeys);
+    setBlocks((current) => {
+      const retained = current.filter((block) => allowed.has(block));
+      return retained.length > 0 ? retained : permittedBlockKeys.slice(0, 1);
+    });
+  }, [permissionsReady, availableBlockKey]);
 
   const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const params = {
@@ -90,13 +112,13 @@ export default function ReportsGeneratorPage() {
   };
 
   const financial = useFinancialReport(params, {
-    enabled: blocks.includes("financial"),
+    enabled: blocks.includes("financial") && canAny(BLOCK_PERMISSION.financial),
   });
   const attendance = useAttendanceReport(params, {
-    enabled: blocks.includes("attendance"),
+    enabled: blocks.includes("attendance") && canAny(BLOCK_PERMISSION.attendance),
   });
   const members = useMemberReport(params, {
-    enabled: blocks.includes("members"),
+    enabled: blocks.includes("members") && canAny(BLOCK_PERMISSION.members),
   });
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
 
@@ -104,12 +126,11 @@ export default function ReportsGeneratorPage() {
     block === "financial" ? financial : block === "attendance" ? attendance : members;
 
   const toggleBlock = (block: ReportBlock) =>
-    setBlocks((prev) =>
+    canAny(BLOCK_PERMISSION[block]) && setBlocks((prev) =>
       prev.includes(block) ? prev.filter((b) => b !== block) : [...prev, block]
     );
 
-  const needsBranchFilter =
-    blocks.includes("financial") || blocks.includes("attendance");
+  const needsBranchFilter = blocks.length > 0;
 
   const loading =
     blocks.some((b) => queryFor(b).isLoading) && !blocks.every((b) => queryFor(b).data);
@@ -282,7 +303,7 @@ export default function ReportsGeneratorPage() {
         </CardHeader>
         <CardContent className="py-4">
           <div className="grid gap-4 lg:grid-cols-3">
-            {BLOCKS.map((b) => {
+            {availableBlocks.map((b) => {
               const checked = blocks.includes(b.key);
               return (
                 <label
@@ -318,7 +339,7 @@ export default function ReportsGeneratorPage() {
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">2</span>
             Set filters
           </CardTitle>
-          <CardDescription>Choose the date range and, for Financial or Attendance blocks, a specific branch.</CardDescription>
+          <CardDescription>Choose the date range and branch scope for the selected report blocks.</CardDescription>
         </CardHeader>
         <CardContent className="py-4">
           <div className="flex flex-wrap items-end gap-4">
@@ -351,7 +372,7 @@ export default function ReportsGeneratorPage() {
                 </Select>
               ) : (
                 <p className="h-9 flex items-center text-xs text-muted-foreground">
-                  Requires the Financial or Attendance block.
+                  Select a report block to filter by branch.
                 </p>
               )}
             </div>

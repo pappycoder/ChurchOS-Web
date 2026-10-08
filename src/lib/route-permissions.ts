@@ -89,7 +89,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/forms", permission: "forms:list:read" },
 
   // Reports — single generator page guarded by the reports:read permission
-  { prefix: "/reports", permission: "reports:read" },
+  { prefix: "/reports", permission: "reports:view" },
 
   // Diagnostics
   { prefix: "/debug/sentry", roles: ["church_admin", "super_admin"] },

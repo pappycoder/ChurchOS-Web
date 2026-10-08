@@ -108,14 +108,11 @@ export function useEmailDetail(messageId: string | null) {
   });
 }
 
-/** Poll the unread inbox count (drives the header badge + sidebar item). */
+/** Fetch the unread inbox count for the header badge + sidebar item. */
 export function useEmailUnread(enabled = true) {
   return useQuery({
     queryKey: ["email-unread"],
     queryFn: () => api.get<{ count: number }>("/email/unread-count"),
-    // Pause the 60s poll while the endpoint errors (see useNotificationsUnread).
-    refetchInterval: (query) =>
-      query.state.status === "error" ? false : 60_000,
     enabled,
   });
 }

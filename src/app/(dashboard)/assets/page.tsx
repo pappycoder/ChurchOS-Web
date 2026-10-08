@@ -65,10 +65,11 @@ const CONDITION_OPTIONS = ["new", "good", "fair", "poor", "damaged"] as const;
 export default function AssetsPage() {
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const canCreate = can("assets", "create");
   const canUpdate = can("assets", "update");
   const canDelete = can("assets", "delete");
+  const canReadAssets = canAny("assets:read", "assets:list:read");
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -171,7 +172,7 @@ export default function AssetsPage() {
     );
   };
 
-  const canReadActions = canUpdate || canDelete;
+  const canReadActions = canReadAssets || canUpdate || canDelete;
 
   return (
     <div>
@@ -426,14 +427,15 @@ export default function AssetsPage() {
                               </div>
                             ) : (
                               <div className="flex justify-end gap-1">
-                                <Button
+                                {canReadAssets && <Button
                                   size="icon"
                                   variant="ghost"
                                   title="View"
+                                  aria-label={`View ${asset.name}`}
                                   onClick={() => openDetail(asset)}
                                 >
                                   <Eye className="h-4 w-4" />
-                                </Button>
+                                </Button>}
                                 {canUpdate && (
                                   <Button
                                     size="icon"

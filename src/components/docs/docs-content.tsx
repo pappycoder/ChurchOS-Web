@@ -1249,9 +1249,8 @@ export function DocsContent() {
               and exports the result as <strong>PDF</strong>, <strong>XLSX</strong> or{" "}
               <strong>CSV</strong>. Visualization lives in the separate Analytics
               module; Reports is focused on producing downloadable documents.
-              All report data is generated client-side from the server-cached
-              (5-10 min) report endpoints and requires{" "}
-              <Badge>reports:read</Badge>.
+              Each report block requires its matching permission: financial,
+              attendance, or members. Users only see blocks they can access.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -1279,12 +1278,12 @@ export function DocsContent() {
                 [
                   "Generate / Download Report",
                   "Builds the composed rows and downloads PDF / XLSX / CSV — client-side via jspdf / xlsx",
-                  "reports:read",
+                  "reports:view + matching block read permission",
                 ],
                 [
                   "Toggle data block",
                   "Select which summaries (Financial, Attendance, Members) to include in the export",
-                  "reports:read",
+                  "Matching block-specific read permission",
                 ],
               ]}
             />

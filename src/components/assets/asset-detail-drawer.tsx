@@ -97,7 +97,6 @@ export function AssetDetailDrawer({
   }, [qrQuery.data?.qrData]);
 
   const asset = assetQuery.data;
-  const canWrite = can("assets", "update") || can("assets", "create");
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -176,21 +175,17 @@ export function AssetDetailDrawer({
                   />
                 </div>
 
-                {canWrite && (
-                  <>
-                    {asset.description && (
-                      <div className="rounded-lg border p-4">
-                        <p className="text-sm font-medium mb-1">Description</p>
-                        <p className="text-sm text-muted-foreground">{asset.description}</p>
-                      </div>
-                    )}
-                    {asset.notes && (
-                      <div className="rounded-lg border p-4">
-                        <p className="text-sm font-medium mb-1">Notes</p>
-                        <p className="text-sm text-muted-foreground">{asset.notes}</p>
-                      </div>
-                    )}
-                  </>
+                {asset.description && (
+                  <div className="rounded-lg border p-4">
+                    <p className="text-sm font-medium mb-1">Description</p>
+                    <p className="text-sm text-muted-foreground">{asset.description}</p>
+                  </div>
+                )}
+                {asset.notes && (
+                  <div className="rounded-lg border p-4">
+                    <p className="text-sm font-medium mb-1">Notes</p>
+                    <p className="text-sm text-muted-foreground">{asset.notes}</p>
+                  </div>
                 )}
               </TabsContent>
 

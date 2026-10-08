@@ -402,12 +402,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Reports",
         href: "/reports",
         icon: FileBarChart,
-        permission: "reports:read",
+        permission: "reports:view",
         children: [
           {
             title: "Generate Report",
             href: "/reports",
-            permission: "reports:read",
+            permission: "reports:view",
           },
         ],
       },

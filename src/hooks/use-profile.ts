@@ -61,10 +61,6 @@ export function useCurrentProfile() {
     queryKey: ["current-profile"],
     queryFn: fetchCurrentProfile,
     staleTime: 60 * 1000,
-    // Live-session permission updates: role changes made by admins are
-    // picked up the next time the user returns to the tab.
-    refetchOnWindowFocus: true,
-    refetchOnReconnect: true,
   });
 }
 
