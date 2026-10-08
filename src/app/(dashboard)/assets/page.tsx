@@ -78,7 +78,9 @@ export default function AssetsPage() {
   const [conditionFilter, setConditionFilter] = React.useState<AssetCondition | "all">("all");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
   const [branchFilter, setBranchFilter] = React.useState<string>("all");
-  const effectiveBranchFilter = isAdminHq ? branchFilter : profile?.branchId ?? "";
+  const effectiveBranchFilter = isAdminHq
+    ? branchFilter === "all" ? "" : branchFilter
+    : profile?.branchId ?? "";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
