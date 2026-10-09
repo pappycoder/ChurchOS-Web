@@ -155,15 +155,17 @@ function invalidateAdminCaches(
 }
 
 export function useDepartmentsList(
-  params: { archived?: boolean; enabled?: boolean } = {},
+  params: { archived?: boolean; branchId?: string; enabled?: boolean } = {},
 ) {
   const { data: profile } = useCurrentProfile();
   const searchParams = new URLSearchParams();
   if (params.archived) searchParams.set("archived", "true");
+  if (params.branchId) searchParams.set("branchId", params.branchId);
   const queryString = searchParams.toString();
   return useQuery({
     queryKey: ["departments-list", {
       archived: params.archived,
+      requestedBranchId: params.branchId,
       profileId: profile?.profileId,
       branchId: profile?.branchId,
       isAdminHq: profile?.isAdminHq,

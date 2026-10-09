@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ import { MemberCombobox } from "@/components/members/member-combobox";
 import { AssetImageField } from "@/components/assets/asset-image-field";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useDepartmentsList } from "@/hooks/use-admin";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import {
   DEPRECIATION_METHOD_LABELS,
   useAssetCategories,
@@ -140,18 +141,26 @@ export function AssetFormDialog({
   const updateMutation = useUpdateAsset(asset?.id ?? "");
   const categoriesQuery = useAssetCategories();
   const branchesQuery = useBranchesList({ limit: 100 });
-  const departmentsQuery = useDepartmentsList({ enabled: open });
+  const { data: profile } = useCurrentProfile();
 
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetSchema),
     defaultValues: toFormValues(asset),
   });
+  const selectedBranchId = useWatch({ control: form.control, name: "branchId" });
+  const departmentsQuery = useDepartmentsList({
+    branchId: selectedBranchId || undefined,
+    enabled: open,
+  });
 
   React.useEffect(() => {
     if (open) {
       form.reset(toFormValues(asset));
+      if (!profile?.isAdminHq && profile?.branchId) {
+        form.setValue("branchId", profile.branchId);
+      }
     }
-  }, [open, asset, form]);
+  }, [open, asset, form, profile?.branchId, profile?.isAdminHq]);
 
   const onSubmit = (values: AssetFormValues) => {
     const payload = {
@@ -359,13 +368,26 @@ export function AssetFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Branch</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(value) => {
+                        const nextBranchId = value === "all" ? "" : value;
+                        if (nextBranchId !== field.value) {
+                          form.setValue("departmentId", "");
+                        }
+                        field.onChange(nextBranchId);
+                      }}
+                      value={field.value || (profile?.isAdminHq ? "all" : undefined)}
+                      disabled={!profile?.isAdminHq}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select branch" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {profile?.isAdminHq && (
+                          <SelectItem value="all">All branches</SelectItem>
+                        )}
                         {(branchesQuery.data?.data ?? []).map((branch) => (
                           <SelectItem key={branch.branchId} value={branch.branchId}>
                             {branch.name}
