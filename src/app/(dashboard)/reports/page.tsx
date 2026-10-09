@@ -163,7 +163,7 @@ export default function ReportsGeneratorPage() {
       } else if (outputFormat === "xlsx") {
         const sheets = blocks.map((b) => {
           const sheet = buildSheet(b);
-          return { name: sheetName(b), data: sheet.rows };
+          return { name: sheetName(b), columns: sheet.columns, data: sheet.rows, metadata: [{ label: "Period", value: rangeLabel }, { label: "Branch", value: branchLabel }] };
         });
         await exportExcel(sheets, stamp);
       } else {

@@ -1,3 +1,4 @@
+import { addDesignedSheet, initializeWorkbook, type ExcelSheet } from "./excel-design";
 export interface ExportColumn {
   key: string;
   label: string;
@@ -158,17 +159,23 @@ export async function exportPDF(
   await exportReportPDF(title, [{ title, columns, data }], filename, options);
 }
 
-export async function exportExcel(
-  sheets: { name: string; data: Record<string, unknown>[] }[],
-  filename: string
-): Promise<void> {
-  const XLSX = await import("xlsx");
-  const wb = XLSX.utils.book_new();
+export async function createExcelWorkbook(sheets: ExcelSheet[]) {
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  initializeWorkbook(workbook);
+  sheets.forEach((sheet, index) => addDesignedSheet(workbook, sheet, index));
+  // Keep the input sheet first, including when validation adds a hidden sheet.
+  return workbook;
+}
 
-  sheets.forEach(({ name, data }) => {
-    const ws = XLSX.utils.json_to_sheet(data);
-    XLSX.utils.book_append_sheet(wb, ws, name);
-  });
-
-  XLSX.writeFile(wb, `${filename}.xlsx`);
+export async function exportExcel(sheets: ExcelSheet[], filename: string): Promise<void> {
+  const workbook = await createExcelWorkbook(sheets);
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([new Uint8Array(buffer)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${filename}.xlsx`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

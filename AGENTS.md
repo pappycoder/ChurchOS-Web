@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-10** — Redesigned XLSX exports with reusable workbook styling, native filterable tables, frozen headers, numeric formatting, dropdown validation, and filter-aware counts. Member template retains first-row import headers and scoped branch choices; existing export privacy and branch scope are preserved.
+
+
 ## Changelog
 
 ### [Unreleased]

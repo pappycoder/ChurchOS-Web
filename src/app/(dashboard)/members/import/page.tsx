@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { exportExcel } from "@/lib/export-utils";
 import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -192,15 +193,28 @@ export default function MemberImportPage() {
   };
 
   const downloadTemplate = async () => {
-    const XLSX = await import("xlsx");
-    const aoa = [
-      TARGET_FIELDS.map((f) => f.label.replace(/ \*$/, "").replace(/ \(.*\)$/, "")),
-      ["Chioma", "Eze", "chioma@example.com", "+234 803 456 7890", "", "female", "1995-04-12", "12 Awolowo Road", "Lagos", "Lagos", currentProfile?.branch?.name ?? branchesQuery.data?.data?.[0]?.name ?? "Main Campus", "active", ""],
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Members");
-    XLSX.writeFile(wb, "member-import-template.xlsx");
+    const branchNames = currentProfile?.isAdminHq
+      ? (branchesQuery.data?.data ?? []).map((branch) => branch.name)
+      : [currentProfile?.branch?.name].filter((name): name is string => !!name);
+    const example = ["Chioma", "Eze", "chioma@example.com", "+234 803 456 7890", "", "female", "1995-04-12", "12 Awolowo Road", "Lagos", "Lagos", currentProfile?.branch?.name ?? branchNames[0] ?? "", "active", ""];
+    try {
+      await exportExcel([
+        { name: "Members", template: true, columns: TARGET_FIELDS.map((field) => ({
+          key: field.key, label: field.label.replace(/ \*$/, "").replace(/ \(.*\)$/, ""),
+          ...(field.key === "gender" ? { options: ["male", "female"] } : {}),
+          ...(field.key === "status" ? { options: [...VALID_STATUSES] } : {}),
+          ...(field.key === "branch" ? { options: branchNames } : {}),
+        })), data: [Object.fromEntries(TARGET_FIELDS.map((field, index) => [field.key, example[index]]))] },
+        { name: "Instructions", columns: [{ key: "step", label: "Step", width: 22 }, { key: "instruction", label: "Instructions", width: 80 }], data: [
+          { step: "1. Add members", instruction: "Replace the example on the Members sheet. First Name and Last Name are required. Keep the headers in row 1 unchanged." },
+          { step: "2. Choose values", instruction: "Use the Gender, Status and Branch dropdowns. Dropdowns are prepared through row 500; copy a formatted row to extend them." },
+          { step: "3. Dates and phones", instruction: "Use YYYY-MM-DD for dates. Keep phone numbers as text, including their country code." },
+          { step: "4. Upload", instruction: "Save as .xlsx and upload it on Import Members. Review the preview before confirming. Workbook edits do not update ChurchOS until imported." },
+        ] },
+      ], "member-import-template");
+    } catch (error) {
+      toast.error("Template download failed", { description: error instanceof Error ? error.message : "Please try again." });
+    }
   };
 
   /** Client-side mirror of the server's per-row validation. */

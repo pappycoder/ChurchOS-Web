@@ -76,7 +76,9 @@ export function ExportDropdown({
   const handleExcel = async () => {
     setLoading("xlsx");
     try {
-      await exportExcel([{ name: title, data: await resolveRows() }], filename);
+      await exportExcel([{ name: title, columns, data: await resolveRows() }], filename);
+    } catch (error) {
+      toast.error("Excel export failed", { description: error instanceof Error ? error.message : "Please try again." });
     } finally {
       setLoading(null);
     }
