@@ -1,4 +1,5 @@
 "use client";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
 import { format } from "date-fns";
@@ -475,7 +476,9 @@ function TicketTypesTab() {
 
 function AssignedTicketsTab() {
   const { can } = usePermissions();
-  const canCreate = can("events", "create");
+  const { data: profile } = useCurrentProfile();
+  const canCreate = can("events:tickets", "create");
+  const [branchId, setBranchId] = React.useState("");
 
   const [eventFilter, setEventFilter] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState("");
@@ -486,10 +489,11 @@ function AssignedTicketsTab() {
   const [assignOpen, setAssignOpen] = React.useState(false);
   const [claimOpen, setClaimOpen] = React.useState(false);
 
-  const eventsQuery = useEventsSummary();
+  const eventsQuery = useEventsSummary(branchId || undefined);
   const events = eventsQuery.data?.data ?? [];
 
   const ticketsQuery = useAllTickets({
+    branchId: branchId || undefined,
     eventId: eventFilter || undefined,
     status: statusFilter || undefined,
     search: debouncedSearch || undefined,
@@ -519,10 +523,14 @@ function AssignedTicketsTab() {
       description="View and manage individual tickets assigned to members."
       action={
         canCreate ? (
-          <Button onClick={() => setAssignOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Assign Ticket
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setClaimOpen(true)}>
+              <Ticket className="h-4 w-4 mr-2" />Claim for Myself
+            </Button>
+            <Button onClick={() => setAssignOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />Assign Ticket
+            </Button>
+          </div>
         ) : (
           <Button onClick={() => setClaimOpen(true)}>
             <Ticket className="h-4 w-4 mr-2" />
@@ -541,6 +549,7 @@ function AssignedTicketsTab() {
       }}
       toolbar={
         <div className="flex flex-wrap items-center gap-3">
+          <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setEventFilter(""); setPage(1); }} />
           <Input
             placeholder="Search by ticket code or member name..."
             value={search}
@@ -631,7 +640,7 @@ function AssignedTicketsTab() {
         open={claimOpen}
         onOpenChange={setClaimOpen}
         events={events}
-        assignedEventIds={assignedEventIds(tickets)}
+        assignedEventIds={assignedEventIds(tickets.filter((ticket) => ticket.memberId === profile?.memberId))}
       />
     </TableCard>
   );
@@ -1091,7 +1100,7 @@ function ClaimTicketDialog({
     // Cell group leaders are treated exactly like members for tickets: the
     // backend self-claim path lets them take their own branch's events or
     // church-wide (null-branch) events. No strict-branch pinning.
-    if (!currentProfile?.branchId) {
+    if (currentProfile?.isAdminHq || !currentProfile?.branchId) {
       // No branch on record — fall back to church-wide events only.
       return events.filter((e) => !e.branchId);
     }
@@ -1100,7 +1109,7 @@ function ClaimTicketDialog({
     return events.filter(
       (e) => !e.branchId || e.branchId === currentProfile.branchId,
     );
-  }, [events, currentProfile?.branchId]);
+  }, [events, currentProfile?.branchId, currentProfile?.isAdminHq]);
 
   const claimableEvents = eligibleEvents.filter(
     (e) => !assignedEventIds.has(e.eventId),

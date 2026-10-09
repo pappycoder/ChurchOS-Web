@@ -1,4 +1,5 @@
 "use client";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
 import { CalendarDays, Search, Users } from "lucide-react";
@@ -46,6 +47,7 @@ export default function EventRegistrationsPage() {
   const canRead = can("events:registrations", "read");
 
   const [selectedEventId, setSelectedEventId] = React.useState<string>("");
+  const [branchId, setBranchId] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -55,8 +57,8 @@ export default function EventRegistrationsPage() {
     setSearch("");
   }, [selectedEventId]);
 
-  const eventsQuery = useEventsList({ limit: 100, sortBy: "startDate", sortOrder: "desc" });
-  const registrationsQuery = useEventRegistrations(selectedEventId);
+  const eventsQuery = useEventsList({ limit: 100, sortBy: "startDate", sortOrder: "desc", branchId: branchId || undefined });
+  const registrationsQuery = useEventRegistrations(selectedEventId, branchId || undefined);
 
   const events = React.useMemo(() => eventsQuery.data?.data ?? [], [eventsQuery.data?.data]);
   const allRegistrations = React.useMemo(() => registrationsQuery.data ?? [], [registrationsQuery.data]);
@@ -137,6 +139,7 @@ export default function EventRegistrationsPage() {
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setSelectedEventId(""); setPage(1); }} />
             <label htmlFor="event-select" className="text-sm font-medium shrink-0">
               Select Event
             </label>

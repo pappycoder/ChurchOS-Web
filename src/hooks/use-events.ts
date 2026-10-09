@@ -91,6 +91,7 @@ export interface EventStats {
 }
 
 export interface ListEventsParams {
+  branchId?: string;
   page?: number;
   limit?: number;
   type?: string;
@@ -147,10 +148,10 @@ function invalidateEventCaches(qc: ReturnType<typeof useQueryClient>) {
 
 // ─── Event Summary (for dashboard / link-to pickers) ─────
 
-export function useEventsSummary() {
+export function useEventsSummary(branchId?: string) {
   return useQuery({
-    queryKey: ["events-summary"],
-    queryFn: () => api.get<{ data: EventItem[]; total: number }>("/events?limit=100"),
+    queryKey: ["events-summary", branchId],
+    queryFn: () => api.get<{ data: EventItem[]; total: number }>(`/events${buildQuery({ limit: 100, branchId })}`),
   });
 }
 
@@ -180,11 +181,11 @@ export function useEvent(eventId: string) {
 
 // ─── Event registrations ─────────────────────────────────
 
-export function useEventRegistrations(eventId: string) {
+export function useEventRegistrations(eventId: string, branchId?: string) {
   return useQuery({
-    queryKey: ["events-registrations", eventId],
+    queryKey: ["events-registrations", eventId, branchId],
     queryFn: () =>
-      api.get<EventRegistration[]>(`/events/${eventId}/registrations`),
+      api.get<EventRegistration[]>(`/events/${eventId}/registrations${buildQuery({ branchId })}`),
     enabled: !!eventId,
   });
 }
@@ -446,6 +447,7 @@ export interface AllTicketsResponse {
 }
 
 export interface ListAllTicketsParams {
+  branchId?: string;
   eventId?: string;
   status?: string;
   search?: string;
