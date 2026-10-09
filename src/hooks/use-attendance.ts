@@ -33,6 +33,7 @@ export interface ChurchService {
 export interface ListServicesParams {
   page?: number;
   limit?: number;
+  branchId?: string;
   category?: string;
   isActive?: boolean;
   archived?: boolean;

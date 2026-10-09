@@ -33,6 +33,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useRecurringGiving,
   usePauseRecurringGiving,
   useResumeRecurringGiving,
@@ -40,6 +47,8 @@ import {
   type RecurringGiving,
 } from "@/hooks/use-giving";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
 
 type Action = "pause" | "resume" | "cancel";
 
@@ -65,12 +74,21 @@ const ACTION_COPY: Record<Action, { title: string; description: string; label: s
 
 export default function RecurringGivingPage() {
   const { can } = usePermissions();
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
+  const [branchId, setBranchId] = React.useState("");
+  const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const canUpdate = can("giving", "update");
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
-  const { data, isLoading, error } = useRecurringGiving({ page, limit: perPage });
+  const { data, isLoading, error } = useRecurringGiving({
+    page,
+    limit: perPage,
+    branchId: effectiveBranchId || undefined,
+  });
   const pauseMutation = usePauseRecurringGiving();
   const resumeMutation = useResumeRecurringGiving();
   const cancelMutation = useCancelRecurringGiving();
@@ -142,6 +160,26 @@ export default function RecurringGivingPage() {
         Schedules are created automatically when a giver completes their first online
         gift with &quot;make it recurring&quot; — manage them here.
       </p>
+
+      <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card px-4 py-3">
+        <span className="text-sm font-medium">Branch</span>
+        {isAdminHq ? (
+          <Select value={branchId || "all"} onValueChange={(value) => { setBranchId(value === "all" ? "" : value); setPage(1); }}>
+            <SelectTrigger className="w-52" aria-label="Branch filter"><SelectValue placeholder="All branches" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All branches</SelectItem>
+              {(branchesQuery.data?.data ?? []).map((branch) => (
+                <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+            <SelectTrigger className="w-52" aria-label="Branch filter locked to your branch"><SelectValue placeholder={profile?.branch?.name ?? "Your branch"} /></SelectTrigger>
+            <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
+          </Select>
+        )}
+      </div>
 
       <TableCard
         title="Recurring Schedules"

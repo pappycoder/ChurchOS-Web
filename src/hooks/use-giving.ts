@@ -273,7 +273,7 @@ export function useSendReceipt(transactionId: string) {
 
 // ─── Recurring giving ────────────────────────────────────
 
-export function useRecurringGiving(params: { page?: number; limit?: number; isActive?: boolean } = {}) {
+export function useRecurringGiving(params: { page?: number; limit?: number; isActive?: boolean; branchId?: string } = {}) {
   return useQuery({
     queryKey: ["giving-recurring", params],
     queryFn: () =>

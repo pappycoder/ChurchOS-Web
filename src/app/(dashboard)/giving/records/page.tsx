@@ -89,7 +89,10 @@ export default function GivingRecordsPage() {
   const [perPage, setPerPage] = React.useState(15);
 
   const categoriesQuery = useGivingCategories({ limit: 100 });
-  const servicesQuery = useAttendanceServices({ limit: 100 });
+  const servicesQuery = useAttendanceServices({
+    limit: 100,
+    branchId: effectiveBranchId || undefined,
+  });
 
   const queryParams = React.useMemo(
     () => ({
@@ -258,7 +261,7 @@ export default function GivingRecordsPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
           {isAdminHq ? (
-            <Select value={branchId || "all"} onValueChange={(v) => { setBranchId(v === "all" ? "" : v); setPage(1); }}>
+          <Select value={branchId || "all"} onValueChange={(v) => { setBranchId(v === "all" ? "" : v); setServiceId("all"); setPage(1); }}>
               <SelectTrigger className="w-full sm:w-44" aria-label="Branch filter"><SelectValue placeholder="All branches" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All branches</SelectItem>
