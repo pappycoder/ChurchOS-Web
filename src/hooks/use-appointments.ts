@@ -100,6 +100,7 @@ export interface ListAppointmentsParams {
   startDate?: string;
   endDate?: string;
   search?: string;
+  branchId?: string;
 }
 
 // ─── Helpers ─────────────────────────────────────────────
@@ -113,6 +114,7 @@ function buildAppointmentQuery(params: ListAppointmentsParams): string {
   if (params.startDate) searchParams.set("startDate", params.startDate);
   if (params.endDate) searchParams.set("endDate", params.endDate);
   if (params.search) searchParams.set("search", params.search);
+  if (params.branchId) searchParams.set("branchId", params.branchId);
   const qs = searchParams.toString();
   return qs ? `?${qs}` : "";
 }

@@ -45,6 +45,7 @@ export interface ListTemplatesParams {
   status?: "draft" | "published";
   search?: string;
   archived?: boolean;
+  branchId?: string;
 }
 
 export interface CreateTemplateInput {

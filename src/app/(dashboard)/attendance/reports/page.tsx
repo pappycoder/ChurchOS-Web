@@ -17,6 +17,7 @@ import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ChartContainer,
@@ -45,20 +46,24 @@ const serviceConfig = {
 export default function AttendanceReportsPage() {
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
+  const [branchId, setBranchId] = React.useState("");
 
   const summaryQuery = useAttendanceSummary({
     startDate: startDate || undefined,
     endDate: endDate || undefined,
+    branchId: branchId || undefined,
   });
   const trendsQuery = useAttendanceTrends({
     days: 30,
     startDate: startDate || undefined,
     endDate: endDate || undefined,
+    branchId: branchId || undefined,
   });
   const recordsQuery = useAttendanceRecords({
     limit: 200,
     startDate: startDate || undefined,
     endDate: endDate || undefined,
+    branchId: branchId || undefined,
   });
 
   const summary = summaryQuery.data;
@@ -162,6 +167,7 @@ export default function AttendanceReportsPage() {
           />
         }
       />
+      <div className="flex justify-end"><BranchFilter value={branchId} onChange={setBranchId} /></div>
 
       {/* Date range */}
       <Card>

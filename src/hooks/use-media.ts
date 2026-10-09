@@ -53,6 +53,7 @@ export interface ListMediaParams {
   search?: string;
   sortBy?: MediaSortBy;
   sortOrder?: MediaSortOrder;
+  branchId?: string;
 }
 
 export interface UpdateMediaPermissionsInput {
@@ -202,10 +203,11 @@ export function useDeleteMediaAsset() {
 export function useUploadMediaFile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ file, folder }: { file: File; folder: string }) => {
+    mutationFn: async ({ file, folder, branchId }: { file: File; folder: string; branchId?: string }) => {
       const form = new FormData();
       form.append("file", file);
       form.append("folder", folder);
+      if (branchId) form.append("branchId", branchId);
       const isImage = file.type.startsWith("image/");
       return api.post<UploadMediaResponse>(
         isImage ? "/media/upload/image" : "/media/upload",

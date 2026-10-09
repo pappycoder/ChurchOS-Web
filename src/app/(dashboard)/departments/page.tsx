@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Building2, Pencil, Plus, Trash2, Users, RotateCcw, Archive } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
@@ -69,6 +70,7 @@ export default function DepartmentsPage() {
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [detailDepartment, setDetailDepartment] = React.useState<Department | null>(null);
   const [formOpen, setFormOpen] = React.useState(false);
@@ -88,6 +90,7 @@ export default function DepartmentsPage() {
 
   const { data: departments, isLoading } = useDepartmentsList({
     archived: archivedView ? true : undefined,
+    branchId: branchId || undefined,
   });
   const archiveMutation = useArchiveDepartment();
   const restoreArchiveMutation = useRestoreArchiveDepartment();
@@ -200,6 +203,7 @@ export default function DepartmentsPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             {!isDepartmentHead && (
               <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
             )}

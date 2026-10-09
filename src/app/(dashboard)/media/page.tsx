@@ -61,6 +61,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useIsMember } from "@/hooks/use-is-member";
 import { reportQueryError } from "@/lib/report-query-error";
 import { cn } from "@/lib/utils";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 const KIND_FILTERS: { value: "all" | "image" | "audio" | "video" | "document"; label: string }[] = [
   { value: "all", label: "All" },
@@ -222,6 +223,7 @@ function MediaLibraryContent() {
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(12);
+  const [branchId, setBranchId] = React.useState("");
   const [preview, setPreview] = React.useState<MediaAsset | null>(null);
   const [permissionsTarget, setPermissionsTarget] = React.useState<MediaAsset | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<MediaAsset | null>(null);
@@ -245,8 +247,9 @@ function MediaLibraryContent() {
       search: search || undefined,
       sortBy,
       sortOrder,
+      branchId: branchId || undefined,
     }),
-    [page, perPage, folder, kind, permissions, search, sortBy, sortOrder]
+    [page, perPage, folder, kind, permissions, search, sortBy, sortOrder, branchId]
   );
 
   const { data, isLoading, error, refetch } = useMediaLibrary(queryParams);
@@ -366,6 +369,7 @@ function MediaLibraryContent() {
       <Card>
         <CardHeader className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <div className="flex h-8 items-center gap-1 rounded-md border border-input bg-background p-1">
               {KIND_FILTERS.map((k) => (
                 <button

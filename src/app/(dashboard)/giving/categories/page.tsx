@@ -16,6 +16,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   Dialog,
   DialogContent,
@@ -84,14 +85,15 @@ const categorySchema = z.object({
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
 export default function GivingCategoriesPage() {
-  const { can } = usePermissions();
-  const canCreate = can("giving", "create");
-  const canUpdate = can("giving", "update");
-  const canDelete = can("giving", "delete");
+  const { canAny } = usePermissions();
+  const canCreate = canAny("giving:categories:create");
+  const canUpdate = canAny("giving:categories:update");
+  const canDelete = canAny("giving:categories:delete");
   const canManage = canCreate || canUpdate || canDelete;
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
   const [archivedFilter, setArchivedFilter] =
     React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
@@ -105,8 +107,9 @@ export default function GivingCategoriesPage() {
       page,
       limit: perPage,
       archived: archivedView ? true : undefined,
+      branchId: branchId || undefined,
     }),
-    [page, perPage, archivedView],
+    [page, perPage, archivedView, branchId],
   );
 
   const { data, isLoading, error } = useGivingCategories(queryParams);
@@ -157,6 +160,7 @@ export default function GivingCategoriesPage() {
         ? Number(values.displayOrder)
         : undefined,
       isActive: values.isActive,
+      branchId: branchId || undefined,
     };
     try {
       if (editing) {
@@ -252,6 +256,7 @@ export default function GivingCategoriesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
               onChange={setArchivedFilter}

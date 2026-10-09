@@ -34,6 +34,7 @@ import {
 import { StatsCard } from "@/components/shared/stats-card";
 import { TableCard } from "@/components/shared/table-card";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import { ArchiveConfirmDialog } from "@/components/shared/archive-confirm-dialog";
 import {
   AppointmentFormDialog,
@@ -80,6 +81,7 @@ function AppointmentsContent() {
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
+  const [branchId, setBranchId] = React.useState("");
 
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Appointment | null>(null);
@@ -101,6 +103,7 @@ function AppointmentsContent() {
     archived: archived === "archived",
     status: status === "all" ? undefined : status,
     search: debouncedSearch || undefined,
+    branchId: branchId || undefined,
   });
 
   const archiveMutation = useArchiveAppointment();
@@ -187,6 +190,7 @@ function AppointmentsContent() {
         onPageChange={setPage}
         toolbar={
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archived}
               onChange={(v) => {

@@ -58,6 +58,7 @@ import {
 import { FamilyFormDialog } from "@/components/families/family-form-dialog";
 import { TableCard } from "@/components/shared/table-card";
 import { DeleteFamilyDialog } from "@/components/families/delete-family-dialog";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 const STATS_FETCH_LIMIT = 200;
 
@@ -82,6 +83,7 @@ export default function FamiliesPage() {
   const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
 
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
@@ -107,8 +109,9 @@ export default function FamiliesPage() {
       limit: perPage,
       search: search || undefined,
       archived: archivedView ? true : undefined,
+      branchId: branchId || undefined,
     }),
-    [page, perPage, search, archivedView]
+    [page, perPage, search, archivedView, branchId]
   );
 
   const { data, isLoading, error } = useFamiliesList(queryParams);
@@ -117,8 +120,8 @@ export default function FamiliesPage() {
   const purgeMutation = useDeleteFamily();
 
   // Unfiltered queries power the stats cards.
-  const totalsQuery = useFamiliesList({ limit: 1 });
-  const statsQuery = useFamiliesList({ limit: STATS_FETCH_LIMIT });
+  const totalsQuery = useFamiliesList({ limit: 1, branchId: branchId || undefined });
+  const statsQuery = useFamiliesList({ limit: STATS_FETCH_LIMIT, branchId: branchId || undefined });
 
   const stats = React.useMemo(() => {
     const rows = statsQuery.data?.data ?? [];
@@ -271,6 +274,7 @@ export default function FamiliesPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
               onChange={setArchivedFilter}
@@ -480,6 +484,7 @@ export default function FamiliesPage() {
       <FamilyFormDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+        branchId={branchId || undefined}
       />
       <FamilyFormDialog
         open={!!editFamily}

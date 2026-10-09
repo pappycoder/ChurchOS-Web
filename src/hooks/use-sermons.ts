@@ -44,6 +44,7 @@ export interface ListSermonsParams {
   tag?: string;
   startDate?: string;
   endDate?: string;
+  branchId?: string;
   archived?: boolean;
   sortBy?: "sermonDate" | "createdAt" | "title";
   sortOrder?: "asc" | "desc";

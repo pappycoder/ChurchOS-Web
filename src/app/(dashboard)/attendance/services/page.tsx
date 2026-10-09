@@ -77,6 +77,7 @@ import {
   type ServiceCategory,
 } from "@/hooks/use-attendance";
 import { usePermissions } from "@/hooks/use-permissions";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchivedFilter,
   type ArchivedFilterValue,
@@ -138,6 +139,7 @@ export default function AttendanceServicesPage() {
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(20);
+  const [branchId, setBranchId] = React.useState("");
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
@@ -157,8 +159,9 @@ export default function AttendanceServicesPage() {
       page,
       limit: perPage,
       archived: archivedView ? true : undefined,
+      branchId: branchId || undefined,
     }),
-    [page, perPage, archivedView],
+    [page, perPage, archivedView, branchId],
   );
 
   const { data, isLoading, error } = useAttendanceServices(queryParams);
@@ -303,6 +306,7 @@ export default function AttendanceServicesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
               onChange={setArchivedFilter}

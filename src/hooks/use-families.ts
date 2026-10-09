@@ -38,11 +38,13 @@ export interface ListFamiliesParams {
   limit?: number;
   search?: string;
   archived?: boolean;
+  branchId?: string;
 }
 
 export interface CreateFamilyInput {
   name: string;
   headId?: string;
+  branchId?: string;
 }
 
 export type UpdateFamilyInput = Partial<CreateFamilyInput>;

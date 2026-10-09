@@ -39,6 +39,7 @@ import {
 } from "@/hooks/use-attendance";
 import { useEventsList, EVENT_TYPE_MAP } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 const trendConfig = {
   total: { label: "Check-ins", color: "var(--chart-1)" },
@@ -77,16 +78,17 @@ function RecordRow({ record }: { record: AttendanceRecord }) {
 export default function AttendanceDashboardPage() {
   const { can } = usePermissions();
   const canCreate = can("attendance", "create");
+  const [branchId, setBranchId] = React.useState("");
 
   const monthStart = React.useMemo(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   }, []);
 
-  const summaryQuery = useAttendanceSummary();
-  const monthQuery = useAttendanceSummary({ startDate: monthStart });
-  const trendsQuery = useAttendanceTrends({ days: 30 });
-  const recentQuery = useAttendanceRecords({ limit: 8 });
+  const summaryQuery = useAttendanceSummary({ branchId: branchId || undefined });
+  const monthQuery = useAttendanceSummary({ startDate: monthStart, branchId: branchId || undefined });
+  const trendsQuery = useAttendanceTrends({ days: 30, branchId: branchId || undefined });
+  const recentQuery = useAttendanceRecords({ limit: 8, branchId: branchId || undefined });
   const eventsQuery = useEventsList({ limit: 5, sortBy: "startDate", sortOrder: "desc" });
 
   const summary = summaryQuery.data;
@@ -115,6 +117,7 @@ export default function AttendanceDashboardPage() {
           )
         }
       />
+      <div className="flex justify-end"><BranchFilter value={branchId} onChange={setBranchId} /></div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

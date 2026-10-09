@@ -131,6 +131,7 @@ export interface ListFormsParams {
   page?: number;
   limit?: number;
   archived?: boolean;
+  branchId?: string;
 }
 
 export interface ListSubmissionsParams {

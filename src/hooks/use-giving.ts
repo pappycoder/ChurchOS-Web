@@ -26,6 +26,7 @@ export interface ListCategoriesParams {
   limit?: number;
   isActive?: boolean;
   archived?: boolean;
+  branchId?: string;
 }
 
 export interface CreateGivingCategoryInput {
@@ -33,6 +34,7 @@ export interface CreateGivingCategoryInput {
   description?: string;
   displayOrder?: number;
   isRecurring?: boolean;
+  branchId?: string;
 }
 
 export type UpdateGivingCategoryInput = Partial<CreateGivingCategoryInput>;

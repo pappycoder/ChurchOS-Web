@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 
 type ImportStep = "upload" | "map" | "review" | "done";
 
@@ -101,6 +102,7 @@ function autoMap(headers: string[]): Record<string, string> {
 export default function MemberImportPage() {
   const router = useRouter();
   const branchesQuery = useBranchesList({ limit: 100 });
+  const { data: currentProfile } = useCurrentProfile();
 
   const [step, setStep] = React.useState<ImportStep>("upload");
   const [fileName, setFileName] = React.useState("");
@@ -193,7 +195,7 @@ export default function MemberImportPage() {
     const XLSX = await import("xlsx");
     const aoa = [
       TARGET_FIELDS.map((f) => f.label.replace(/ \*$/, "").replace(/ \(.*\)$/, "")),
-      ["Chioma", "Eze", "chioma@example.com", "+234 803 456 7890", "", "female", "1995-04-12", "12 Awolowo Road", "Lagos", "Lagos", "Main Campus", "active", ""],
+      ["Chioma", "Eze", "chioma@example.com", "+234 803 456 7890", "", "female", "1995-04-12", "12 Awolowo Road", "Lagos", "Lagos", currentProfile?.branch?.name ?? branchesQuery.data?.data?.[0]?.name ?? "Main Campus", "active", ""],
     ];
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     const wb = XLSX.utils.book_new();

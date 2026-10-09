@@ -42,6 +42,7 @@ interface FamilyFormDialogProps {
   onOpenChange: (open: boolean) => void;
   /** When provided the dialog edits this family; otherwise it creates one. */
   family?: Family | null;
+  branchId?: string;
 }
 
 function toFormValues(family?: Family | null): FamilyFormValues {
@@ -56,6 +57,7 @@ export function FamilyFormDialog({
   open,
   onOpenChange,
   family,
+  branchId,
 }: FamilyFormDialogProps) {
   const isEdit = !!family;
   const createMutation = useCreateFamily();
@@ -80,6 +82,7 @@ export function FamilyFormDialog({
     const payload = {
       name: values.name.trim(),
       ...(values.headId ? { headId: values.headId } : {}),
+      ...(!isEdit && branchId ? { branchId } : {}),
     };
 
     const mutation = isEdit ? updateMutation : createMutation;

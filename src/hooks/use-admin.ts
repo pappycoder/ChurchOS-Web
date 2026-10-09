@@ -247,9 +247,10 @@ export function useRemoveDepartmentMember(departmentId: string) {
   });
 }
 
-export function useCellGroupsList(params: { archived?: boolean } = {}) {
+export function useCellGroupsList(params: { archived?: boolean; branchId?: string } = {}) {
   const searchParams = new URLSearchParams();
   if (params.archived) searchParams.set("archived", "true");
+  if (params.branchId) searchParams.set("branchId", params.branchId);
   const queryString = searchParams.toString();
   return useQuery({
     queryKey: ["cell-groups-list", params],

@@ -38,6 +38,7 @@ import { TableCard } from "@/components/shared/table-card";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -98,6 +99,7 @@ export default function FormsPage() {
   const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
 
   const [deleteTarget, setDeleteTarget] = React.useState<Form | null>(null);
   const [deletePending, setDeletePending] = React.useState(false);
@@ -121,8 +123,9 @@ export default function FormsPage() {
       search: search || undefined,
       status: statusFilter === "all" ? undefined : statusFilter,
       archived: archivedView ? true : undefined,
+      branchId: branchId || undefined,
     }),
-    [page, perPage, search, statusFilter, archivedView]
+    [page, perPage, search, statusFilter, archivedView, branchId]
   );
 
   const { data, isLoading, error } = useFormsList(queryParams);
@@ -267,6 +270,7 @@ export default function FormsPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
               onChange={(v) => {

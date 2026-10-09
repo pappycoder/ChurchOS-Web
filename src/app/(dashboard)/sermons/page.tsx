@@ -62,6 +62,7 @@ import {
 import { usePermissions } from "@/hooks/use-permissions";
 import { useIsMember } from "@/hooks/use-is-member";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -82,9 +83,9 @@ function formatDuration(seconds?: number | null): string {
 
 function SermonsListContent() {
   const router = useRouter();
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const { isMember } = useIsMember();
-  const canCreate = can("sermons", "create");
+  const canCreate = canAny("sermons:new:create");
   const canUpdate = can("sermons", "update");
   const canDelete = can("sermons", "delete");
   const canManage = canUpdate || canDelete;
@@ -95,6 +96,7 @@ function SermonsListContent() {
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
   const [deleteTarget, setDeleteTarget] = React.useState<Sermon | null>(null);
   const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
@@ -129,10 +131,11 @@ function SermonsListContent() {
       speaker: speaker || undefined,
       series: series || undefined,
       archived: archivedView ? true : undefined,
+      branchId: branchId || undefined,
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, sortBy, sortOrder, speaker, series, archivedView]
+    [page, perPage, search, sortBy, sortOrder, speaker, series, archivedView, branchId]
   );
 
   const { data, isLoading, error } = useSermonsList(queryParams);
@@ -255,6 +258,7 @@ function SermonsListContent() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
+              <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
               {!isMember && (
                 <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
               )}

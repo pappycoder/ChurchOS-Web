@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 export default function SubmissionsPage() {
   const router = useRouter();
@@ -50,6 +51,7 @@ export default function SubmissionsPage() {
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<SubmissionStatus | undefined>(undefined);
   const [selectedFormId, setSelectedFormId] = React.useState<string>("");
+  const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [selectedSubmission, setSelectedSubmission] = React.useState<FormSubmission | undefined>(undefined);
@@ -58,6 +60,7 @@ export default function SubmissionsPage() {
   const { data: formsData, isLoading: formsLoading } = useFormsList({
     limit: 200,
     search: search || undefined,
+    branchId: branchId || undefined,
   });
   const forms = React.useMemo(() => (formsData?.data ?? []).filter((f) => !f.archivedAt), [formsData]);
   const selectedForm = React.useMemo(
@@ -155,6 +158,7 @@ export default function SubmissionsPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setSelectedFormId(""); setPage(1); }} />
             <Select
               value={selectedFormId}
               onValueChange={(v) => {

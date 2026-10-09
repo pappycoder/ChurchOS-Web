@@ -16,6 +16,7 @@ import {
   Archive,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
@@ -77,6 +78,7 @@ export default function CellGroupsPage() {
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CellGroup | null>(null);
   const [deleting, setDeleting] = React.useState<CellGroup | null>(null);
@@ -94,6 +96,7 @@ export default function CellGroupsPage() {
 
   const { data: groups, isLoading } = useCellGroupsList({
     archived: archivedView ? true : undefined,
+    branchId: branchId || undefined,
   });
   const archiveMutation = useArchiveCellGroup();
   const restoreArchiveMutation = useRestoreArchiveCellGroup();
@@ -207,6 +210,7 @@ export default function CellGroupsPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             {!isCellLeader && (
               <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
             )}

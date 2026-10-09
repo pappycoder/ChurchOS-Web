@@ -68,6 +68,7 @@ import {
 } from "@/hooks/use-templates";
 import { usePermissions } from "@/hooks/use-permissions";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -87,6 +88,7 @@ function TemplatesListContent() {
   const [statusFilter, setStatusFilter] = React.useState<"draft" | "published" | "">("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [branchId, setBranchId] = React.useState("");
   const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [formOpen, setFormOpen] = React.useState(false);
@@ -114,8 +116,9 @@ function TemplatesListContent() {
       channel: channel || undefined,
       status: statusFilter || undefined,
       archived: archivedView ? true : undefined,
+      branchId: branchId || undefined,
     }),
-    [page, perPage, search, channel, statusFilter, archivedView]
+    [page, perPage, search, channel, statusFilter, archivedView, branchId]
   );
 
   const { data, isLoading, error } = useTemplatesList(queryParams);
@@ -265,6 +268,7 @@ function TemplatesListContent() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
+              <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
               <ArchivedFilter
                 value={archivedFilter}
                 onChange={setArchivedFilter}

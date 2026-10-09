@@ -107,17 +107,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Attendance",
         href: "/attendance",
         icon: CalendarCheck,
-        permission: "attendance:read",
         children: [
           {
             title: "Dashboard",
             href: "/attendance",
-            permission: "attendance:read",
+            permission: "attendance:dashboard:read",
           },
           {
             title: "Services",
             href: "/attendance/services",
-            permission: "attendance:read",
+            permission: "attendance:services:read",
           },
           {
             title: "Check-In",
@@ -127,12 +126,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Records",
             href: "/attendance/records",
-            permission: "attendance:read",
+            permission: "attendance:records:read",
           },
           {
             title: "Reports",
             href: "/attendance/reports",
-            permission: "attendance:read",
+            permission: "attendance:reports:read",
           },
         ],
       },
@@ -140,28 +139,27 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Giving",
         href: "/giving",
         icon: HandCoins,
-        permission: "giving:read",
         children: [
-          { title: "Dashboard", href: "/giving", permission: "giving:read" },
+          { title: "Dashboard", href: "/giving", permission: "giving:dashboard:read" },
           {
             title: "Categories",
             href: "/giving/categories",
-            permission: "giving:read",
+            permission: "giving:categories:read",
           },
           {
             title: "Records",
             href: "/giving/records",
-            permission: "giving:read",
+            permission: "giving:records:read",
           },
           {
             title: "Reports",
             href: "/giving/reports",
-            permission: "giving:read",
+            permission: "giving:reports:read",
           },
           {
             title: "Recurring Giving",
             href: "/giving/recurring",
-            permission: "giving:read",
+            permission: "giving:recurring:read",
           },
         ],
       },
@@ -208,7 +206,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Add Sermon",
             href: "/sermons/new",
-            permission: "sermons:create",
+            permission: "sermons:new:create",
           },
           {
             title: "Series",

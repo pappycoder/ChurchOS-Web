@@ -62,6 +62,7 @@ export interface ListAttendanceParams {
   page?: number;
   limit?: number;
   serviceId?: string;
+  branchId?: string;
   memberId?: string;
   visitorId?: string;
   category?: string;
@@ -283,7 +284,7 @@ export function useDeleteAttendance() {
 
 // ─── Analytics ───────────────────────────────────────────
 
-export function useAttendanceSummary(params: { startDate?: string; endDate?: string } = {}) {
+export function useAttendanceSummary(params: { startDate?: string; endDate?: string; branchId?: string } = {}) {
   return useQuery({
     queryKey: ["attendance-summary", params],
     queryFn: () =>
@@ -292,7 +293,7 @@ export function useAttendanceSummary(params: { startDate?: string; endDate?: str
 }
 
 export function useAttendanceTrends(
-  params: { days?: number; startDate?: string; endDate?: string } = {}
+  params: { days?: number; startDate?: string; endDate?: string; branchId?: string } = {}
 ) {
   return useQuery({
     queryKey: ["attendance-trends", params],

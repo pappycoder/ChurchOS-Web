@@ -27,6 +27,7 @@ import {
 } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
 import { cn } from "@/lib/utils";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 type QueueStatus = "pending" | "uploading" | "done" | "error";
 
@@ -61,6 +62,7 @@ function MediaUploadPage() {
   const uploadMutation = useUploadMediaFile();
 
   const [folder, setFolder] = React.useState("uploads");
+  const [branchId, setBranchId] = React.useState("");
   const [newFolderMode, setNewFolderMode] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState("");
   const [queue, setQueue] = React.useState<QueueItem[]>([]);
@@ -102,7 +104,7 @@ function MediaUploadPage() {
     for (const item of queue.filter((q) => q.status !== "done")) {
       setQueue((prev) => prev.map((q) => (q.id === item.id ? { ...q, status: "uploading", error: undefined } : q)));
       try {
-        const result = await uploadMutation.mutateAsync({ file: item.file, folder: target });
+        const result = await uploadMutation.mutateAsync({ file: item.file, folder: target, branchId: branchId || undefined });
         setQueue((prev) =>
           prev.map((q) =>
             q.id === item.id ? { ...q, status: "done", result } : q
@@ -170,6 +172,7 @@ function MediaUploadPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2"><Label>Branch</Label><BranchFilter value={branchId} onChange={setBranchId} /></div>
           <div className="space-y-2">
             <Label>Folder</Label>
             {newFolderMode ? (
