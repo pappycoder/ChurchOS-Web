@@ -73,8 +73,8 @@ export function RecipientCombobox({
           aria-expanded={open}
           aria-controls={listId}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm",
-            "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+            "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm",
+            "hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}
         >
@@ -82,7 +82,7 @@ export function RecipientCombobox({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </button>
       </PopoverTrigger>
-      <PopoverContent id={listId} className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent id={listId} className="z-[2010] w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search by name, role, branch, or email…"

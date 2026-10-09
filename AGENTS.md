@@ -14,6 +14,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- Added reusable sun/moon mode toggles to the desktop and mobile header, using the persisted theme setting and syncing next-themes for toast colors. Fixed compose draft resets caused by a fresh default recipients array on each render. Recipient popovers now use valid trigger-width styling and render above the dialog; recipient removal has an accessible action label.
+
+
 - **Shared UI refresh**: modernized form controls, buttons, cards, dialogs, sheets, tables, menus, tabs, badges, avatars, tooltips, charts, page headers, search, and pagination. Reusable `LoadingState` and `ErrorState` replace repeated page markup; skeletons shimmer with reduced-motion support, stat values use skeletons during loading, and pending action buttons support `loading`. Empty states use consistent icons and spacing. Added `modern-ui.css` for theme-aware navigation, headings, feedback, and mobile controls. All existing toast callers now import `@/lib/toast`, with one themed Sonner renderer at the root. Query functions, permissions, branch scopes, mutation handlers, and routes retain their existing behavior.
 
 

@@ -22,6 +22,8 @@ import {
   type EmailContact,
 } from "@/hooks/use-email";
 
+const EMPTY_RECIPIENTS: EmailContact[] = [];
+
 interface ComposeEmailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,7 +40,7 @@ export function ComposeEmailDialog({
   replyToId,
   replySubject,
   initialBody = "",
-  initialRecipients = [],
+  initialRecipients = EMPTY_RECIPIENTS,
 }: ComposeEmailDialogProps) {
   const [selected, setSelected] = React.useState<EmailContact[]>([]);
   const [subject, setSubject] = React.useState("");
@@ -114,10 +116,9 @@ export function ComposeEmailDialog({
                     key={c.id}
                     variant="secondary"
                     className="gap-1 pr-1.5"
-                    onClick={() => toggleSelect(c)}
                   >
                     {c.name}
-                    <button type="button" className="text-muted-foreground hover:text-foreground">
+                    <button type="button" aria-label={`Remove ${c.name}`} onClick={() => toggleSelect(c)} className="text-muted-foreground hover:text-foreground">
                       <X className="size-3" />
                     </button>
                   </Badge>

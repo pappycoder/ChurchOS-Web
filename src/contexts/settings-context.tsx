@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 type ThemeColor = "primary" | "brightblue" | "lunargreen" | "lavendar" | "magenta" | "chromeyellow" | "lavared";
@@ -252,6 +253,7 @@ type SettingsContextValue = {
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
+  const { setTheme } = useTheme();
   const [settings, setSettings] = useState<Settings>(DEFAULTS);
   const [hydrated, setHydrated] = useState(false);
 
@@ -261,6 +263,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     applySettingsToDOM(loaded);
     setHydrated(true);
   }, []);
+
+  // Keep the settings panel, mode toggle, and themed toast renderer in sync.
+  useEffect(() => {
+    if (hydrated) setTheme(settings.theme);
+  }, [hydrated, settings.theme, setTheme]);
 
   const updateSetting = useCallback(
     <K extends keyof Settings>(key: K, value: Settings[K]) => {

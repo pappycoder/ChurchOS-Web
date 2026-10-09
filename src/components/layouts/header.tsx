@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ColorModeToggle } from "@/components/shared/color-mode-toggle";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
@@ -369,6 +370,7 @@ export function Header() {
 
             {/* RIGHT-ALIGNED group */}
             <div className="header-right flex items-center gap-2">
+              <ColorModeToggle className="me-2" />
               <div className="me-2">
                 <ActionTooltip
                   label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
@@ -495,6 +497,7 @@ export function Header() {
 
         {/* Mobile header actions: notification bell + inbox */}
         <div className="mobile-header-actions">
+          <ColorModeToggle className="me-1" />
           <div className="me-1 notification_item">
             <NotificationBell compact />
           </div>
