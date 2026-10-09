@@ -14,6 +14,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- Dark-mode header and sidebar use the official light ChurchOS lockup; the collapsed sidebar emblem renders white for visibility.
+
 - Added reusable sun/moon mode toggles to the desktop and mobile header, using the persisted theme setting and syncing next-themes for toast colors. Fixed compose draft resets caused by a fresh default recipients array on each render. Recipient popovers now use valid trigger-width styling and render above the dialog; recipient removal has an accessible action label.
 
 

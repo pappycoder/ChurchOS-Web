@@ -841,10 +841,10 @@ export function Sidebar() {
             <BrandLogo emblemClassName="h-20" />
           </Link>
           <Link href="/dashboard" className="logo dark-logo" onClick={closeMobile}>
-            <BrandLogo emblemClassName="h-20" />
+            <BrandLogo tone="light" emblemClassName="h-20" />
           </Link>
           <Link href="/dashboard" className="logo-small" onClick={closeMobile}>
-            <BrandLogo variant="mark" emblemClassName="h-14 w-14" />
+            <BrandLogo variant="mark" emblemClassName="h-14 w-14 dark:brightness-0 dark:invert" />
           </Link>
         </div>
 

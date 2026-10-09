@@ -256,7 +256,7 @@ export function Header() {
             onMouseEnter={() => prefetch("/dashboard")}
             onFocusCapture={() => prefetch("/dashboard")}
           >
-            <BrandLogo emblemClassName="h-20" />
+            <BrandLogo tone="light" emblemClassName="h-20" />
           </Link>
         </div>
 
