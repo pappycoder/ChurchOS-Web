@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
 import {
@@ -8,7 +9,7 @@ import {
   CartesianGrid,
   XAxis,
 } from "recharts";
-import { AlertTriangle, CalendarRange, PieChart } from "lucide-react";
+import { CalendarRange, PieChart } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { api } from "@/lib/api";
@@ -128,13 +129,7 @@ export default function AttendanceReportsPage() {
             { label: "Reports" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load reports.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load reports." onRetry={() => window.location.reload()} />
       </div>
     );
   }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   ArrowLeft,
   Plus,
@@ -400,7 +400,7 @@ export default function EventTiersPage() {
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteTier.isPending}
-            >
+             loading={deleteTier.isPending}>
               {deleteTier.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { motion } from "motion/react";
 import { Mail } from "lucide-react";
 
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Button type="submit" size="lg" className="w-full" disabled={forgotPasswordMutation.isPending}>
+            <Button type="submit" size="lg" className="w-full" disabled={forgotPasswordMutation.isPending} loading={forgotPasswordMutation.isPending}>
               {forgotPasswordMutation.isPending ? "Sending..." : "Submit"}
             </Button>
             <div className="text-center text-sm text-muted-foreground">

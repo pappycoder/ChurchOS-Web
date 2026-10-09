@@ -1,11 +1,11 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Building2,
   Plus,
-  AlertTriangle,
   ArrowUpDown,
   SortAsc,
   SortDesc,
@@ -279,11 +279,7 @@ export default function BranchesPage() {
           title="Branches"
           breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load branches.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
-        </div>
+        <ErrorState title="Failed to load branches." onRetry={() => window.location.reload()} />
       </div>
     );
   }

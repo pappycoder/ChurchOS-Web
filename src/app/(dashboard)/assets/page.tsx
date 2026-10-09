@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
@@ -32,7 +33,7 @@ import {
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { AssetFormDialog } from "@/components/assets/asset-form-dialog";
 import { AssetDetailDrawer } from "@/components/assets/asset-detail-drawer";
 import { StatusBadge } from "@/components/assets/status-badge";
@@ -314,12 +315,7 @@ export default function AssetsPage() {
           </div>
 
           {error ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <p className="text-destructive">Failed to load assets.</p>
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Retry
-              </Button>
-            </div>
+            <ErrorState title="Failed to load assets." onRetry={() => window.location.reload()} />
           ) : (
             <div className="rounded-md border overflow-x-auto">
               <Table>

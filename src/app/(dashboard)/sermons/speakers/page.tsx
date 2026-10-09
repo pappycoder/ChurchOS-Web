@@ -1,9 +1,10 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   Calendar,
   Users,
 } from "lucide-react";
@@ -20,9 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useSermonsSpeakers } from "@/hooks/use-sermons";
 
 export default function SermonsSpeakersPage() {
@@ -47,13 +46,7 @@ export default function SermonsSpeakersPage() {
             { label: "Speakers" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load speakers.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load speakers." onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -87,11 +80,7 @@ export default function SermonsSpeakersPage() {
         }}
       >
         {isLoading ? (
-          <div className="p-4 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <LoadingState variant="table" />
         ) : !speakers || speakers.length === 0 ? (
           <div className="py-8">
             <EmptyState

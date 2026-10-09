@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ShieldPlus } from "lucide-react";
 import {
   Dialog,
@@ -150,7 +150,7 @@ export function CreateRoleDialog({ open, onOpenChange, onCreated }: CreateRoleDi
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending} loading={createMutation.isPending}>
                 {createMutation.isPending ? "Creating..." : "Create Role"}
               </Button>
             </DialogFooter>

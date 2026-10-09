@@ -1,9 +1,9 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
-  AlertTriangle,
   Pause,
   Play,
   RefreshCcwDot,
@@ -134,13 +134,7 @@ export default function RecurringGivingPage() {
             { label: "Recurring" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load recurring schedules.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load recurring schedules." onRetry={() => window.location.reload()} />
       </div>
     );
   }

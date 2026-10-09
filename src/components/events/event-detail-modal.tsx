@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { format, isSameDay } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Pencil, Trash2 } from "lucide-react";
 import {
   Dialog,
@@ -205,7 +205,7 @@ export function EventDetailModal({
             variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-          >
+           loading={deleteMutation.isPending}>
             {deleteMutation.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>

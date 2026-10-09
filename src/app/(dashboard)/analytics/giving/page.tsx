@@ -1,7 +1,8 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { AlertTriangle, Banknote, ListOrdered, Repeat, Ratio } from "lucide-react";
+import { Banknote, ListOrdered, Repeat, Ratio } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,13 +72,7 @@ export default function AnalyticsGivingPage() {
       />
 
       {query.error ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load giving analytics.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load giving analytics." onRetry={() => window.location.reload()} />
       ) : (
         <>
           {/* Filters */}

@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -203,7 +203,7 @@ export function LifeEventFormDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
+              <Button type="submit" disabled={createMutation.isPending} loading={createMutation.isPending}>
                 {createMutation.isPending ? "Adding..." : "Add Life Event"}
               </Button>
             </DialogFooter>

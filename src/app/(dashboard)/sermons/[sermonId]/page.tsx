@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -218,7 +218,7 @@ export default function SermonDetailPage() {
               size="sm"
               onClick={handleBookmark}
               disabled={toggleBookmark.isPending}
-            >
+             loading={toggleBookmark.isPending}>
               {isBookmarked ? (
                 <BookmarkCheck className="h-4 w-4 mr-1" />
               ) : (

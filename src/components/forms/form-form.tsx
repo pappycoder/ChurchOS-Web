@@ -253,7 +253,7 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
         </Card>
 
         <div className="flex items-center justify-end gap-2">
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving} loading={saving}>
             {saving ? "Saving..." : submitLabel}
           </Button>
         </div>

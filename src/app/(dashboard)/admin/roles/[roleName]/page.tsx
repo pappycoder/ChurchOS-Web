@@ -11,7 +11,7 @@ import {
   ShieldPlus,
   SlidersHorizontal,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Skeleton } from "@/components/ui/skeleton";

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import type { UseMutationResult } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -124,7 +124,7 @@ export function ArchiveConfirmDialog({
             variant={isPurge ? "destructive" : "default"}
             onClick={handleConfirm}
             disabled={mutation.isPending}
-          >
+           loading={mutation.isPending}>
             {mutation.isPending
               ? kind === "archive"
                 ? "Archiving..."

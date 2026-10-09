@@ -1,7 +1,8 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   DndContext,
   DragOverlay,
@@ -16,7 +17,6 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import {
-  AlertTriangle,
   CalendarDays,
   KanbanSquare,
   Phone,
@@ -27,7 +27,6 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchInput } from "@/components/shared/search-input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -265,13 +264,7 @@ export default function FollowUpBoardPage() {
             { label: "Follow-Up" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load the board.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load the board." onRetry={() => window.location.reload()} />
       </div>
     );
   }

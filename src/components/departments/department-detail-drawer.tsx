@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format, parseISO } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Building2, UserPlus, X } from "lucide-react";
 import {
   Sheet,

@@ -1,12 +1,12 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
-  AlertTriangle,
   Calendar,
   Camera,
   Church,
@@ -509,7 +509,7 @@ function SecurityCard() {
                 "Confirm"
               )}
             </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={toggle.isPending}>
+            <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={toggle.isPending} loading={toggle.isPending}>
               Cancel
             </Button>
           </div>
@@ -572,13 +572,7 @@ export default function ProfilePage() {
       />
 
       {error ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load your profile.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load your profile." onRetry={() => window.location.reload()} />
       ) : isLoading || !profile ? (
         <ProfileSkeleton />
       ) : (

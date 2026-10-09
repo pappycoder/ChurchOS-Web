@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { format } from "date-fns";
 import {
@@ -58,12 +59,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LifeEventFormDialog } from "@/components/pastoral/life-event-form-dialog";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 
 const TYPE_OPTIONS: Array<{ value: LifeEventType | "all"; label: string }> = [
   { value: "all", label: "All Types" },
@@ -247,11 +247,7 @@ export default function LifeEventsPage() {
         }}
       >
         {isLoading ? (
-          <div className="p-4 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <LoadingState variant="table" />
         ) : events.length === 0 ? (
           <div className="py-8">
             <EmptyState

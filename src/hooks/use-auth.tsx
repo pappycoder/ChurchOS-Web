@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { api, refreshSession, setUnauthorizedHandler } from "@/lib/api";
 import { fetchCurrentProfile } from "@/hooks/use-profile";
 import {

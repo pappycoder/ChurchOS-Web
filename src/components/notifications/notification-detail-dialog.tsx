@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -82,7 +82,7 @@ export function NotificationDetailDialog({
             disabled={deleteNotification.isPending}
             onClick={handleDelete}
             className="text-destructive hover:text-destructive"
-          >
+           loading={deleteNotification.isPending}>
             Delete
           </Button>
           <Button variant="default" onClick={() => onOpenChange(false)}>

@@ -1,4 +1,5 @@
 "use client";
+import { LoadingState } from "@/components/shared/loading-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
@@ -237,11 +238,7 @@ export default function EventRegistrationsPage() {
                   />
                 </div>
               ) : registrationsQuery.isLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
-                </div>
+                <LoadingState variant="table" />
               ) : registrations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-4">
                   <Users className="h-10 w-10 text-muted-foreground/50" />

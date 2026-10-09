@@ -37,8 +37,8 @@ export function TablePagination({
   const to = Math.min(page * perPage, total);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
-      <p className="text-sm text-muted-foreground">
+    <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/70 pt-4 mt-4">
+      <p aria-live="polite" className="text-xs text-muted-foreground">
         Showing {from}–{to} of {total} {itemName}
       </p>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

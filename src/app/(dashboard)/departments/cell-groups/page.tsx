@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
 import Link from "next/link";
 import {
@@ -252,13 +253,11 @@ export default function CellGroupsPage() {
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={canUpdate || canDelete ? 6 : 5} className="h-32 text-center">
-                  <p className="text-muted-foreground">
-                    {archivedView
+                  <EmptyState title="No results" description={archivedView
                       ? "No archived cell groups."
                       : search
                         ? "No cell groups match your search."
-                        : "No cell groups yet. Create your first one to get started."}
-                  </p>
+                        : "No cell groups yet. Create your first one to get started."} />
                 </TableCell>
               </TableRow>
             ) : (

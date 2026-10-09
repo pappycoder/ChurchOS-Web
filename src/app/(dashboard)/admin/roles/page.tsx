@@ -1,12 +1,12 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   ShieldPlus,
   Lock,
-  AlertTriangle,
   ChevronRight,
   KeyRound,
   Plus,
@@ -115,13 +115,7 @@ export default function RolesPage() {
             { label: "Roles & Permissions" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load roles.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load roles." onRetry={() => window.location.reload()} />
       </div>
     );
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
 import { Building2, Pencil, Plus, Trash2, Users, RotateCcw, Archive } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -246,13 +247,11 @@ export default function DepartmentsPage() {
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={canUpdate || canDelete ? 7 : 6} className="h-32 text-center">
-                  <p className="text-muted-foreground">
-                    {archivedView
+                  <EmptyState title="No results" description={archivedView
                       ? "No archived departments."
                       : search
                         ? "No departments match your search."
-                        : "No departments yet. Create your first one to get started."}
-                  </p>
+                        : "No departments yet. Create your first one to get started."} />
                 </TableCell>
               </TableRow>
             ) : (

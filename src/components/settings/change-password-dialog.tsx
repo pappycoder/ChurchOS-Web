@@ -10,7 +10,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Eye, EyeOff, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActionTooltip } from "@/components/ui/tooltip";
@@ -180,7 +180,7 @@ export function ChangePasswordDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={changeMutation.isPending}>
+              <Button type="submit" disabled={changeMutation.isPending} loading={changeMutation.isPending}>
                 {changeMutation.isPending ? "Changing..." : "Change Password"}
               </Button>
             </DialogFooter>

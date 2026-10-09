@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { UserMinus } from "lucide-react";
 import {
   Dialog,
@@ -82,7 +82,7 @@ export function RemoveFamilyMemberDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={removeMutation.isPending}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleRemove} disabled={removeMutation.isPending}>
+          <Button variant="destructive" onClick={handleRemove} disabled={removeMutation.isPending} loading={removeMutation.isPending}>
             {removeMutation.isPending ? "Removing..." : "Remove Member"}
           </Button>
         </DialogFooter>

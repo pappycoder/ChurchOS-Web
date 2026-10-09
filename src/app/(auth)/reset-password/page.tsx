@@ -4,7 +4,7 @@ import * as React from "react";
 import { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { AnimatePresence, motion } from "motion/react";
 import { CheckCircle } from "lucide-react";
 
@@ -182,7 +182,7 @@ function ResetPasswordForm() {
                 </motion.p>
               )}
 
-              <Button type="submit" size="lg" className="w-full" disabled={resetPasswordMutation.isPending}>
+              <Button type="submit" size="lg" className="w-full" disabled={resetPasswordMutation.isPending} loading={resetPasswordMutation.isPending}>
                 {resetPasswordMutation.isPending ? "Resetting..." : "Submit"}
               </Button>
             </div>

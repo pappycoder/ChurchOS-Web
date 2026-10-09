@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { format } from "date-fns";
 import {
@@ -10,7 +11,7 @@ import {
   SortAsc,
   SortDesc,
 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   useRiskScores,
@@ -39,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchInput } from "@/components/shared/search-input";
 import { MemberScoringDialog } from "@/components/pastoral/member-scoring-dialog";
@@ -239,11 +239,7 @@ export default function RiskScoresPage() {
         }}
       >
         {isLoading ? (
-          <div className="p-4 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <LoadingState variant="table" />
         ) : scores.length === 0 ? (
           <div className="py-8">
             <EmptyState

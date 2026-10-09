@@ -1,5 +1,6 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
 import { parseISO } from "date-fns";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
 import { TableCard } from "@/components/shared/table-card";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { CategoryFormDialog } from "@/components/assets/category-form-dialog";
 import {
   useAssetCategories,
@@ -109,12 +110,7 @@ export default function AssetCategoriesPage() {
         }}
       >
         {error ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <p className="text-destructive">Failed to load categories.</p>
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Retry
-            </Button>
-          </div>
+          <ErrorState title="Failed to load categories." onRetry={() => window.location.reload()} />
         ) : (
           <Table>
             <TableHeader>

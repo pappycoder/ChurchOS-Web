@@ -1,11 +1,12 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Suspense } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   CalendarClock,
   CheckCircle2,
   Eye,
@@ -37,7 +38,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -131,13 +131,7 @@ function BroadcastsListContent() {
           title="Broadcasts"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Broadcasts" }]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load broadcasts.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load broadcasts." onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -231,11 +225,7 @@ function BroadcastsListContent() {
         }}
       >
         {isLoading ? (
-          <div className="p-4 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <LoadingState variant="table" />
         ) : broadcasts.length === 0 ? (
           <div className="py-8">
             <EmptyState

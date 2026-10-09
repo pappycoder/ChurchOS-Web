@@ -3,7 +3,7 @@ import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Plus,
   Ticket,
@@ -461,7 +461,7 @@ function TicketTypesTab() {
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteTier.isPending}
-            >
+             loading={deleteTier.isPending}>
               {deleteTier.isPending ? "Deleting..." : "Delete"}
 </Button>
           </DialogFooter>

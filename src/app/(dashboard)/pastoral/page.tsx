@@ -1,8 +1,9 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   AlertTriangle,
   MoreHorizontal,
@@ -55,7 +56,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoteFormDialog } from "@/components/pastoral/note-form-dialog";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
@@ -192,11 +192,7 @@ export default function PastoralNotesPage() {
         }}
       >
         {isLoading ? (
-          <div className="p-4 space-y-3">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
+          <LoadingState variant="table" />
         ) : notes.length === 0 ? (
           <div className="py-8">
             <EmptyState

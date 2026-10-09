@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { ClipboardList, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useSubmitFormPublic, type FormField } from "@/hooks/use-forms";
 import { FormFieldsRenderer } from "@/components/forms/form-fields-renderer";

@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
@@ -87,11 +88,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
           <div className="lg:col-span-2">
             <div className="border rounded-lg p-6">
               <Skeleton className="h-8 w-48 mb-4" />
-              <div className="space-y-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
+              <LoadingState variant="table" />
             </div>
           </div>
         </div>

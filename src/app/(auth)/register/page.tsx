@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Building2,
@@ -245,7 +245,7 @@ export default function RegisterPage() {
             size="lg"
             className="w-full"
             disabled={registerMutation.isPending}
-          >
+           loading={registerMutation.isPending}>
             {registerMutation.isPending
               ? "Creating account..."
               : "Create Account"}

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRef } from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Paperclip, UploadCloud, X } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useUploadMediaFile, formatBytes, MEDIA_UPLOAD_LIMITS } from "@/hooks/use-media";

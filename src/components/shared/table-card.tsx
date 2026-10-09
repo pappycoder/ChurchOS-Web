@@ -62,8 +62,8 @@ export function TableCard({
         </CardHeader>
       )}
       <CardContent className="space-y-4">
-        {toolbar}
-        <div className="rounded-md border overflow-x-auto">{children}</div>
+        {toolbar && <div className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">{toolbar}</div>}
+        <div className="min-w-0 overflow-x-auto rounded-xl border border-border/80">{children}</div>
         {paginated && (
           <TablePagination
             page={page}

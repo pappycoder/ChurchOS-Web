@@ -1,9 +1,9 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
 import {
-  AlertTriangle,
   Download,
   FileBarChart,
   FileSpreadsheet,
@@ -262,11 +262,7 @@ export default function ReportsGeneratorPage() {
             { label: "Reports" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load report data.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
-        </div>
+        <ErrorState title="Failed to load report data." onRetry={() => window.location.reload()} />
       </div>
     );
   }

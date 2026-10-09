@@ -1,13 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { format } from "date-fns";
 import {
   ArchiveRestore,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   Inbox,
   Mail,
   MailOpen,
@@ -17,6 +16,7 @@ import {
   Trash2,
   UserRound,
 } from "lucide-react";
+import { LoadingState } from "@/components/shared/loading-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -228,7 +228,7 @@ function InboxContent() {
             </div>
             <div className="min-h-[320px] flex-1 overflow-y-auto">
               {listLoading ? (
-                <div role="status" aria-label="Loading messages" className="flex h-64 items-center justify-center"><Loader2 className="size-6 animate-spin text-primary" /></div>
+                <LoadingState label="Loading messages" variant="table" />
               ) : items.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 px-6 py-20 text-center">
                   <div className="rounded-2xl bg-muted p-4"><Inbox className="size-7 text-muted-foreground" /></div>
@@ -277,15 +277,15 @@ function InboxContent() {
                   <Button variant="ghost" size="sm" className="lg:hidden" onClick={backToList}><ChevronLeft className="size-4" /> Back</Button>
                   {detail && !isTrashView && <>
                     {canSend && <Button variant="ghost" size="sm" onClick={handleReply}><Reply className="size-4" /> Reply</Button>}
-                    {box === "inbox" && <Button variant="ghost" size="sm" disabled={markUnread.isPending} onClick={handleMarkUnread}><Mail className="size-4" /> Mark unread</Button>}
-                    {canDelete && <Button variant="ghost" size="icon" className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Move to trash" disabled={trash.isPending} onClick={handleTrash}><Trash2 className="size-4" /></Button>}
+                    {box === "inbox" && <Button variant="ghost" size="sm" disabled={markUnread.isPending} onClick={handleMarkUnread} loading={markUnread.isPending}><Mail className="size-4" /> Mark unread</Button>}
+                    {canDelete && <Button variant="ghost" size="icon" className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Move to trash" disabled={trash.isPending} onClick={handleTrash} loading={trash.isPending}><Trash2 className="size-4" /></Button>}
                   </>}
                   {detail && isTrashView && <>
-                    <Button variant="ghost" size="sm" disabled={restore.isPending} onClick={handleRestore}><ArchiveRestore className="size-4" /> Restore</Button>
-                    {canDelete && <Button variant="ghost" size="sm" className="ml-auto text-destructive hover:text-destructive" disabled={deleteForever.isPending} onClick={handleDeleteForever}><Trash2 className="size-4" /> Delete forever</Button>}
+                    <Button variant="ghost" size="sm" disabled={restore.isPending} onClick={handleRestore} loading={restore.isPending}><ArchiveRestore className="size-4" /> Restore</Button>
+                    {canDelete && <Button variant="ghost" size="sm" className="ml-auto text-destructive hover:text-destructive" disabled={deleteForever.isPending} onClick={handleDeleteForever} loading={deleteForever.isPending}><Trash2 className="size-4" /> Delete forever</Button>}
                   </>}
                 </div>
-                {detailLoading ? <div role="status" aria-label="Loading message" className="flex min-h-[320px] flex-1 items-center justify-center"><Loader2 className="size-6 animate-spin text-primary" /></div> : !detail ? <div className="p-8 text-sm text-muted-foreground">Unable to load this message. Select it again to retry.</div> : (
+                {detailLoading ? <LoadingState label="Loading message" variant="detail" className="flex-1" /> : !detail ? <div className="p-8 text-sm text-muted-foreground">Unable to load this message. Select it again to retry.</div> : (
                   <article className="flex-1 overflow-y-auto p-6 sm:p-8 xl:p-10">
                     <h3 className="break-words text-xl font-semibold tracking-tight sm:text-2xl">{detail.subject || "(No subject)"}</h3>
                     <div className="mt-6 flex items-center gap-3 border-b pb-6">

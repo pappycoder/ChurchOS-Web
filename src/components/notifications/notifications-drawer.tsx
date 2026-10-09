@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Sheet,
   SheetContent,
@@ -299,7 +299,7 @@ export function NotificationsDrawer({
                 className="h-7 text-xs text-destructive hover:text-destructive"
                 onClick={handleBulkDelete}
                 disabled={bulkDelete.isPending}
-              >
+               loading={bulkDelete.isPending}>
                 <Trash2 className="h-3.5 w-3.5" /> Delete
               </Button>
               <Button

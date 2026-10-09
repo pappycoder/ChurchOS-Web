@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, Mail, ShieldCheck } from "lucide-react";
 
@@ -149,7 +149,7 @@ export default function LoginPage() {
                 size="lg"
                 className="w-full"
                 disabled={verifyMutation.isPending}
-              >
+               loading={verifyMutation.isPending}>
                 {verifyMutation.isPending ? "Verifying..." : "Verify & Sign In"}
               </Button>
             </div>
@@ -253,7 +253,7 @@ export default function LoginPage() {
                 size="lg"
                 className="w-full"
                 disabled={loginMutation.isPending}
-              >
+               loading={loginMutation.isPending}>
                 {loginMutation.isPending ? "Signing in..." : "Sign In"}
               </Button>
             </div>

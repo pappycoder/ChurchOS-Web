@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useForm, useUpdateForm } from "@/hooks/use-forms";
 import { PageHeader } from "@/components/shared/page-header";

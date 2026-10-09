@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { AlertTriangle } from "lucide-react";
 import {
   Dialog,
@@ -75,7 +75,7 @@ export function DeleteCellGroupDialog({
             variant="destructive"
             onClick={handleConfirm}
             disabled={deleteMutation.isPending}
-          >
+           loading={deleteMutation.isPending}>
             {deleteMutation.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>

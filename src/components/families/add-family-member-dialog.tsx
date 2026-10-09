@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -199,7 +199,7 @@ export function AddFamilyMemberDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={addMutation.isPending}>
+              <Button type="submit" disabled={addMutation.isPending} loading={addMutation.isPending}>
                 {addMutation.isPending ? "Adding..." : "Add Member"}
               </Button>
             </DialogFooter>

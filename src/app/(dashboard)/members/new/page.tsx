@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -286,7 +286,7 @@ export default function AddMemberPage() {
                       className="text-destructive hover:text-destructive"
                       onClick={removePhoto}
                       disabled={saving}
-                    >
+                     loading={saving}>
                       <Trash2 className="h-4 w-4 mr-1.5" />
                       Remove
                     </Button>

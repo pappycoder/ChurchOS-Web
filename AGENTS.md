@@ -14,6 +14,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- **Shared UI refresh**: modernized form controls, buttons, cards, dialogs, sheets, tables, menus, tabs, badges, avatars, tooltips, charts, page headers, search, and pagination. Reusable `LoadingState` and `ErrorState` replace repeated page markup; skeletons shimmer with reduced-motion support, stat values use skeletons during loading, and pending action buttons support `loading`. Empty states use consistent icons and spacing. Added `modern-ui.css` for theme-aware navigation, headings, feedback, and mobile controls. All existing toast callers now import `@/lib/toast`, with one themed Sonner renderer at the root. Query functions, permissions, branch scopes, mutation handlers, and routes retain their existing behavior.
+
+
 - Header admin settings shortcut now requires church_settings:update, matching the account settings dropdown.
 
 

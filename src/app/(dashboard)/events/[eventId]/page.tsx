@@ -18,7 +18,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -503,7 +503,7 @@ export default function EventDetailPage({
                 size="sm"
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
-              >
+               loading={deleteMutation.isPending}>
                 {deleteMutation.isPending ? "Deleting..." : "Delete"}
               </Button>
             </div>

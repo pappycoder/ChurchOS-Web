@@ -1,11 +1,12 @@
 "use client";
 
+import { LoadingState } from "@/components/shared/loading-state";
+import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   Home,
   Plus,
-  AlertTriangle,
   MoreHorizontal,
   Eye,
   Pencil,
@@ -33,7 +34,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -202,13 +202,7 @@ export default function FamiliesPage() {
             { label: "Families" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load families.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState title="Failed to load families." onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -309,11 +303,7 @@ export default function FamiliesPage() {
           )}
 
           {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
+            <LoadingState variant="table" />
           ) : families.length === 0 ? (
             <div className="py-8">
               <EmptyState
