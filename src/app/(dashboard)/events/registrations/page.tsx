@@ -61,7 +61,10 @@ export default function EventRegistrationsPage() {
   const registrationsQuery = useEventRegistrations(selectedEventId, branchId || undefined);
 
   const events = React.useMemo(() => eventsQuery.data?.data ?? [], [eventsQuery.data?.data]);
-  const allRegistrations = React.useMemo(() => registrationsQuery.data ?? [], [registrationsQuery.data]);
+  const allRegistrations = React.useMemo(
+    () => selectedEventId ? registrationsQuery.data ?? [] : [],
+    [selectedEventId, registrationsQuery.data]
+  );
 
   const registrations = React.useMemo(() => {
     if (!search.trim()) return allRegistrations;
@@ -174,37 +177,26 @@ export default function EventRegistrationsPage() {
         </CardContent>
       </Card>
 
-      {/* Empty state: no event selected */}
-      {!selectedEventId && (
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <CalendarDays className="h-12 w-12 text-muted-foreground/50" />
-          <p className="text-muted-foreground">Select an event above to view its registrations.</p>
-        </div>
-      )}
-
-      {/* Event selected */}
-      {selectedEventId && (
-        <>
           {/* Stats row */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatsCard
               title="Total"
-              value={stats.total}
+              value={selectedEventId ? stats.total : "—"}
               icon={<Users className="h-4 w-4" />}
             />
             <StatsCard
               title="Checked In"
-              value={stats.checkedIn}
+              value={selectedEventId ? stats.checkedIn : "—"}
               icon={<Users className="h-4 w-4" />}
             />
             <StatsCard
               title="Pending"
-              value={stats.pending}
+              value={selectedEventId ? stats.pending : "—"}
               icon={<Users className="h-4 w-4" />}
             />
             <StatsCard
               title="Paid"
-              value={stats.paid}
+              value={selectedEventId ? stats.paid : "—"}
               icon={<Users className="h-4 w-4" />}
             />
           </div>
@@ -221,7 +213,7 @@ export default function EventRegistrationsPage() {
               setPerPage(n);
               setPage(1);
             }}
-            toolbar={
+            toolbar={selectedEventId ? (
               <div className="flex items-center gap-2">
                 <Search className="h-4 w-4 text-muted-foreground" />
                 <SearchInput
@@ -234,9 +226,17 @@ export default function EventRegistrationsPage() {
                   className="max-w-sm"
                 />
               </div>
-            }
+            ) : undefined}
           >
-              {registrationsQuery.isLoading ? (
+              {!selectedEventId ? (
+                <div className="py-12">
+                  <EmptyState
+                    icon={<CalendarDays className="h-12 w-12" />}
+                    title="No event selected"
+                    description="Select an event above to view its registrations."
+                  />
+                </div>
+              ) : registrationsQuery.isLoading ? (
                 <div className="space-y-3">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <Skeleton key={i} className="h-12 w-full" />
@@ -298,8 +298,6 @@ export default function EventRegistrationsPage() {
                 </Table>
               )}
           </TableCard>
-        </>
-      )}
     </div>
   );
 }
