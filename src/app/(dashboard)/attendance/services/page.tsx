@@ -131,8 +131,8 @@ function toFormValues(service?: ChurchService | null): ServiceFormValues {
 
 export default function AttendanceServicesPage() {
   const router = useRouter();
-  const { can } = usePermissions();
-  const canCreate = can("attendance", "create");
+  const { can, canAny } = usePermissions();
+  const canCreate = canAny("attendance:services:create");
   const canUpdate = can("attendance", "update");
   const canDelete = can("attendance", "delete");
   const canManage = canCreate || canUpdate || canDelete;
@@ -214,6 +214,7 @@ export default function AttendanceServicesPage() {
       } else {
         await createMutation.mutateAsync({
           name: values.name.trim(),
+          branchId: branchId || undefined,
           category: values.category as ServiceCategory,
           dayOfWeek:
             values.dayOfWeek && values.dayOfWeek !== "none"
