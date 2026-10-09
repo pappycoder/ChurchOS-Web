@@ -46,19 +46,19 @@ const EXPORT_COLUMNS: ExportColumn[] = [
 ];
 
 export default function DepartmentsPage() {
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Department heads only ever see the department they head (backend-scoped);
   // HQ department heads see every department church-wide but edit only the
   // department they head (backend-enforced ownership).
-  const isDepartmentHead = !!profile?.role?.includes("department_head");
+  const isDepartmentHead = canAny("departments:own:read");
   const isAdminHq = !!profile?.isAdminHq;
   // Export stays available to staff and HQ department heads (they see all
   // departments); branch-scoped heads manage their own department directly.
   const canExport = !isDepartmentHead || isAdminHq;
-  const canCreate = can("departments", "create") && !isDepartmentHead;
-  const canUpdate = can("departments", "update");
-  const canDelete = can("departments", "delete") && !isDepartmentHead;
+  const canCreate = can("departments", "create");
+  const canUpdate = canAny("departments:update", "departments:own:update");
+  const canDelete = can("departments", "delete");
   // A department head edits only the department they head; the row Edit button
   // therefore also requires ownership whenever the viewer is a head.
   const isOwnDepartment = (department: Department) =>

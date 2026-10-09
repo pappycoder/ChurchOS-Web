@@ -25,7 +25,6 @@ interface PermissionsState {
   /** True once the profile (and therefore permissions/roles) has loaded. */
   ready: boolean;
   permissions: Set<PermissionName>;
-  roles: string[];
 }
 
 function usePermissionsState(): PermissionsState {
@@ -35,9 +34,7 @@ function usePermissionsState(): PermissionsState {
     () => new Set(profile?.permissions ?? []),
     [profile?.permissions]
   );
-  const roles = React.useMemo(() => profile?.role ?? [], [profile?.role]);
-
-  return { ready: !isLoading && !!profile, permissions, roles };
+  return { ready: !isLoading && !!profile, permissions };
 }
 
 export interface PermissionChecker {
@@ -46,12 +43,10 @@ export interface PermissionChecker {
   can: (resource: string, action: PermissionAction) => boolean;
   /** True when the user holds any of the given permission names. */
   canAny: (...names: PermissionName[]) => boolean;
-  /** Any-of role check for nav items without a dedicated permission resource. */
-  hasRole: (...roleNames: string[]) => boolean;
 }
 
 export function usePermissions(): PermissionChecker {
-  const { ready, permissions, roles } = usePermissionsState();
+  const { ready, permissions } = usePermissionsState();
 
   const can = React.useCallback(
     (resource: string, action: PermissionAction) =>
@@ -64,12 +59,7 @@ export function usePermissions(): PermissionChecker {
     [permissions]
   );
 
-  const hasRole = React.useCallback(
-    (...roleNames: string[]) => roles.some((r) => roleNames.includes(r)),
-    [roles]
-  );
-
-  return { ready, can, canAny, hasRole };
+  return { ready, can, canAny };
 }
 
 /** Convenience single-check hook: `const allowed = useCan("branches", "update")`. */

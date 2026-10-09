@@ -21,50 +21,37 @@ const headerSrc = fs.readFileSync(
   "utf8",
 );
 
-/** Represents one nav item: its href, permission gate, and role fallbacks. */
+/** Represents one nav item and its permission gate. */
 interface NavItemGate {
   href: string;
   permission?: string;
-  roles?: string[];
   /** False when the item carries children — sidebar parents render as menu
    *  openers (`<a href="#">`), so their href never navigates. */
   leaf: boolean;
 }
 
 /**
- * Collect every nav item (recursively, including children) that carries either
- * a `permission` or `roles` gate from a layout source file.
+ * Collect every nav item (recursively, including children) that carries a
+ * permission gate from a layout source file.
  */
 function extractNavGates(source: string): NavItemGate[] {
   const gates: NavItemGate[] = [];
-  // Match each nav object: href + optional permission/roles/hideForMember.
+  // Match each nav object: href + optional permission.
   const itemRe = /\{[\s\S]*?href:\s*["`]([^"`]+)["`][\s\S]*?\}/g;
   for (const m of source.matchAll(itemRe)) {
     const block = m[0];
     const href = m[1];
     if (href === "#" || href === "undefined") continue;
     const permMatch = block.match(/permission:\s*["`]([^"`]+)["`]/);
-    const rolesMatch = block.match(/roles:\s*(\[[\s\S]*?\])/);
-    if (!permMatch && !rolesMatch) continue;
-
-    let roles: string[] | undefined;
-    if (rolesMatch) {
-      const raw = rolesMatch[1];
-      roles = [...raw.matchAll(/["`]([a-z_]+)["`]/g)].map((r) => r[1]);
-    }
+    if (!permMatch) continue;
     gates.push({
       href,
       permission: permMatch?.[1],
-      roles: roles && roles.length ? roles : undefined,
       leaf: !block.includes("children:"),
     });
   }
   return gates;
 }
-
-/** True when at least one role in `roles` makes the item visible. */
-const anyVisibleByRole = (roles?: string[]) =>
-  !!roles && roles.length > 0;
 
 describe("route-permissions guard", () => {
   const sidebarGates = extractNavGates(sidebarSrc);
@@ -85,36 +72,24 @@ describe("route-permissions guard", () => {
       (gate) => {
         const rule = matchRoutePermission(gate.href);
         expect(rule).not.toBeNull();
-        expect(rule!.permission || rule!.roles).toBeDefined();
+        expect(rule!.permission).toBeDefined();
       },
     );
   });
 
   describe("route gate is never stricter than the nav gate", () => {
     // Only leaf items navigate — sidebar parents render as `<a href="#">`
-    // menu openers (NavLink discards their href), so their union-role gates
-    // (kept loose to surface every visible child) are not route gates.
+    // menu openers (NavLink discards their href), so only leaf permissions
+    // are route gates.
     it.each(
-      [...sidebarGates, ...headerGates].filter(
-        (g) => g.leaf && (g.permission || anyVisibleByRole(g.roles)),
-      ),
+      [...sidebarGates, ...headerGates].filter((g) => g.leaf && g.permission),
     )(
-      "$href — nav($permission / $roles)",
+      "$href — nav($permission)",
       (gate) => {
         const rule = matchRoutePermission(gate.href);
         // Open route (e.g. /dashboard) is never stricter.
         if (!rule) {
           expect(gate.permission).toBeUndefined();
-          expect(gate.roles).toBeUndefined();
-          return;
-        }
-
-        if (rule.roles) {
-          // Role-ceiling routes require every visible nav item to be covered by
-          // a role in the route's allow-list — never stricter than the nav gate.
-          for (const role of gate.roles ?? []) {
-            expect(rule.roles).toContain(role);
-          }
           return;
         }
 

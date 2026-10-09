@@ -8,7 +8,6 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { useIsMember } from "@/hooks/use-is-member";
 import { usePrefetchRoute } from "@/lib/prefetch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/shared/brand-logo";
@@ -63,16 +62,8 @@ interface NavItem {
   badge?: string;
   badgeVariant?: "danger" | "info" | "success" | "warning" | "primary";
   children?: NavItem[];
-  /** Legacy any-of role gate (no dedicated permission resource). */
-  roles?: string[];
-  /** OR-role gate: shown to ANY of these roles, bypassing the permission check.
-   * For items whose permission data may be missing or stale but whose role is
-   * the source of truth for access (e.g. cell group leaders). */
-  anyRole?: string[];
   /** Required `resource:action` permission, e.g. "members:read". */
   permission?: string;
-  /** Hide from members entirely (member role), regardless of granted reads. */
-  hideForMember?: boolean;
 }
 
 const navItems: { section: string; items: NavItem[] }[] = [
@@ -89,7 +80,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/members",
         icon: Users,
         permission: "members:all:read",
-        hideForMember: true,
         children: [
           {
             title: "All Members",
@@ -118,7 +108,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/attendance",
         icon: CalendarCheck,
         permission: "attendance:read",
-        hideForMember: true,
         children: [
           {
             title: "Dashboard",
@@ -152,7 +141,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/giving",
         icon: HandCoins,
         permission: "giving:read",
-        hideForMember: true,
         children: [
           { title: "Dashboard", href: "/giving", permission: "giving:read" },
           {
@@ -188,19 +176,16 @@ const navItems: { section: string; items: NavItem[] }[] = [
             title: "All Events",
             href: "/events/list",
             permission: "events:list:read",
-            hideForMember: true,
           },
           {
             title: "Check-In",
             href: "/events/check-in",
             permission: "events:checkin:create",
-            hideForMember: true,
           },
           {
             title: "Registrations",
             href: "/events/registrations",
             permission: "events:registrations:read",
-            hideForMember: true,
           },
           {
             title: "Tickets",
@@ -261,7 +246,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/pastoral",
         icon: HeartHandshake,
         permission: "pastoral:read",
-        hideForMember: true,
         children: [
           { title: "Notes", href: "/pastoral", permission: "pastoral:read" },
           {
@@ -286,7 +270,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/visitors",
         icon: UserPlus,
         permission: "visitors:read",
-        hideForMember: true,
         children: [
           {
             title: "All Visitors",
@@ -354,13 +337,11 @@ const navItems: { section: string; items: NavItem[] }[] = [
             title: "All Departments",
             href: "/departments",
             permission: "departments:read",
-            anyRole: ["department_head"],
           },
           {
             title: "Cell Groups",
             href: "/departments/cell-groups",
             permission: "cell_groups:read",
-            anyRole: ["cell_leader"],
           },
         ],
       },
@@ -426,7 +407,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Roles & Permissions",
             href: "/admin/roles",
-            roles: ["church_admin", "super_admin"],
+            permission: "roles:read",
           },
         ],
       },
@@ -452,32 +433,26 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Analytics",
         href: "/analytics",
         icon: BarChart3,
-        roles: ["church_admin", "senior_pastor", "branch_pastor", "treasurer"],
         children: [
           {
             title: "Overview",
             href: "/analytics",
-            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+            permission: "analytics:dashboard:read",
           },
           {
             title: "Giving",
             href: "/analytics/giving",
-            roles: [
-              "church_admin",
-              "senior_pastor",
-              "branch_pastor",
-              "treasurer",
-            ],
+            permission: "analytics:giving:read",
           },
           {
             title: "Attendance",
             href: "/analytics/attendance",
-            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+            permission: "analytics:attendance:read",
           },
           {
             title: "Members",
             href: "/analytics/members",
-            roles: ["church_admin", "senior_pastor", "branch_pastor"],
+            permission: "analytics:members:read",
           },
         ],
       },
@@ -490,7 +465,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "Help & Documentation",
         href: "/docs",
         icon: BookOpen,
-        hideForMember: true,
       },
     ],
   },
@@ -699,9 +673,8 @@ export function Sidebar() {
   const pathname = usePathname();
   const { collapsed, mobileOpen, closeMobile } = useSidebar();
   const { settings } = useSettings();
-  const { ready, canAny, hasRole } = usePermissions();
+  const { ready, canAny } = usePermissions();
   const { data: currentProfile } = useCurrentProfile();
-  const { isMember } = useIsMember();
   const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
   const [hoverExpand, setHoverExpand] = React.useState(false);
   const sidebarRef = React.useRef<HTMLElement>(null);
@@ -718,27 +691,13 @@ export function Sidebar() {
     `${currentProfile?.lastName?.[0] ?? ""}`.toUpperCase() || "AD";
 
   // Permission-filtered nav: items without a gate stay visible; gated items
-  // require their permission (or legacy role). Parents survive only when at
+  // require their permission. Parents survive only when at
   // least one child survives; empty sections are dropped. Fail-closed while
-  // the profile loads. Members are additionally stripped of staff sections
-  // and items flagged hideForMember (even for reads their seed grants).
+  // the profile loads.
   const visibleNav = React.useMemo(() => {
-    // Wait for both the permission system AND the raw profile data so role
-    // checks (isMember) are deterministic — otherwise the section filter can
-    // run against a stale isMember=false and leak staff sections to members.
     if (!ready || !currentProfile) return [];
-    // Sections shown to members (roles may still gate further below).
-    const memberSectionAllowed: Record<string, boolean> = {
-      "MAIN MENU": true,
-      "OPERATIONS": true,
-    };
     const itemAllowed = (item: NavItem): boolean => {
-      if (isMember && item.hideForMember) return false;
-      // Role-first gate: any matching role sees the item even if the cached
-      // permission set is missing or stale for them.
-      if (item.anyRole?.length && hasRole(...item.anyRole)) return true;
       if (item.permission && !canAny(item.permission)) return false;
-      if (item.roles?.length && !hasRole(...item.roles)) return false;
       return true;
     };
     const filterItem = (item: NavItem): NavItem | null => {
@@ -758,10 +717,9 @@ export function Sidebar() {
       }))
       .filter(
         (group) =>
-          group.items.length > 0 &&
-          (!isMember || memberSectionAllowed[group.section]),
+          group.items.length > 0,
       );
-  }, [ready, canAny, hasRole, isMember, currentProfile]);
+  }, [ready, canAny, currentProfile]);
 
   React.useEffect(() => {
     const expanded: Record<string, boolean> = {};
@@ -922,7 +880,7 @@ export function Sidebar() {
                     Menu
                   </button>
                 </li>
-                {!isMember && (
+                {canAny("emails:read") && (
                   <li className="flex-1">
                     <Link
                       href="/communication/inbox"
@@ -980,7 +938,7 @@ export function Sidebar() {
                 <span className="notification-status-dot"></span>
               </Link>
             </div>
-            {!isMember && (
+            {canAny("emails:read") && (
               <div className="me-0">
                 <Link href="/communication/inbox" className="btn-menubar">
                   <Mail size={18} />

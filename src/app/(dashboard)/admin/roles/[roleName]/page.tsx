@@ -63,10 +63,8 @@ export default function RoleDetailPage({
 
   const isSuperAdmin = roleName === "super_admin";
   const isChurchOwned = role?.isChurchOwned ?? false;
-  // Role CRUD has no dedicated permission resource — restricted to
-  // church-level admins by legacy role assignment.
-  const { hasRole } = usePermissions();
-  const canManageRoles = hasRole("church_admin", "super_admin");
+  const { can } = usePermissions();
+  const canManageRoles = can("roles", "update");
   const displayLabel = role?.label || getRoleLabel(roleName);
 
   const permissionIdByName = React.useMemo(

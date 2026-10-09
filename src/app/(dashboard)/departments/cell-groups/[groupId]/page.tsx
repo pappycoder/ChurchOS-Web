@@ -77,12 +77,12 @@ export default function CellGroupDetailPage({
 }) {
   const { groupId } = React.use(params);
   const router = useRouter();
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Cell group leaders may manage their own group — edit details (minus branch
   // + leader), add/remove members, and record attendance — but get no Archive
   // or Delete affordances.
-  const isCellLeader = !!profile?.role?.includes("cell_leader");
+  const isCellLeader = canAny("cell_groups:own:read");
 
   const { data: group, isLoading, error } = useCellGroup(groupId);
   // Only the group's own leader (reading their linked member id) may manage it.
@@ -91,8 +91,8 @@ export default function CellGroupDetailPage({
     !!group &&
     !!profile?.memberId &&
     profile.memberId === group.leaderId;
-  const canManageMembers = can("cell_groups", "create") && (!isCellLeader || isOwnGroup);
-  const canUpdate = can("cell_groups", "update") && (!isCellLeader || isOwnGroup);
+  const canManageMembers = canAny("cell_groups:create", "cell_groups:own:update") && (!isCellLeader || isOwnGroup);
+  const canUpdate = canAny("cell_groups:update", "cell_groups:own:update") && (!isCellLeader || isOwnGroup);
   const canDelete = can("cell_groups", "delete") && !isCellLeader;
   const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(groupId);
   const { data: summary } = useCellGroupAttendanceSummary(groupId);

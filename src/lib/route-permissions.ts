@@ -1,5 +1,5 @@
 /**
- * @file Central map of dashboard routes to the permission (or legacy role set)
+ * @file Central map of dashboard routes to the permission
  * required to view them. Mirrors the sidebar nav gates — keep both in sync.
  *
  * Matching is longest-prefix-first: a rule matches when the pathname equals
@@ -12,8 +12,6 @@ export interface RoutePermissionRule {
   /** Required `resource:surface:action` permission, e.g. "members:all:read".
    * Single-page resources keep coarse `resource:action` codes. */
   permission?: string;
-  /** Any-of role fallback for areas without a dedicated permission resource. */
-  roles?: string[];
 }
 
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
@@ -92,20 +90,19 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/reports", permission: "reports:view" },
 
   // Diagnostics
-  { prefix: "/debug/sentry", roles: ["church_admin", "super_admin"] },
+  { prefix: "/debug/sentry", permission: "diagnostics:read" },
 
   // Administration
   { prefix: "/admin/users", permission: "users:read" },
-  { prefix: "/admin/roles", roles: ["church_admin", "super_admin"] },
+  { prefix: "/admin/roles", permission: "roles:read" },
   { prefix: "/admin/settings", permission: "church_settings:update" },
   { prefix: "/admin/branches", permission: "branches:read" },
 
-  // Analytics — role ceilings mirror the backend @RequireRoles (no dedicated
-  // permission resource). Longest-prefix wins, so per-page rules override the base.
-  { prefix: "/analytics/giving", roles: ["church_admin", "senior_pastor", "branch_pastor", "treasurer"] },
-  { prefix: "/analytics/attendance", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
-  { prefix: "/analytics/members", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
-  { prefix: "/analytics", roles: ["church_admin", "senior_pastor", "branch_pastor"] },
+  // Analytics permissions align with the individual backend endpoints.
+  { prefix: "/analytics/giving", permission: "analytics:giving:read" },
+  { prefix: "/analytics/attendance", permission: "analytics:attendance:read" },
+  { prefix: "/analytics/members", permission: "analytics:members:read" },
+  { prefix: "/analytics", permission: "analytics:dashboard:read" },
 ];
 
 /** Longest-prefix match; returns null for open routes. */
@@ -122,11 +119,9 @@ export function matchRoutePermission(pathname: string): RoutePermissionRule | nu
 /** True when the user passes the given rule (or when there is no rule). */
 export function checkRule(
   rule: RoutePermissionRule | null,
-  can: (permissionName: string) => boolean,
-  hasRole: (...roleNames: string[]) => boolean
+  can: (permissionName: string) => boolean
 ): boolean {
   if (!rule) return true;
   if (rule.permission) return can(rule.permission);
-  if (rule.roles?.length) return hasRole(...rule.roles);
   return true;
 }

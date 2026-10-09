@@ -61,17 +61,17 @@ const EXPORT_COLUMNS: ExportColumn[] = [
 ];
 
 export default function CellGroupsPage() {
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Cell group leaders only record attendance for their own group — they get
   // no group-level create/update/delete affordances here.
-  const isCellLeader = !!profile?.role?.includes("cell_leader");
+  const isCellLeader = canAny("cell_groups:own:read");
   // Export stays available to staff and HQ cell leaders (they see all groups);
   // branch cell leaders export their own group from its detail page instead.
   const canExport = !isCellLeader || !!profile?.isAdminHq;
   const canCreate = can("cell_groups", "create") && !isCellLeader;
-  const canUpdate = can("cell_groups", "update") && !isCellLeader;
-  const canDelete = can("cell_groups", "delete") && !isCellLeader;
+  const canUpdate = canAny("cell_groups:update", "cell_groups:own:update");
+  const canDelete = can("cell_groups", "delete");
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");

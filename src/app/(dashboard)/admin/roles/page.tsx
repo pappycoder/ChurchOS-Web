@@ -101,10 +101,8 @@ export default function RolesPage() {
   ).length;
   const totalPermissions = allPermissions?.length ?? 0;
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
-  // Role CRUD has no dedicated permission resource — restricted to
-  // church-level admins by legacy role assignment.
-  const { hasRole } = usePermissions();
-  const canManageRoles = hasRole("church_admin", "super_admin");
+  const { can } = usePermissions();
+  const canCreateRoles = can("roles", "create");
 
   if (error) {
     return (
@@ -168,7 +166,7 @@ export default function RolesPage() {
             title="Roles"
             description="Church-level changes are added on top of each role's global defaults."
             action={
-              canManageRoles && (
+              canCreateRoles && (
                 <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-1.5" />
                   Add Role
