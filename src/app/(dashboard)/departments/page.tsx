@@ -154,6 +154,7 @@ export default function DepartmentsPage() {
             <div className="flex items-center gap-2">
               {canExport && (
                 <ExportDropdown
+              tableId="departments"
                   columns={EXPORT_COLUMNS}
                   data={exportRows}
                   title="Departments"
@@ -223,10 +224,10 @@ export default function DepartmentsPage() {
           </div>
         }
       >
-        <Table>
+        <Table tableId="departments">
           <TableHeader>
             <TableRow>
-              <TableHead>Department</TableHead>
+              <TableHead exportKeys={["name"]}>Department</TableHead>
               <TableHead>Branch</TableHead>
               <TableHead>Head</TableHead>
               <TableHead>Parent</TableHead>

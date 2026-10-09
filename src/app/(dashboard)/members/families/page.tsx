@@ -219,6 +219,7 @@ export default function FamiliesPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="families"
               columns={exportColumns}
               data={exportData}
               fetchAllRows={fetchAllExportRows}
@@ -322,7 +323,7 @@ export default function FamiliesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table>
+              <Table tableId="families">
                 <TableHeader>
                   <TableRow>
                     {!archivedView && (
@@ -334,10 +335,10 @@ export default function FamiliesPage() {
                         />
                       </TableHead>
                     )}
-                    <TableHead>Family</TableHead>
-                    <TableHead>Head of Family</TableHead>
-                    <TableHead>Members</TableHead>
-                    <TableHead>Created</TableHead>
+                    <TableHead exportKeys={["name"]}>Family</TableHead>
+                    <TableHead exportKeys={["head"]}>Head of Family</TableHead>
+                    <TableHead exportKeys={["memberCount", "memberNames"]}>Members</TableHead>
+                    <TableHead exportKeys={["createdAt"]}>Created</TableHead>
                     {canManage && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>

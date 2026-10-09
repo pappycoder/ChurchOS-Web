@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-10** — All shared tables now offer reusable column visibility controls, keep selection cells available, and adjust spanning states. Page-scoped visibility is shared with PDF/XLSX/CSV exports, including explicit mappings for grouped columns. Appointments and documentation use the shared table primitives; asset exports now support all three formats.
+
+
 - **2026-10-10** — Redesigned XLSX exports with reusable workbook styling, native filterable tables, frozen headers, numeric formatting, dropdown validation, and filter-aware counts. Member template retains first-row import headers and scoped branch choices; existing export privacy and branch scope are preserved.
 
 

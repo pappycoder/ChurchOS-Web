@@ -1,5 +1,7 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useIsMember } from "@/hooks/use-is-member";
@@ -43,26 +45,26 @@ function Section({
 function ActionTable({ rows }: { rows: [string, string, string][] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="pb-2 pr-4 font-medium">Button</th>
-            <th className="pb-2 pr-4 font-medium">Description</th>
-            <th className="pb-2 font-medium">Permission</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="w-full text-sm">
+        <TableHeader>
+          <TableRow className="border-b text-left text-muted-foreground">
+            <TableHead className="pb-2 pr-4 font-medium">Button</TableHead>
+            <TableHead className="pb-2 pr-4 font-medium">Description</TableHead>
+            <TableHead className="pb-2 font-medium">Permission</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map(([btn, desc, perm]) => (
-            <tr key={btn} className="border-b last:border-0">
-              <td className="py-2.5 pr-4 font-medium whitespace-nowrap">{btn}</td>
-              <td className="py-2.5 pr-4 text-muted-foreground">{desc}</td>
-              <td className="py-2.5">
+            <TableRow key={btn} className="border-b last:border-0">
+              <TableCell className="py-2.5 pr-4 font-medium whitespace-nowrap">{btn}</TableCell>
+              <TableCell className="py-2.5 pr-4 text-muted-foreground">{desc}</TableCell>
+              <TableCell className="py-2.5">
                 <PermBadge perm={perm} />
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -70,28 +72,28 @@ function ActionTable({ rows }: { rows: [string, string, string][] }) {
 function PageTable({ rows }: { rows: [string, string, string][] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="pb-2 pr-4 font-medium">Page</th>
-            <th className="pb-2 pr-4 font-medium">Route</th>
-            <th className="pb-2 font-medium">Description</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="w-full text-sm">
+        <TableHeader>
+          <TableRow className="border-b text-left text-muted-foreground">
+            <TableHead className="pb-2 pr-4 font-medium">Page</TableHead>
+            <TableHead className="pb-2 pr-4 font-medium">Route</TableHead>
+            <TableHead className="pb-2 font-medium">Description</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map(([page, route, desc]) => (
-            <tr key={page} className="border-b last:border-0">
-              <td className="py-2.5 pr-4 font-medium whitespace-nowrap">{page}</td>
-              <td className="py-2.5 pr-4">
+            <TableRow key={page} className="border-b last:border-0">
+              <TableCell className="py-2.5 pr-4 font-medium whitespace-nowrap">{page}</TableCell>
+              <TableCell className="py-2.5 pr-4">
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">
                   {route}
                 </code>
-              </td>
-              <td className="py-2.5 text-muted-foreground">{desc}</td>
-            </tr>
+              </TableCell>
+              <TableCell className="py-2.5 text-muted-foreground">{desc}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -99,22 +101,22 @@ function PageTable({ rows }: { rows: [string, string, string][] }) {
 function FilterTable({ rows }: { rows: [string, string][] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="pb-2 pr-4 font-medium">Filter / Sort</th>
-            <th className="pb-2 font-medium">Options</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table className="w-full text-sm">
+        <TableHeader>
+          <TableRow className="border-b text-left text-muted-foreground">
+            <TableHead className="pb-2 pr-4 font-medium">Filter / Sort</TableHead>
+            <TableHead className="pb-2 font-medium">Options</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {rows.map(([filter, opts]) => (
-            <tr key={filter} className="border-b last:border-0">
-              <td className="py-2.5 pr-4 font-medium whitespace-nowrap">{filter}</td>
-              <td className="py-2.5 text-muted-foreground">{opts}</td>
-            </tr>
+            <TableRow key={filter} className="border-b last:border-0">
+              <TableCell className="py-2.5 pr-4 font-medium whitespace-nowrap">{filter}</TableCell>
+              <TableCell className="py-2.5 text-muted-foreground">{opts}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }
@@ -2029,17 +2031,17 @@ export function DocsContent() {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-2 pr-4 font-medium">Resource</th>
-                    <th className="pb-2 px-3 font-medium text-center">Create</th>
-                    <th className="pb-2 px-3 font-medium text-center">Read</th>
-                    <th className="pb-2 px-3 font-medium text-center">Update</th>
-                    <th className="pb-2 px-3 font-medium text-center">Delete</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b text-left text-muted-foreground">
+                    <TableHead className="pb-2 pr-4 font-medium">Resource</TableHead>
+                    <TableHead className="pb-2 px-3 font-medium text-center">Create</TableHead>
+                    <TableHead className="pb-2 px-3 font-medium text-center">Read</TableHead>
+                    <TableHead className="pb-2 px-3 font-medium text-center">Update</TableHead>
+                    <TableHead className="pb-2 px-3 font-medium text-center">Delete</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                   {[
                     { resource: "Members", prefix: "members" },
                     { resource: "Families", prefix: "families" },
@@ -2064,17 +2066,17 @@ export function DocsContent() {
                     { resource: "Broadcasts", prefix: "broadcasts" },
                     { resource: "WhatsApp Messages", prefix: "whatsapp" },
                   ].map((r) => (
-                    <tr key={r.prefix} className="border-b last:border-0">
-                      <td className="py-2.5 pr-4 font-medium">{r.resource}</td>
+                    <TableRow key={r.prefix} className="border-b last:border-0">
+                      <TableCell className="py-2.5 pr-4 font-medium">{r.resource}</TableCell>
                       {["create", "read", "update", "delete"].map((action) => (
-                        <td key={action} className="py-2.5 px-3 text-center">
+                        <TableCell key={action} className="py-2.5 px-3 text-center">
                           <PermBadge perm={`${r.prefix}:${action}`} />
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
           </CardContent>
         </Card>

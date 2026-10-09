@@ -293,6 +293,7 @@ export default function UsersPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="users"
               columns={exportColumns}
               data={exportData}
               fetchAllRows={fetchAllExportRows}
@@ -422,7 +423,7 @@ export default function UsersPage() {
                 />
               </div>
             ) : (
-              <Table>
+              <Table tableId="users">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">

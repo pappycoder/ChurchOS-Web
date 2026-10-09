@@ -292,6 +292,7 @@ export default function BranchesPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="branches"
               columns={exportColumns}
               data={exportData}
               fetchAllRows={fetchAllExportRows}
@@ -417,7 +418,7 @@ export default function BranchesPage() {
                 />
               </div>
             ) : (
-              <Table>
+              <Table tableId="branches">
                     <TableHeader>
                       <TableRow>
                         {!archivedView && (
@@ -429,8 +430,8 @@ export default function BranchesPage() {
                             />
                           </TableHead>
                         )}
-                        <TableHead>Branch Name</TableHead>
-                        <TableHead>Location</TableHead>
+                        <TableHead exportKeys={["name", "isHeadquarters"]}>Branch Name</TableHead>
+                        <TableHead exportKeys={["address", "city", "state", "country"]}>Location</TableHead>
                         <TableHead>Phone</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Members</TableHead>

@@ -213,6 +213,7 @@ export default function EventsListPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="events"
               columns={[
                 { key: "title", label: "Title" },
                 { key: "type", label: "Type" },
@@ -351,14 +352,14 @@ export default function EventsListPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table>
+              <Table tableId="events">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
+                    <TableHead exportKeys={["startDate"]}>Date</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Registrations</TableHead>
+                    <TableHead exportKeys={["registrations", "capacity"]}>Registrations</TableHead>
                     {canManage && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>

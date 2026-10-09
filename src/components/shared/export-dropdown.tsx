@@ -1,5 +1,6 @@
 "use client";
 
+import { useVisibleExportColumns } from "@/contexts/table-columns-context";
 import * as React from "react";
 import { toast } from "@/lib/toast";
 import { Download, FileText, FileSpreadsheet, FileDown } from "lucide-react";
@@ -13,6 +14,7 @@ import {
 import { exportCSV, exportPDF, exportExcel, type ExportColumn } from "@/lib/export-utils";
 
 interface ExportDropdownProps {
+  tableId?: string;
   columns: ExportColumn[];
   data: Record<string, unknown>[];
   title: string;
@@ -27,13 +29,15 @@ interface ExportDropdownProps {
 }
 
 export function ExportDropdown({
-  columns,
+  tableId,
+  columns: allColumns,
   data,
   title,
   filename,
   disabled,
   fetchAllRows,
 }: ExportDropdownProps) {
+  const columns = useVisibleExportColumns(tableId, allColumns);
   const [loading, setLoading] = React.useState<"csv" | "pdf" | "xlsx" | null>(null);
 
   const resolveRows = async (): Promise<Record<string, unknown>[]> => {
@@ -87,7 +91,7 @@ export function ExportDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" disabled={disabled || !!loading}>
+        <Button variant="outline" disabled={disabled || !!loading || columns.length === 0}>
           <Download className="h-4 w-4" />
           {loading ? "Exporting..." : "Export"}
         </Button>

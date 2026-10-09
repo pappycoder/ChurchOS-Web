@@ -163,6 +163,7 @@ export default function AttendanceRecordsPage() {
         ]}
         action={
           <ExportDropdown
+              tableId="attendance-records"
             columns={[
               { key: "date", label: "Date" },
               { key: "time", label: "Time" },
@@ -274,7 +275,7 @@ export default function AttendanceRecordsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table>
+              <Table tableId="attendance-records">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
@@ -282,7 +283,7 @@ export default function AttendanceRecordsPage() {
                     <TableHead>Service</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead>Checked In</TableHead>
+                    <TableHead exportKeys={["date", "time"]}>Checked In</TableHead>
                     {canDelete && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>

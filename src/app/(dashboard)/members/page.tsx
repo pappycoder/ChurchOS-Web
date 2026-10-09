@@ -309,6 +309,7 @@ export default function MembersPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="members"
               columns={exportColumns}
               data={exportData}
               fetchAllRows={fetchAllExportRows}
@@ -507,7 +508,7 @@ export default function MembersPage() {
           </div>
         ) : (
           <div className="overflow-x-auto px-4">
-            <Table>
+            <Table tableId="members">
               <TableHeader>
                 <TableRow>
                   {!archivedView && (
@@ -521,8 +522,8 @@ export default function MembersPage() {
                       />
                     </TableHead>
                   )}
-                  <TableHead>Member</TableHead>
-                  <TableHead>Contact</TableHead>
+                  <TableHead exportKeys={["name", "email"]}>Member</TableHead>
+                  <TableHead exportKeys={["phone", "whatsappNumber"]}>Contact</TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead>Member Since</TableHead>
                   <TableHead>Status</TableHead>

@@ -210,6 +210,7 @@ function SermonsListContent() {
           <div className="flex items-center gap-2">
             {!isMember && (
               <ExportDropdown
+              tableId="sermons"
                 columns={[
                   { key: "title", label: "Title" },
                   { key: "speaker", label: "Speaker" },
@@ -340,7 +341,7 @@ function SermonsListContent() {
             />
           </div>
         ) : (
-          <Table>
+          <Table tableId="sermons">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>

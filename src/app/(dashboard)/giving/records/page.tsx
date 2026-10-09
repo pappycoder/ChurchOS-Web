@@ -212,6 +212,7 @@ export default function GivingRecordsPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="giving-records"
               columns={[
                 { key: "date", label: "Date" },
                 { key: "name", label: "Name" },
@@ -360,14 +361,14 @@ export default function GivingRecordsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table>
+              <Table tableId="giving-records">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead>Name / Linked To</TableHead>
+                    <TableHead exportKeys={["name", "linkType", "linkedTo"]}>Name / Linked To</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
+                    <TableHead exportKeys={["amount", "currency"]}>Amount</TableHead>
+                    <TableHead exportKeys={["type", "gateway"]}>Method</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Receipt #</TableHead>
                     <TableHead className="text-right">Actions</TableHead>

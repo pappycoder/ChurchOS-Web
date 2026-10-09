@@ -280,6 +280,7 @@ export default function VisitorsPage() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="visitors"
               columns={exportColumns}
               data={exportData}
               fetchAllRows={fetchAllExportRows}
@@ -443,7 +444,7 @@ export default function VisitorsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table>
+              <Table tableId="visitors">
                 <TableHeader>
                   <TableRow>
                     {!archivedView && (
@@ -455,11 +456,11 @@ export default function VisitorsPage() {
                         />
                       </TableHead>
                     )}
-                    <TableHead>Visitor</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>First Visit</TableHead>
+                    <TableHead exportKeys={["name", "email", "converted"]}>Visitor</TableHead>
+                    <TableHead exportKeys={["phone", "whatsappNumber"]}>Contact</TableHead>
+                    <TableHead exportKeys={["firstVisitDate"]}>First Visit</TableHead>
                     <TableHead>Assigned To</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead exportKeys={["status"]}>Status</TableHead>
                     {canManage && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>

@@ -1,5 +1,7 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+
 import * as React from "react";
 import { format } from "date-fns";
 import {
@@ -256,23 +258,23 @@ function AppointmentsContent() {
             )}
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Appointment</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">With</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Who</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Scheduled</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+          <Table className="w-full text-sm">
+            <TableHeader>
+              <TableRow className="border-b bg-muted/50">
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Appointment</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">With</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Who</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Scheduled</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Status</TableHead>
                 {(canUpdate || canDelete) && (
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</th>
+                  <TableHead className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</TableHead>
                 )}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
+              </TableRow>
+            </TableHeader>
+            <TableBody className="divide-y">
               {items.map((a) => (
-                <tr key={a.id} className="hover:bg-muted/40 transition-colors">
-                  <td className="px-4 py-3">
+                <TableRow key={a.id} className="hover:bg-muted/40 transition-colors">
+                  <TableCell className="px-4 py-3">
                     <button
                       type="button"
                       onClick={() => openDetail(a)}
@@ -283,16 +285,16 @@ function AppointmentsContent() {
                         {a.location || "—"}
                       </p>
                     </button>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">
                         {initials(a.pastorName || "") || "?"}
                       </span>
                       <span className="font-medium">{a.pastorName || "—"}</span>
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <span className="inline-flex items-center gap-1.5">
                       <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">
                         {initials(
@@ -308,11 +310,11 @@ function AppointmentsContent() {
                         </span>
                       )}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-muted-foreground">
                     {formatWhen(a.scheduledAt)}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
                     <Badge
                       variant="secondary"
                       className={
@@ -323,9 +325,9 @@ function AppointmentsContent() {
                       {APPOINTMENT_STATUS_LABELS[a.status as keyof typeof APPOINTMENT_STATUS_LABELS] ??
                         a.status}
                     </Badge>
-                  </td>
+                  </TableCell>
                   {(canUpdate || canDelete) && (
-                    <td className="px-4 py-3 text-right">
+                    <TableCell className="px-4 py-3 text-right">
                       {archived === "archived" ? (
                         <div className="flex justify-end gap-1">
                           {canUpdate && (
@@ -383,12 +385,12 @@ function AppointmentsContent() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
-                    </td>
+                    </TableCell>
                   )}
-                </tr>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         )}
       </TableCard>
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { TableColumnsProvider } from "@/contexts/table-columns-context";
 import * as React from "react";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
@@ -12,6 +14,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
   const { settings } = useSettings();
   const [loading, setLoading] = React.useState(settings.loader === "enable");
 
@@ -49,7 +52,7 @@ export default function DashboardLayout({
 
       <main className="page-wrapper">
         <div className="px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10">
-          <PermissionRouteGate>{children}</PermissionRouteGate>
+          <TableColumnsProvider key={pathname}><PermissionRouteGate>{children}</PermissionRouteGate></TableColumnsProvider>
         </div>
       </main>
     </div>

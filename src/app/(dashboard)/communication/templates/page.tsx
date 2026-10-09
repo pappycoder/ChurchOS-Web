@@ -210,6 +210,7 @@ function TemplatesListContent() {
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
+              tableId="templates"
               columns={[
                 { key: "name", label: "Name" },
                 { key: "channel", label: "Channel" },
@@ -333,7 +334,7 @@ function TemplatesListContent() {
             />
           </div>
         ) : (
-          <Table>
+          <Table tableId="templates">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>

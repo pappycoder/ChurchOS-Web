@@ -37,7 +37,7 @@ import { toast } from "@/lib/toast";
 import { AssetFormDialog } from "@/components/assets/asset-form-dialog";
 import { AssetDetailDrawer } from "@/components/assets/asset-detail-drawer";
 import { StatusBadge } from "@/components/assets/status-badge";
-import { exportCSV } from "@/lib/export-utils";
+import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import {
@@ -136,42 +136,36 @@ export default function AssetsPage() {
     setDrawerOpen(true);
   };
 
-  const handleExport = () => {
-    const rows = assets.map((a) => ({
-      tag: a.assetTag,
-      name: a.name,
-      category: a.categoryName ?? "",
-      brand: a.brand ?? "",
-      model: a.model ?? "",
-      serial: a.serialNumber ?? "",
-      condition: a.condition,
-      status: a.status,
-      value: a.currentValue ?? a.purchasePrice ?? "",
-      custodian: a.custodianName ?? "",
-      branch: a.branchName ?? "",
-      location: a.location ?? "",
-      purchaseDate: a.purchaseDate ?? "",
-    }));
-    exportCSV(
-      rows,
-      [
-        { key: "tag", label: "Asset Tag" },
-        { key: "name", label: "Name" },
-        { key: "category", label: "Category" },
-        { key: "brand", label: "Brand" },
-        { key: "model", label: "Model" },
-        { key: "serial", label: "Serial" },
-        { key: "condition", label: "Condition" },
-        { key: "status", label: "Status" },
-        { key: "value", label: "Current Value" },
-        { key: "custodian", label: "Custodian" },
-        { key: "branch", label: "Branch" },
-        { key: "location", label: "Location" },
-        { key: "purchaseDate", label: "Purchase Date" },
-      ],
-      `assets-${format(new Date(), "yyyyMMdd")}`
-    );
-  };
+  const exportData = assets.map((a) => ({
+    tag: a.assetTag,
+    name: a.name,
+    category: a.categoryName ?? "",
+    brand: a.brand ?? "",
+    model: a.model ?? "",
+    serial: a.serialNumber ?? "",
+    condition: a.condition,
+    status: a.status,
+    value: a.currentValue ?? a.purchasePrice ?? "",
+    custodian: a.custodianName ?? "",
+    branch: a.branchName ?? "",
+    location: a.location ?? "",
+    purchaseDate: a.purchaseDate ?? "",
+  }));
+  const exportColumns = [
+    { key: "tag", label: "Asset Tag" },
+    { key: "name", label: "Name" },
+    { key: "category", label: "Category" },
+    { key: "brand", label: "Brand" },
+    { key: "model", label: "Model" },
+    { key: "serial", label: "Serial" },
+    { key: "condition", label: "Condition" },
+    { key: "status", label: "Status" },
+    { key: "value", label: "Current Value" },
+    { key: "custodian", label: "Custodian" },
+    { key: "branch", label: "Branch" },
+    { key: "location", label: "Location" },
+    { key: "purchaseDate", label: "Purchase Date" },
+  ];
 
   const canReadActions = canReadAssets || canUpdate || canDelete;
 
@@ -186,9 +180,7 @@ export default function AssetsPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleExport} disabled={assets.length === 0}>
-              Export CSV
-            </Button>
+            <ExportDropdown tableId="assets" columns={exportColumns} data={exportData} title="Asset Register" filename={`assets-${format(new Date(), "yyyyMMdd")}`} disabled={assets.length === 0} />
             {canCreate && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -318,10 +310,10 @@ export default function AssetsPage() {
             <ErrorState title="Failed to load assets." onRetry={() => window.location.reload()} />
           ) : (
             <div className="rounded-md border overflow-x-auto">
-              <Table>
+              <Table tableId="assets">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Asset</TableHead>
+                    <TableHead exportKeys={["name", "tag", "serial"]}>Asset</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Condition</TableHead>
                     <TableHead>Status</TableHead>

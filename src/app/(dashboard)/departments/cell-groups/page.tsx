@@ -156,6 +156,7 @@ export default function CellGroupsPage() {
             <div className="flex items-center gap-2">
               {canExport && (
                 <ExportDropdown
+              tableId="cell-groups"
                   columns={EXPORT_COLUMNS}
                   data={exportRows}
                   title="Cell Groups"
@@ -230,13 +231,13 @@ export default function CellGroupsPage() {
           </div>
         }
       >
-        <Table>
+        <Table tableId="cell-groups">
           <TableHeader>
             <TableRow>
-              <TableHead>Group</TableHead>
+              <TableHead exportKeys={["name", "leader"]}>Group</TableHead>
               <TableHead>Branch</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Meeting</TableHead>
+              <TableHead exportKeys={["address", "latitude", "longitude"]}>Location</TableHead>
+              <TableHead exportKeys={["meetingDay", "meetingTime"]}>Meeting</TableHead>
               <TableHead className="text-right">Date Added</TableHead>
               {canUpdate || canDelete ? <TableHead className="text-right">Actions</TableHead> : null}
             </TableRow>
