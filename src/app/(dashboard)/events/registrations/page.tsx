@@ -43,7 +43,7 @@ const PAYMENT_BADGE: Record<string, "default" | "secondary" | "destructive"> = {
 export default function EventRegistrationsPage() {
   const { can } = usePermissions();
   const { isMember } = useIsMember();
-  const canRead = can("events", "read");
+  const canRead = can("events:registrations", "read");
 
   const [selectedEventId, setSelectedEventId] = React.useState<string>("");
   const [search, setSearch] = React.useState("");
