@@ -3,6 +3,7 @@
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
+import { toast } from "@/lib/toast";
 import {
   Download,
   FileBarChart,
@@ -36,7 +37,7 @@ import {
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
-import { exportPDF, exportExcel, exportCSV } from "@/lib/export-utils";
+import { exportReportPDF, exportExcel, exportCSV } from "@/lib/export-utils";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 
 type ReportBlock = "financial" | "attendance" | "members";
@@ -174,6 +175,8 @@ export default function ReportsGeneratorPage() {
           );
         }
       }
+    } catch (error) {
+      toast.error("Report export failed", { description: error instanceof Error ? error.message : "Please try again." });
     } finally {
       setExporting(false);
     }
@@ -240,16 +243,12 @@ export default function ReportsGeneratorPage() {
   const exportPdf = async () => {
     const sections: { title: string; rows: Record<string, unknown>[]; columns: { key: string; label: string }[] }[] =
       blocks.map((b) => ({ title: `${sheetName(b)} Report`, ...buildSheet(b) }));
-    const full: Record<string, unknown>[] = [];
-    // Build a single combined PDF with a section header per block.
-    const seenCols = new Map<string, string>();
-    sections.forEach((s) => {
-      if (full.length > 0) full.push({ name: "", total: "", count: "", average: "" });
-      s.columns.forEach((c) => seenCols.set(c.key, c.label));
-      s.rows.forEach((row) => full.push({ ...row }));
-    });
-    const columns = Array.from(seenCols.entries()).map(([key, label]) => ({ key, label }));
-    await exportPDF("ChurchOS Reports", columns, full, `report-${format(new Date(), "yyyyMMdd")}`);
+    await exportReportPDF(
+      "ChurchOS Reports",
+      sections.map((section) => ({ title: section.title, columns: section.columns, data: section.rows })),
+      `report-${format(new Date(), "yyyyMMdd")}`,
+      { metadata: [{ label: "Period", value: rangeLabel }, { label: "Branch", value: branchLabel }] },
+    );
   };
 
   if (anyError) {

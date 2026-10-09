@@ -66,6 +66,8 @@ export function ExportDropdown({
     setLoading("pdf");
     try {
       await exportPDF(title, columns, await resolveRows(), filename);
+    } catch (error) {
+      toast.error("PDF export failed", { description: error instanceof Error ? error.message : "Please try again." });
     } finally {
       setLoading(null);
     }

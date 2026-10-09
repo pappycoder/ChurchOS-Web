@@ -1,115 +1,74 @@
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { format } from "date-fns";
 import type { AllTicketItem } from "@/hooks/use-events";
+import { PDF_COLORS as colors, PDF_FONT, preparePdf, pdfText, pdfLabel, drawPdfHeader, drawPdfFooters } from "@/lib/pdf-design";
+
+/** A compact, printable admission pass. QR payload and ticket data are unchanged. */
+export async function createTicketPDF(ticket: AllTicketItem) {
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a5", putOnlyUsedFonts: true });
+  const [assets, qrDataUrl] = await Promise.all([
+    preparePdf(doc),
+    QRCode.toDataURL(ticket.code, { width: 480, margin: 4, errorCorrectionLevel: "M", color: { dark: colors.navy, light: colors.white } }),
+  ]);
+  doc.setProperties({ title: `${ticket.eventName} - Event pass`, author: "ChurchOS", subject: `Ticket ${ticket.code}` });
+  drawPdfHeader(doc, assets.logo, "EVENT PASS");
+  pdfLabel(doc, "YOU'RE INVITED", 14, 36);
+
+  // Fit the heading into its own area; retain unusually long names in the details.
+  let titleSize = 19;
+  doc.setFont(PDF_FONT, "bold");
+  doc.setFontSize(titleSize);
+  while (titleSize > 10 && doc.splitTextToSize(ticket.eventName, 121).length * titleSize * 0.3528 * 1.4 > 24) {
+    titleSize--;
+    doc.setFontSize(titleSize);
+  }
+  const longTitle = doc.splitTextToSize(ticket.eventName, 121).length * titleSize * 0.3528 * 1.4 > 24;
+  pdfText(doc, longTitle ? "Event admission" : ticket.eventName, 14, 45, 121, titleSize, true);
+
+  const date = new Date(ticket.eventDate);
+  const dateLabel = Number.isNaN(date.getTime()) ? ticket.eventDate : format(date, "EEEE, MMM d, yyyy · h:mm a");
+  const fields = [
+    ...(longTitle ? [["EVENT", ticket.eventName]] : []),
+    ["WHEN", dateLabel],
+    ["WHERE", ticket.eventLocation || "Location not specified"],
+    ["ATTENDEE", ticket.memberName || ticket.visitorName || "Unassigned"],
+    ["ADMISSION", ticket.tierName || "General"],
+  ];
+  autoTable(doc, {
+    startY: 70,
+    margin: { left: 14, right: 75, top: 35, bottom: 23 },
+    body: fields,
+    theme: "plain",
+    styles: { font: PDF_FONT, fontSize: 9, cellPadding: { top: 2.3, bottom: 2.3, left: 0, right: 3 }, textColor: colors.ink, overflow: "linebreak" },
+    columnStyles: { 0: { cellWidth: 24, textColor: colors.muted, fontSize: 7, fontStyle: "bold" }, 1: { fontStyle: "bold" } },
+    rowPageBreak: "avoid",
+    willDrawPage: () => drawPdfHeader(doc, assets.logo, "EVENT PASS"),
+  });
+
+  doc.setPage(1);
+  doc.setDrawColor(colors.line);
+  doc.setLineWidth(0.3);
+  doc.setLineDashPattern([1.5, 1.5], 0);
+  doc.line(144, 34, 144, 127);
+  doc.setLineDashPattern([], 0);
+  const statusColor = ticket.status === "cancelled" || ticket.status === "refunded" ? colors.red : ticket.isUsed ? colors.amber : colors.green;
+  doc.setFillColor(colors.soft);
+  doc.roundedRect(152, 35, 44, 8, 2, 2, "F");
+  doc.setFont(PDF_FONT, "bold");
+  doc.setFontSize(7);
+  doc.setTextColor(statusColor);
+  doc.text(ticket.isUsed ? `${ticket.status.toUpperCase()} · USED` : ticket.status.toUpperCase(), 174, 40.3, { align: "center" });
+  doc.addImage(qrDataUrl, "PNG", 152, 47, 44, 44);
+  pdfLabel(doc, "TICKET CODE", 152, 98);
+  pdfText(doc, ticket.code, 152, 104, 44, 7.5, true);
+  pdfText(doc, "Present this QR code at event check-in.", 152, 119, 44, 7, false, colors.muted);
+  drawPdfFooters(doc, new Date(), "ChurchOS · Event pass");
+  return doc;
+}
 
 export async function generateTicketPDF(ticket: AllTicketItem): Promise<void> {
-  const qrDataUrl = await QRCode.toDataURL(ticket.code, {
-    width: 200,
-    margin: 1,
-    color: { dark: "#000000", light: "#ffffff" },
-  });
-
-  const doc = new jsPDF({
-    orientation: "landscape",
-    unit: "mm",
-    format: [140, 80],
-  });
-
-  const w = 140;
-  const h = 80;
-
-  // Background
-  doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, w, h, "F");
-
-  // Top accent bar
-  doc.setFillColor(30, 41, 59);
-  doc.rect(0, 0, w, 10, "F");
-
-  // Title
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text("CHURCHOS EVENT PASS", w / 2, 6.5, { align: "center" });
-
-  // QR code (left side)
-  const qrImg = qrDataUrl.replace(/^data:image\/png;base64,/, "");
-  doc.addImage(qrImg, "PNG", 8, 14, 28, 28);
-
-  // Ticket code under QR
-  doc.setTextColor(100, 100, 100);
-  doc.setFontSize(6);
-  doc.setFont("helvetica", "normal");
-  doc.text(ticket.code, 22, 45, { align: "center" });
-
-  // Details (right side)
-  const x = 42;
-  let y = 16;
-
-  const addField = (label: string, value: string) => {
-    doc.setTextColor(120, 120, 120);
-    doc.setFontSize(6);
-    doc.setFont("helvetica", "normal");
-    doc.text(label, x, y);
-    y += 4;
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    const lines = doc.splitTextToSize(value, w - x - 8);
-    doc.text(lines, x, y);
-    y += lines.length * 4 + 2;
-  };
-
-  addField("EVENT", ticket.eventName);
-  addField("DATE", format(new Date(ticket.eventDate), "EEEE, MMM d, yyyy"));
-  if (ticket.eventLocation) {
-    addField("LOCATION", ticket.eventLocation);
-  }
-
-  // Right column
-  const x2 = 100;
-  y = 16;
-
-  const attendeeName = ticket.memberName || ticket.visitorName;
-
-  if (attendeeName) {
-    doc.setTextColor(120, 120, 120);
-    doc.setFontSize(6);
-    doc.setFont("helvetica", "normal");
-    doc.text("ATTENDEE", x2, y);
-    y += 4;
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text(attendeeName, x2, y);
-    y += 10;
-  }
-
-  doc.setTextColor(120, 120, 120);
-  doc.setFontSize(6);
-  doc.setFont("helvetica", "normal");
-  doc.text("TIER", x2, y);
-  y += 4;
-  doc.setTextColor(30, 30, 30);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text(ticket.tierName ?? "General", x2, y);
-  y += 10;
-
-  doc.setTextColor(120, 120, 120);
-  doc.setFontSize(6);
-  doc.setFont("helvetica", "normal");
-  doc.text("STATUS", x2, y);
-  y += 4;
-  doc.setTextColor(30, 30, 30);
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  doc.text(ticket.status.toUpperCase(), x2, y);
-
-  // Bottom accent bar
-  doc.setFillColor(30, 41, 59);
-  doc.rect(0, h - 4, w, 4, "F");
-
+  const doc = await createTicketPDF(ticket);
   doc.save(`ticket-${ticket.code}.pdf`);
 }

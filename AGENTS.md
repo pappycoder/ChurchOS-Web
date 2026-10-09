@@ -14,6 +14,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### [Unreleased]
 
+- **PDF design system**: shared print palette, official brand lockup, bundled Unicode fonts, structured report sections and metadata, repeated table headings, numeric formatting, pagination, and empty-result presentation. All table PDF exports use the new renderer; combined reports retain separate column schemas and branch/date context. Event passes use an A5 layout with a dedicated QR area and wrapped details. Added export error feedback without changing selection or ticket QR payloads.
+
 - Shared authentication form branding now uses the official light lockup in dark mode across login, registration, forgot-password, and reset-password pages.
 
 - Dark-mode header and sidebar use the official light ChurchOS lockup; the collapsed sidebar emblem renders white for visibility.
