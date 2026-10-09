@@ -306,8 +306,8 @@ export function Header() {
                 />
               </div>
 
-              {!isMember && (
-                <Link href="/admin/settings" className="btn-menubar">
+              {canManageChurchSettings && (
+                <Link href="/admin/settings" aria-label="Admin settings" className="btn-menubar">
                   <IconSettingsCog size={18} />
                 </Link>
               )}
