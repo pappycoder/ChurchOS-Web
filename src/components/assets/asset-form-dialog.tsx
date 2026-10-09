@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -34,8 +33,8 @@ import {
 } from "@/components/ui/select";
 import { MemberCombobox } from "@/components/members/member-combobox";
 import { AssetImageField } from "@/components/assets/asset-image-field";
-import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useDepartmentsList } from "@/hooks/use-admin";
 import {
   DEPRECIATION_METHOD_LABELS,
   useAssetCategories,
@@ -46,11 +45,6 @@ import {
   type AssetStatus,
   type DepreciationMethod,
 } from "@/hooks/use-assets";
-
-interface DepartmentItem {
-  id: string;
-  name: string;
-}
 
 const assetSchema = z.object({
   assetTag: z.string().min(1, "Asset tag is required").max(50),
@@ -146,11 +140,7 @@ export function AssetFormDialog({
   const updateMutation = useUpdateAsset(asset?.id ?? "");
   const categoriesQuery = useAssetCategories();
   const branchesQuery = useBranchesList({ limit: 100 });
-  const departmentsQuery = useQuery({
-    queryKey: ["departments-list"],
-    queryFn: () => api.get<DepartmentItem[]>("/admin/departments"),
-    staleTime: 5 * 60 * 1000,
-  });
+  const departmentsQuery = useDepartmentsList({ enabled: open });
 
   const form = useForm<AssetFormValues>({
     resolver: zodResolver(assetSchema),

@@ -153,13 +153,16 @@ function invalidateAdminCaches(
   if (groupId) queryClient.invalidateQueries({ queryKey: ["cell-group", groupId] });
 }
 
-export function useDepartmentsList(params: { archived?: boolean } = {}) {
+export function useDepartmentsList(
+  params: { archived?: boolean; enabled?: boolean } = {},
+) {
   const searchParams = new URLSearchParams();
   if (params.archived) searchParams.set("archived", "true");
   const queryString = searchParams.toString();
   return useQuery({
-    queryKey: ["departments-list", params],
+    queryKey: ["departments-list", { archived: params.archived }],
     queryFn: () => api.get<Department[]>(`/admin/departments${queryString ? `?${queryString}` : ""}`),
+    enabled: params.enabled ?? true,
   });
 }
 
