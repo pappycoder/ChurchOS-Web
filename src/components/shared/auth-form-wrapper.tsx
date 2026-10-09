@@ -32,7 +32,8 @@ export function AuthFormWrapper({
             animate={{ scale: [1, 1.05, 1] }}
             transition={{ duration: 3, repeat: Infinity }}
           >
-            <BrandLogo emblemClassName="h-24" />
+            <BrandLogo className="dark:hidden" emblemClassName="h-24" />
+            <BrandLogo tone="light" className="hidden dark:inline-flex" emblemClassName="h-24" />
           </motion.div>
         </Link>
       </motion.div>
