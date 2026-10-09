@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useCurrentProfile } from "@/hooks/use-profile";
 
 export interface DepartmentMember {
   id: string;
@@ -156,13 +157,21 @@ function invalidateAdminCaches(
 export function useDepartmentsList(
   params: { archived?: boolean; enabled?: boolean } = {},
 ) {
+  const { data: profile } = useCurrentProfile();
   const searchParams = new URLSearchParams();
   if (params.archived) searchParams.set("archived", "true");
   const queryString = searchParams.toString();
   return useQuery({
-    queryKey: ["departments-list", { archived: params.archived }],
+    queryKey: ["departments-list", {
+      archived: params.archived,
+      profileId: profile?.profileId,
+      branchId: profile?.branchId,
+      isAdminHq: profile?.isAdminHq,
+      ownDepartmentRead: profile?.permissions?.includes("departments:own:read") ?? false,
+    }],
     queryFn: () => api.get<Department[]>(`/admin/departments${queryString ? `?${queryString}` : ""}`),
-    enabled: params.enabled ?? true,
+    enabled: (params.enabled ?? true) && !!profile,
+    staleTime: 0,
   });
 }
 
