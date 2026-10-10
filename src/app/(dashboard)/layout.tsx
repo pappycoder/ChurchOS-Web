@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
 import { TopProgressBar } from "@/components/layouts/top-progress-bar";
 import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
+import { OfflineEntry } from "@/components/offline/offline-entry";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -15,6 +16,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <Header />
     <main id="main-content" className="page-wrapper min-h-dvh" tabIndex={-1}>
       <div className="px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10">
+        <OfflineEntry />
         <TableColumnsProvider key={pathname}><PermissionRouteGate>{children}</PermissionRouteGate></TableColumnsProvider>
       </div>
     </main>

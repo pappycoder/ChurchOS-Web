@@ -173,7 +173,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "All Events",
             href: "/events/list",
-            permission: "events:all:read",
+            permission: "events:list:read",
           },
           {
             title: "Check-In",

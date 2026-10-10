@@ -1,6 +1,11 @@
 /** Tokens belong to HttpOnly server cookies. The browser can only end a session. */
 export async function clearTokens() {
   if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event("churchos-session-ended"));
+  if (typeof BroadcastChannel !== "undefined") {
+    const channel = new BroadcastChannel("churchos-session");
+    channel.postMessage("ended"); channel.close();
+  }
   const response = await fetch("/api/session", { method: "DELETE", headers: { "X-ChurchOS-Client": "web" }, cache: "no-store" });
   if (!response.ok) throw new Error("Unable to clear your session. Please try again.");
   if ("caches" in window) {

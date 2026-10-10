@@ -28,6 +28,11 @@ export const SURFACE_RESOURCES: Record<string, string[]> = {
   visitors: ["list", "new", "followup"],
   assets: ["list", "categories", "maintenance", "loans"],
   forms: ["list", "submissions"],
+  analytics: ["dashboard", "giving", "attendance", "members"],
+  branches: ["directory"],
+  reports: ["financial", "attendance", "members"],
+  departments: ["own"],
+  cell_groups: ["own"],
 };
 
 /** Single-page / no-surface resources (only coarse `resource:action` codes). */
@@ -45,6 +50,8 @@ export const COARSE_RESOURCES = [
   "church_settings",
   "branches",
   "analytics",
+  "roles",
+  "diagnostics",
 ];
 
 export interface ParsedPermission {

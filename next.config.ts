@@ -10,6 +10,14 @@ const withSerwist = withSerwistInit({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
   register: true,
+  // Keep the unlocked workspace and let its sync engine handle reconnection.
+  reloadOnOnline: false,
+  // A fallback URL alone does not precache its HTML. Refresh this public shell
+  // on every build so its chunk references match the deployed assets.
+  manifestTransforms: [async (entries) => ({
+    manifest: [...entries, { url: "/offline", revision: new Date().toISOString(), size: 0 }],
+    warnings: [],
+  })],
 });
 
 const nextConfig: NextConfig = withSerwist({

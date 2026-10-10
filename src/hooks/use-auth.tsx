@@ -56,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loggingOutRef.current = true;
       sessionGeneration.current++;
       advanceSessionGeneration();
+      window.dispatchEvent(new Event("churchos-session-ended"));
       clearRefreshTimer();
       await queryClient.cancelQueries();
       try { await clearTokens(); } catch { toast.error("Unable to clear the session. Please reload."); }
@@ -89,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const presence = await fetch("/api/session", { headers: { "X-ChurchOS-Client": "web" }, cache: "no-store" });
         if (!presence.ok) throw new Error("Unable to check session");
         if (!(await presence.json()).hasSession) {
-          if (active && generation === sessionGeneration.current && !["/login", "/register", "/forgot-password", "/reset-password"].includes(window.location.pathname)) router.replace("/login");
+          if (active && generation === sessionGeneration.current && !["/login", "/register", "/forgot-password", "/reset-password", "/offline"].includes(window.location.pathname)) router.replace("/login");
           return;
         }
         let session;
@@ -98,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if ((error as { statusCode?: number }).statusCode !== 401) throw error;
           const refreshed = await refreshSession();
           if (!refreshed) {
-            if (active && generation === sessionGeneration.current && !["/login", "/register", "/forgot-password", "/reset-password"].includes(window.location.pathname)) router.replace("/login");
+            if (active && generation === sessionGeneration.current && !["/login", "/register", "/forgot-password", "/reset-password", "/offline"].includes(window.location.pathname)) router.replace("/login");
             return;
           }
           session = await api.get<{ userId: string; email: string }>("/auth/session", { skipAuth: true });
