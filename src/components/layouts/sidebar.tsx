@@ -414,18 +414,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/admin/settings",
         icon: Settings,
         permission: "church_settings:update",
-        children: [
-          {
-            title: "General",
-            href: "/admin/settings",
-            permission: "church_settings:update",
-          },
-          {
-            title: "Branches",
-            href: "/admin/branches",
-            permission: "branches:read",
-          },
-        ],
+      },
+      {
+        title: "Branches",
+        href: "/admin/branches",
+        icon: Building2,
+        permission: "branches:directory:read",
       },
       {
         title: "Analytics",

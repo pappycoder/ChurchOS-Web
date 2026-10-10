@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-10** — Pastor permission templates cover all operational menus, with branch scope by default and Admin HQ for church-wide data. Admin/super admin retain every permission and overall scope; church settings and branch creation are reserved grants. Hardened branch detail access and legacy pastoral, scoring, communication, appointment and staff scopes; branch navigation is independent of settings.
+
+
 - **2026-10-10** — All shared tables now offer reusable column visibility controls, keep selection cells available, and adjust spanning states. Page-scoped visibility is shared with PDF/XLSX/CSV exports, including explicit mappings for grouped columns. Appointments and documentation use the shared table primitives; asset exports now support all three formats.
 
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { usePermissions } from "@/hooks/use-permissions";
+
 import * as React from "react";
 import { toast } from "@/lib/toast";
 import {
@@ -361,6 +363,10 @@ interface RolePermissionsTabProps {
 }
 
 function RolePermissionsTab({ user }: RolePermissionsTabProps) {
+  const { can } = usePermissions();
+  const canManageRoles = can("roles", "update");
+  const canManageHq = can("profiles", "update");
+  const automaticChurchScope = !!user.effectivePermissions?.some((permission) => permission.name === "data_scope:church:read");
   const currentRoles = new Set(user.role ?? []);
   const [selected, setSelected] = React.useState<Set<string>>(currentRoles);
   const assignableRoles = useAssignableRoles();
@@ -375,6 +381,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
   }, [user.isAdminHq]);
 
   const toggleAdminHq = () => {
+    if (!canManageHq || automaticChurchScope) return;
     const next = !isAdminHq;
     setIsAdminHq(next);
     updateUser.mutate(
@@ -406,6 +413,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
     [...selected].some((role) => !currentRoles.has(role));
 
   const toggleRole = (role: string) => {
+    if (!canManageRoles) return;
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(role)) {
@@ -456,7 +464,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg">Assigned Roles</CardTitle>
-          {dirty && (
+          {dirty && canManageRoles && (
             <Button size="sm" onClick={handleSave} disabled={updateUserRoles.isPending}>
               {updateUserRoles.isPending ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -479,11 +487,11 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
                 <Badge
                   key={role.value}
                   variant={active ? "default" : "outline"}
-                  className="text-xs cursor-pointer select-none"
+                  className={canManageRoles ? "text-xs cursor-pointer select-none" : "text-xs"}
                   onClick={() => toggleRole(role.value)}
                 >
                   {role.label}
-                  {active && <X className="h-3 w-3 ml-1" />}
+                  {active && canManageRoles && <X className="h-3 w-3 ml-1" />}
                 </Badge>
               );
             })}
@@ -529,7 +537,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
             <Switch
               checked={isAdminHq}
               onCheckedChange={toggleAdminHq}
-              disabled={updateUser.isPending}
+              disabled={!canManageHq || automaticChurchScope || updateUser.isPending}
               aria-label="Toggle Admin HQ access"
             />
           </div>
