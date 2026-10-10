@@ -59,6 +59,8 @@ export default function LoginPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setUseRecovery(false);
+    setOtpCode("");
     loginMutation.mutate(
       { email, password },
       {
@@ -287,9 +289,6 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            {!migration && !providerMigration && !setup && <Button type="button" variant="link" className="mt-2 px-0" onClick={() => { setUseRecovery(value => !value); setOtpCode(""); }}>
-              {useRecovery ? "Use authenticator code" : "Use a recovery code"}
-            </Button>}
             <div className="mt-5">
               <Button
                 type="submit"

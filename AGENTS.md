@@ -10,6 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-10 — Keep recovery-code choice in post-login verification.** Password entry now always starts authenticator verification in the default 6-digit mode; recovery-code fallback remains available only after the account has passed password login and reached the 2FA challenge.
 - **2026-10-10 — Audit implementation.** HttpOnly browser sessions through a same-origin API proxy; verified restore, serialized refresh and account-cache isolation; private API/navigation/RSC excluded from service-worker caching. Abortable queries, actual activity indicators, in-place retry, shared image placeholders/fallbacks, keyboard table scrolling, skip navigation and draft guards. Spreadsheet worker limits, sequential imports with partial-failure feedback, CSV formula escaping and lazy ticket PDFs. Telemetry redaction, opt-in masked replay and production debug blocking. Updated Next/security/tooling dependencies; preserved the seeded login selector. Rollout notes: `docs/AUDIT-IMPLEMENTATION.md` and backend `docs/AUDIT-ROLLOUT.md`.
 
 
