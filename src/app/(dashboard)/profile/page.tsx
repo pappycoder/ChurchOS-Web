@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   ShieldOff,
 } from "lucide-react";
+import { RecoveryCodesPanel } from "@/components/shared/recovery-codes-panel";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,9 +40,10 @@ import {
   useCurrentProfile,
   useUpdateCurrentProfile,
   useUploadAvatar,
-  useSendTwoFactorCode,
+  useSetupAuthenticator,
   useToggleTwoFactor,
-  useResendTwoFactor,
+  useAuthenticatorFactors,
+  useRegenerateRecoveryCodes,
   type CurrentProfile,
 } from "@/hooks/use-profile";
 import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
@@ -392,45 +394,55 @@ function PhotoCard({ profile }: { profile: CurrentProfile }) {
 }
 
 function SecurityCard() {
-  const { data: profile } = useCurrentProfile();
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [step, setStep] = React.useState<"idle" | "enable" | "disable">("idle");
+  const [step, setStep] = React.useState<"idle" | "enable" | "disable" | "recovery">("idle");
   const [code, setCode] = React.useState("");
-  const sendCode = useSendTwoFactorCode();
+  const [recoveryCodes, setRecoveryCodes] = React.useState<string[]>([]);
+  const [useRecovery, setUseRecovery] = React.useState(false);
+  const regenerate = useRegenerateRecoveryCodes();
+  const setupAuthenticator = useSetupAuthenticator();
   const toggle = useToggleTwoFactor();
-  const resend = useResendTwoFactor();
+  const { data: factors = [], isPending: factorsPending, error: factorsError } = useAuthenticatorFactors();
+  const [setup, setSetup] = React.useState<import("@/hooks/use-profile").AuthenticatorSetup>();
+  const [factorId, setFactorId] = React.useState("");
 
-  const enabled = profile?.twoFactorEnabled ?? false;
+  const enabled = factors.some(f => f.status === "verified");
 
   const reset = React.useCallback(() => {
     setStep("idle");
     setCode("");
+    setSetup(undefined);
+    setFactorId("");
+    setUseRecovery(false);
   }, []);
 
   const handleSend = (purpose: "enable" | "disable") => {
-    sendCode.mutate(purpose, {
-      onSuccess: () => {
-        setStep(purpose);
-        setCode("");
-        toast.success("Code sent", {
-          description: "Check your inbox for the verification code.",
-        });
-      },
+    if (purpose === "disable") { setStep(purpose); setFactorId(factors.find(f => f.status === "verified")?.id ?? ""); return; }
+    setupAuthenticator.mutate(undefined, {
+      onSuccess: (data) => { setSetup(data); setFactorId(data.factorId); setStep("enable"); setCode(""); },
       onError: (err: Error) => toast.error(err.message),
     });
   };
 
   const handleToggle = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{6}$/.test(code)) {
-      toast.error("Invalid code", { description: "Enter the 6-digit code from your email." });
+    if (!(useRecovery ? /^[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{8}){3}$/ : /^\d{6}$/).test(code)) {
+      toast.error("Invalid code", { description: useRecovery ? "Enter a saved recovery code." : "Enter the current 6-digit code from your authenticator." });
+      return;
+    }
+    if (step === "recovery") {
+      regenerate.mutate({ code, factorId }, {
+        onSuccess: data => { reset(); setRecoveryCodes(data.recoveryCodes); toast.success("Recovery codes replaced"); },
+        onError: (err: Error) => toast.error(err.message),
+      });
       return;
     }
     const purpose = step === "enable" ? "enable" : "disable";
     toggle.mutate(
-      { purpose, code },
+      { purpose, code, factorId },
       {
-        onSuccess: () => {
+        onSuccess: (data) => {
+          if (data.recoveryCodes) setRecoveryCodes(data.recoveryCodes);
           toast.success(
             purpose === "enable" ? "Two-factor authentication enabled." : "Two-factor authentication disabled."
           );
@@ -439,13 +451,6 @@ function SecurityCard() {
         onError: (err: Error) => toast.error(err.message),
       }
     );
-  };
-
-  const handleResend = () => {
-    resend.mutate(undefined, {
-      onSuccess: () => toast.success("New code sent", { description: "Check your inbox." }),
-      onError: (err: Error) => toast.error(err.message),
-    });
   };
 
   return (
@@ -466,41 +471,56 @@ function SecurityCard() {
               <p className="text-sm font-medium">Two-factor authentication</p>
               <p className="text-sm text-muted-foreground">
                 {enabled
-                  ? "Enabled — an emailed code is required at sign-in."
+                  ? "Enabled — an authenticator code is required at sign-in."
                   : "Not enabled — add a second layer of security to your account."}
               </p>
             </div>
           </div>
           {enabled ? (
-            <Button variant="outline" size="sm" onClick={() => handleSend("disable")} disabled={sendCode.isPending}>
+            <Button variant="outline" size="sm" onClick={() => handleSend("disable")} disabled={setupAuthenticator.isPending || factorsPending || !!factorsError || recoveryCodes.length > 0 || step !== "idle"} loading={setupAuthenticator.isPending || factorsPending}>
               Disable
             </Button>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => handleSend("enable")} disabled={sendCode.isPending}>
+            <Button variant="outline" size="sm" onClick={() => handleSend("enable")} disabled={setupAuthenticator.isPending || factorsPending || !!factorsError || recoveryCodes.length > 0 || step !== "idle"} loading={setupAuthenticator.isPending || factorsPending}>
               Enable
             </Button>
           )}
         </div>
 
-        {(step === "enable" || step === "disable") && (
+        {factorsError && <p role="alert" className="mt-3 text-sm text-destructive">Unable to load authenticator settings. Please reload this page.</p>}
+        {recoveryCodes.length > 0 && <div className="mt-4"><RecoveryCodesPanel codes={recoveryCodes} onDone={() => setRecoveryCodes([])} /></div>}
+        {enabled && step === "idle" && recoveryCodes.length === 0 && <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="text-muted-foreground">{factors[0]?.recoveryCodesRemaining ?? 0} recovery codes remaining</span>
+          <Button variant="outline" size="sm" onClick={() => { setStep("recovery"); setFactorId(factors[0]?.id ?? ""); setCode(""); }}>Replace recovery codes</Button>
+        </div>}
+        {step !== "idle" && (
         <form onSubmit={handleToggle} className="mt-4 rounded-md border p-4 space-y-3">
           <p className="text-sm text-muted-foreground">
             {step === "enable"
-              ? "We sent a 6-digit code to your email. Enter it below to enable two-factor authentication."
-              : "We sent a 6-digit code to your email. Enter it below to disable two-factor authentication."}
+              ? "Scan the QR code using your authenticator app, then enter its current 6-digit code."
+              : step === "recovery" ? "Verify a current code to replace all existing recovery codes." : "Enter the current code from your authenticator app to remove it."}
           </p>
-          <div className="flex items-center gap-2">
+          {setup && <div className="space-y-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img alt="Authenticator setup QR code" width={200} height={200} className="rounded-lg bg-white p-2" src={setup.qrCode.startsWith("data:") ? setup.qrCode : `data:image/svg+xml;charset=utf-8,${encodeURIComponent(setup.qrCode)}`} />
+            <p className="text-xs text-muted-foreground">Manual setup key</p>
+            <code className="block break-all select-all text-sm">{setup.secret}</code>
+            <p className="text-xs text-muted-foreground">Keep an encrypted backup in your password manager for recovery. Never share this key.</p>
+          </div>}
+          <div className="flex flex-wrap items-center gap-2">
             <Input
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              placeholder="6-digit code"
+              aria-label={useRecovery ? "Recovery code" : "Authenticator code"}
+              autoComplete="one-time-code"
+              inputMode={useRecovery ? "text" : "numeric"}
+              pattern={useRecovery ? undefined : "[0-9]*"}
+              maxLength={useRecovery ? 35 : 6}
+              placeholder={useRecovery ? "Recovery code" : "6-digit code"}
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className="max-w-[160px]"
+              onChange={(e) => setCode(useRecovery ? e.target.value.toUpperCase().replace(/[^A-F0-9-]/g, "").slice(0, 35) : e.target.value.replace(/\D/g, "").slice(0, 6))}
+              className={useRecovery ? "min-w-0 flex-1" : "max-w-[160px]"}
             />
-            <Button type="submit" disabled={toggle.isPending}>
-              {toggle.isPending ? (
+            <Button type="submit" disabled={toggle.isPending || regenerate.isPending} loading={toggle.isPending || regenerate.isPending}>
+              {(toggle.isPending || regenerate.isPending) ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
                   Verifying...
@@ -509,21 +529,11 @@ function SecurityCard() {
                 "Confirm"
               )}
             </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={toggle.isPending} loading={toggle.isPending}>
+            <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={toggle.isPending || regenerate.isPending} loading={toggle.isPending}>
               Cancel
             </Button>
           </div>
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Didn&apos;t get it?</span>
-            <button
-              type="button"
-              className="text-primary hover:underline"
-              onClick={handleResend}
-              disabled={resend.isPending}
-            >
-              {resend.isPending ? "Resending..." : "Resend code"}
-            </button>
-          </div>
+          {step !== "enable" && <Button type="button" variant="link" className="px-0" onClick={() => { setUseRecovery(value => !value); setCode(""); }}>{useRecovery ? "Use authenticator code" : "Use a recovery code"}</Button>}
         </form>
         )}
 

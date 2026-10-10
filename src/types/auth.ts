@@ -40,6 +40,10 @@ export interface LoginResponse {
   email?: string;
   requiresTwoFactor?: boolean;
   twoFactorEmail?: string;
+  challengeToken?: string;
+  recoveryCodes?: string[];
+  twoFactorMethod?: 'authenticator' | 'migration' | 'supabase-migration';
+  authenticatorSetup?: { factorId: string; qrCode: string; secret: string; uri: string };
   profile?: {
     profileId: string;
     churchId: string;

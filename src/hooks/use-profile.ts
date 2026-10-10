@@ -1,5 +1,6 @@
 "use client";
 
+
 /**
  * @file Hooks for the current user's own profile — view, edit, avatar and
  * password management via /profiles/me and /auth/password.
@@ -101,32 +102,33 @@ export function useChangePassword() {
   });
 }
 
-/** Sends the emailed 6-digit code to start enabling/disabling 2FA. */
-export function useSendTwoFactorCode() {
-  return useMutation({
-    mutationFn: (purpose: "enable" | "disable") =>
-      api.post<{ email: string }>(
-        `/profiles/me/2fa/${purpose === "enable" ? "enable" : "disable"}-code`,
-        {}
-      ),
-  });
+export interface AuthenticatorSetup { factorId: string; qrCode: string; secret: string; uri: string }
+export interface AuthenticatorFactor { id: string; name?: string; status: string; recoveryCodesRemaining?: number }
+
+export function useAuthenticatorFactors() {
+  return useQuery({ queryKey: ["authenticator-factors"], queryFn: () => api.get<AuthenticatorFactor[]>("/profiles/me/2fa/factors") });
 }
 
-/** Verifies the emailed code and toggles 2FA on/off. */
+export function useSetupAuthenticator() {
+  return useMutation({ mutationFn: () => api.post<AuthenticatorSetup>("/profiles/me/2fa/setup", {}) });
+}
+
 export function useToggleTwoFactor() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ purpose, code }: { purpose: "enable" | "disable"; code: string }) =>
-      api.post<CurrentProfile>(`/profiles/me/2fa/${purpose}`, { code }),
-    onSuccess: (updated) => {
-      queryClient.setQueryData(["current-profile"], updated);
+    mutationFn: ({ purpose, code, factorId }: { purpose: "enable" | "disable"; code: string; factorId: string }) =>
+      api.post<{ recoveryCodes?: string[] }>(`/profiles/me/2fa/${purpose}`, { code, factorId }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["current-profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["authenticator-factors"] });
     },
   });
 }
 
-/** Re-sends the emailed code, bypassing the cooldown. */
-export function useResendTwoFactor() {
+export function useRegenerateRecoveryCodes() {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.post<{ email: string }>("/profiles/me/2fa/resend", {}),
+    mutationFn: ({ code, factorId }: { code: string; factorId: string }) => api.post<{ recoveryCodes: string[] }>("/profiles/me/2fa/recovery-codes", { code, factorId }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authenticator-factors"] }),
   });
 }

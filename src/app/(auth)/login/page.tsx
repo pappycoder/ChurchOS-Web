@@ -12,7 +12,9 @@ import { AuthField } from "@/components/shared/auth-field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useLogin, useVerifyTwoFactor } from "@/hooks/use-auth";
+import { RecoveryCodesPanel } from "@/components/shared/recovery-codes-panel";
+import type { LoginResponse } from "@/types/auth";
+import { useCompleteLogin, useLogin, useVerifyTwoFactor } from "@/hooks/use-auth";
 
 // Temporary development helper for the seeded demo accounts.
 const DEV_PASSWORD = "ChurchOS@1234";
@@ -39,6 +41,9 @@ const DEV_ACCOUNTS = [
 ];
 
 export default function LoginPage() {
+  const completeLogin = useCompleteLogin();
+  const [recoverySession, setRecoverySession] = React.useState<LoginResponse>();
+  const [useRecovery, setUseRecovery] = React.useState(false);
   const loginMutation = useLogin();
   const verifyMutation = useVerifyTwoFactor();
   const [email, setEmail] = React.useState("");
@@ -46,6 +51,10 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = React.useState(false);
   const [otpStep, setOtpStep] = React.useState(false);
   const [twoFactorEmail, setTwoFactorEmail] = React.useState("");
+  const [challengeToken, setChallengeToken] = React.useState<string>();
+  const [setup, setSetup] = React.useState<import("@/types/auth").LoginResponse["authenticatorSetup"]>();
+  const [migration, setMigration] = React.useState(false);
+  const [providerMigration, setProviderMigration] = React.useState(false);
   const [otpCode, setOtpCode] = React.useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -56,10 +65,12 @@ export default function LoginPage() {
         onSuccess: (res) => {
           if (res.requiresTwoFactor) {
             setTwoFactorEmail(res.twoFactorEmail ?? email);
+            setChallengeToken(res.challengeToken);
+            setMigration(res.twoFactorMethod === "migration");
+            setProviderMigration(res.twoFactorMethod === "supabase-migration");
+            setPassword("");
             setOtpStep(true);
-            toast.info("Check your email", {
-              description: `Enter the code sent to ${res.twoFactorEmail ?? email} to finish signing in.`,
-            });
+            toast.info(res.twoFactorMethod === "migration" ? "Upgrade your two-factor security" : "Open your authenticator app");
           }
         },
         onError: (error) => {
@@ -75,15 +86,25 @@ export default function LoginPage() {
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!/^\d{6}$/.test(otpCode)) {
+    if (!(useRecovery ? /^[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{8}){3}$/ : /^\d{6}$/).test(otpCode)) {
       toast.error("Invalid code", {
-        description: "Enter the 6-digit code from your email.",
+        description: useRecovery ? "Enter a saved recovery code." : "Enter the current 6-digit verification code.",
       });
       return;
     }
     verifyMutation.mutate(
-      { email, code: otpCode },
+      { email: migration ? email : undefined, challengeToken, code: otpCode },
       {
+        onSuccess: (res) => {
+          if (res.recoveryCodes?.length) { setRecoverySession(res); setSetup(undefined); setOtpCode(""); return; }
+          if (res.requiresTwoFactor) {
+            setChallengeToken(res.challengeToken);
+            setSetup(res.authenticatorSetup);
+            setMigration(false);
+            setProviderMigration(false);
+            setOtpCode("");
+          }
+        },
         onError: (error) => {
           toast.error("Verification failed", {
             description:
@@ -97,14 +118,16 @@ export default function LoginPage() {
 
   return (
     <AuthFormWrapper
-      heading={otpStep ? "Verify Your Identity" : "Sign In"}
+      heading={recoverySession ? "Save Recovery Codes" : otpStep ? "Verify Your Identity" : "Sign In"}
       subtitle={
-        otpStep
-          ? "Enter the 6-digit code we emailed to you."
+        recoverySession ? "Keep a secure backup so you can recover your account." : otpStep
+          ? (migration ? "Verify your old email code once, then set up your authenticator." : useRecovery ? "Enter a saved recovery code." : "Enter the current code from your authenticator app.")
           : "Please enter your details to sign in"
       }
     >
-      <AnimatePresence mode="wait" initial={false}>
+      {recoverySession?.recoveryCodes?.length ? <RecoveryCodesPanel codes={recoverySession.recoveryCodes} onDone={async () => {
+        await completeLogin(recoverySession).catch(error => toast.error(error?.message ?? "Unable to finish sign-in"));
+      }} /> : <AnimatePresence mode="wait" initial={false}>
         {otpStep ? (
           <motion.form
             key="otp"
@@ -123,26 +146,38 @@ export default function LoginPage() {
                   Two-factor authentication required
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Sent a code to {twoFactorEmail}
+                  {migration ? `Migration code sent to ${twoFactorEmail}` : "Use Google Authenticator, Microsoft Authenticator, or another TOTP app."}
                 </p>
               </div>
             </div>
 
+            {setup && <div className="mb-5 space-y-3 rounded-xl border p-4">
+              <p className="text-sm">Scan this QR code with your authenticator app, then enter its code to finish upgrading.</p>
+              {/* Render the backend-generated QR as an image, never inline HTML. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img alt="Authenticator enrollment QR code" width={200} height={200} className="mx-auto rounded-lg bg-white p-2" src={setup.qrCode.startsWith("data:") ? setup.qrCode : `data:image/svg+xml;charset=utf-8,${encodeURIComponent(setup.qrCode)}`} />
+              <p className="text-xs text-muted-foreground">Manual setup key</p>
+              <code className="block break-all select-all text-sm">{setup.secret}</code>
+              <p className="text-xs text-muted-foreground">Keep an encrypted backup in your password manager for device recovery.</p>
+            </div>}
             <AuthField
-              label="Verification Code"
+              label={useRecovery ? "Recovery Code" : "Verification Code"}
               icon={<ShieldCheck className="h-4 w-4" />}
-              inputMode="numeric"
+              inputMode={useRecovery ? "text" : "numeric"}
               autoComplete="one-time-code"
-              pattern="[0-9]*"
-              maxLength={6}
-              placeholder="6-digit code"
+              pattern={useRecovery ? undefined : "[0-9]*"}
+              maxLength={useRecovery ? 35 : 6}
+              placeholder={useRecovery ? "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" : "6-digit code"}
               value={otpCode}
               onChange={(e) =>
-                setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                setOtpCode(useRecovery ? e.target.value.toUpperCase().replace(/[^A-F0-9-]/g, "").slice(0, 35) : e.target.value.replace(/\D/g, "").slice(0, 6))
               }
               required
             />
 
+            {!migration && !providerMigration && !setup && <Button type="button" variant="link" className="mt-2 px-0" onClick={() => { setUseRecovery(value => !value); setOtpCode(""); }}>
+              {useRecovery ? "Use authenticator code" : "Use a recovery code"}
+            </Button>}
             <div className="mt-5">
               <Button
                 type="submit"
@@ -161,6 +196,11 @@ export default function LoginPage() {
                 onClick={() => {
                   setOtpStep(false);
                   setOtpCode("");
+                  setUseRecovery(false);
+                  setProviderMigration(false);
+                  setSetup(undefined);
+                  setChallengeToken(undefined);
+                  setPassword("");
                 }}
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
@@ -247,6 +287,9 @@ export default function LoginPage() {
               </Link>
             </div>
 
+            {!migration && !providerMigration && !setup && <Button type="button" variant="link" className="mt-2 px-0" onClick={() => { setUseRecovery(value => !value); setOtpCode(""); }}>
+              {useRecovery ? "Use authenticator code" : "Use a recovery code"}
+            </Button>}
             <div className="mt-5">
               <Button
                 type="submit"
@@ -269,7 +312,7 @@ export default function LoginPage() {
             </div>
           </motion.form>
         )}
-      </AnimatePresence>
+      </AnimatePresence>}
     </AuthFormWrapper>
   );
 }

@@ -45,7 +45,8 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (input: LoginInput) => Promise<LoginResponse>;
-  verifyTwoFactor: (input: { email: string; code: string }) => Promise<void>;
+  verifyTwoFactor: (input: { email?: string; code: string; challengeToken?: string }) => Promise<LoginResponse>;
+  completeLogin: (response: LoginResponse) => Promise<void>;
   register: (input: RegisterInput) => Promise<RegisterResponse>;
   logout: () => Promise<void>;
 }
@@ -182,8 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         skipAuth: true,
       });
       if (res.requiresTwoFactor) {
-        // Account has email-OTP 2FA enabled: no token is issued yet. The login
-        // page must collect the emailed code and call verifyTwoFactor.
+        // Keep the password session withheld until authenticator verification.
         return res;
       }
       await finalizeLogin(res);
@@ -193,11 +193,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const verifyTwoFactor = React.useCallback(
-    async ({ email, code }: { email: string; code: string }) => {
-      const res = await api.post<LoginResponse>("/auth/login/2fa", { email, code }, {
+    async ({ email, code, challengeToken }: { email?: string; code: string; challengeToken?: string }) => {
+      const res = await api.post<LoginResponse>("/auth/login/2fa", { email, code, challengeToken }, {
         skipAuth: true,
       });
-      await finalizeLogin(res);
+      if (!res.requiresTwoFactor && !res.recoveryCodes?.length) await finalizeLogin(res);
+      return res;
     },
     [finalizeLogin]
   );
@@ -228,6 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         login,
         verifyTwoFactor,
+        completeLogin: finalizeLogin,
         register,
         logout,
       }}
@@ -251,6 +253,8 @@ export function useLogin() {
     mutationFn: login,
   });
 }
+
+export function useCompleteLogin() { return useAuth().completeLogin; }
 
 export function useVerifyTwoFactor() {
   const { verifyTwoFactor } = useAuth();
