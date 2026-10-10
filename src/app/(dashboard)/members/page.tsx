@@ -293,7 +293,7 @@ export default function MembersPage() {
             { label: "Members" },
           ]}
         />
-        <ErrorState title="Failed to load members." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load members." />
       </div>
     );
   }

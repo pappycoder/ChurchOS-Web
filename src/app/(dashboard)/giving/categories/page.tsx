@@ -209,7 +209,7 @@ export default function GivingCategoriesPage() {
             { label: "Categories" },
           ]}
         />
-        <ErrorState title="Failed to load giving categories." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load giving categories." />
       </div>
     );
   }

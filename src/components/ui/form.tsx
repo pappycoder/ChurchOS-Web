@@ -8,15 +8,32 @@ import {
   FormProvider,
   useFormContext,
   useFormState,
+  useWatch,
   type ControllerProps,
   type FieldPath,
   type FieldValues,
+  type FormProviderProps,
 } from "react-hook-form"
 
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
-const Form = FormProvider
+function DraftGuard() {
+  const { formState, control, getValues } = useFormContext();
+  const values = useWatch({ control });
+  const saved = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (formState.isSubmitSuccessful && !formState.isSubmitting) saved.current = JSON.stringify(getValues());
+  }, [formState.isSubmitSuccessful, formState.isSubmitting, formState.submitCount, getValues]);
+  const changedSinceSave = saved.current === null || JSON.stringify(values) !== saved.current;
+  useUnsavedChanges(formState.isDirty && !formState.isSubmitting && changedSinceSave);
+  return null;
+}
+
+function Form<T extends FieldValues>(props: FormProviderProps<T>) {
+  return <FormProvider {...props}><DraftGuard />{props.children}</FormProvider>;
+}
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
@@ -146,6 +163,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="form-message"
+      role="alert"
       id={formMessageId}
       className={cn("text-xs font-medium text-destructive", className)}
       {...props}

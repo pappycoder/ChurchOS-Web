@@ -261,7 +261,7 @@ export default function ReportsGeneratorPage() {
             { label: "Reports" },
           ]}
         />
-        <ErrorState title="Failed to load report data." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load report data." />
       </div>
     );
   }

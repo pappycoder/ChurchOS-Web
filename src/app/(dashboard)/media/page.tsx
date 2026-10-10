@@ -1,5 +1,7 @@
 "use client";
 
+import { ContentImage } from "@/components/shared/content-image";
+
 import * as React from "react";
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -133,8 +135,7 @@ function MediaCard({
           className="relative aspect-video w-full overflow-hidden rounded-md bg-muted"
         >
         {kind === "image" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ContentImage
             src={asset.url}
             alt={asset.filename}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
@@ -527,8 +528,7 @@ function MediaLibraryContent() {
           </DialogHeader>
           {preview && classifyMime(preview.mimeType) === "image" ? (
             <div className="overflow-hidden rounded-md border bg-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <ContentImage
                 src={preview.url}
                 alt={preview.filename}
                 className="mx-auto max-h-[60vh] w-full object-contain"

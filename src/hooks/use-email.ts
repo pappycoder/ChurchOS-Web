@@ -94,8 +94,8 @@ function invalidateEmails(qc: ReturnType<typeof useQueryClient>) {
 export function useEmails(params: ListEmailsParams = {}) {
   return useQuery({
     queryKey: ["email-list", params],
-    queryFn: () =>
-      api.get<EmailListResponse>(`/email${buildEmailQuery(params)}`),
+    queryFn: ({ signal }) =>
+      api.get<EmailListResponse>(`/email${buildEmailQuery(params)}`, { signal }),
   });
 }
 
@@ -103,7 +103,7 @@ export function useEmails(params: ListEmailsParams = {}) {
 export function useEmailDetail(messageId: string | null) {
   return useQuery({
     queryKey: ["email-detail", messageId],
-    queryFn: () => api.get<EmailDetail>(`/email/${messageId}`),
+    queryFn: ({ signal }) => api.get<EmailDetail>(`/email/${messageId}`, { signal }),
     enabled: !!messageId,
   });
 }
@@ -112,7 +112,7 @@ export function useEmailDetail(messageId: string | null) {
 export function useEmailUnread(enabled = true) {
   return useQuery({
     queryKey: ["email-unread"],
-    queryFn: () => api.get<{ count: number }>("/email/unread-count"),
+    queryFn: ({ signal }) => api.get<{ count: number }>("/email/unread-count", { signal }),
     enabled,
   });
 }
@@ -128,8 +128,8 @@ export function useEmailContacts(
   const qs = query.toString();
   return useQuery({
     queryKey: ["email-contacts", params],
-    queryFn: () =>
-      api.get<EmailContactsResponse>(`/email/contacts${qs ? `?${qs}` : ""}`),
+    queryFn: ({ signal }) =>
+      api.get<EmailContactsResponse>(`/email/contacts${qs ? `?${qs}` : ""}`, { signal }),
     staleTime: 30_000,
   });
 }

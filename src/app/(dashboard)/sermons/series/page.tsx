@@ -45,7 +45,7 @@ export default function SermonsSeriesPage() {
             { label: "Series" },
           ]}
         />
-        <ErrorState title="Failed to load series." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load series." />
       </div>
     );
   }

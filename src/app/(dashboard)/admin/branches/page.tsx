@@ -279,7 +279,7 @@ export default function BranchesPage() {
           title="Branches"
           breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
         />
-        <ErrorState title="Failed to load branches." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load branches." />
       </div>
     );
   }

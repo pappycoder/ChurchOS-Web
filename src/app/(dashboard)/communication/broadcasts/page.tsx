@@ -131,7 +131,7 @@ function BroadcastsListContent() {
           title="Broadcasts"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Broadcasts" }]}
         />
-        <ErrorState title="Failed to load broadcasts." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load broadcasts." />
       </div>
     );
   }

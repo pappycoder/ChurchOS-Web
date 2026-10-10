@@ -1,5 +1,7 @@
 "use client";
 
+import { ContentImage } from "@/components/shared/content-image";
+
 import * as React from "react";
 import { toast } from "@/lib/toast";
 import QRCode from "qrcode";
@@ -146,8 +148,7 @@ export function AssetDetailDrawer({
 
               <TabsContent value="overview" className="space-y-4 pt-4">
                 {asset.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <ContentImage
                     src={asset.imageUrl}
                     alt={asset.name}
                     className="max-h-48 w-full rounded-lg border object-cover"
@@ -191,8 +192,7 @@ export function AssetDetailDrawer({
 
               <TabsContent value="qr" className="flex flex-col items-center gap-3 pt-4">
                 {qrDataUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <ContentImage
                     src={qrDataUrl}
                     alt={`QR code for ${asset.name}`}
                     className="rounded-lg border"

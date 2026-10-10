@@ -114,14 +114,14 @@ function invalidateMemberCaches(
 export function useMembersList(params: ListMembersParams = {}) {
   return useQuery({
     queryKey: ["members-list", params],
-    queryFn: () => api.get<MemberListResponse>(buildListPath(params)),
+    queryFn: ({ signal }) => api.get<MemberListResponse>(buildListPath(params), { signal }),
   });
 }
 
 export function useMember(memberId: string) {
   return useQuery({
     queryKey: ["member", memberId],
-    queryFn: () => api.get<Member>(`/members/${memberId}`),
+    queryFn: ({ signal }) => api.get<Member>(`/members/${memberId}`, { signal }),
     enabled: !!memberId,
   });
 }
@@ -129,9 +129,9 @@ export function useMember(memberId: string) {
 export function useSearchMembers(searchTerm: string, limit = 20) {
   return useQuery({
     queryKey: ["members-search", searchTerm, limit],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<{ data: Member[] }>(
-        `/members/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}`
+        `/members/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}`, { signal }
       ),
     enabled: searchTerm.trim().length >= 2,
   });
@@ -193,7 +193,7 @@ export function useRestoreArchiveMember() {
 export function useMemberGivingHistory(memberId: string) {
   return useQuery({
     queryKey: ["member-giving", memberId],
-    queryFn: () => api.get<{ data: MemberGivingRecord[] }>(`/members/${memberId}/giving`),
+    queryFn: ({ signal }) => api.get<{ data: MemberGivingRecord[] }>(`/members/${memberId}/giving`, { signal }),
     enabled: !!memberId,
   });
 }
@@ -201,8 +201,8 @@ export function useMemberGivingHistory(memberId: string) {
 export function useMemberAttendanceHistory(memberId: string) {
   return useQuery({
     queryKey: ["member-attendance", memberId],
-    queryFn: () =>
-      api.get<{ data: MemberAttendanceRecord[] }>(`/members/${memberId}/attendance`),
+    queryFn: ({ signal }) =>
+      api.get<{ data: MemberAttendanceRecord[] }>(`/members/${memberId}/attendance`, { signal }),
     enabled: !!memberId,
   });
 }

@@ -72,7 +72,7 @@ export function useMyAuditLogs(params: { limit?: number } = {}) {
   const limit = params.limit ?? 8;
   return useQuery({
     queryKey: ["audit-my", limit],
-    queryFn: () => api.get<AuditLogListResponse>(`/audit?limit=${limit}`),
+    queryFn: ({ signal }) => api.get<AuditLogListResponse>(`/audit?limit=${limit}`, { signal }),
     staleTime: 60 * 1000,
   });
 }

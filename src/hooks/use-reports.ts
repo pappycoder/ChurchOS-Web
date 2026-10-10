@@ -102,7 +102,7 @@ export function useFinancialReport(
 ) {
   return useQuery({
     queryKey: ["reports", "financial", params],
-    queryFn: () => api.get<FinancialReport>(`/reports/financial${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<FinancialReport>(`/reports/financial${buildQuery(params)}`, { signal }),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled ?? true,
   });
@@ -114,7 +114,7 @@ export function useAttendanceReport(
 ) {
   return useQuery({
     queryKey: ["reports", "attendance", params],
-    queryFn: () => api.get<AttendanceReport>(`/reports/attendance${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<AttendanceReport>(`/reports/attendance${buildQuery(params)}`, { signal }),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled ?? true,
   });
@@ -126,7 +126,7 @@ export function useMemberReport(
 ) {
   return useQuery({
     queryKey: ["reports", "members", params],
-    queryFn: () => api.get<MemberReport>(`/reports/members${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<MemberReport>(`/reports/members${buildQuery(params)}`, { signal }),
     staleTime: 10 * 60 * 1000,
     enabled: options.enabled ?? true,
   });

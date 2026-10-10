@@ -1,3 +1,4 @@
+import { redactTelemetry } from "@/lib/telemetry-privacy";
 import * as Sentry from "@sentry/nextjs";
 
 const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
@@ -14,5 +15,7 @@ if (dsn) {
     release: process.env.SENTRY_RELEASE || undefined,
     // Edge runtime has limited tracing support — keep it minimal.
     tracesSampleRate: 0.1,
+    beforeSend: redactTelemetry,
+    beforeSendTransaction: redactTelemetry,
   });
 }

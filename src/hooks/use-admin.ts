@@ -171,7 +171,7 @@ export function useDepartmentsList(
       isAdminHq: profile?.isAdminHq,
       ownDepartmentRead: profile?.permissions?.includes("departments:own:read") ?? false,
     }],
-    queryFn: () => api.get<Department[]>(`/admin/departments${queryString ? `?${queryString}` : ""}`),
+    queryFn: ({ signal }) => api.get<Department[]>(`/admin/departments${queryString ? `?${queryString}` : ""}`, { signal }),
     enabled: (params.enabled ?? true) && !!profile,
     staleTime: 0,
   });
@@ -180,7 +180,7 @@ export function useDepartmentsList(
 export function useDepartment(departmentId: string) {
   return useQuery({
     queryKey: ["department", departmentId],
-    queryFn: () => api.get<Department>(`/admin/departments/${departmentId}`),
+    queryFn: ({ signal }) => api.get<Department>(`/admin/departments/${departmentId}`, { signal }),
     enabled: !!departmentId,
   });
 }
@@ -254,14 +254,14 @@ export function useCellGroupsList(params: { archived?: boolean; branchId?: strin
   const queryString = searchParams.toString();
   return useQuery({
     queryKey: ["cell-groups-list", params],
-    queryFn: () => api.get<CellGroup[]>(`/admin/cell-groups${queryString ? `?${queryString}` : ""}`),
+    queryFn: ({ signal }) => api.get<CellGroup[]>(`/admin/cell-groups${queryString ? `?${queryString}` : ""}`, { signal }),
   });
 }
 
 export function useCellGroup(groupId: string) {
   return useQuery({
     queryKey: ["cell-group", groupId],
-    queryFn: () => api.get<CellGroup>(`/admin/cell-groups/${groupId}`),
+    queryFn: ({ signal }) => api.get<CellGroup>(`/admin/cell-groups/${groupId}`, { signal }),
     enabled: !!groupId,
   });
 }
@@ -269,9 +269,9 @@ export function useCellGroup(groupId: string) {
 export function useNearestCellGroups(latitude?: number, longitude?: number, limit = 5) {
   return useQuery({
     queryKey: ["cell-groups-nearest", latitude, longitude, limit],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<NearestCellGroup[]>(
-        `/admin/cell-groups/nearest?latitude=${latitude}&longitude=${longitude}&limit=${limit}`
+        `/admin/cell-groups/nearest?latitude=${latitude}&longitude=${longitude}&limit=${limit}`, { signal }
       ),
     enabled: typeof latitude === "number" && typeof longitude === "number",
   });
@@ -342,7 +342,7 @@ export function useRemoveCellGroupMember(groupId: string) {
 export function useCellGroupMembers(groupId: string) {
   return useQuery({
     queryKey: ["cell-group-members", groupId],
-    queryFn: () => api.get<CellGroupMember[]>(`/admin/cell-groups/${groupId}/members`),
+    queryFn: ({ signal }) => api.get<CellGroupMember[]>(`/admin/cell-groups/${groupId}/members`, { signal }),
     enabled: !!groupId,
   });
 }
@@ -350,11 +350,11 @@ export function useCellGroupMembers(groupId: string) {
 export function useCellGroupAttendance(groupId: string, meetingDate?: string) {
   return useQuery({
     queryKey: ["cell-group-attendance", groupId, meetingDate ?? ""],
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       const path = meetingDate
         ? `/admin/cell-groups/${groupId}/attendance?meetingDate=${encodeURIComponent(meetingDate)}`
         : `/admin/cell-groups/${groupId}/attendance`;
-      return api.get<CellGroupAttendanceRecord[]>(path);
+      return api.get<CellGroupAttendanceRecord[]>(path, { signal });
     },
     enabled: !!groupId,
   });
@@ -363,7 +363,7 @@ export function useCellGroupAttendance(groupId: string, meetingDate?: string) {
 export function useCellGroupAttendanceSummary(groupId: string) {
   return useQuery({
     queryKey: ["cell-group-summary", groupId],
-    queryFn: () => api.get<CellGroupAttendanceSummary>(`/admin/cell-groups/${groupId}/attendance/summary`),
+    queryFn: ({ signal }) => api.get<CellGroupAttendanceSummary>(`/admin/cell-groups/${groupId}/attendance/summary`, { signal }),
     enabled: !!groupId,
   });
 }

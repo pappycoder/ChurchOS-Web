@@ -300,7 +300,7 @@ function invalidatePastoralCaches(qc: ReturnType<typeof useQueryClient>) {
 export function usePastoralNotes(params: ListPastoralNotesParams = {}) {
   return useQuery({
     queryKey: ["pastoral-notes", params],
-    queryFn: () => api.get<PaginatedResponse<PastoralNote>>(`/pastoral/notes${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<PaginatedResponse<PastoralNote>>(`/pastoral/notes${buildQuery(params)}`, { signal }),
   });
 }
 
@@ -350,8 +350,8 @@ export function useRestorePastoralNote() {
 export function useLifeEvents(params: ListLifeEventsParams = {}) {
   return useQuery({
     queryKey: ["pastoral-life-events", params],
-    queryFn: () =>
-      api.get<PaginatedResponse<LifeEvent>>(`/pastoral/life-events${buildQuery(params)}`),
+    queryFn: ({ signal }) =>
+      api.get<PaginatedResponse<LifeEvent>>(`/pastoral/life-events${buildQuery(params)}`, { signal }),
   });
 }
 
@@ -395,17 +395,17 @@ export function useRestoreLifeEvent() {
 export function useRiskScores(params: ListRiskScoresParams = {}) {
   return useQuery({
     queryKey: ["pastoral-risk-scores", params],
-    queryFn: () =>
-      api.get<PaginatedResponse<RiskScore>>(`/pastoral/risk-scores${buildQuery(params)}`),
+    queryFn: ({ signal }) =>
+      api.get<PaginatedResponse<RiskScore>>(`/pastoral/risk-scores${buildQuery(params)}`, { signal }),
   });
 }
 
 export function useEngagementScores(params: ListEngagementScoresParams = {}) {
   return useQuery({
     queryKey: ["pastoral-engagement", params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<PaginatedResponse<EngagementScore>>(
-        `/pastoral/engagement-scores${buildQuery(params)}`
+        `/pastoral/engagement-scores${buildQuery(params)}`, { signal }
       ),
   });
 }
@@ -413,14 +413,14 @@ export function useEngagementScores(params: ListEngagementScoresParams = {}) {
 export function useEngagementDistribution() {
   return useQuery({
     queryKey: ["pastoral-engagement-distribution"],
-    queryFn: () => api.get<EngagementDistribution>("/pastoral/engagement/summary"),
+    queryFn: ({ signal }) => api.get<EngagementDistribution>("/pastoral/engagement/summary", { signal }),
   });
 }
 
 export function useMemberScoring(memberId: string) {
   return useQuery({
     queryKey: ["pastoral-member-scoring", memberId],
-    queryFn: () => api.get<MemberScoring>(`/pastoral/members/${memberId}/scoring`),
+    queryFn: ({ signal }) => api.get<MemberScoring>(`/pastoral/members/${memberId}/scoring`, { signal }),
     enabled: !!memberId,
   });
 }

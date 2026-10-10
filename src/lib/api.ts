@@ -1,19 +1,18 @@
 import type { AuthError } from "@/types/auth";
-import {
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
-  setTokens,
-} from "@/lib/session";
+import { clearTokens } from "@/lib/session";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-const API_PREFIX = "/api/v1";
+const API_BASE = "";
+const API_PREFIX = "/api/backend";
+export interface RequestOptions { skipAuth?: boolean; signal?: AbortSignal }
 
 /**
  * Registered by the auth provider. Invoked when a session cannot be
  * recovered (refresh token missing, expired, or refresh failed) so the
  * app can log the user out and redirect to /login.
  */
+let authGeneration = 0;
+export function advanceSessionGeneration() { authGeneration++; }
+
 let unauthorizedHandler: (() => void) | null = null;
 
 export function setUnauthorizedHandler(handler: (() => void) | null) {
@@ -24,7 +23,7 @@ interface BackendErrorResponse {
   success: false;
   error: {
     code: string;
-    message: string;
+    message: string | string[];
     details?: unknown;
     timestamp: string;
     path: string;
@@ -45,14 +44,15 @@ interface BackendSuccessResponse<T> {
 type BackendResponse<T> = BackendSuccessResponse<T> | BackendErrorResponse;
 
 function getErrorMessage(status: number, body: BackendErrorResponse): string {
-  const msg = body.error?.message || "";
+  const raw = body.error?.message;
+  const msg = Array.isArray(raw) ? raw.join(". ") : raw || "";
   switch (status) {
     case 400:
       return msg || "Invalid request. Please check your input.";
     case 401:
       return msg || "Invalid email or password.";
     case 403:
-      return "You don't have permission to perform this action.";
+      return msg || "You don't have permission to perform this action.";
     case 404:
       return "The requested resource was not found.";
     case 409:
@@ -75,53 +75,29 @@ interface SessionStorage {
   expiresAt?: number;
 }
 
-/**
- * Attempts a single silent refresh of the access token using the stored
- * refresh token. Requires a still-valid access token in the Authorization
- * header (the backend's /auth/refresh endpoint is JWT-guarded). New tokens
- * are persisted before the caller retries the original request.
- *
- * Returns the refreshed session data on success, or null when the refresh
- * token is missing, the refresh failed (expired/revoked/network), or the
- * response was malformed.
- */
+// Deduplicate refresh-token rotation across simultaneous requests.
+let refreshPromise: Promise<SessionStorage | null> | null = null;
 async function tryRefreshSession(): Promise<SessionStorage | null> {
-  const refreshToken = getRefreshToken();
-  const accessToken = getAccessToken();
-  if (!refreshToken || !accessToken) return null;
-
-  try {
-    const res = await fetch(`${API_BASE}${API_PREFIX}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ refreshToken }),
-    });
-
-    if (!res.ok) return null;
-
-    const json = (await res.json()) as BackendResponse<SessionStorage>;
-    if (!json || !json.success || !json.data?.accessToken) return null;
-
-    const { accessToken: newAccess, refreshToken: newRefresh } = json.data;
-    // Persist the (possibly rotated) tokens so the retried request succeeds.
-    setTokens(newAccess, newRefresh || refreshToken);
-    return json.data;
-  } catch {
-    return null;
+  if (!refreshPromise) {
+    const refresh = async () => {
+      const response = await fetch(`${API_PREFIX}/auth/refresh`, {
+        method: "POST", headers: { "Content-Type": "application/json", "X-ChurchOS-Client": "web" },
+        body: "{}", cache: "no-store",
+      });
+      if (response.status === 401 || response.status === 403) return null;
+      if (!response.ok) throw { message: "Unable to refresh your session. Please try again.", statusCode: response.status } as AuthError;
+      const json = await response.json();
+      if (!json.success || !json.data?.sessionEstablished) throw { message: "Invalid session response", statusCode: 502 } as AuthError;
+      return json.data as SessionStorage;
+    };
+    refreshPromise = (async () => {
+      if (typeof navigator !== "undefined" && navigator.locks) return await navigator.locks.request("churchos-session-refresh", () => refresh());
+      return await refresh();
+    })().finally(() => { refreshPromise = null; });
   }
+  return refreshPromise;
 }
-
-/**
- * Public wrapper used by the auth provider to proactively refresh the access
- * token shortly before it expires. Returns the refreshed session on success
- * or null if the session can no longer be extended.
- */
-export async function refreshSession(): Promise<SessionStorage | null> {
-  return tryRefreshSession();
-}
+export async function refreshSession(): Promise<SessionStorage | null> { return tryRefreshSession(); }
 
 class ApiClient {
   private baseUrl: string;
@@ -134,10 +110,11 @@ class ApiClient {
     method: string,
     path: string,
     body?: unknown,
-    options?: { skipAuth?: boolean },
+    options?: RequestOptions,
     allowRefresh = true
   ): Promise<T> {
-    const headers: Record<string, string> = {};
+    const generation = authGeneration;
+    const headers: Record<string, string> = { "X-ChurchOS-Client": "web" };
 
     // FormData bodies must not carry a JSON content-type — the browser
     // sets the multipart boundary itself.
@@ -145,22 +122,19 @@ class ApiClient {
       headers["Content-Type"] = "application/json";
     }
 
-    if (!options?.skipAuth) {
-      const token = getAccessToken();
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-    }
 
     let res: Response;
     try {
       res = await fetch(`${this.baseUrl}${path}`, {
         method,
         headers,
+        cache: "no-store",
+        signal: options?.signal,
         body:
           body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
       });
-    } catch {
+    } catch (cause) {
+      if (cause instanceof Error && cause.name === "AbortError") throw cause;
       const error: AuthError = {
         message: "Network error. Please check your connection.",
         statusCode: 0,
@@ -171,15 +145,16 @@ class ApiClient {
     // Recoverable authentication failure: try a silent refresh and retry once.
     // If the retry (allowRefresh === false) also 401s, or refresh cannot
     // recover the session, force logout + redirect.
-    if (res.status === 401 && !options?.skipAuth) {
+    if (res.status === 401 && !options?.skipAuth && generation === authGeneration) {
       if (allowRefresh) {
         const refreshed = await tryRefreshSession();
+        if (generation !== authGeneration) throw new DOMException("Session changed", "AbortError");
         if (refreshed) {
           return this.request<T>(method, path, body, options, false);
         }
       }
-      clearTokens();
-      unauthorizedHandler?.();
+      if (unauthorizedHandler) unauthorizedHandler();
+      else await clearTokens();
     }
 
     let json: BackendResponse<T> | undefined;
@@ -198,6 +173,8 @@ class ApiClient {
           ? getErrorMessage(res.status, errorBody)
           : `Request failed (${res.status}). Please try again.`,
         statusCode: res.status,
+        retryAfterSeconds: Number(res.headers.get("retry-after")) || undefined,
+        details: errorBody?.error.details,
       };
       throw error;
     }
@@ -209,23 +186,23 @@ class ApiClient {
     return successBody.data;
   }
 
-  get<T>(path: string, options?: { skipAuth?: boolean }) {
+  get<T>(path: string, options?: RequestOptions) {
     return this.request<T>("GET", path, undefined, options);
   }
 
-  post<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }) {
+  post<T>(path: string, body?: unknown, options?: RequestOptions) {
     return this.request<T>("POST", path, body, options);
   }
 
-  patch<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }) {
+  patch<T>(path: string, body?: unknown, options?: RequestOptions) {
     return this.request<T>("PATCH", path, body, options);
   }
 
-  put<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }) {
+  put<T>(path: string, body?: unknown, options?: RequestOptions) {
     return this.request<T>("PUT", path, body, options);
   }
 
-  delete<T>(path: string, options?: { skipAuth?: boolean }) {
+  delete<T>(path: string, options?: RequestOptions) {
     return this.request<T>("DELETE", path, undefined, options);
   }
 
@@ -234,21 +211,20 @@ class ApiClient {
    * body as JSON when the server replies with an error envelope.
    */
   async getBlob(path: string): Promise<Blob> {
-    const doFetch = async (token: string | null): Promise<Response> => {
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-      return fetch(`${this.baseUrl}${path}`, { headers });
+    const generation = authGeneration;
+    const doFetch = async (): Promise<Response> => {
+      const headers: Record<string, string> = { "X-ChurchOS-Client": "web" };
+      return fetch(`${this.baseUrl}${path}`, { headers, cache: "no-store" });
     };
 
-    let res = await doFetch(getAccessToken());
+    let res = await doFetch();
     let sessionUnrecoverable = false;
 
-    if (res.status === 401) {
+    if (res.status === 401 && generation === authGeneration) {
       const refreshed = await tryRefreshSession();
+        if (generation !== authGeneration) throw new DOMException("Session changed", "AbortError");
       if (refreshed) {
-        const retry = await doFetch(getAccessToken());
+        const retry = await doFetch();
         if (retry.ok) return retry.blob();
         res = retry;
       } else {
@@ -256,10 +232,10 @@ class ApiClient {
       }
     }
 
-    if (sessionUnrecoverable || res.status === 401) {
+    if ((sessionUnrecoverable || res.status === 401) && generation === authGeneration) {
       // Refresh failed, or retry still 401 → logout.
-      clearTokens();
-      unauthorizedHandler?.();
+      if (unauthorizedHandler) unauthorizedHandler();
+      else await clearTokens();
     }
 
     if (!res.ok) {
@@ -280,13 +256,14 @@ class ApiClient {
    * symmetric with getBlob for future exports).
    */
   async postForBlob(path: string, body: unknown): Promise<Blob> {
+    const generation = authGeneration;
     const doFetch = async (): Promise<Response> => {
-      const token = getAccessToken();
       return fetch(`${this.baseUrl}${path}`, {
         method: "POST",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "X-ChurchOS-Client": "web",
         },
         body: JSON.stringify(body),
       });
@@ -295,8 +272,9 @@ class ApiClient {
     let res = await doFetch();
     let sessionUnrecoverable = false;
 
-    if (res.status === 401) {
+    if (res.status === 401 && generation === authGeneration) {
       const refreshed = await tryRefreshSession();
+        if (generation !== authGeneration) throw new DOMException("Session changed", "AbortError");
       if (refreshed) {
         const retry = await doFetch();
         if (retry.ok) return retry.blob();
@@ -306,10 +284,10 @@ class ApiClient {
       }
     }
 
-    if (sessionUnrecoverable || res.status === 401) {
+    if ((sessionUnrecoverable || res.status === 401) && generation === authGeneration) {
       // Refresh failed, or retry still 401 → logout.
-      clearTokens();
-      unauthorizedHandler?.();
+      if (unauthorizedHandler) unauthorizedHandler();
+      else await clearTokens();
     }
 
     if (!res.ok) {

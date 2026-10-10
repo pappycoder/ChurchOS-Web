@@ -76,7 +76,7 @@ export function sortRolesByOrder<T extends { roleName: string }>(roles: T[]): T[
 export function useRolesSummary() {
   return useQuery({
     queryKey: ["roles-summary"],
-    queryFn: () => api.get<RolesSummaryResponse>("/church/roles"),
+    queryFn: ({ signal }) => api.get<RolesSummaryResponse>("/church/roles", { signal }),
     staleTime: 60 * 1000,
   });
 }
@@ -123,9 +123,9 @@ export function useAssignableRoles(): { value: string; label: string }[] {
 export function useRolePermissions(roleName: string) {
   return useQuery({
     queryKey: ["role-permissions", roleName],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<RoleWithPermissions>(
-        `/church/roles/${encodeURIComponent(roleName)}/permissions`
+        `/church/roles/${encodeURIComponent(roleName)}/permissions`, { signal }
       ),
     enabled: !!roleName,
   });
@@ -134,7 +134,7 @@ export function useRolePermissions(roleName: string) {
 export function useAllPermissions() {
   return useQuery({
     queryKey: ["all-permissions"],
-    queryFn: () => api.get<Permission[]>("/church/roles/all"),
+    queryFn: ({ signal }) => api.get<Permission[]>("/church/roles/all", { signal }),
     staleTime: 5 * 60 * 1000,
   });
 }

@@ -582,7 +582,7 @@ export default function ProfilePage() {
       />
 
       {error ? (
-        <ErrorState title="Failed to load your profile." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load your profile." />
       ) : isLoading || !profile ? (
         <ProfileSkeleton />
       ) : (

@@ -5,9 +5,8 @@ import type {
   RouteMatchCallbackOptions,
   RuntimeCaching,
   SerwistGlobalConfig,
-  SerwistPlugin,
 } from "serwist";
-import { ExpirationPlugin, NetworkFirst, Serwist } from "serwist";
+import { NetworkOnly, Serwist } from "serwist";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -17,51 +16,10 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-/**
- * Conservative runtime cache for the JSON API: NetworkFirst for GETs under
- * /api/v1 (matches the default `API_BASE + /api/v1` in src/lib/api.ts — a
- * cross-origin dev host or a same-origin prod proxy — by pathname only),
- * falling back to the cache after 10s and keeping only 5 minutes of entries.
- * React Query already holds the in-memory copy; this mostly covers hard
- * refreshes and offline revisits of already-viewed data.
- *
- * NetworkFirst caches every HTTP 200 by default (Serwist's cacheOkAndOpaque
- * plugin only checks the status), so an API failure that still returns
- * `200 + { success: false }` would be cached and replayed on every reload
- * for up to 5 minutes — the media library's "error page until hard refresh"
- * bug. `apiEnvelopePlugin` parses the (cloned) body and only lets a genuine
- * `success: true` JSON envelope into the cache; anything else — error
- * envelopes, non-JSON bodies, non-200s — is fetched but never stored.
- */
-const apiEnvelopePlugin: SerwistPlugin = {
-  cacheWillUpdate: async ({ response }) => {
-    if (response.status !== 200) return null;
-    if (!(response.headers.get("content-type") ?? "").includes("application/json")) {
-      return null;
-    }
-    try {
-      const body = (await response.clone().json()) as { success?: unknown } | null;
-      return body && body.success === true ? response : null;
-    } catch {
-      return null;
-    }
-  },
-};
-
-const apiCache: RuntimeCaching = {
-  matcher: ({ url, request }) =>
-    request.method === "GET" && url.pathname.startsWith("/api/v1/"),
-  handler: new NetworkFirst({
-    cacheName: "churchos-api",
-    networkTimeoutSeconds: 10,
-    plugins: [
-      apiEnvelopePlugin,
-      new ExpirationPlugin({
-        maxEntries: 150,
-        maxAgeSeconds: 5 * 60,
-      }),
-    ],
-  }),
+// Never persist private API responses, RSC payloads, or dashboard documents.
+const privateRequests: RuntimeCaching = {
+  matcher: ({ url, request }) => url.pathname.startsWith("/api/") || request.headers.has("authorization") || request.mode === "navigate" || request.headers.get("rsc") === "1" || url.searchParams.has("_rsc"),
+  handler: new NetworkOnly(),
 };
 
 /**
@@ -125,7 +83,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: [apiCache, ...sameOriginDefaultCache],
+  runtimeCaching: [privateRequests, ...sameOriginDefaultCache],
   fallbacks: {
     entries: [
       {
@@ -141,7 +99,7 @@ const serwist = new Serwist({
 // until its 5-minute TTL. React Query owns the in-memory copy, so dropping
 // this cache costs nothing beyond the next refetch.
 self.addEventListener("activate", (event) => {
-  event.waitUntil(caches.delete("churchos-api"));
+  event.waitUntil(caches.keys().then((names) => Promise.all(names.filter((name) => /api|pages|rsc|others/i.test(name)).map((name) => caches.delete(name)))));
 });
 
 serwist.addEventListeners();

@@ -124,16 +124,16 @@ function invalidateVisitorCaches(
 export function useVisitorsList(params: ListVisitorsParams = {}) {
   return useQuery({
     queryKey: ["visitors-list", params],
-    queryFn: () => api.get<VisitorListResponse>(buildListPath(params)),
+    queryFn: ({ signal }) => api.get<VisitorListResponse>(buildListPath(params), { signal }),
   });
 }
 
 export function useSearchVisitors(searchTerm: string, limit = 20) {
   return useQuery({
     queryKey: ["visitors-search", searchTerm, limit],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<VisitorListResponse>(
-        `/visitors?search=${encodeURIComponent(searchTerm)}&limit=${limit}`
+        `/visitors?search=${encodeURIComponent(searchTerm)}&limit=${limit}`, { signal }
       ),
     enabled: searchTerm.trim().length >= 2,
   });
@@ -142,7 +142,7 @@ export function useSearchVisitors(searchTerm: string, limit = 20) {
 export function useVisitor(visitorId: string) {
   return useQuery({
     queryKey: ["visitor", visitorId],
-    queryFn: () => api.get<Visitor>(`/visitors/${visitorId}`),
+    queryFn: ({ signal }) => api.get<Visitor>(`/visitors/${visitorId}`, { signal }),
     enabled: !!visitorId,
   });
 }
@@ -150,7 +150,7 @@ export function useVisitor(visitorId: string) {
 export function useVisitorsStats() {
   return useQuery({
     queryKey: ["visitors-stats"],
-    queryFn: () => api.get<VisitorSummary>("/visitors/stats"),
+    queryFn: ({ signal }) => api.get<VisitorSummary>("/visitors/stats", { signal }),
     staleTime: 60 * 1000,
   });
 }

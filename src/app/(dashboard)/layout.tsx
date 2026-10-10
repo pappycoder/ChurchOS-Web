@@ -1,60 +1,22 @@
 "use client";
-
 import { usePathname } from "next/navigation";
 import { TableColumnsProvider } from "@/contexts/table-columns-context";
-import * as React from "react";
 import { Sidebar } from "@/components/layouts/sidebar";
 import { Header } from "@/components/layouts/header";
 import { TopProgressBar } from "@/components/layouts/top-progress-bar";
-import { useSettings } from "@/contexts/settings-context";
 import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { settings } = useSettings();
-  const [loading, setLoading] = React.useState(settings.loader === "enable");
-
-  React.useEffect(() => {
-    if (settings.loader === "enable") {
-      setLoading(true);
-      const timer = setTimeout(() => setLoading(false), 500);
-      return () => clearTimeout(timer);
-    }
-    setLoading(false);
-  }, [settings.loader]);
-
-  React.useEffect(() => {
-    const resizePageWrapper = () => {
-      const pageWrapper = document.querySelector(
-        ".page-wrapper",
-      ) as HTMLElement | null;
-      if (pageWrapper) {
-        pageWrapper.style.minHeight = `${window.innerHeight}px`;
-      }
-    };
-    resizePageWrapper();
-    window.addEventListener("resize", resizePageWrapper);
-    return () => window.removeEventListener("resize", resizePageWrapper);
-  }, []);
-
-  return (
-    <div className="main-wrapper min-h-screen">
-      <TopProgressBar />
-      <div id="global-loader" style={{ display: loading ? "block" : "none" }}>
-        <div className="page-loader" />
+  return <div className="main-wrapper min-h-dvh">
+    <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-lg focus:bg-background focus:p-3 focus:shadow-lg">Skip to content</a>
+    <TopProgressBar />
+    <Sidebar />
+    <Header />
+    <main id="main-content" className="page-wrapper min-h-dvh" tabIndex={-1}>
+      <div className="px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10">
+        <TableColumnsProvider key={pathname}><PermissionRouteGate>{children}</PermissionRouteGate></TableColumnsProvider>
       </div>
-      <Sidebar />
-      <Header />
-
-      <main className="page-wrapper">
-        <div className="px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10">
-          <TableColumnsProvider key={pathname}><PermissionRouteGate>{children}</PermissionRouteGate></TableColumnsProvider>
-        </div>
-      </main>
-    </div>
-  );
+    </main>
+  </div>;
 }

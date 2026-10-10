@@ -90,8 +90,8 @@ function invalidateSermonCaches(qc: ReturnType<typeof useQueryClient>) {
 export function useSermonsList(params: ListSermonsParams = {}) {
   return useQuery({
     queryKey: ["sermons-list", params],
-    queryFn: () =>
-      api.get<SermonsListResponse>(`/sermons${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<SermonsListResponse>(`/sermons${buildQuery({ ...params })}`, { signal }),
   });
 }
 
@@ -100,7 +100,7 @@ export function useSermonsList(params: ListSermonsParams = {}) {
 export function useSermon(sermonId: string) {
   return useQuery({
     queryKey: ["sermons-detail", sermonId],
-    queryFn: () => api.get<Sermon>(`/sermons/${sermonId}`),
+    queryFn: ({ signal }) => api.get<Sermon>(`/sermons/${sermonId}`, { signal }),
     enabled: !!sermonId,
   });
 }
@@ -110,7 +110,7 @@ export function useSermon(sermonId: string) {
 export function useSermonsSeries() {
   return useQuery({
     queryKey: ["sermons-series"],
-    queryFn: () => api.get<AggregatedItem[]>("/sermons/series"),
+    queryFn: ({ signal }) => api.get<AggregatedItem[]>("/sermons/series", { signal }),
   });
 }
 
@@ -119,7 +119,7 @@ export function useSermonsSeries() {
 export function useSermonsSpeakers() {
   return useQuery({
     queryKey: ["sermons-speakers"],
-    queryFn: () => api.get<AggregatedItem[]>("/sermons/speakers"),
+    queryFn: ({ signal }) => api.get<AggregatedItem[]>("/sermons/speakers", { signal }),
   });
 }
 
@@ -128,14 +128,14 @@ export function useSermonsSpeakers() {
 export function useSermonBookmarks() {
   return useQuery({
     queryKey: ["sermons-bookmarks"],
-    queryFn: () => api.get<Sermon[]>("/sermons/bookmarks/me"),
+    queryFn: ({ signal }) => api.get<Sermon[]>("/sermons/bookmarks/me", { signal }),
   });
 }
 
 export function useIsBookmarked(sermonId: string) {
   return useQuery({
     queryKey: ["sermons-bookmark", sermonId],
-    queryFn: () => api.get<{ bookmarked: boolean }>(`/sermons/${sermonId}/bookmark`),
+    queryFn: ({ signal }) => api.get<{ bookmarked: boolean }>(`/sermons/${sermonId}/bookmark`, { signal }),
     enabled: !!sermonId,
   });
 }

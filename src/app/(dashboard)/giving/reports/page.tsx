@@ -99,7 +99,7 @@ export default function GivingReportsPage() {
             { label: "Reports" },
           ]}
         />
-        <ErrorState title="Failed to load giving reports." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load giving reports." />
       </div>
     );
   }

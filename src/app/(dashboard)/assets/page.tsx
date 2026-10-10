@@ -1,5 +1,7 @@
 "use client";
 
+import { ContentImage } from "@/components/shared/content-image";
+
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -307,7 +309,7 @@ export default function AssetsPage() {
           </div>
 
           {error ? (
-            <ErrorState title="Failed to load assets." onRetry={() => window.location.reload()} />
+            <ErrorState title="Failed to load assets." />
           ) : (
             <div className="rounded-md border overflow-x-auto">
               <Table tableId="assets">
@@ -349,8 +351,7 @@ export default function AssetsPage() {
                         <TableCell onClick={() => openDetail(asset)}>
                           <div className="flex items-center gap-3">
                             {asset.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
+                              <ContentImage
                                 src={asset.imageUrl}
                                 alt={asset.name}
                                 className="h-9 w-9 shrink-0 rounded-md border object-cover"

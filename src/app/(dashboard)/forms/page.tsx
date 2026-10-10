@@ -1,11 +1,12 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
+
 import * as React from "react";
 import { format } from "date-fns";
 import { toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import {
-  AlertTriangle,
   ClipboardList,
   Copy,
   Eye,
@@ -207,18 +208,7 @@ export default function FormsPage() {
           title="Forms"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Forms" }]}
         />
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
-          <AlertTriangle className="h-10 w-10 text-destructive" />
-          <div>
-            <p className="font-medium">Failed to load forms</p>
-            <p className="text-sm text-muted-foreground">
-              {error instanceof Error ? error.message : "Please try again."}
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState />
       </div>
     );
   }

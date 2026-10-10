@@ -197,7 +197,7 @@ function TemplatesListContent() {
           title="Templates"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Templates" }]}
         />
-        <ErrorState title="Failed to load templates." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load templates." />
       </div>
     );
   }

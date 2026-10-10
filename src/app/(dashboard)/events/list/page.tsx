@@ -200,7 +200,7 @@ export default function EventsListPage() {
             { label: "Events" },
           ]}
         />
-        <ErrorState title="Failed to load events." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load events." />
       </div>
     );
   }

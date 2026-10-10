@@ -45,7 +45,7 @@ export type ChurchConfig = Record<string, unknown>;
 export function useChurch() {
   return useQuery({
     queryKey: ["church"],
-    queryFn: () => api.get<ChurchProfile>("/church"),
+    queryFn: ({ signal }) => api.get<ChurchProfile>("/church", { signal }),
     staleTime: 60 * 1000,
   });
 }
@@ -63,7 +63,7 @@ export function useUpdateChurch() {
 export function useChurchConfig() {
   return useQuery({
     queryKey: ["church-config"],
-    queryFn: () => api.get<{ config: ChurchConfig }>("/church/config"),
+    queryFn: ({ signal }) => api.get<{ config: ChurchConfig }>("/church/config", { signal }),
     staleTime: 60 * 1000,
   });
 }

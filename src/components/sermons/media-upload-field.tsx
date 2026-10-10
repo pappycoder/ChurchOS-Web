@@ -1,5 +1,7 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+
 import * as React from "react";
 import { toast } from "@/lib/toast";
 import { Upload, Link, X, FileAudio, FileVideo, Loader2 } from "lucide-react";
@@ -30,7 +32,6 @@ export function MediaUploadField({
   const [mode, setMode] = React.useState<Mode>("upload");
   const [urlInput, setUrlInput] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
@@ -48,21 +49,14 @@ export function MediaUploadField({
   const handleUpload = async () => {
     if (!selectedFile) return;
     setUploading(true);
-    setProgress(0);
     try {
       const formData = new FormData();
       formData.append("file", selectedFile);
       formData.append("folder", "sermons");
 
-      // Simulate progress (real XHR progress isn't available with fetch)
-      const progressTimer = setInterval(() => {
-        setProgress((p) => Math.min(p + 10, 90));
-      }, 200);
 
       const res = await api.post<{ url: string }>("/media/upload", formData);
 
-      clearInterval(progressTimer);
-      setProgress(100);
       onChange(res.url);
       setSelectedFile(null);
       toast.success(`${label} uploaded`);
@@ -72,7 +66,6 @@ export function MediaUploadField({
       });
     } finally {
       setUploading(false);
-      setProgress(0);
     }
   };
 
@@ -181,17 +174,7 @@ export function MediaUploadField({
                   <X className="h-3 w-3" />
                 </Button>
               </div>
-              {uploading && (
-                <div className="space-y-1">
-                  <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">Uploading...</p>
-                </div>
-              )}
+              {uploading && <LoadingIndicator label="Uploading file" size="sm" />}
               <Button
                 type="button"
                 variant="outline"

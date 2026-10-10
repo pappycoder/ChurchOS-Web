@@ -1,5 +1,7 @@
 "use client";
 
+import { ContentImage } from "@/components/shared/content-image";
+
 /**
  * @file General Settings tab content — one merged "Church" section (logo
  * upload tile plus a single form where Church Name/Denomination are locked
@@ -144,8 +146,7 @@ function LogoTile({ church }: { church: ChurchProfile }) {
     <div className="mb-5 flex flex-wrap items-center gap-4 rounded-lg bg-muted/60 p-4">
       <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded border border-dashed border-border bg-background">
         {church.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <ContentImage
             src={church.logoUrl}
             alt={church.name}
             className="h-full w-full object-cover"

@@ -134,7 +134,7 @@ export default function RecurringGivingPage() {
             { label: "Recurring" },
           ]}
         />
-        <ErrorState title="Failed to load recurring schedules." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load recurring schedules." />
       </div>
     );
   }

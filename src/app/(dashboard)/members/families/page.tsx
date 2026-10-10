@@ -202,7 +202,7 @@ export default function FamiliesPage() {
             { label: "Families" },
           ]}
         />
-        <ErrorState title="Failed to load families." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load families." />
       </div>
     );
   }

@@ -118,15 +118,15 @@ function invalidateMessageCaches(qc: ReturnType<typeof useQueryClient>) {
 export function useMessagesList(params: ListMessagesParams = {}) {
   return useQuery({
     queryKey: ["messages-list", params],
-    queryFn: () =>
-      api.get<MessagesListResponse>(`/whatsapp/messages${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<MessagesListResponse>(`/whatsapp/messages${buildQuery({ ...params })}`, { signal }),
   });
 }
 
 export function useCommunicationAnalytics() {
   return useQuery({
     queryKey: ["communication-analytics"],
-    queryFn: () => api.get<CommunicationAnalytics>("/analytics/communication"),
+    queryFn: ({ signal }) => api.get<CommunicationAnalytics>("/analytics/communication", { signal }),
   });
 }
 

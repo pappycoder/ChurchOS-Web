@@ -1,8 +1,5 @@
-
 export async function GET() {
-  throw new Error("Sentry test error from /api/sentry-test (production verification)");
+  if (process.env.NODE_ENV === "production") return new Response(null, { status: 404 });
+  throw new Error("Sentry development verification");
 }
-
-export async function POST() {
-  throw new Error("Sentry test error from /api/sentry-test POST");
-}
+export const POST = GET;

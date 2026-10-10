@@ -129,7 +129,7 @@ export default function AttendanceReportsPage() {
             { label: "Reports" },
           ]}
         />
-        <ErrorState title="Failed to load reports." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load reports." />
       </div>
     );
   }

@@ -115,7 +115,7 @@ export default function RolesPage() {
             { label: "Roles & Permissions" },
           ]}
         />
-        <ErrorState title="Failed to load roles." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load roles." />
       </div>
     );
   }

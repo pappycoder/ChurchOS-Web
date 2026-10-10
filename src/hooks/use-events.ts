@@ -151,7 +151,7 @@ function invalidateEventCaches(qc: ReturnType<typeof useQueryClient>) {
 export function useEventsSummary(branchId?: string) {
   return useQuery({
     queryKey: ["events-summary", branchId],
-    queryFn: () => api.get<{ data: EventItem[]; total: number }>(`/events${buildQuery({ limit: 100, branchId })}`),
+    queryFn: ({ signal }) => api.get<{ data: EventItem[]; total: number }>(`/events${buildQuery({ limit: 100, branchId })}`, { signal }),
   });
 }
 
@@ -163,8 +163,8 @@ export function useEventsList(
 ) {
   return useQuery({
     queryKey: ["events-list", params],
-    queryFn: () =>
-      api.get<EventsListResponse>(`/events${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<EventsListResponse>(`/events${buildQuery({ ...params })}`, { signal }),
     enabled: options.enabled ?? true,
   });
 }
@@ -174,7 +174,7 @@ export function useEventsList(
 export function useEvent(eventId: string) {
   return useQuery({
     queryKey: ["events-detail", eventId],
-    queryFn: () => api.get<EventItem>(`/events/${eventId}`),
+    queryFn: ({ signal }) => api.get<EventItem>(`/events/${eventId}`, { signal }),
     enabled: !!eventId,
   });
 }
@@ -184,8 +184,8 @@ export function useEvent(eventId: string) {
 export function useEventRegistrations(eventId: string, branchId?: string) {
   return useQuery({
     queryKey: ["events-registrations", eventId, branchId],
-    queryFn: () =>
-      api.get<EventRegistration[]>(`/events/${eventId}/registrations${buildQuery({ branchId })}`),
+    queryFn: ({ signal }) =>
+      api.get<EventRegistration[]>(`/events/${eventId}/registrations${buildQuery({ branchId })}`, { signal }),
     enabled: !!eventId,
   });
 }
@@ -195,8 +195,8 @@ export function useEventRegistrations(eventId: string, branchId?: string) {
 export function useEventAttendance(eventId: string) {
   return useQuery({
     queryKey: ["events-attendance", eventId],
-    queryFn: () =>
-      api.get<EventAttendanceRecord[]>(`/events/${eventId}/attendance`),
+    queryFn: ({ signal }) =>
+      api.get<EventAttendanceRecord[]>(`/events/${eventId}/attendance`, { signal }),
     enabled: !!eventId,
   });
 }
@@ -373,8 +373,8 @@ export interface UpdateTierInput {
 export function useEventTiers(eventId: string) {
   return useQuery({
     queryKey: ["events-tiers", eventId],
-    queryFn: () =>
-      api.get<EventTicketTier[]>(`/events/${eventId}/tiers`),
+    queryFn: ({ signal }) =>
+      api.get<EventTicketTier[]>(`/events/${eventId}/tiers`, { signal }),
     enabled: !!eventId,
   });
 }
@@ -458,8 +458,8 @@ export interface ListAllTicketsParams {
 export function useAllTickets(params: ListAllTicketsParams = {}) {
   return useQuery({
     queryKey: ["events-all-tickets", params],
-    queryFn: () =>
-      api.get<AllTicketsResponse>(`/events/management/tickets${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<AllTicketsResponse>(`/events/management/tickets${buildQuery({ ...params })}`, { signal }),
   });
 }
 

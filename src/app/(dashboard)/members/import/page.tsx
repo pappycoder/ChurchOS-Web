@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { exportExcel } from "@/lib/export-utils";
+import { parseMemberSpreadsheet } from "@/lib/import-spreadsheet";
 import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -128,11 +129,12 @@ export default function MemberImportPage() {
 
   /** Reject anything that is not a .csv / .xlsx / .xls before parsing. */
   const validateFile = (file: File): string | null => {
+    if (file.size > 5 * 1024 * 1024) return "Files must be 5 MB or smaller.";
     const name = file.name.toLowerCase();
     const ext = name.slice(name.lastIndexOf("."));
-    const allowedExtensions = [".csv", ".xlsx", ".xls"];
+    const allowedExtensions = [".csv", ".xlsx"];
     if (!allowedExtensions.includes(ext)) {
-      return "Unsupported file type. Please upload a .csv, .xlsx, or .xls file.";
+      return "Use CSV or XLSX. Save older XLS files as XLSX first.";
     }
     return null;
   };
@@ -149,16 +151,7 @@ export default function MemberImportPage() {
   const handleFile = async (file: File) => {
     setParsing(true);
     try {
-      const XLSX = await import("xlsx");
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: "array" });
-      const sheetName = workbook.SheetNames[0];
-      if (!sheetName) throw new Error("The file has no sheets.");
-      const sheet = workbook.Sheets[sheetName];
-      const jsonRows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
-        defval: "",
-        raw: false,
-      });
+      const jsonRows = await parseMemberSpreadsheet(file);
       if (jsonRows.length === 0) throw new Error("No data rows found in the file.");
 
       const headerSet = new Set<string>();
@@ -279,12 +272,20 @@ export default function MemberImportPage() {
     });
 
   const callBulkImport = async (dryRun: boolean): Promise<ImportResult> => {
-    const payload = { members: buildPayload(), dryRun };
-    const result = await api.post<{ created: number; errors: Array<{ row: number; message: string }>; dryRun: boolean }>(
-      "/members/bulk-import",
-      payload
-    );
-    return { created: result.created, errors: result.errors };
+    const members = buildPayload();
+    const result: ImportResult = { created: 0, errors: [] };
+    for (let offset = 0; offset < members.length; offset += 100) {
+      let batch: ImportResult;
+      try { batch = await api.post<ImportResult>("/members/bulk-import", { members: members.slice(offset, offset + 100), dryRun }); }
+      catch (error) {
+        if (dryRun) throw error;
+        result.errors.push({ row: offset + 1, message: `Import stopped after ${offset} processed rows (${result.created} created). Rows ${offset + 1} onward need review before retrying; the last batch may have partially completed.` });
+        return result;
+      }
+      result.created += batch.created;
+      result.errors.push(...batch.errors.map((error) => ({ ...error, row: error.row + offset })));
+    }
+    return result;
   };
 
   const handleDryRun = async () => {
@@ -461,7 +462,7 @@ export default function MemberImportPage() {
                 </div>
                 <input
                   type="file"
-                  accept=".csv,.xlsx,.xls"
+                  accept=".csv,.xlsx"
                   className="hidden"
                   disabled={parsing}
                   onChange={(e) => {
@@ -473,7 +474,7 @@ export default function MemberImportPage() {
               </label>
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-                Only spreadsheet files (.csv, .xlsx, .xls) are accepted — other
+                Only spreadsheet files (.csv, .xlsx; up to 5 MB and 10,000 rows) are accepted — other
                 formats are rejected automatically.
               </p>
             </CardContent>

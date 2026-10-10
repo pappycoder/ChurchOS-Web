@@ -130,8 +130,8 @@ function invalidateAppointments(qc: ReturnType<typeof useQueryClient>) {
 export function useAppointments(params: ListAppointmentsParams = {}) {
   return useQuery({
     queryKey: ["appointments-list", params],
-    queryFn: () =>
-      api.get<AppointmentListResponse>(`/appointments${buildAppointmentQuery(params)}`),
+    queryFn: ({ signal }) =>
+      api.get<AppointmentListResponse>(`/appointments${buildAppointmentQuery(params)}`, { signal }),
   });
 }
 
@@ -139,8 +139,8 @@ export function useAppointments(params: ListAppointmentsParams = {}) {
 export function useAppointment(id: string | null) {
   return useQuery({
     queryKey: ["appointment-detail", id],
-    queryFn: async () => {
-      const res = await api.get<{ appointment: Appointment }>(`/appointments/${id}`);
+    queryFn: async ({ signal }) => {
+      const res = await api.get<{ appointment: Appointment }>(`/appointments/${id}`, { signal });
       return res.appointment;
     },
     enabled: !!id,
@@ -162,9 +162,9 @@ export function useAppointmentContacts(
   const qs = query.toString();
   return useQuery({
     queryKey: ["appointment-contacts", params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<AppointmentContactsResponse>(
-        `/appointments/contacts${qs ? `?${qs}` : ""}`
+        `/appointments/contacts${qs ? `?${qs}` : ""}`, { signal }
       ),
     staleTime: 30_000,
   });

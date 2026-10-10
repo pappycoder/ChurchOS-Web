@@ -32,7 +32,7 @@ export default function AnalyticsOverviewPage() {
       />
 
       {query.error ? (
-        <ErrorState title="Failed to load analytics." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load analytics." />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -264,7 +264,7 @@ export default function FollowUpBoardPage() {
             { label: "Follow-Up" },
           ]}
         />
-        <ErrorState title="Failed to load the board." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load the board." />
       </div>
     );
   }

@@ -33,7 +33,7 @@ export default function AnalyticsAttendancePage() {
       />
 
       {query.error ? (
-        <ErrorState title="Failed to load attendance analytics." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load attendance analytics." />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">

@@ -142,8 +142,8 @@ export function getRoleLabels(roles: string[]): string {
 export function useBranches() {
   return useQuery({
     queryKey: ["branches"],
-    queryFn: async () => {
-      const res = await api.get<BranchListResponse>("/branches?limit=100");
+    queryFn: async ({ signal }) => {
+      const res = await api.get<BranchListResponse>("/branches?limit=100", { signal });
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -166,14 +166,14 @@ export function useUsers(params: ListUsersParams = {}) {
 
   return useQuery({
     queryKey: ["admin-users", params],
-    queryFn: () => api.get<UserListResponse>(path),
+    queryFn: ({ signal }) => api.get<UserListResponse>(path, { signal }),
   });
 }
 
 export function useUser(profileId: string) {
   return useQuery({
     queryKey: ["admin-user", profileId],
-    queryFn: () => api.get<UserProfile>(`/profiles/${profileId}`),
+    queryFn: ({ signal }) => api.get<UserProfile>(`/profiles/${profileId}`, { signal }),
     enabled: !!profileId,
   });
 }

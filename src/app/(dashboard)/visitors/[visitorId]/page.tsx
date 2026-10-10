@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -12,7 +14,6 @@ import {
   User,
   StickyNote,
   Tag,
-  AlertTriangle,
   Repeat,
   Archive,
   RotateCcw,
@@ -160,13 +161,7 @@ export default function VisitorDetailPage({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Visitors
         </Button>
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-muted-foreground">Visitor not found.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState />
       </div>
     );
   }

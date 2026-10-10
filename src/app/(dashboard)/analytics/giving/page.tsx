@@ -72,7 +72,7 @@ export default function AnalyticsGivingPage() {
       />
 
       {query.error ? (
-        <ErrorState title="Failed to load giving analytics." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load giving analytics." />
       ) : (
         <>
           {/* Filters */}

@@ -280,7 +280,7 @@ export default function UsersPage() {
           title="Users"
           breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "User management" }, { label: "Users" }]}
         />
-        <ErrorState title="Failed to load users." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load users." />
       </div>
     );
   }

@@ -173,8 +173,8 @@ export function useAttendanceServices(
 ) {
   return useQuery({
     queryKey: ["attendance-services", params],
-    queryFn: () =>
-      api.get<PaginatedResponse<ChurchService>>(`/services${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<PaginatedResponse<ChurchService>>(`/services${buildQuery({ ...params })}`, { signal }),
     enabled: options.enabled ?? true,
   });
 }
@@ -182,7 +182,7 @@ export function useAttendanceServices(
 export function useService(serviceId: string) {
   return useQuery({
     queryKey: ["attendance-service", serviceId],
-    queryFn: () => api.get<ChurchService>(`/services/${serviceId}`),
+    queryFn: ({ signal }) => api.get<ChurchService>(`/services/${serviceId}`, { signal }),
     enabled: !!serviceId,
   });
 }
@@ -250,8 +250,8 @@ export function useRestoreArchiveService() {
 export function useAttendanceRecords(params: ListAttendanceParams = {}) {
   return useQuery({
     queryKey: ["attendance-records", params],
-    queryFn: () =>
-      api.get<PaginatedResponse<AttendanceRecord>>(`/attendance${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<PaginatedResponse<AttendanceRecord>>(`/attendance${buildQuery({ ...params })}`, { signal }),
   });
 }
 
@@ -287,8 +287,8 @@ export function useDeleteAttendance() {
 export function useAttendanceSummary(params: { startDate?: string; endDate?: string; branchId?: string } = {}) {
   return useQuery({
     queryKey: ["attendance-summary", params],
-    queryFn: () =>
-      api.get<AttendanceSummary>(`/attendance/summary${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<AttendanceSummary>(`/attendance/summary${buildQuery({ ...params })}`, { signal }),
   });
 }
 
@@ -297,17 +297,17 @@ export function useAttendanceTrends(
 ) {
   return useQuery({
     queryKey: ["attendance-trends", params],
-    queryFn: () =>
-      api.get<AttendanceTrendPoint[]>(`/attendance/trends${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<AttendanceTrendPoint[]>(`/attendance/trends${buildQuery({ ...params })}`, { signal }),
   });
 }
 
 export function useServiceAttendance(serviceId: string) {
   return useQuery({
     queryKey: ["service-attendance", serviceId],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<{ data: AttendanceRecord[]; total: number }>(
-        `/attendance/by-service/${serviceId}`
+        `/attendance/by-service/${serviceId}`, { signal }
       ),
     enabled: !!serviceId,
   });

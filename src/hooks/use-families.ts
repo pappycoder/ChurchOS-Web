@@ -77,14 +77,14 @@ function invalidateFamilyCaches(
 export function useFamiliesList(params: ListFamiliesParams = {}) {
   return useQuery({
     queryKey: ["families-list", params],
-    queryFn: () => api.get<FamilyListResponse>(buildListPath(params)),
+    queryFn: ({ signal }) => api.get<FamilyListResponse>(buildListPath(params), { signal }),
   });
 }
 
 export function useFamily(familyId: string) {
   return useQuery({
     queryKey: ["family", familyId],
-    queryFn: () => api.get<Family>(`/families/${familyId}`),
+    queryFn: ({ signal }) => api.get<Family>(`/families/${familyId}`, { signal }),
     enabled: !!familyId,
   });
 }

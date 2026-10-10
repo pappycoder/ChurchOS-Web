@@ -42,7 +42,7 @@ export default function AnalyticsMembersPage() {
       />
 
       {query.error ? (
-        <ErrorState title="Failed to load member analytics." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load member analytics." />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-3">

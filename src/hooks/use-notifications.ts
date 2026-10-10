@@ -77,8 +77,8 @@ export function useNotificationsList(
   const qs = query.toString();
   return useQuery({
     queryKey: ["notifications", params],
-    queryFn: () =>
-      api.get<NotificationsListResponse>(`/notifications${qs ? `?${qs}` : ""}`),
+    queryFn: ({ signal }) =>
+      api.get<NotificationsListResponse>(`/notifications${qs ? `?${qs}` : ""}`, { signal }),
     enabled: options.enabled ?? true,
   });
 }
@@ -86,7 +86,7 @@ export function useNotificationsList(
 export function useNotification(notificationId: string | null) {
   return useQuery({
     queryKey: ["notifications", "detail", notificationId],
-    queryFn: () => api.get<Notification>(`/notifications/${notificationId}`),
+    queryFn: ({ signal }) => api.get<Notification>(`/notifications/${notificationId}`, { signal }),
     enabled: !!notificationId,
   });
 }
@@ -94,7 +94,7 @@ export function useNotification(notificationId: string | null) {
 export function useNotificationsUnread() {
   return useQuery({
     queryKey: ["notifications-unread"],
-    queryFn: () => api.get<{ count: number }>("/notifications/unread-count"),
+    queryFn: ({ signal }) => api.get<{ count: number }>("/notifications/unread-count", { signal }),
   });
 }
 

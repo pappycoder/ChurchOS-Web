@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-10 — Audit implementation.** HttpOnly browser sessions through a same-origin API proxy; verified restore, serialized refresh and account-cache isolation; private API/navigation/RSC excluded from service-worker caching. Abortable queries, actual activity indicators, in-place retry, shared image placeholders/fallbacks, keyboard table scrolling, skip navigation and draft guards. Spreadsheet worker limits, sequential imports with partial-failure feedback, CSV formula escaping and lazy ticket PDFs. Telemetry redaction, opt-in masked replay and production debug blocking. Updated Next/security/tooling dependencies; preserved the seeded login selector. Rollout notes: `docs/AUDIT-IMPLEMENTATION.md` and backend `docs/AUDIT-ROLLOUT.md`.
+
+
 - **2026-10-10: Backend-managed authenticator 2FA.** OTPAuth TOTP and locally generated QR enrollment, AES-256-GCM encrypted secrets with a dedicated `TWO_FACTOR_ENCRYPTION_KEY`, atomic replay protection, hashed one-use recovery codes and regeneration, and five-minute password-session challenges. Protected APIs require a backend approval bound to the verified Supabase session ID (12-hour maximum, stable across refresh); Supabase AAL2 alone cannot bypass this. Existing email/Supabase factors have a verification-before-enrollment migration path. Shared recovery-code UI requires saving codes before continuing. Apply migration `20261010180000_backend_authenticator`, configure the key, and deploy backend/web together; no permission seed needed.
 
 

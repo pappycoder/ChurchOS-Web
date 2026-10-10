@@ -190,15 +190,15 @@ function invalidateFormCaches(qc: ReturnType<typeof useQueryClient>) {
 export function useFormsList(params: ListFormsParams = {}) {
   return useQuery({
     queryKey: ["forms-list", params],
-    queryFn: () =>
-      api.get<PaginatedResponse<Form>>(`/forms${buildQuery(params)}`),
+    queryFn: ({ signal }) =>
+      api.get<PaginatedResponse<Form>>(`/forms${buildQuery(params)}`, { signal }),
   });
 }
 
 export function useForm(formId: string | undefined) {
   return useQuery({
     queryKey: ["form", formId],
-    queryFn: () => api.get<Form>(`/forms/${formId}`),
+    queryFn: ({ signal }) => api.get<Form>(`/forms/${formId}`, { signal }),
     enabled: !!formId,
   });
 }
@@ -206,9 +206,9 @@ export function useForm(formId: string | undefined) {
 export function useFormSubmissions(formId: string | undefined, params: ListSubmissionsParams = {}) {
   return useQuery({
     queryKey: ["form-submissions", formId, params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<PaginatedResponse<FormSubmission>>(
-        `/forms/${formId}/submissions${buildQuery(params)}`,
+        `/forms/${formId}/submissions${buildQuery(params)}`, { signal },
       ),
     enabled: !!formId,
   });
@@ -220,7 +220,7 @@ export function useFormSubmission(
 ) {
   return useQuery({
     queryKey: ["form-submission", formId, submissionId],
-    queryFn: () => api.get<FormSubmission>(`/forms/${formId}/submissions/${submissionId}`),
+    queryFn: ({ signal }) => api.get<FormSubmission>(`/forms/${formId}/submissions/${submissionId}`, { signal }),
     enabled: !!formId && !!submissionId,
   });
 }

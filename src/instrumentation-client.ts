@@ -1,9 +1,10 @@
+import { redactTelemetry } from "@/lib/telemetry-privacy";
 import * as Sentry from "@sentry/nextjs";
 
 export function register() {
 
   Sentry.init({
-    dsn: "https://a8eb4e349c9519b2bd660f680ba5cfed@o4510969852395520.ingest.de.sentry.io/4512009714139216",
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
     // Only capture in production (or when explicitly enabled) — dev stays quiet,
     // but a real DSN set for a prod build will light up as expected.
     // NOTE: client bundles only ever see `NEXT_PUBLIC_*` env vars (the plain
@@ -24,17 +25,13 @@ export function register() {
 
     // Session Replay — enabled per-project request. Metadata is masked by
     // default to avoid capturing sensitive member/visitor details.
-    replaysOnErrorSampleRate: 1.0,
-    replaysSessionSampleRate: 0.2,
-    integrations: [Sentry.replayIntegration()],
+    replaysOnErrorSampleRate: process.env.NEXT_PUBLIC_SENTRY_REPLAY === "1" ? 0.1 : 0,
+    replaysSessionSampleRate: 0,
+    integrations: process.env.NEXT_PUBLIC_SENTRY_REPLAY === "1" ? [Sentry.replayIntegration({ maskAllText: true, maskAllInputs: true, blockAllMedia: true })] : [],
 
     // Privacy: never send the raw text/inputs or media to Sentry.
-    beforeSend(event) {
-      if (event.request) {
-        delete event.request.cookies;
-      }
-      return event;
-    },
+    beforeSend: redactTelemetry,
+    beforeSendTransaction: redactTelemetry,
   });
 }
 

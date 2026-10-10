@@ -67,7 +67,7 @@ export function useBranchesList(
 ) {
   return useQuery({
     queryKey: ["branches-list", params],
-    queryFn: () => api.get<BranchListResponse>(buildListPath(params)),
+    queryFn: ({ signal }) => api.get<BranchListResponse>(buildListPath(params), { signal }),
     enabled: options.enabled ?? true,
   });
 }
@@ -75,7 +75,7 @@ export function useBranchesList(
 export function useBranch(branchId: string) {
   return useQuery({
     queryKey: ["branch", branchId],
-    queryFn: () => api.get<Branch>(`/branches/${branchId}`),
+    queryFn: ({ signal }) => api.get<Branch>(`/branches/${branchId}`, { signal }),
     enabled: !!branchId,
   });
 }

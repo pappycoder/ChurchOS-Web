@@ -1,5 +1,7 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
+
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,7 +12,6 @@ import {
   Crown,
   UserPlus,
   UserMinus,
-  AlertTriangle,
   Archive,
   RotateCcw,
 } from "lucide-react";
@@ -99,13 +100,7 @@ export default function FamilyDetailPage({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Families
         </Button>
-        <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-muted-foreground">Family not found.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState />
       </div>
     );
   }

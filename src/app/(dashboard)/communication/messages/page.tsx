@@ -138,7 +138,7 @@ function MessagesListContent() {
           title="Messages"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Messages" }]}
         />
-        <ErrorState title="Failed to load messages." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load messages." />
       </div>
     );
   }

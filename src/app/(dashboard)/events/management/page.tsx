@@ -67,7 +67,6 @@ import { useCreateVisitor } from "@/hooks/use-visitors";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useIsTicketMember } from "@/hooks/use-is-member";
-import { generateTicketPDF } from "@/lib/ticket-pdf";
 
 // ─── Status Badge ─────────────────────────────────────────
 
@@ -662,7 +661,7 @@ function TicketRow({ ticket }: { ticket: AllTicketItem }) {
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await generateTicketPDF(ticket);
+      await (await import("@/lib/ticket-pdf")).generateTicketPDF(ticket);
       toast.success("Ticket PDF downloaded");
     } catch {
       toast.error("Failed to generate PDF");

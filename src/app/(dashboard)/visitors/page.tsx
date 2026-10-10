@@ -267,7 +267,7 @@ export default function VisitorsPage() {
           title="Visitors"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Visitors" }]}
         />
-        <ErrorState title="Failed to load visitors." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load visitors." />
       </div>
     );
   }

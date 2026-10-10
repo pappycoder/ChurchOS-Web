@@ -128,15 +128,15 @@ function invalidateBroadcastCaches(qc: ReturnType<typeof useQueryClient>) {
 export function useBroadcastsList(params: ListBroadcastsParams = {}) {
   return useQuery({
     queryKey: ["broadcasts-list", params],
-    queryFn: () =>
-      api.get<BroadcastListResponse>(`/broadcasts${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<BroadcastListResponse>(`/broadcasts${buildQuery({ ...params })}`, { signal }),
   });
 }
 
 export function useBroadcast(broadcastId: string) {
   return useQuery({
     queryKey: ["broadcasts-detail", broadcastId],
-    queryFn: () => api.get<Broadcast>(`/broadcasts/${broadcastId}`),
+    queryFn: ({ signal }) => api.get<Broadcast>(`/broadcasts/${broadcastId}`, { signal }),
     enabled: !!broadcastId,
   });
 }

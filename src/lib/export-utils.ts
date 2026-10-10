@@ -5,6 +5,7 @@ export interface ExportColumn {
 }
 
 function escapeCSV(value: string): string {
+  if (/^[\s\u0000-\u001f]*[=+@-]/.test(value)) value = `'${value}`;
   if (value.includes(",") || value.includes('"') || value.includes("\n")) {
     return `"${value.replace(/"/g, '""')}"`;
   }

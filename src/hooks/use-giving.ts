@@ -156,9 +156,9 @@ export function useGivingCategories(
 ) {
   return useQuery({
     queryKey: ["giving-categories", params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<PaginatedResponse<GivingCategory>>(
-        `/giving/categories${buildQuery({ ...params })}`
+        `/giving/categories${buildQuery({ ...params })}`, { signal }
       ),
     enabled: options.enabled ?? true,
   });
@@ -214,9 +214,9 @@ export function useRestoreArchiveGivingCategory() {
 export function useGivingTransactions(params: ListGivingTransactionsParams = {}) {
   return useQuery({
     queryKey: ["giving-transactions", params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<PaginatedResponse<GivingTransaction>>(
-        `/giving/transactions${buildQuery({ ...params })}`
+        `/giving/transactions${buildQuery({ ...params })}`, { signal }
       ),
   });
 }
@@ -224,8 +224,8 @@ export function useGivingTransactions(params: ListGivingTransactionsParams = {})
 export function useGivingSummary(params: Pick<ListGivingTransactionsParams, "branchId"> = {}) {
   return useQuery({
     queryKey: ["giving-summary", params],
-    queryFn: () =>
-      api.get<GivingSummary>(`/giving/transactions/summary${buildQuery(params)}`),
+    queryFn: ({ signal }) =>
+      api.get<GivingSummary>(`/giving/transactions/summary${buildQuery(params)}`, { signal }),
     staleTime: 60_000,
   });
 }
@@ -240,7 +240,7 @@ export function useGivingSummary(params: Pick<ListGivingTransactionsParams, "bra
 export function useGivingTransactionsAll(params: ListGivingTransactionsParams = {}) {
   return useQuery({
     queryKey: ["giving-transactions-all", params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchAllPages<GivingTransaction>((page) =>
         api.get<PaginatedResponse<GivingTransaction>>(
           listUrl("/giving/transactions", {
@@ -248,7 +248,7 @@ export function useGivingTransactionsAll(params: ListGivingTransactionsParams = 
             ...params,
             page,
             limit: 200,
-          })
+          }), { signal }
         )
       ),
   });
@@ -278,9 +278,9 @@ export function useSendReceipt(transactionId: string) {
 export function useRecurringGiving(params: { page?: number; limit?: number; isActive?: boolean; branchId?: string } = {}) {
   return useQuery({
     queryKey: ["giving-recurring", params],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       api.get<PaginatedResponse<RecurringGiving>>(
-        `/giving/recurring${buildQuery({ ...params })}`
+        `/giving/recurring${buildQuery({ ...params })}`, { signal }
       ),
   });
 }

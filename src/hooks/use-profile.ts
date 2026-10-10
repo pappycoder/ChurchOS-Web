@@ -53,8 +53,8 @@ export interface UpdateCurrentProfileInput {
 }
 
 /** Shared fetcher so the login flow can prime the same cache entry. */
-export function fetchCurrentProfile(): Promise<CurrentProfile> {
-  return api.get<CurrentProfile>("/profiles/me");
+export function fetchCurrentProfile(context?: { signal?: AbortSignal }): Promise<CurrentProfile> {
+  return api.get<CurrentProfile>("/profiles/me", { signal: context?.signal });
 }
 
 export function useCurrentProfile() {
@@ -106,7 +106,7 @@ export interface AuthenticatorSetup { factorId: string; qrCode: string; secret: 
 export interface AuthenticatorFactor { id: string; name?: string; status: string; recoveryCodesRemaining?: number }
 
 export function useAuthenticatorFactors() {
-  return useQuery({ queryKey: ["authenticator-factors"], queryFn: () => api.get<AuthenticatorFactor[]>("/profiles/me/2fa/factors") });
+  return useQuery({ queryKey: ["authenticator-factors"], queryFn: ({ signal }) => api.get<AuthenticatorFactor[]>("/profiles/me/2fa/factors", { signal }) });
 }
 
 export function useSetupAuthenticator() {

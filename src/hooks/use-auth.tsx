@@ -4,14 +4,9 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
-import { api, refreshSession, setUnauthorizedHandler } from "@/lib/api";
+import { api, refreshSession, setUnauthorizedHandler, advanceSessionGeneration } from "@/lib/api";
 import { fetchCurrentProfile } from "@/hooks/use-profile";
-import {
-  clearTokens,
-  getAccessToken,
-  parseJwt,
-  setTokens,
-} from "@/lib/session";
+import { clearTokens } from "@/lib/session";
 import type {
   LoginInput,
   LoginResponse,
@@ -21,23 +16,6 @@ import type {
   ResetPasswordInput,
   AuthUser,
 } from "@/types/auth";
-
-// Refresh the access token this many seconds before it would expire, so the
-// still-valid access token authenticates the /auth/refresh call and the
-// session is extended without any user-visible disruption.
-const REFRESH_BUFFER_SECONDS = 60;
-
-function getUserFromToken(token: string): AuthUser | null {
-  const payload = parseJwt(token);
-  if (!payload) return null;
-  return {
-    userId: (payload.sub as string) || "",
-    email: (payload.email as string) || "",
-    profile: payload.profile
-      ? (payload.profile as AuthUser["profile"])
-      : undefined,
-  };
-}
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -62,6 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const loggingOutRef = React.useRef(false);
+  const sessionGeneration = React.useRef(0);
 
   const clearRefreshTimer = React.useCallback(() => {
     if (timerRef.current !== null) {
@@ -72,11 +51,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Shared teardown for both explicit logout and forced session expiry.
   const handleSessionEnd = React.useCallback(
-    (opts?: { showToast: boolean; message?: string }) => {
+    async (opts?: { showToast: boolean; message?: string }) => {
       if (loggingOutRef.current) return;
       loggingOutRef.current = true;
+      sessionGeneration.current++;
+      advanceSessionGeneration();
       clearRefreshTimer();
-      clearTokens();
+      await queryClient.cancelQueries();
+      try { await clearTokens(); } catch { toast.error("Unable to clear the session. Please reload."); }
+      setIsLoading(false);
       setTokenState(null);
       setUser(null);
       queryClient.clear();
@@ -97,68 +80,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, [handleSessionEnd]);
 
-  // Schedule a silent refresh just before the access token expires, if the
-  // session is still recoverable, otherwise end the session.
-  const scheduleRefresh = React.useCallback(
-    (expiresAt?: number | null) => {
-      clearRefreshTimer();
-      const expSeconds = expiresAt ?? null;
-      if (!expSeconds) return;
-
-      const delayMs = Math.max(
-        (expSeconds - REFRESH_BUFFER_SECONDS) * 1000 - Date.now(),
-        0
-      );
-      timerRef.current = setTimeout(async () => {
-        const refreshed = await refreshSession();
-        if (refreshed?.expiresAt) {
-          const newToken = getAccessToken();
-          if (newToken) {
-            setTokenState(newToken);
-          }
-          scheduleRefresh(refreshed.expiresAt);
-        } else {
-          // Refresh token no longer valid — the session cannot be extended.
-          handleSessionEnd({ showToast: true });
-        }
-      }, delayMs);
-    },
-    [clearRefreshTimer, handleSessionEnd]
-  );
-
+  // Restore through the verified backend; an expired access cookie can refresh.
   React.useEffect(() => {
-    const existingToken = getAccessToken();
-    if (existingToken) {
-      const parsed = parseJwt(existingToken);
-      if (parsed && parsed.exp && (parsed.exp as number) * 1000 > Date.now()) {
-        setTokenState(existingToken);
-        setUser(getUserFromToken(existingToken));
-        const exp = parsed.exp as number;
-        scheduleRefresh(exp);
-      } else {
-        clearTokens();
-        setTokenState(null);
-        setUser(null);
-      }
+    let active = true;
+    const generation = sessionGeneration.current;
+    async function restore() {
+      try {
+        const presence = await fetch("/api/session", { headers: { "X-ChurchOS-Client": "web" }, cache: "no-store" });
+        if (!presence.ok) throw new Error("Unable to check session");
+        if (!(await presence.json()).hasSession) {
+          if (active && generation === sessionGeneration.current && !["/login", "/register", "/forgot-password", "/reset-password"].includes(window.location.pathname)) router.replace("/login");
+          return;
+        }
+        let session;
+        try { session = await api.get<{ userId: string; email: string }>("/auth/session", { skipAuth: true }); }
+        catch (error) {
+          if ((error as { statusCode?: number }).statusCode !== 401) throw error;
+          const refreshed = await refreshSession();
+          if (!refreshed) {
+            if (active && generation === sessionGeneration.current && !["/login", "/register", "/forgot-password", "/reset-password"].includes(window.location.pathname)) router.replace("/login");
+            return;
+          }
+          session = await api.get<{ userId: string; email: string }>("/auth/session", { skipAuth: true });
+        }
+        if (active && generation === sessionGeneration.current) { setUser(session); setTokenState("server-session"); }
+      } catch (error) {
+        if (active && generation === sessionGeneration.current && (error as { statusCode?: number }).statusCode !== 401) {
+          toast.error("Unable to restore your session. Check your connection and reload.");
+        }
+      } finally { if (active && generation === sessionGeneration.current) setIsLoading(false); }
     }
-    setIsLoading(false);
-    return clearRefreshTimer;
-  }, [scheduleRefresh, clearRefreshTimer]);
+    void restore();
+    return () => { active = false; clearRefreshTimer(); };
+  }, [clearRefreshTimer, router]);
 
   const finalizeLogin = React.useCallback(
     async (res: LoginResponse) => {
-      if (!res.accessToken) return;
+      if (!res.sessionEstablished) return;
+      sessionGeneration.current++;
+      advanceSessionGeneration();
       loggingOutRef.current = false;
-      setTokens(res.accessToken, res.refreshToken);
-      setTokenState(res.accessToken);
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      setIsLoading(false);
+      setTokenState("server-session");
       setUser({
         userId: res.userId,
         email: res.email ?? "",
         profile: res.profile,
       });
-      const parsed = parseJwt(res.accessToken);
-      const exp = res.expiresAt ?? (parsed?.exp as number | undefined) ?? null;
-      scheduleRefresh(exp);
       toast.success("Welcome back!", {
         description: `Signed in as ${res.email ?? ""}`,
       });
@@ -172,9 +142,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // Non-fatal: the dashboard will fetch on mount if priming fails.
       }
-      router.push("/dashboard");
+      const destination = new URLSearchParams(window.location.search).get("returnTo");
+      router.push(destination?.startsWith("/") && !destination.startsWith("//") && !destination.startsWith("/api/") ? destination : "/dashboard");
     },
-    [router, queryClient, scheduleRefresh]
+    [router, queryClient]
   );
 
   const login = React.useCallback(
@@ -216,7 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Logout even if the API call fails
     }
-    handleSessionEnd({ showToast: false });
+    await handleSessionEnd({ showToast: false });
     toast.success("Logged out successfully");
   }, [handleSessionEnd]);
 

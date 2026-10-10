@@ -265,7 +265,7 @@ export default function AttendanceServicesPage() {
             { label: "Services" },
           ]}
         />
-        <ErrorState title="Failed to load services." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load services." />
       </div>
     );
   }

@@ -143,8 +143,8 @@ function invalidateMediaAssetCaches(qc: ReturnType<typeof useQueryClient>, asset
 export function useMediaLibrary(params: ListMediaParams = {}) {
   return useQuery({
     queryKey: ["media-library", params],
-    queryFn: () =>
-      api.get<MediaLibraryResponse>(`/media/library${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<MediaLibraryResponse>(`/media/library${buildQuery({ ...params })}`, { signal }),
   });
 }
 
@@ -156,9 +156,9 @@ export function useMediaLibrary(params: ListMediaParams = {}) {
  * stay in lockstep, or a prefetched entry can poison the mounted page
  * (the `/media` "eA.map is not a function" boundary crash).
  */
-export async function fetchMediaFolders(): Promise<MediaFolderSummary[]> {
+export async function fetchMediaFolders(context?: { signal?: AbortSignal }): Promise<MediaFolderSummary[]> {
   const res = await api.get<{ data: MediaFolderSummary[] }>(
-    "/media/library/folders"
+    "/media/library/folders", { signal: context?.signal }
   );
   return res.data;
 }
@@ -176,7 +176,7 @@ export function useMediaFolders() {
 export function useMediaAsset(assetId: string) {
   return useQuery({
     queryKey: ["media-asset", assetId],
-    queryFn: () => api.get<MediaAsset>(`/media/library/${assetId}`),
+    queryFn: ({ signal }) => api.get<MediaAsset>(`/media/library/${assetId}`, { signal }),
     enabled: !!assetId,
   });
 }

@@ -33,6 +33,7 @@ export interface RegisterResponse {
 }
 
 export interface LoginResponse {
+  sessionEstablished?: boolean;
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: number;
@@ -55,7 +56,8 @@ export interface LoginResponse {
 }
 
 export interface RefreshResponse {
-  accessToken: string;
+  sessionEstablished: boolean;
+  accessToken?: string;
   refreshToken?: string;
   expiresAt: number;
 }
@@ -67,6 +69,8 @@ export interface AuthUser {
 }
 
 export interface AuthError {
+  retryAfterSeconds?: number;
+  details?: unknown;
   message: string;
   statusCode: number;
 }

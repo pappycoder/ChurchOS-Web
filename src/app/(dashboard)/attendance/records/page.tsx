@@ -147,7 +147,7 @@ export default function AttendanceRecordsPage() {
             { label: "Records" },
           ]}
         />
-        <ErrorState title="Failed to load attendance records." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load attendance records." />
       </div>
     );
   }

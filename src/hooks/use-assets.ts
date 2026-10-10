@@ -301,7 +301,7 @@ export function useAssetsList(params: AssetsListParams = {}) {
   });
   return useQuery({
     queryKey: ["assets-list", params],
-    queryFn: () => api.get<AssetsListResponse>(`/assets${query}`),
+    queryFn: ({ signal }) => api.get<AssetsListResponse>(`/assets${query}`, { signal }),
     staleTime: 30 * 1000,
     placeholderData: (prev) => prev,
   });
@@ -310,7 +310,7 @@ export function useAssetsList(params: AssetsListParams = {}) {
 export function useAsset(assetId: string | undefined) {
   return useQuery({
     queryKey: ["assets", assetId],
-    queryFn: () => api.get<Asset>(`/assets/${assetId}`),
+    queryFn: ({ signal }) => api.get<Asset>(`/assets/${assetId}`, { signal }),
     enabled: Boolean(assetId),
     staleTime: 60 * 1000,
   });
@@ -319,7 +319,7 @@ export function useAsset(assetId: string | undefined) {
 export function useAssetStats(branchId?: string) {
   return useQuery({
     queryKey: ["assets-stats", branchId],
-    queryFn: () => api.get<AssetSummary>(`/assets/stats${branchId ? `?branchId=${encodeURIComponent(branchId)}` : ""}`),
+    queryFn: ({ signal }) => api.get<AssetSummary>(`/assets/stats${branchId ? `?branchId=${encodeURIComponent(branchId)}` : ""}`, { signal }),
     staleTime: 60 * 1000,
   });
 }
@@ -327,8 +327,8 @@ export function useAssetStats(branchId?: string) {
 export function useAssetCategories(archived?: boolean) {
   return useQuery({
     queryKey: ["assets-categories", archived ?? false],
-    queryFn: () =>
-      api.get<AssetCategory[]>(`/assets/categories${archived ? "?archived=true" : ""}`),
+    queryFn: ({ signal }) =>
+      api.get<AssetCategory[]>(`/assets/categories${archived ? "?archived=true" : ""}`, { signal }),
     staleTime: 5 * 60 * 1000,
   });
 }
@@ -336,7 +336,7 @@ export function useAssetCategories(archived?: boolean) {
 export function useAssetMaintenance(assetId: string | undefined) {
   return useQuery({
     queryKey: ["assets", assetId, "maintenance"],
-    queryFn: () => api.get<AssetMaintenance[]>(`/assets/${assetId}/maintenance`),
+    queryFn: ({ signal }) => api.get<AssetMaintenance[]>(`/assets/${assetId}/maintenance`, { signal }),
     enabled: Boolean(assetId),
     staleTime: 60 * 1000,
   });
@@ -345,7 +345,7 @@ export function useAssetMaintenance(assetId: string | undefined) {
 export function useAssetLoans(assetId: string | undefined) {
   return useQuery({
     queryKey: ["assets", assetId, "loans"],
-    queryFn: () => api.get<AssetLoan[]>(`/assets/${assetId}/loans`),
+    queryFn: ({ signal }) => api.get<AssetLoan[]>(`/assets/${assetId}/loans`, { signal }),
     enabled: Boolean(assetId),
     staleTime: 60 * 1000,
   });
@@ -354,7 +354,7 @@ export function useAssetLoans(assetId: string | undefined) {
 export function useAssetDepreciationSummary(assetId: string | undefined) {
   return useQuery({
     queryKey: ["assets", assetId, "depreciation"],
-    queryFn: () => api.get<DepreciationSummary>(`/assets/${assetId}/depreciation/summary`),
+    queryFn: ({ signal }) => api.get<DepreciationSummary>(`/assets/${assetId}/depreciation/summary`, { signal }),
     enabled: Boolean(assetId),
     staleTime: 60 * 1000,
   });
@@ -363,7 +363,7 @@ export function useAssetDepreciationSummary(assetId: string | undefined) {
 export function useAssetQr(assetId: string | undefined) {
   return useQuery({
     queryKey: ["assets", assetId, "qr"],
-    queryFn: () => api.get<QrData>(`/assets/${assetId}/qr`),
+    queryFn: ({ signal }) => api.get<QrData>(`/assets/${assetId}/qr`, { signal }),
     enabled: Boolean(assetId),
     staleTime: 60 * 1000,
   });

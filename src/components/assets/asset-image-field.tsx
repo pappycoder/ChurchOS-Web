@@ -1,5 +1,9 @@
 "use client";
 
+import { LoadingIndicator } from "@/components/shared/loading-indicator";
+
+import { ContentImage } from "@/components/shared/content-image";
+
 import * as React from "react";
 import { toast } from "@/lib/toast";
 import { Image as ImageIcon, Link, Loader2, Upload, X } from "lucide-react";
@@ -21,7 +25,6 @@ type Mode = "upload" | "url";
 export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
   const [mode, setMode] = React.useState<Mode>("upload");
   const [urlInput, setUrlInput] = React.useState("");
-  const [progress, setProgress] = React.useState(0);
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
@@ -46,19 +49,13 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-    setProgress(0);
     try {
-      const progressTimer = setInterval(() => {
-        setProgress((p) => Math.min(p + 10, 90));
-      }, 200);
 
       const res = await uploadMutation.mutateAsync({
         file: selectedFile,
         folder: ASSET_IMAGE_FOLDER,
       });
 
-      clearInterval(progressTimer);
-      setProgress(100);
       onChange(res.url);
       setSelectedFile(null);
       toast.success("Image uploaded");
@@ -66,7 +63,6 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
       toast.error("Failed to upload image", {
         description: err instanceof Error ? err.message : "Please try again.",
       });
-      setProgress(0);
     }
   };
 
@@ -96,8 +92,7 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
         <Label>Asset Image</Label>
         <div className="overflow-hidden rounded-md border bg-muted/40">
           <div className="border-b">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <ContentImage
               src={value}
               alt="Asset image preview"
               className="max-h-40 w-full object-cover"
@@ -183,17 +178,7 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
                   <X className="h-3 w-3" />
                 </Button>
               </div>
-              {uploading && (
-                <div className="space-y-1">
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">Uploading...</p>
-                </div>
-              )}
+              {uploading && <LoadingIndicator label="Uploading file" size="sm" />}
               <Button
                 type="button"
                 variant="outline"

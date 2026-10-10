@@ -54,7 +54,7 @@ function Table({ className, children, tableId, ...props }: React.ComponentProps<
             <ColumnSelector columns={state.columns} hidden={state.hidden} onChange={state.setHidden} />
           </div>
         )}
-        <div data-slot="table-container" className="relative w-full overflow-x-auto overscroll-x-contain">
+        <div data-slot="table-container" tabIndex={0} role="region" aria-label={props["aria-label"] ?? "Scrollable data table"} className="relative w-full overflow-x-auto overscroll-x-contain rounded-b-xl outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40">
           <table data-slot="table" className={cn("w-full caption-bottom text-sm", className)} {...props}>
             {children}
           </table>

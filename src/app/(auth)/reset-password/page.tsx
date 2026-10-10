@@ -29,7 +29,10 @@ function getPasswordStrength(pw: string): { level: number; label: string } {
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
+  const [token] = React.useState(() => searchParams.get("token_hash") || searchParams.get("token") || "");
+  React.useEffect(() => {
+    if (token) window.history.replaceState(null, "", window.location.pathname);
+  }, [token]);
   const resetPasswordMutation = useResetPassword();
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");

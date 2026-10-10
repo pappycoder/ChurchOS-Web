@@ -135,7 +135,7 @@ export function periodLabel(date: string): string {
 export function useAnalyticsDashboard(params: AnalyticsDateRangeParams = {}) {
   return useQuery({
     queryKey: ["analytics", "dashboard", params],
-    queryFn: () => api.get<DashboardOverview>(`/analytics/dashboard${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<DashboardOverview>(`/analytics/dashboard${buildQuery(params)}`, { signal }),
     staleTime: 3 * 60 * 1000,
   });
 }
@@ -146,7 +146,7 @@ export function useAnalyticsGiving(
 ) {
   return useQuery({
     queryKey: ["analytics", "giving", params],
-    queryFn: () => api.get<GivingAnalytics>(`/analytics/giving${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<GivingAnalytics>(`/analytics/giving${buildQuery(params)}`, { signal }),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled ?? true,
   });
@@ -155,7 +155,7 @@ export function useAnalyticsGiving(
 export function useAnalyticsAttendance(params: AnalyticsDateRangeParams = {}) {
   return useQuery({
     queryKey: ["analytics", "attendance", params],
-    queryFn: () => api.get<AttendanceAnalytics>(`/analytics/attendance${buildQuery(params)}`),
+    queryFn: ({ signal }) => api.get<AttendanceAnalytics>(`/analytics/attendance${buildQuery(params)}`, { signal }),
     staleTime: 3 * 60 * 1000,
   });
 }
@@ -163,7 +163,7 @@ export function useAnalyticsAttendance(params: AnalyticsDateRangeParams = {}) {
 export function useAnalyticsMembers() {
   return useQuery({
     queryKey: ["analytics", "members"],
-    queryFn: () => api.get<MemberAnalytics>(`/analytics/members`),
+    queryFn: ({ signal }) => api.get<MemberAnalytics>(`/analytics/members`, { signal }),
     staleTime: 10 * 60 * 1000,
   });
 }

@@ -116,15 +116,15 @@ function invalidateTemplateCaches(qc: ReturnType<typeof useQueryClient>) {
 export function useTemplatesList(params: ListTemplatesParams = {}) {
   return useQuery({
     queryKey: ["templates-list", params],
-    queryFn: () =>
-      api.get<TemplateListResponse>(`/templates${buildQuery({ ...params })}`),
+    queryFn: ({ signal }) =>
+      api.get<TemplateListResponse>(`/templates${buildQuery({ ...params })}`, { signal }),
   });
 }
 
 export function useTemplate(templateId: string) {
   return useQuery({
     queryKey: ["templates-detail", templateId],
-    queryFn: () => api.get<Template>(`/templates/${templateId}`),
+    queryFn: ({ signal }) => api.get<Template>(`/templates/${templateId}`, { signal }),
     enabled: !!templateId,
   });
 }

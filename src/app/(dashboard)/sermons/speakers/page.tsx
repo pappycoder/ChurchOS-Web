@@ -46,7 +46,7 @@ export default function SermonsSpeakersPage() {
             { label: "Speakers" },
           ]}
         />
-        <ErrorState title="Failed to load speakers." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load speakers." />
       </div>
     );
   }

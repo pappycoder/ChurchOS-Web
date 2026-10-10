@@ -110,7 +110,7 @@ export default function AssetCategoriesPage() {
         }}
       >
         {error ? (
-          <ErrorState title="Failed to load categories." onRetry={() => window.location.reload()} />
+          <ErrorState title="Failed to load categories." />
         ) : (
           <Table>
             <TableHeader>

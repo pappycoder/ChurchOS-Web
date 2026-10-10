@@ -196,7 +196,7 @@ function SermonsListContent() {
           title="Sermons"
           breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Sermons" }]}
         />
-        <ErrorState title="Failed to load sermons." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load sermons." />
       </div>
     );
   }

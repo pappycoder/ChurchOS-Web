@@ -1,10 +1,11 @@
 "use client";
 
+import { ErrorState } from "@/components/shared/error-state";
+
 import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { format } from "date-fns";
 import {
-  AlertTriangle,
   ArrowUpDown,
   SortAsc,
   SortDesc,
@@ -116,13 +117,7 @@ export default function EngagementPage() {
             { label: "Engagement" },
           ]}
         />
-        <div className="flex flex-col items-center justify-center gap-4 py-20">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Failed to load engagement scores.</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        <ErrorState />
       </div>
     );
   }

@@ -195,7 +195,7 @@ export default function GivingRecordsPage() {
             { label: "Records" },
           ]}
         />
-        <ErrorState title="Failed to load giving records." onRetry={() => window.location.reload()} />
+        <ErrorState title="Failed to load giving records." />
       </div>
     );
   }
