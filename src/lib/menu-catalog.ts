@@ -21,7 +21,7 @@ export const SURFACE_RESOURCES: Record<string, string[]> = {
   members: ["all", "new", "import"],
   attendance: ["dashboard", "services", "checkin", "records", "reports"],
   giving: ["dashboard", "categories", "records", "reports", "recurring"],
-  events: ["calendar", "list", "checkin", "registrations", "tickets"],
+  events: ["calendar", "all", "list", "checkin", "registrations", "tickets"],
   sermons: ["list", "new", "series", "speakers"],
   media: ["library", "upload", "folders"],
   pastoral: ["notes", "life-events", "risk-scores", "engagement"],
@@ -37,6 +37,7 @@ export const SURFACE_RESOURCES: Record<string, string[]> = {
 
 /** Single-page / no-surface resources (only coarse `resource:action` codes). */
 export const COARSE_RESOURCES = [
+  "offline",
   "families",
   "appointments",
   "templates",

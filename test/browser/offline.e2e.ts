@@ -5,10 +5,11 @@ const churchId = "22222222-2222-4222-8222-222222222222";
 const branchId = "33333333-3333-4333-8333-333333333333";
 const passphrase = "correct horse battery staple";
 
-test.beforeEach(async ({ context }) => {
+test.beforeEach(async ({ context }, testInfo) => {
+  const member = testInfo.title.startsWith("member accounts");
   // Deterministic API fixture: no real account or application database is contacted.
   await context.addInitScript(
-    ({ profileId, churchId, branchId }) => {
+    ({ profileId, churchId, branchId, member }) => {
       const original = window.fetch.bind(window);
       Object.defineProperty(window, "__offlineNativeFetch", {
         value: original,
@@ -36,8 +37,16 @@ test.beforeEach(async ({ context }) => {
             branchId,
             firstName: "Test",
             lastName: "Secretary",
-            role: ["secretary"],
+            role: [member ? "member" : "secretary"],
             isAdminHq: false,
+            permissions: member
+              ? [
+                  "events:view",
+                  "events:calendar:read",
+                  "events:list:read",
+                  "events:tickets:read",
+                ]
+              : ["offline:read"],
             branch: { branchId, name: "Lekki" },
           };
         else if (path.endsWith("/offline/snapshot"))
@@ -47,6 +56,7 @@ test.beforeEach(async ({ context }) => {
             branchId,
             branchName: "Lekki",
             permissions: [
+              "offline:read",
               "members:all:read",
               "members:new:create",
               "members:all:update",
@@ -80,13 +90,22 @@ test.beforeEach(async ({ context }) => {
               };
             },
           );
-        } else throw new Error(`Unexpected API call ${path}`);
+        } else if (
+          path.endsWith("/notifications") ||
+          path.endsWith("/audit-logs/me")
+        )
+          data = { data: [], total: 0, unreadCount: 0 };
+        else if (path.endsWith("/notifications/unread-count"))
+          data = { count: 0 };
+        else if (path.endsWith("/roles") || path.endsWith("/roles/labels"))
+          data = [];
+        else throw new Error(`Unexpected API call ${path}`);
         return new Response(JSON.stringify({ success: true, data }), {
           headers: { "Content-Type": "application/json" },
         });
       };
     },
-    { profileId, churchId, branchId },
+    { profileId, churchId, branchId, member },
   );
 });
 
@@ -225,4 +244,98 @@ test("locks the prepared workspace after inactivity without polling the server",
     page.getByText("Unlock this device", { exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Add member" })).toHaveCount(0);
+});
+
+test("member accounts cannot open the offline workspace or see event management menus", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/offline");
+  await expect(
+    page.getByText("Offline access unavailable", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Enable on this device" }),
+  ).toHaveCount(0);
+  await context.addCookies([
+    {
+      name: "churchos_token",
+      value: "browser-test-only",
+      url: "http://127.0.0.1:3107",
+    },
+  ]);
+  await page.goto("/dashboard");
+  await expect(
+    page.getByRole("heading", { name: "Dashboard", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Calendar", exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "All Events", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Registrations", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("link", { name: "Offline workspace", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Dismiss offline banner" }),
+  ).toHaveCount(0);
+});
+
+test("staff can dismiss the banner and keep the header offline shortcut", async ({
+  page,
+  context,
+}) => {
+  await context.addCookies([
+    {
+      name: "churchos_token",
+      value: "browser-test-only",
+      url: "http://127.0.0.1:3107",
+    },
+  ]);
+  await page.goto("/dashboard");
+  await expect(
+    page.getByRole("button", { name: "Dismiss offline banner" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator("header")
+      .getByRole("link", { name: "Offline workspace", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Dismiss offline banner" }).click();
+  await expect(
+    page.getByRole("button", { name: "Dismiss offline banner" }),
+  ).toHaveCount(0);
+  await page.reload();
+  await expect(
+    page
+      .locator("header")
+      .getByRole("link", { name: "Offline workspace", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Dismiss offline banner" }),
+  ).toHaveCount(0);
+});
+
+test("staff offline shortcut remains visible on mobile", async ({
+  page,
+  context,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await context.addCookies([
+    {
+      name: "churchos_token",
+      value: "browser-test-only",
+      url: "http://127.0.0.1:3107",
+    },
+  ]);
+  await page.goto("/dashboard");
+  await expect(
+    page
+      .locator("header")
+      .getByRole("link", { name: "Offline workspace", exact: true }),
+  ).toBeVisible();
 });

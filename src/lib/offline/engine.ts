@@ -9,6 +9,10 @@ import type {
 import { OfflineVault } from "./vault";
 
 export function assertLease(workspace: Workspace, now = Date.now()) {
+  if (!workspace.permissions.includes("offline:read"))
+    throw new Error(
+      "Offline workspace access is not permitted. Connect to refresh your permissions.",
+    );
   if (
     !Number.isFinite(Date.parse(workspace.issuedAt)) ||
     !Number.isFinite(Date.parse(workspace.expiresAt)) ||

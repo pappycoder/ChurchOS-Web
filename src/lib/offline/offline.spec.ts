@@ -16,6 +16,7 @@ const snapshot = (): Snapshot => ({
   branchId: "branch-1",
   branchName: "Lekki",
   permissions: [
+    "offline:read",
     "members:all:read",
     "members:new:create",
     "members:all:update",
@@ -184,6 +185,15 @@ describe("encrypted offline vault", () => {
 });
 
 describe("offline queue and sync", () => {
+  it("blocks local saves when offline access has not been granted", async () => {
+    await vault.enable(passphrase, {
+      ...workspace(),
+      permissions: ["members:new:create"],
+    });
+    await expect(
+      queueMutation(vault, recordMutation("member", undefined, {}, "branch-1")),
+    ).rejects.toThrow("Offline workspace access");
+  });
   it("enforces permission, branch and lease before saving", async () => {
     await vault.enable(passphrase, workspace());
     await expect(

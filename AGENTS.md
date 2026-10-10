@@ -818,3 +818,5 @@ All notable changes to this project are documented below. Update this section wi
   - **Users list**: `UserRoleCell` renders one badge per role; CSV export lists all role labels via `getRoleLabels`.
   - **Detail page (`/admin/users/[profileId]`)**: Account Info tab now has an Edit mode (first/last name, email, phone, branch select, status select) with dirty-field-only PATCH payloads; linked Member record card shown when present; Role & Permissions tab has a toggleable multi-role chip picker plus effective-permission groups by resource (super_admin short-circuits to "all permissions"); Security tab shows real last sign-in from Supabase admin API.
   - **Sidebar/dialog**: sidebar lists every role as a badge (super_admin in destructive red); edit-role dialog defaults to the primary (`role[0]`) role.
+
+- **2026-10-10:** Offline workspace entry points and backend/local access use `offline:read`, omitted from member defaults. Header provides an icon/text entry; the banner is dismissible for the browser session. All Events uses `events:all:read`, separate from calendar/booking list access.

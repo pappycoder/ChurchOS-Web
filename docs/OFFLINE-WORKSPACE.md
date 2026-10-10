@@ -10,7 +10,7 @@
 6. Create/edit member and visitor contact details, save form answer drafts or queue published form submissions. Saves only report success after committing locally.
 7. Reconnect and sign in as the original account if the server session expired. Sync occurs on unlock/start, reconnect, an online save or **Sync now**. There is no idle network polling.
 
-The backend and web must deploy together after applying migration `20261010200000_offline_receipts`. No new permission grants or reseed is needed: existing surface permissions control downloads and writes.
+The backend and web must deploy together after applying migration `20261010200000_offline_receipts`. Run the permission seed to install `offline:read` for staff roles. Members do not receive it; existing surface permissions additionally control downloads and writes.
 
 ## Boundaries
 

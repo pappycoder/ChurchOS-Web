@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TablePagination } from "@/components/shared/table-pagination";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { toast } from "@/lib/toast";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { offlineVault } from "@/lib/offline/vault";
 import {
@@ -56,6 +57,7 @@ const contactLabels: Record<string, string> = {
 };
 
 export function OfflineWorkspace() {
+  const { ready: permissionsReady, can } = usePermissions();
   const [workspace, setStoredWorkspace] = useState<Workspace>();
   const setWorkspace = (value: Workspace | undefined) => {
     if (!value || offlineVault.unlocked) setStoredWorkspace(value);
@@ -153,7 +155,8 @@ export function OfflineWorkspace() {
     };
   }, [lock, synchronize]);
   const expired = workspace
-    ? !Number.isFinite(Date.parse(workspace.expiresAt)) ||
+    ? !workspace.permissions.includes("offline:read") ||
+      !Number.isFinite(Date.parse(workspace.expiresAt)) ||
       Math.max(leaseNow, Date.now()) >= Date.parse(workspace.expiresAt)
     : false;
   const records =
@@ -168,6 +171,10 @@ export function OfflineWorkspace() {
   const prepareBranches = () =>
     action(async () => {
       const profile = await fetchCurrentProfile();
+      if (!profile.permissions?.includes("offline:read"))
+        throw new Error(
+          "Offline workspace access is not permitted for this account.",
+        );
       if (!profile.isAdminHq) {
         if (!profile.branchId)
           throw new Error(
@@ -359,6 +366,27 @@ export function OfflineWorkspace() {
         "Your changes are queued against the latest version. Select Sync now to apply them.",
       );
     });
+
+  if (permissionsReady && !can("offline", "read")) {
+    return (
+      <main className="min-h-dvh bg-background px-4 py-12">
+        <Card className="mx-auto max-w-lg">
+          <CardHeader>
+            <CardTitle>Offline access unavailable</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Your account does not have permission to use the offline
+              workspace.
+            </p>
+            <Button asChild>
+              <a href="/dashboard">Back to ChurchOS</a>
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-dvh bg-background px-4 py-8 md:px-8">
