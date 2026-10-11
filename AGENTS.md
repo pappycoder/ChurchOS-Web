@@ -824,3 +824,5 @@ All notable changes to this project are documented below. Update this section wi
   - **Sidebar/dialog**: sidebar lists every role as a badge (super_admin in destructive red); edit-role dialog defaults to the primary (`role[0]`) role.
 
 - **2026-10-10:** Offline workspace entry points and backend/local access use `offline:read`, omitted from member defaults. Header provides an icon/text entry; the banner is dismissible for the browser session. All Events uses `events:all:read`, separate from calendar/booking list access.
+
+- **2026-10-11 — Department creation and self-ticket booking.** Department creation defaults and locks branch scope; HQ creators must select a branch before choosing a leader. Branch changes clear leader and parent selection. HQ self-ticket claim includes all visible events. Department head creation is permission gated.

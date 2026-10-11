@@ -1099,7 +1099,8 @@ function ClaimTicketDialog({
     // Cell group leaders are treated exactly like members for tickets: the
     // backend self-claim path lets them take their own branch's events or
     // church-wide (null-branch) events. No strict-branch pinning.
-    if (currentProfile?.isAdminHq || !currentProfile?.branchId) {
+    if (currentProfile?.isAdminHq) return events;
+    if (!currentProfile?.branchId) {
       // No branch on record — fall back to church-wide events only.
       return events.filter((e) => !e.branchId);
     }

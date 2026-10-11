@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { MemberCombobox } from "@/components/members/member-combobox";
 import { useBranchesList } from "@/hooks/use-branches";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import {
   useCreateDepartment,
   useUpdateDepartment,
@@ -78,16 +79,13 @@ export function DepartmentFormDialog({
   lockedLeaderBranch = false,
 }: DepartmentFormDialogProps) {
   const isEdit = !!department;
+  const { data: profile } = useCurrentProfile();
+  const branchLocked = lockedLeaderBranch || !profile?.isAdminHq;
   const createMutation = useCreateDepartment();
   const updateMutation = useUpdateDepartment(department?.id ?? "");
   const { data: branchesData } = useBranchesList({ limit: 100 });
 
   const [headName, setHeadName] = React.useState("");
-
-  const parentOptions = React.useMemo(
-    () => departments.filter((d) => d.id !== department?.id),
-    [departments, department?.id]
-  );
 
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentSchema),
@@ -96,16 +94,27 @@ export function DepartmentFormDialog({
 
   React.useEffect(() => {
     if (open) {
-      form.reset(toFormValues(department));
+      const values = toFormValues(department);
+      if (!profile?.isAdminHq) values.branchId = profile?.branchId ?? "";
+      form.reset(values);
       setHeadName(
         department
           ? [department.headFirstName, department.headLastName].filter(Boolean).join(" ")
           : ""
       );
     }
-  }, [open, department, form]);
+  }, [open, department, form, profile?.isAdminHq, profile?.branchId]);
+
+  const selectedBranchId = form.watch("branchId");
+  const parentOptions = departments.filter(
+    (d) => d.id !== department?.id && d.branchId === selectedBranchId,
+  );
 
   const onSubmit = (values: DepartmentFormValues) => {
+    if (!isEdit && !values.branchId) {
+      form.setError("branchId", { message: "Select a branch" });
+      return;
+    }
     const payload = {
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
@@ -204,15 +213,20 @@ export function DepartmentFormDialog({
                 name="branchId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Branch</FormLabel>
+                    <FormLabel>Branch{!isEdit && " *"}</FormLabel>
                     <Select
                       value={field.value || undefined}
-                      onValueChange={field.onChange}
-                      disabled={lockedLeaderBranch}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        form.setValue("headMemberId", "");
+                        form.setValue("parentId", "");
+                        setHeadName("");
+                      }}
+                      disabled={branchLocked}
                     >
                       <FormControl>
-                        <SelectTrigger disabled={lockedLeaderBranch}>
-                          <SelectValue placeholder="No branch" />
+                        <SelectTrigger disabled={branchLocked}>
+                          <SelectValue placeholder="Select a branch" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -242,8 +256,9 @@ export function DepartmentFormDialog({
                           setHeadName(member ? `${member.firstName} ${member.lastName}` : "");
                         }}
                         selectedName={headName}
+                        branchId={selectedBranchId || undefined}
                         placeholder="Select head..."
-                        disabled={lockedLeaderBranch}
+                        disabled={lockedLeaderBranch || !selectedBranchId}
                       />
                     </FormControl>
                     <FormMessage />
