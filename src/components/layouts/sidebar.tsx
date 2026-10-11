@@ -230,7 +230,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Upload",
             href: "/media/upload",
-            permission: "media:create",
+            permission: "media:upload:create",
           },
           {
             title: "Folders",

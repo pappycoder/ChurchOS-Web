@@ -11,8 +11,8 @@ import { usePermissions } from "@/hooks/use-permissions";
 
 export default function NewSermonPage() {
   const router = useRouter();
-  const { can } = usePermissions();
-  const canCreate = can("sermons", "create");
+  const { canAny } = usePermissions();
+  const canCreate = canAny("sermons:new:create");
   const createMutation = useCreateSermon();
 
   if (!canCreate) {

@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-11 — Department head publishing restrictions.** Media upload navigation checks `media:upload:create`; the sermon creation page checks `sermons:new:create`, matching its route, sidebar and API. Department heads no longer receive these grants from the backend template.
+
 - **2026-10-10 — Modal notifications.** Bundled the universal Sonner stylesheet globally so claim-ticket and other modal notifications retain their styling and top-right position when runtime styles are lost. Added a real claim-modal browser regression that also checks cell leader menu visibility.
 
 - **2026-10-10 — Offline workspace release.** Public `/offline` shell with opt-in encrypted IndexedDB (PBKDF2/AES-GCM), passphrase unlock, seven-day branch lease, atomic outbox and draft storage, manual/event-driven sequential sync, account binding, version conflicts and pending export. First release supports member/visitor contact create/edit and published form answer drafts/submissions; HQ chooses one branch per prepared workspace. No API/private document caching or idle request polling. Preserved development login selector. Added storage/sync unit tests and production Chromium offline/reconnect tests; repaired the Events navigation permission and expanded the surface catalog. See `docs/OFFLINE-WORKSPACE.md`.
