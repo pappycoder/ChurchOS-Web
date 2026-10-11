@@ -461,6 +461,7 @@ export default function GivingCategoriesPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Display Order</FormLabel>
+                    <p className="text-xs text-muted-foreground">Controls the position in lists and dropdowns. Lower numbers appear first.</p>
                     <FormControl>
                       <Input type="number" placeholder="e.g. 3" {...field} />
                     </FormControl>

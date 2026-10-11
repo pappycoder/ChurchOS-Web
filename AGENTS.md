@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-11 — Category display order.** Added helper text explaining that lower display-order numbers appear first in lists and dropdowns. Existing archive/delete actions remain permission gated.
+
 - **2026-10-11 — Department head publishing restrictions.** Media upload navigation checks `media:upload:create`; the sermon creation page checks `sermons:new:create`, matching its route, sidebar and API. Department heads no longer receive these grants from the backend template.
 
 - **2026-10-10 — Modal notifications.** Bundled the universal Sonner stylesheet globally so claim-ticket and other modal notifications retain their styling and top-right position when runtime styles are lost. Added a real claim-modal browser regression that also checks cell leader menu visibility.
