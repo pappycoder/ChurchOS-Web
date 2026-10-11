@@ -25,6 +25,7 @@ const ROLE_LABEL: Record<string, string> = {
   department_head: "Department Head",
   secretary: "Secretary",
   treasurer: "Treasurer",
+  usher: "Usher",
   cell_leader: "Cell Leader",
 };
 

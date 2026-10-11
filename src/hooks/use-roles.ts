@@ -42,6 +42,7 @@ export const ROLE_ORDER = [
   "branch_pastor",
   "secretary",
   "treasurer",
+  "usher",
   "department_head",
   "cell_leader",
   "member",

@@ -125,6 +125,7 @@ export const VALID_ROLES = [
   { value: "branch_pastor", label: "Branch Pastor" },
   { value: "secretary", label: "Secretary" },
   { value: "treasurer", label: "Treasurer" },
+  { value: "usher", label: "Usher" },
   { value: "department_head", label: "Department Head" },
   { value: "cell_leader", label: "Cell Group Leader" },
   { value: "member", label: "Member" },

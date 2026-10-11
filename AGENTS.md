@@ -832,3 +832,5 @@ All notable changes to this project are documented below. Update this section wi
 - **2026-10-11 — Giving visibility.** Record Giving carries the dashboard/records branch into the modal, locks branch users, requires HQ branch selection, scopes linked pickers and new categories, and invalidates giving/dashboard analytics after successful mutations.
 
 - **2026-10-11 — Giving category contract.** Category input types include isActive. Branch ownership is sent on creation only; edits no longer submit unsupported branchId.
+
+- **2026-10-11 — Usher role.** Usher is available in role assignment/permission ordering and contact/appointment labels. Existing permission-driven navigation, attendance actions and branch/HQ filters support the new template.
