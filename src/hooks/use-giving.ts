@@ -176,11 +176,13 @@ export function useCreateGivingCategory() {
   });
 }
 
-export function useUpdateGivingCategory(categoryId: string) {
+export function useUpdateGivingCategory() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: UpdateGivingCategoryInput) =>
-      api.patch<GivingCategory>(`/giving/categories/${categoryId}`, input),
+    mutationFn: ({ categoryId, input }: { categoryId: string; input: UpdateGivingCategoryInput }) => {
+      if (!categoryId) throw new Error("Select a category to update");
+      return api.patch<GivingCategory>(`/giving/categories/${categoryId}`, input);
+    },
     onSuccess: () => invalidateGivingCaches(queryClient),
   });
 }

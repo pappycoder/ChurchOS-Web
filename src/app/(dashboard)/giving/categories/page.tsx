@@ -79,7 +79,6 @@ import {
 const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  displayOrder: z.string().optional(),
   isActive: z.boolean(),
 });
 
@@ -115,7 +114,7 @@ export default function GivingCategoriesPage() {
 
   const { data, isLoading, error } = useGivingCategories(queryParams);
   const createMutation = useCreateGivingCategory();
-  const updateMutation = useUpdateGivingCategory("");
+  const updateMutation = useUpdateGivingCategory();
   const deleteMutation = useDeleteGivingCategory();
   const archiveMutation = useArchiveGivingCategory();
   const restoreArchiveMutation = useRestoreArchiveGivingCategory();
@@ -134,7 +133,6 @@ export default function GivingCategoriesPage() {
     defaultValues: {
       name: "",
       description: "",
-      displayOrder: "",
       isActive: true,
     },
   });
@@ -144,10 +142,6 @@ export default function GivingCategoriesPage() {
       form.reset({
         name: editing?.name ?? "",
         description: editing?.description ?? "",
-        displayOrder:
-          editing?.displayOrder !== undefined
-            ? String(editing.displayOrder)
-            : "",
         isActive: editing?.isActive ?? true,
       });
     }
@@ -157,14 +151,11 @@ export default function GivingCategoriesPage() {
     const payload = {
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
-      displayOrder: values.displayOrder
-        ? Number(values.displayOrder)
-        : undefined,
       isActive: values.isActive,
     };
     try {
       if (editing) {
-        await updateMutation.mutateAsync(payload);
+        await updateMutation.mutateAsync({ categoryId: editing.categoryId, input: payload });
         toast.success("Category updated");
       } else {
         await createMutation.mutateAsync({ ...payload, branchId: branchId || undefined });
@@ -287,7 +278,6 @@ export default function GivingCategoriesPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead>Order</TableHead>
                   <TableHead>Recurring</TableHead>
                   <TableHead>Status</TableHead>
                   {canManage && (
@@ -303,9 +293,6 @@ export default function GivingCategoriesPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground max-w-[280px] truncate">
                       {category.description || "-"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {category.displayOrder ?? "-"}
                     </TableCell>
                     <TableCell>
                       {category.isRecurring ? (
@@ -450,20 +437,6 @@ export default function GivingCategoriesPage() {
                     <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea rows={2} placeholder="Optional" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="displayOrder"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Display Order</FormLabel>
-                    <p className="text-xs text-muted-foreground">Controls the position in lists and dropdowns. Lower numbers appear first.</p>
-                    <FormControl>
-                      <Input type="number" placeholder="e.g. 3" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

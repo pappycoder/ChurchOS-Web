@@ -834,3 +834,5 @@ All notable changes to this project are documented below. Update this section wi
 - **2026-10-11 — Giving category contract.** Category input types include isActive. Branch ownership is sent on creation only; edits no longer submit unsupported branchId.
 
 - **2026-10-11 — Usher role.** Usher is available in role assignment/permission ordering and contact/appointment labels. Existing permission-driven navigation, attendance actions and branch/HQ filters support the new template.
+
+- **2026-10-11 — Category editing and simplified form.** Category updates carry the selected ID at mutation time and reject empty IDs. Removed Display Order form field and table column.
