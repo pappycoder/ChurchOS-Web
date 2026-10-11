@@ -80,6 +80,7 @@ const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   isActive: z.boolean(),
+  isRecurring: z.boolean(),
 });
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
@@ -134,6 +135,7 @@ export default function GivingCategoriesPage() {
       name: "",
       description: "",
       isActive: true,
+      isRecurring: false,
     },
   });
 
@@ -143,6 +145,7 @@ export default function GivingCategoriesPage() {
         name: editing?.name ?? "",
         description: editing?.description ?? "",
         isActive: editing?.isActive ?? true,
+        isRecurring: editing?.isRecurring ?? false,
       });
     }
   }, [dialogOpen, editing, form]);
@@ -152,6 +155,7 @@ export default function GivingCategoriesPage() {
       name: values.name.trim(),
       description: values.description?.trim() || undefined,
       isActive: values.isActive,
+      isRecurring: values.isRecurring,
     };
     try {
       if (editing) {
@@ -442,6 +446,9 @@ export default function GivingCategoriesPage() {
                   </FormItem>
                 )}
               />
+              <FormField control={form.control} name="isRecurring" render={({ field }) => (
+                <FormItem><div className="flex items-center justify-between rounded-md border p-3"><FormLabel>Supports recurring giving</FormLabel><Switch checked={field.value} onCheckedChange={field.onChange} /></div><FormMessage /></FormItem>
+              )} />
               <FormField
                 control={form.control}
                 name="isActive"

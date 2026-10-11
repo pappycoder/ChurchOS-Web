@@ -279,6 +279,14 @@ export function useSendReceipt(transactionId: string) {
 }
 
 // ─── Recurring giving ────────────────────────────────────
+export function useCreateRecurringGiving() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { categoryId: string; memberId: string; branchId: string; amount: number; frequency: "weekly" | "monthly" | "quarterly"; email: string }) =>
+      api.post<RecurringGiving>("/giving/recurring", input),
+    onSuccess: () => invalidateGivingCaches(queryClient),
+  });
+}
 
 export function useRecurringGiving(params: { page?: number; limit?: number; isActive?: boolean; branchId?: string } = {}) {
   return useQuery({

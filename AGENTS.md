@@ -836,3 +836,5 @@ All notable changes to this project are documented below. Update this section wi
 - **2026-10-11 — Usher role.** Usher is available in role assignment/permission ordering and contact/appointment labels. Existing permission-driven navigation, attendance actions and branch/HQ filters support the new template.
 
 - **2026-10-11 — Category editing and simplified form.** Category updates carry the selected ID at mutation time and reject empty IDs. Removed Display Order form field and table column.
+
+- **2026-10-11 — Treasurer recurring giving.** Added permission-gated recurring schedule creation with branch/member/category pickers, amount, frequency and payer email. Added recurring support toggle to category forms. Existing service selectors use branch scope.

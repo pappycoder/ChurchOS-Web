@@ -1,5 +1,6 @@
 "use client";
 
+import { RecurringGivingDialog } from "@/components/giving/recurring-giving-dialog";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { toast } from "@/lib/toast";
@@ -73,13 +74,15 @@ const ACTION_COPY: Record<Action, { title: string; description: string; label: s
 };
 
 export default function RecurringGivingPage() {
-  const { can } = usePermissions();
+  const { canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
   const [branchId, setBranchId] = React.useState("");
   const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
-  const canUpdate = can("giving", "update");
+  const canUpdate = canAny("giving:recurring:update");
+  const canCreate = canAny("giving:recurring:create");
+  const [createOpen, setCreateOpen] = React.useState(false);
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -143,6 +146,7 @@ export default function RecurringGivingPage() {
     <div className="space-y-4">
       <PageHeader
         title="Recurring Giving"
+        action={canCreate ? <Button onClick={() => setCreateOpen(true)}>Create Recurring Giving</Button> : undefined}
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Giving", href: "/giving" },
@@ -150,10 +154,8 @@ export default function RecurringGivingPage() {
         ]}
       />
 
-      <p className="text-sm text-muted-foreground">
-        Schedules are created automatically when a giver completes their first online
-        gift with &quot;make it recurring&quot; — manage them here.
-      </p>
+      <RecurringGivingDialog open={createOpen} onOpenChange={setCreateOpen} branchId={effectiveBranchId || undefined} />
+      <p className="text-sm text-muted-foreground">Create and manage recurring giving schedules for members in the selected branch.</p>
 
       <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card px-4 py-3">
         <span className="text-sm font-medium">Branch</span>
@@ -198,7 +200,7 @@ export default function RecurringGivingPage() {
               <EmptyState
                 icon={<Repeat className="h-12 w-12" />}
                 title="No recurring schedules yet"
-                description="Schedules appear here after a giver sets up recurring giving online."
+                description="Create a schedule or ask a giver to set up recurring giving online."
               />
             </div>
           ) : (
