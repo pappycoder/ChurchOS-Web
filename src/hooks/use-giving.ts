@@ -30,6 +30,7 @@ export interface ListCategoriesParams {
 }
 
 export interface CreateGivingCategoryInput {
+  isActive?: boolean;
   name: string;
   description?: string;
   displayOrder?: number;
@@ -37,7 +38,7 @@ export interface CreateGivingCategoryInput {
   branchId?: string;
 }
 
-export type UpdateGivingCategoryInput = Partial<CreateGivingCategoryInput>;
+export type UpdateGivingCategoryInput = Partial<Omit<CreateGivingCategoryInput, "branchId">>;
 
 /** Shape returned by GET /giving/transactions (TransactionResponseDto). */
 export interface GivingTransaction {

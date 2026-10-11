@@ -161,14 +161,13 @@ export default function GivingCategoriesPage() {
         ? Number(values.displayOrder)
         : undefined,
       isActive: values.isActive,
-      branchId: branchId || undefined,
     };
     try {
       if (editing) {
         await updateMutation.mutateAsync(payload);
         toast.success("Category updated");
       } else {
-        await createMutation.mutateAsync(payload);
+        await createMutation.mutateAsync({ ...payload, branchId: branchId || undefined });
         toast.success("Category created");
       }
       setDialogOpen(false);

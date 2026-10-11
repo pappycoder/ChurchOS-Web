@@ -828,3 +828,5 @@ All notable changes to this project are documented below. Update this section wi
 - **2026-10-11 — Department creation and self-ticket booking.** Department creation defaults and locks branch scope; HQ creators must select a branch before choosing a leader. Branch changes clear leader and parent selection. HQ self-ticket claim includes all visible events. Department head creation is permission gated.
 
 - **2026-10-11 — Giving visibility.** Record Giving carries the dashboard/records branch into the modal, locks branch users, requires HQ branch selection, scopes linked pickers and new categories, and invalidates giving/dashboard analytics after successful mutations.
+
+- **2026-10-11 — Giving category contract.** Category input types include isActive. Branch ownership is sent on creation only; edits no longer submit unsupported branchId.
