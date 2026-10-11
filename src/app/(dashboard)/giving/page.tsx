@@ -262,7 +262,7 @@ export default function GivingDashboardPage() {
         </Card>
       </div>
 
-      <RecordCashDialog open={recordOpen} onOpenChange={setRecordOpen} />
+      <RecordCashDialog open={recordOpen} onOpenChange={setRecordOpen} branchId={effectiveBranchId || undefined} />
     </div>
   );
 }

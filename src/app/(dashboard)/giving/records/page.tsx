@@ -436,7 +436,7 @@ export default function GivingRecordsPage() {
           )}
       </TableCard>
 
-      <RecordCashDialog open={recordOpen} onOpenChange={setRecordOpen} />
+      <RecordCashDialog open={recordOpen} onOpenChange={setRecordOpen} branchId={effectiveBranchId || undefined} />
 
       {/* Send-receipt channel dialog */}
       <Dialog open={!!receiptTarget} onOpenChange={(open) => !open && setReceiptTarget(null)}>

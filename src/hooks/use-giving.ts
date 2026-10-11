@@ -146,6 +146,8 @@ function invalidateGivingCaches(queryClient: ReturnType<typeof useQueryClient>) 
   queryClient.invalidateQueries({ queryKey: ["giving-transactions"] });
   queryClient.invalidateQueries({ queryKey: ["giving-recurring"] });
   queryClient.invalidateQueries({ queryKey: ["giving-summary"] });
+  queryClient.invalidateQueries({ queryKey: ["analytics", "giving"] });
+  queryClient.invalidateQueries({ queryKey: ["analytics", "dashboard"] });
 }
 
 // ─── Categories ──────────────────────────────────────────

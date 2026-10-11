@@ -30,6 +30,8 @@ import { useAttendanceServices } from "@/hooks/use-attendance";
 import { useEventsList } from "@/hooks/use-events";
 import { MemberCombobox } from "@/components/members/member-combobox";
 import { api } from "@/lib/api";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
 
 /** Built-in pseudo-category for recording a service/event day-total. */
 export const OVERALL_TOTAL_CATEGORY = "Overall Total";
@@ -48,17 +50,26 @@ export function RecordCashDialog({
   open,
   onOpenChange,
   onRecorded,
+  branchId: initialBranchId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onRecorded?: (transaction: GivingTransaction) => void;
+  branchId?: string;
 }) {
-  const categoriesQuery = useGivingCategories({ limit: 100 }, { enabled: open });
+  const { data: profile } = useCurrentProfile();
+  const [selectedBranchId, setSelectedBranchId] = React.useState(initialBranchId ?? "");
+  const branchId = profile?.isAdminHq ? selectedBranchId : profile?.branchId;
+  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: open && !!profile?.isAdminHq });
+  React.useEffect(() => {
+    if (open) setSelectedBranchId(initialBranchId ?? "");
+  }, [open, initialBranchId]);
+  const categoriesQuery = useGivingCategories({ limit: 100, branchId }, { enabled: open });
   const servicesQuery = useAttendanceServices(
-    { isActive: true, limit: 100 },
+    { isActive: true, limit: 100, branchId },
     { enabled: open }
   );
-  const eventsQuery = useEventsList({ limit: 50 }, { enabled: open });
+  const eventsQuery = useEventsList({ limit: 50, branchId }, { enabled: open });
   const createCategoryMutation = useCreateGivingCategory();
   const recordMutation = useRecordCashGiving();
 
@@ -113,14 +124,14 @@ export function RecordCashDialog({
     if (existing) return existing.categoryId;
 
     try {
-      const created = await createCategoryMutation.mutateAsync({ name, isRecurring: false });
+      const created = await createCategoryMutation.mutateAsync({ name, isRecurring: false, branchId });
       return created.categoryId;
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (/already exists/i.test(message)) {
         const fresh = await api.get<{
           data: { categoryId: string; name: string }[];
-        }>("/giving/categories?limit=100");
+        }>(`/giving/categories?limit=100&branchId=${encodeURIComponent(branchId ?? "")}`);
         const match = fresh.data.find((c) => c.name.toLowerCase() === name.toLowerCase());
         if (match) return match.categoryId;
       }
@@ -129,6 +140,10 @@ export function RecordCashDialog({
   };
 
   const handleSubmit = async () => {
+    if (!branchId) {
+      toast.error("Select a branch for the giving");
+      return;
+    }
     const amountNumber = Number(amount);
     if (!amount || Number.isNaN(amountNumber) || amountNumber <= 0) {
       toast.error("Enter a valid amount");
@@ -148,6 +163,7 @@ export function RecordCashDialog({
       const resolvedCategoryId = await resolveCategoryId();
       const transaction = await recordMutation.mutateAsync({
         categoryId: resolvedCategoryId,
+        branchId,
         amount: amountNumber,
         type: method,
         memberId: linkTo === "member" ? memberId : undefined,
@@ -188,6 +204,25 @@ export function RecordCashDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="space-y-1.5">
+            <p className="text-sm font-medium">Branch *</p>
+            <Select value={branchId || undefined} disabled={!profile?.isAdminHq} onValueChange={(value) => {
+              setSelectedBranchId(value);
+              setCategoryId("");
+              setMemberId("");
+              setServiceId("");
+              setEventId("");
+            }}>
+              <SelectTrigger aria-label="Giving branch"><SelectValue placeholder="Select a branch" /></SelectTrigger>
+              <SelectContent>
+                {profile?.isAdminHq ? (branchesQuery.data?.data ?? []).map((branch) => (
+                  <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>
+                )) : profile?.branchId ? (
+                  <SelectItem value={profile.branchId}>{profile.branch?.name ?? "Your branch"}</SelectItem>
+                ) : null}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <p className="text-sm font-medium">Amount *</p>
@@ -238,6 +273,8 @@ export function RecordCashDialog({
             {linkTo === "member" && (
               <div className="pt-1">
                 <MemberCombobox
+                  branchId={branchId}
+                  disabled={!branchId}
                   value={memberId}
                   onChange={(id) => setMemberId(id)}
                   placeholder="Search members by name..."
