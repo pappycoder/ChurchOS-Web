@@ -1,4 +1,5 @@
 "use client";
+import { LeaderMeetingGiving } from "@/components/giving/leader-meeting-giving";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
@@ -144,6 +145,7 @@ export default function CellGroupsPage() {
 
   return (
     <div>
+      <LeaderMeetingGiving />
       <PageHeader
         title="Cell Groups"
         breadcrumbs={[

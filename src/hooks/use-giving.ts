@@ -42,6 +42,9 @@ export type UpdateGivingCategoryInput = Partial<Omit<CreateGivingCategoryInput, 
 
 /** Shape returned by GET /giving/transactions (TransactionResponseDto). */
 export interface GivingTransaction {
+  givingType?: "normal" | "cell_group";
+  title?: string;
+  description?: string;
   cellGroupId?: string;
   cellGroupName?: string;
   cellGroupMeetingDate?: string;

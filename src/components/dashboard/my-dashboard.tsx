@@ -1,4 +1,5 @@
 "use client";
+import { LeaderMeetingGiving } from "@/components/giving/leader-meeting-giving";
 
 import * as React from "react";
 import { Bell, CalendarDays, ChevronRight, Church, History, Mail, MapPin, Phone, ShieldCheck, Sparkles } from "lucide-react";
@@ -89,6 +90,7 @@ export function MyDashboard() {
   return (
     <>
     <div className="space-y-4">
+      <LeaderMeetingGiving />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

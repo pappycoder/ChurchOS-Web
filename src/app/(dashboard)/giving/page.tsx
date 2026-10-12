@@ -231,7 +231,7 @@ export default function GivingDashboardPage() {
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {tx.memberName || tx.serviceName || tx.eventName || "General giving"}
+                      {tx.title || tx.cellGroupName || tx.memberName || tx.serviceName || tx.eventName || "General giving"}
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {tx.categoryName} ·{" "}

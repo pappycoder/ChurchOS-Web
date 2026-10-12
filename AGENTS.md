@@ -10,6 +10,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-12 — Leader giving entry points.** Reusable permission-gated meeting giving workspace appears on personal dashboard and Cell Groups list for assigned leaders. Branch records and exports identify group giving and its meeting description; recent giving uses the group title.
+
+- **2026-10-12 — Usher login selector.** Added HQ and Lekki usher test accounts to the development login dropdown, using the shared development password.
+
 - **2026-10-11 — Category display order.** Added helper text explaining that lower display-order numbers appear first in lists and dropdowns. Existing archive/delete actions remain permission gated.
 
 - **2026-10-11 — Department head publishing restrictions.** Media upload navigation checks `media:upload:create`; the sermon creation page checks `sermons:new:create`, matching its route, sidebar and API. Department heads no longer receive these grants from the backend template.

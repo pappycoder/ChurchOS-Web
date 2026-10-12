@@ -120,18 +120,19 @@ export default function GivingRecordsPage() {
   const sendReceiptMutation = useSendReceipt(receiptTarget?.transactionId ?? "");
 
   const linkedName = (tx: GivingTransaction): string =>
-    tx.memberName || tx.serviceName || tx.eventName || "General";
+    tx.title || tx.cellGroupName || tx.memberName || tx.serviceName || tx.eventName || "General";
 
   const linkedKind = (tx: GivingTransaction): string =>
-    tx.memberId ? "Member" : tx.serviceId ? "Service" : tx.eventId ? "Event" : "General";
+    tx.cellGroupId ? "Cell Group Giving" : tx.memberId ? "Member" : tx.serviceId ? "Service" : tx.eventId ? "Event" : "General";
 
   const buildExportRows = React.useCallback(
     (rows: GivingTransaction[]) =>
       rows.map((t) => ({
         date: format(new Date(t.createdAt), "yyyy-MM-dd"),
-        name: t.memberName || "",
+        name: t.title || t.cellGroupName || t.memberName || "",
         linkType: linkedKind(t),
         linkedTo: linkedName(t),
+        description: t.description || t.notes || "",
         category: t.categoryName,
         amount: t.amount,
         currency: t.currency,
@@ -219,6 +220,7 @@ export default function GivingRecordsPage() {
                 { key: "linkType", label: "Link Type" },
                 { key: "linkedTo", label: "Linked To" },
                 { key: "category", label: "Category" },
+                { key: "description", label: "Description" },
                 { key: "amount", label: "Amount" },
                 { key: "currency", label: "Currency" },
                 { key: "type", label: "Method" },
@@ -365,7 +367,7 @@ export default function GivingRecordsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>
-                    <TableHead exportKeys={["name", "linkType", "linkedTo"]}>Name / Linked To</TableHead>
+                    <TableHead exportKeys={["name", "linkType", "linkedTo", "description"]}>Name / Linked To</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead exportKeys={["amount", "currency"]}>Amount</TableHead>
                     <TableHead exportKeys={["type", "gateway"]}>Method</TableHead>
@@ -388,6 +390,7 @@ export default function GivingRecordsPage() {
                           <Badge variant="outline" className="mt-0.5">
                             {linkedKind(tx)}
                           </Badge>
+                          {tx.description && <p className="mt-1 text-xs text-muted-foreground">{tx.description}</p>}
                         </div>
                       </TableCell>
                       <TableCell>{tx.categoryName}{tx.cellGroupName && <p className="text-xs text-muted-foreground">{tx.cellGroupName} · {tx.cellGroupMeetingDate}</p>}</TableCell>
