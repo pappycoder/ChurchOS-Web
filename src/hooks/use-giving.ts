@@ -42,6 +42,9 @@ export type UpdateGivingCategoryInput = Partial<Omit<CreateGivingCategoryInput, 
 
 /** Shape returned by GET /giving/transactions (TransactionResponseDto). */
 export interface GivingTransaction {
+  cellGroupId?: string;
+  cellGroupName?: string;
+  cellGroupMeetingDate?: string;
   transactionId: string;
   churchId: string;
   memberId?: string;
@@ -143,6 +146,7 @@ function buildQuery(params: Record<string, unknown>): string {
 }
 
 function invalidateGivingCaches(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: ["cell-group-giving"] });
   queryClient.invalidateQueries({ queryKey: ["giving-categories"] });
   queryClient.invalidateQueries({ queryKey: ["giving-transactions"] });
   queryClient.invalidateQueries({ queryKey: ["giving-recurring"] });
@@ -279,6 +283,22 @@ export function useSendReceipt(transactionId: string) {
 }
 
 // ─── Recurring giving ────────────────────────────────────
+export function useCellGroupGiving(groupId: string, page: number) {
+  return useQuery({
+    queryKey: ["cell-group-giving", groupId, page],
+    queryFn: ({ signal }) => api.get<{ data: GivingTransaction[]; total: number; categories: GivingCategory[]; summary: GivingSummary }>(`/giving/cell-groups/${groupId}${buildQuery({ page, limit: 15 })}`, { signal }),
+    enabled: !!groupId,
+  });
+}
+
+export function useRecordCellGroupGiving(groupId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { categoryId: string; amount: number; type: "cash" | "bank_transfer"; cellGroupMeetingDate: string; notes?: string }) =>
+      api.post<GivingTransaction>(`/giving/cell-groups/${groupId}`, input),
+    onSuccess: () => invalidateGivingCaches(queryClient),
+  });
+}
 export function useCreateRecurringGiving() {
   const queryClient = useQueryClient();
   return useMutation({

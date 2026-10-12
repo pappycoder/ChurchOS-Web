@@ -390,7 +390,7 @@ export default function GivingRecordsPage() {
                           </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>{tx.categoryName}</TableCell>
+                      <TableCell>{tx.categoryName}{tx.cellGroupName && <p className="text-xs text-muted-foreground">{tx.cellGroupName} · {tx.cellGroupMeetingDate}</p>}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap">
                         {tx.currency} {tx.amount.toLocaleString()}
                       </TableCell>

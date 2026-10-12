@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { CellGroupGivingPanel } from "@/components/giving/cell-group-giving-panel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -82,6 +83,7 @@ export default function CellGroupDetailPage({
   // Cell group leaders may manage their own group — edit details (minus branch
   // + leader), add/remove members, and record attendance — but get no Archive
   // or Delete affordances.
+  const canReadDetails = canAny("cell_groups:details:read");
   const isCellLeader = canAny("cell_groups:own:read");
 
   const { data: group, isLoading, error } = useCellGroup(groupId);
@@ -94,13 +96,13 @@ export default function CellGroupDetailPage({
   const canManageMembers = canAny("cell_groups:create", "cell_groups:own:update") && (!isCellLeader || isOwnGroup);
   const canUpdate = canAny("cell_groups:update", "cell_groups:own:update") && (!isCellLeader || isOwnGroup);
   const canDelete = can("cell_groups", "delete") && !isCellLeader;
-  const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(groupId);
-  const { data: summary } = useCellGroupAttendanceSummary(groupId);
-  const { data: nearestGroups } = useNearestCellGroups(group?.latitude, group?.longitude);
+  const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(canReadDetails ? groupId : "");
+  const { data: summary } = useCellGroupAttendanceSummary(canReadDetails ? groupId : "");
+  const { data: nearestGroups } = useNearestCellGroups(canReadDetails ? group?.latitude : undefined, canReadDetails ? group?.longitude : undefined);
 
   const [meetingDate, setMeetingDate] = React.useState("");
   const { data: attendance = [], isLoading: attendanceLoading } = useCellGroupAttendance(
-    groupId,
+    canReadDetails ? groupId : "",
     meetingDate || undefined
   );
 
@@ -145,6 +147,14 @@ export default function CellGroupDetailPage({
         <p className="text-sm text-red-600">Failed to load this cell group.</p>
       </div>
     );
+  }
+
+  if (!canReadDetails && group) {
+    return <div className="space-y-6">
+      <Button asChild variant="outline"><Link href="/departments/cell-groups"><ArrowLeft className="mr-2 size-4" />Cell Groups</Link></Button>
+      <div><h1 className="text-2xl font-semibold">{group.name}</h1><p className="text-sm text-muted-foreground">{group.branchName} · Group meeting giving</p></div>
+      {canAny("cell_groups:giving:read") ? <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} /> : <p className="text-muted-foreground">You do not have permission to view group giving.</p>}
+    </div>;
   }
 
   return (
@@ -264,6 +274,8 @@ export default function CellGroupDetailPage({
               </div>
             </div>
           </div>
+
+          {canAny("cell_groups:giving:read") && <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} />}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-lg border p-4 bg-muted/50">

@@ -838,3 +838,5 @@ All notable changes to this project are documented below. Update this section wi
 - **2026-10-11 — Category editing and simplified form.** Category updates carry the selected ID at mutation time and reject empty IDs. Removed Display Order form field and table column.
 
 - **2026-10-11 — Treasurer recurring giving.** Added permission-gated recurring schedule creation with branch/member/category pickers, amount, frequency and payer email. Added recurring support toggle to category forms. Existing service selectors use branch scope.
+
+- **2026-10-11 — Cell group meeting giving.** Added meeting-giving panel with combined amount, date, category and cash/bank method; no individual giver fields. Leaders record for their own group; treasurers see a financial view without members/attendance requests; ushers retain the full read-only group detail view. Group-giving mutations refresh shared giving and analytics caches. Financial records display group name and meeting date.
