@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-15 — Authorization audit.** Church settings controls use effective permissions. HQ toggle requires both profile-update and reserved church-settings permission, blocks self changes, and honors the explicit profile scope flag independently of role grants.
+
+
 - **2026-10-12 — Leader giving entry points.** Reusable permission-gated meeting giving workspace appears on personal dashboard and Cell Groups list for assigned leaders. Branch records and exports identify group giving and its meeting description; recent giving uses the group title.
 
 - **2026-10-12 — Usher login selector.** Added HQ and Lekki usher test accounts to the development login dropdown, using the shared development password.

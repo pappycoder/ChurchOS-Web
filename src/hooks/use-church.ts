@@ -7,7 +7,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { useAuth } from "@/hooks/use-auth";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export interface ChurchProfile {
   churchId: string;
@@ -106,17 +106,8 @@ export async function uploadChurchLogo(file: File): Promise<string> {
   return res.url;
 }
 
-/**
- * True when the signed-in user holds a church-management role
- * (church_admin or super_admin). Roles may arrive as string | string[].
- */
+/** True when the current permission set allows church settings changes. */
 export function useCanManageChurch(): boolean {
-  const { user } = useAuth();
-  const roles =
-    user?.profile?.role === undefined
-      ? []
-      : Array.isArray(user.profile.role)
-        ? user.profile.role
-        : [user.profile.role];
-  return roles.includes("church_admin") || roles.includes("super_admin");
+  const { can } = usePermissions();
+  return can("church_settings", "update");
 }

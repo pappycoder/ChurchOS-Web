@@ -1,6 +1,7 @@
 "use client";
 
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile } from "@/hooks/use-profile";
 
 import * as React from "react";
 import { toast } from "@/lib/toast";
@@ -365,8 +366,9 @@ interface RolePermissionsTabProps {
 function RolePermissionsTab({ user }: RolePermissionsTabProps) {
   const { can } = usePermissions();
   const canManageRoles = can("roles", "update");
-  const canManageHq = can("profiles", "update");
-  const automaticChurchScope = !!user.effectivePermissions?.some((permission) => permission.name === "data_scope:church:read");
+  const { data: currentProfile } = useCurrentProfile();
+  const canManageHq = can("profiles", "update") && can("church_settings", "update") &&
+    currentProfile?.profileId !== user.profileId;
   const currentRoles = new Set(user.role ?? []);
   const [selected, setSelected] = React.useState<Set<string>>(currentRoles);
   const assignableRoles = useAssignableRoles();
@@ -381,7 +383,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
   }, [user.isAdminHq]);
 
   const toggleAdminHq = () => {
-    if (!canManageHq || automaticChurchScope) return;
+    if (!canManageHq) return;
     const next = !isAdminHq;
     setIsAdminHq(next);
     updateUser.mutate(
@@ -521,7 +523,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
             Admin HQ Access
           </CardTitle>
           <CardDescription>
-            Grants cross-branch read access within this user&apos;s permission scope. Without it,
+            Grants cross-branch access within this user&apos;s permission scope. Without it,
             users see only data from their own branch (cell leaders see only the cell groups
             they lead).
           </CardDescription>
@@ -537,7 +539,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
             <Switch
               checked={isAdminHq}
               onCheckedChange={toggleAdminHq}
-              disabled={!canManageHq || automaticChurchScope || updateUser.isPending}
+              disabled={!canManageHq || updateUser.isPending}
               aria-label="Toggle Admin HQ access"
             />
           </div>
