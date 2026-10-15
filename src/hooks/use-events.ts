@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 export interface EventsListResponse {
   data: EventItem[];
@@ -182,22 +183,24 @@ export function useEvent(eventId: string) {
 // ─── Event registrations ─────────────────────────────────
 
 export function useEventRegistrations(eventId: string, branchId?: string) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["events-registrations", eventId, branchId],
     queryFn: ({ signal }) =>
       api.get<EventRegistration[]>(`/events/${eventId}/registrations${buildQuery({ branchId })}`, { signal }),
-    enabled: !!eventId,
+    enabled: !!eventId && can("events:registrations", "read"),
   });
 }
 
 // ─── Event attendance ────────────────────────────────────
 
 export function useEventAttendance(eventId: string) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["events-attendance", eventId],
     queryFn: ({ signal }) =>
       api.get<EventAttendanceRecord[]>(`/events/${eventId}/attendance`, { signal }),
-    enabled: !!eventId,
+    enabled: !!eventId && can("events:checkin", "read"),
   });
 }
 

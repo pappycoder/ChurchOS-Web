@@ -7,8 +7,12 @@
  */
 
 import * as React from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { authorizationScopeKey, resetAuthorizationQueries } from "@/lib/authorization-cache";
 import { usePathname } from "next/navigation";
 import { ShieldAlert } from "lucide-react";
+import { ErrorState } from "@/components/shared/error-state";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
@@ -22,13 +26,31 @@ import {
 export function PermissionRouteGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { ready, canAny } = usePermissions();
+  const profile = useCurrentProfile();
+  const queryClient = useQueryClient();
+  const scope = React.useMemo(() => authorizationScopeKey(profile.data), [profile.data]);
+  const [appliedScope, setAppliedScope] = React.useState(scope);
+  React.useEffect(() => {
+    if (!scope || scope === appliedScope) return;
+    let active = true;
+    async function applyScope() {
+      if (appliedScope) await resetAuthorizationQueries(queryClient);
+      if (active) setAppliedScope(scope);
+    }
+    void applyScope();
+    return () => { active = false; };
+  }, [scope, appliedScope, queryClient]);
 
   const rule = matchRoutePermission(pathname);
   const allowed = !ready
     ? null
     : checkRule(rule, (name) => canAny(name));
 
-  if (!ready) {
+  if (profile.isError) {
+    return <ErrorState title="Unable to verify your permissions" onRetry={() => { void profile.refetch(); }} retrying={profile.isFetching} />;
+  }
+
+  if (!ready || scope !== appliedScope) {
     return (
       <div className="space-y-4 py-6">
         <Skeleton className="h-8 w-56" />

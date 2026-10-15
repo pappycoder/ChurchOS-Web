@@ -1,5 +1,7 @@
 "use client";
 
+import { filterPermissionNavigation } from "@/lib/permission-navigation";
+
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -688,24 +690,10 @@ export function Sidebar() {
   // the profile loads.
   const visibleNav = React.useMemo(() => {
     if (!ready || !currentProfile) return [];
-    const itemAllowed = (item: NavItem): boolean => {
-      if (item.permission && !canAny(item.permission)) return false;
-      return true;
-    };
-    const filterItem = (item: NavItem): NavItem | null => {
-      if (!itemAllowed(item)) return null;
-      if (!item.children) return item;
-      const children = item.children
-        .map(filterItem)
-        .filter((c): c is NavItem => c !== null);
-      return children.length > 0 ? { ...item, children } : null;
-    };
     return navItems
       .map((group) => ({
         ...group,
-        items: group.items
-          .map(filterItem)
-          .filter((i): i is NavItem => i !== null),
+        items: filterPermissionNavigation(group.items, canAny),
       }))
       .filter(
         (group) =>

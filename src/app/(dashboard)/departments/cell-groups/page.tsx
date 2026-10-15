@@ -68,7 +68,7 @@ export default function CellGroupsPage() {
   const { data: profile } = useCurrentProfile();
   // Cell group leaders only record attendance for their own group — they get
   // no group-level create/update/delete affordances here.
-  const isCellLeader = canAny("cell_groups:own:read");
+  const isCellLeader = canAny("cell_groups:own:read") && !canAny("cell_groups:delete");
   // Export stays available to staff and HQ cell leaders (they see all groups);
   // branch cell leaders export their own group from its detail page instead.
   const canExport = !isCellLeader || !!profile?.isAdminHq;

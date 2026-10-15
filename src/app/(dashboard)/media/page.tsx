@@ -60,7 +60,6 @@ import {
   type MediaSortBy,
 } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useIsMember } from "@/hooks/use-is-member";
 import { reportQueryError } from "@/lib/report-query-error";
 import { cn } from "@/lib/utils";
 import { BranchFilter } from "@/components/shared/branch-filter";
@@ -207,7 +206,7 @@ function MediaCard({
 function MediaLibraryContent() {
   const router = useRouter();
   const { can } = usePermissions();
-  const { isMember } = useIsMember();
+  const canReadRestricted = can("media:restricted", "read");
   const canCreate = can("media", "create");
   const canUpdate = can("media", "update");
   const canDelete = can("media", "delete");
@@ -267,9 +266,9 @@ function MediaLibraryContent() {
 
   const assets = React.useMemo(() => {
     const list = data?.data ?? [];
-    // Members only see public/members assets; leadership assets are staff-only.
-    return isMember ? list.filter((a) => a.permissions !== "leadership") : list;
-  }, [data, isMember]);
+    // Mirror the API restriction when rendering cached assets.
+    return canReadRestricted ? list : list.filter((a) => a.permissions !== "leadership");
+  }, [data, canReadRestricted]);
   const total = data?.total ?? 0;
   const folders = Array.isArray(foldersQuery.data) ? foldersQuery.data : [];
 
@@ -415,7 +414,7 @@ function MediaLibraryContent() {
               className="h-8 rounded-md border border-input bg-background px-2 text-sm"
             >
               {PERMISSION_FILTERS.filter(
-                (p) => p.value !== "leadership" || !isMember,
+                (p) => p.value !== "leadership" || canReadRestricted,
               ).map((p) => (
                 <option key={p.value || "all"} value={p.value}>
                   {p.label}

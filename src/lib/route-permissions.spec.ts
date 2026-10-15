@@ -117,3 +117,38 @@ describe("route-permissions guard", () => {
     });
   });
 });
+
+describe("dynamic route authorization", () => {
+  it.each([
+    ["/events/123/edit", "events:update"],
+    ["/events/123/tiers", "events:update"],
+    ["/sermons/123/edit", "sermons:update"],
+    ["/forms/123/edit", "forms:list:update"],
+    ["/forms/123/fill", "forms:list:read"],
+    ["/events/123/edit/preview", "events:update"],
+  ])("%s uses its specific action permission", (pathname, permission) => {
+    expect(matchRoutePermission(pathname)?.permission).toBe(permission);
+  });
+
+  it("keeps static routes and path-segment boundaries distinct", () => {
+    expect(matchRoutePermission("/events/new")?.permission).toBe("events:create");
+    expect(matchRoutePermission("/forms/new")?.permission).toBe("forms:list:create");
+    expect(matchRoutePermission("/events/123/editor")?.permission).toBe("events:all:read");
+    expect(matchRoutePermission("/events-other")).toBeNull();
+  });
+});
+
+
+describe("dashboard route coverage", () => {
+  it("requires a permission rule for every operational page", () => {
+    const root = path.join(repoRoot, "src/app/(dashboard)");
+    const openPages = new Set(["/dashboard", "/profile", "/docs"]);
+    const walk = (directory: string): string[] => fs.readdirSync(directory, { withFileTypes: true })
+      .flatMap((entry) => entry.isDirectory() ? walk(path.join(directory, entry.name))
+        : entry.name === "page.tsx" ? [path.dirname(path.join(directory, entry.name))] : []);
+    for (const directory of walk(root)) {
+      const route = `/${path.relative(root, directory)}`;
+      if (!openPages.has(route)) expect(matchRoutePermission(route), route).not.toBeNull();
+    }
+  });
+});

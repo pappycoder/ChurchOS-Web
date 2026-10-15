@@ -84,7 +84,7 @@ export default function CellGroupDetailPage({
   // + leader), add/remove members, and record attendance — but get no Archive
   // or Delete affordances.
   const canReadDetails = canAny("cell_groups:details:read");
-  const isCellLeader = canAny("cell_groups:own:read");
+  const isCellLeader = canAny("cell_groups:own:read") && !canAny("cell_groups:delete");
 
   const { data: group, isLoading, error } = useCellGroup(groupId);
   // Only the group's own leader (reading their linked member id) may manage it.

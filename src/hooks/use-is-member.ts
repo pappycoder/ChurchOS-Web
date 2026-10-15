@@ -4,14 +4,15 @@
  * @file Identifies member-facing access from the current permission set.
  *
  * The dedicated members:own:read permission marks member-facing presentation
- * across the header, sermons, media, docs and ticket flows.
+ * for documentation presentation. Broader member-directory grants take
+ * precedence; operational surfaces check their own action permissions.
  */
 
 import { usePermissions } from "@/hooks/use-permissions";
 
 export function useIsMember(): { isMember: boolean } {
   const { canAny } = usePermissions();
-  const isMember = canAny("members:own:read");
+  const isMember = canAny("members:own:read") && !canAny("members:all:read");
   return { isMember };
 }
 
@@ -23,6 +24,6 @@ export function useIsMember(): { isMember: boolean } {
  */
 export function useIsTicketMember(): { isTicketMember: boolean } {
   const { canAny } = usePermissions();
-  const isTicketMember = canAny("members:own:read");
+  const isTicketMember = canAny("members:own:read") && !canAny("events:ticket-records:read", "events:tickets:create");
   return { isTicketMember };
 }

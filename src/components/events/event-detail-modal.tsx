@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
 import { EventItem, EVENT_TYPE_MAP, useDeleteEvent } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useIsMember } from "@/hooks/use-is-member";
 import { EVENT_TYPE_COLORS } from "./calendar-sidebar";
 
 const BADGE_TEXT_CLASSES: Record<string, string> = {
@@ -60,7 +59,6 @@ export function EventDetailModal({
 }: EventDetailModalProps) {
   const router = useRouter();
   const { can } = usePermissions();
-  const { isMember } = useIsMember();
   const canUpdate = can("events", "update");
   const canDelete = can("events", "delete");
   const deleteMutation = useDeleteEvent();
@@ -175,7 +173,7 @@ export function EventDetailModal({
               Delete
             </Button>
           )}
-          {!isMember && (
+          {can("events:all", "read") && (
             <Button asChild>
               <Link href={`/events/${event.eventId}`}>View Details</Link>
             </Button>

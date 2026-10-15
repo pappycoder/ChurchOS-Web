@@ -14,6 +14,7 @@
 
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { getPermissionSet } from "@/lib/permission-set";
 import { useCurrentProfile } from "@/hooks/use-profile";
 
 export type PermissionAction = "create" | "read" | "update" | "delete" | "view";
@@ -24,17 +25,17 @@ export type PermissionName = string;
 interface PermissionsState {
   /** True once the profile (and therefore permissions/roles) has loaded. */
   ready: boolean;
-  permissions: Set<PermissionName>;
+  permissions: ReadonlySet<PermissionName>;
 }
 
 function usePermissionsState(): PermissionsState {
-  const { data: profile, isLoading } = useCurrentProfile();
+  const { data: profile, isLoading, isError } = useCurrentProfile();
 
   const permissions = React.useMemo(
-    () => new Set(profile?.permissions ?? []),
+    () => getPermissionSet(profile?.permissions),
     [profile?.permissions]
   );
-  return { ready: !isLoading && !!profile, permissions };
+  return { ready: !isLoading && !isError && !!profile && profile.status === "active", permissions };
 }
 
 export interface PermissionChecker {
@@ -50,13 +51,13 @@ export function usePermissions(): PermissionChecker {
 
   const can = React.useCallback(
     (resource: string, action: PermissionAction) =>
-      permissions.has(`${resource}:${action}`),
-    [permissions]
+      ready && permissions.has(`${resource}:${action}`),
+    [ready, permissions]
   );
 
   const canAny = React.useCallback(
-    (...names: PermissionName[]) => names.some((n) => permissions.has(n)),
-    [permissions]
+    (...names: PermissionName[]) => ready && names.some((n) => permissions.has(n)),
+    [ready, permissions]
   );
 
   return { ready, can, canAny };

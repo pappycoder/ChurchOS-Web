@@ -43,6 +43,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/events/registrations", permission: "events:registrations:read" },
   { prefix: "/events/[eventId]/edit", permission: "events:update" },
   { prefix: "/events/[eventId]/tiers", permission: "events:update" },
+  { prefix: "/events/[eventId]", permission: "events:all:read" },
   { prefix: "/events", permission: "events:calendar:read" },
 
   // Sermons
@@ -105,13 +106,26 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/analytics", permission: "analytics:dashboard:read" },
 ];
 
-/** Longest-prefix match; returns null for open routes. */
+// Compile once: navigation must not sort and allocate the entire rule table.
+const compiledRules = ROUTE_PERMISSIONS.map((rule) => {
+  const segments = rule.prefix.split("/").slice(1);
+  return {
+    rule,
+    segments,
+    staticSegments: segments.filter((segment) => !/^\[[^\]]+\]$/.test(segment)).length,
+  };
+}).sort((a, b) => b.segments.length - a.segments.length ||
+  b.staticSegments - a.staticSegments || b.rule.prefix.length - a.rule.prefix.length);
+
+/** Most-specific prefix match, including actual IDs in dynamic route segments. */
 export function matchRoutePermission(pathname: string): RoutePermissionRule | null {
-  const sorted = [...ROUTE_PERMISSIONS].sort((a, b) => b.prefix.length - a.prefix.length);
-  for (const rule of sorted) {
-    if (pathname === rule.prefix || pathname.startsWith(`${rule.prefix}/`)) {
-      return rule;
-    }
+  const segments = pathname.split("/").slice(1);
+  for (const { rule, segments: pattern } of compiledRules) {
+    if (pattern.length > segments.length) continue;
+    if (pattern.every((segment, index) =>
+      segment === segments[index] ||
+      (/^\[[^\]]+\]$/.test(segment) && !!segments[index])
+    )) return rule;
   }
   return null;
 }

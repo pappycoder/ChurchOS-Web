@@ -33,7 +33,6 @@ import {
   useEventRegistrations,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useIsMember } from "@/hooks/use-is-member";
 
 const PAYMENT_BADGE: Record<string, "default" | "secondary" | "destructive"> = {
   paid: "default",
@@ -44,7 +43,6 @@ const PAYMENT_BADGE: Record<string, "default" | "secondary" | "destructive"> = {
 
 export default function EventRegistrationsPage() {
   const { can } = usePermissions();
-  const { isMember } = useIsMember();
   const canRead = can("events:registrations", "read");
 
   const [selectedEventId, setSelectedEventId] = React.useState<string>("");
@@ -98,17 +96,7 @@ export default function EventRegistrationsPage() {
     return { total, checkedIn, pending, paid };
   }, [allRegistrations]);
 
-  if (isMember) {
-    return (
-      <div className="flex flex-col items-center justify-center py-24">
-        <EmptyState
-          icon={<CalendarDays className="h-12 w-12" />}
-          title="Access denied"
-          description="You don't have permission to view this page. Contact your church admin if you believe this is a mistake."
-        />
-      </div>
-    );
-  }
+
 
   if (!canRead) {
     return (

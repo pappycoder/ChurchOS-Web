@@ -53,7 +53,7 @@ export default function DepartmentsPage() {
   // Department heads only ever see the department they head (backend-scoped);
   // HQ department heads see every department church-wide but edit only the
   // department they head (backend-enforced ownership).
-  const isDepartmentHead = canAny("departments:own:read");
+  const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
   const isAdminHq = !!profile?.isAdminHq;
   // Export stays available to staff and HQ department heads (they see all
   // departments); branch-scoped heads manage their own department directly.

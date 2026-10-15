@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 import { getRoleLabel, VALID_ROLES } from "@/hooks/use-users";
 
@@ -75,8 +76,10 @@ export function sortRolesByOrder<T extends { roleName: string }>(roles: T[]): T[
 }
 
 export function useRolesSummary() {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["roles-summary"],
+    enabled: can("roles", "read"),
     queryFn: ({ signal }) => api.get<RolesSummaryResponse>("/church/roles", { signal }),
     staleTime: 60 * 1000,
   });
@@ -122,19 +125,22 @@ export function useAssignableRoles(): { value: string; label: string }[] {
 }
 
 export function useRolePermissions(roleName: string) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["role-permissions", roleName],
     queryFn: ({ signal }) =>
       api.get<RoleWithPermissions>(
         `/church/roles/${encodeURIComponent(roleName)}/permissions`, { signal }
       ),
-    enabled: !!roleName,
+    enabled: !!roleName && can("roles", "read"),
   });
 }
 
 export function useAllPermissions() {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["all-permissions"],
+    enabled: can("roles", "read"),
     queryFn: ({ signal }) => api.get<Permission[]>("/church/roles/all", { signal }),
     staleTime: 5 * 60 * 1000,
   });

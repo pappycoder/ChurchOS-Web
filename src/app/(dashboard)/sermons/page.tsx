@@ -61,7 +61,6 @@ import {
   type ListSermonsParams,
 } from "@/hooks/use-sermons";
 import { usePermissions } from "@/hooks/use-permissions";
-import { useIsMember } from "@/hooks/use-is-member";
 import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import {
@@ -85,7 +84,6 @@ function formatDuration(seconds?: number | null): string {
 function SermonsListContent() {
   const router = useRouter();
   const { can, canAny } = usePermissions();
-  const { isMember } = useIsMember();
   const canCreate = canAny("sermons:new:create");
   const canUpdate = can("sermons", "update");
   const canDelete = can("sermons", "delete");
@@ -208,7 +206,7 @@ function SermonsListContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Sermons" }]}
         action={
           <div className="flex items-center gap-2">
-            {!isMember && (
+            {canAny("sermons:list:read") && (
               <ExportDropdown
               tableId="sermons"
                 columns={[
@@ -255,7 +253,7 @@ function SermonsListContent() {
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-              {!isMember && (
+              {canManage && (
                 <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
               )}
             {(speaker || series) && (

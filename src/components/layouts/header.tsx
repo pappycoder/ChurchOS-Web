@@ -16,7 +16,7 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { useIsMember } from "@/hooks/use-is-member";
+import { filterPermissionNavigation } from "@/lib/permission-navigation";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useEmailUnread } from "@/hooks/use-email";
 import { usePrefetchRoute } from "@/lib/prefetch";
@@ -144,14 +144,6 @@ const HORIZONTAL_NAV: HorizontalNavItem[] = [
   },
 ];
 
-// Top-level horizontal items members must not see (staff modules).
-const MEMBER_HIDDEN_HORIZONTAL = new Set([
-  "Members",
-  "Attendance",
-  "Giving",
-  "Pastoral Care",
-]);
-
 export function Header() {
   const { collapsed, toggleCollapse, mobileOpen, openMobile, closeMobile } =
     useSidebar();
@@ -160,7 +152,6 @@ export function Header() {
 
   const { logout } = useAuth();
   const { data: currentProfile } = useCurrentProfile();
-  const { isMember } = useIsMember();
   const { canAny, ready: permissionsReady, can } = usePermissions();
   const canManageChurchSettings = permissionsReady && can("church_settings", "update");
   // Gate the inbox poll on the resolved permission (not the transient
@@ -172,29 +163,8 @@ export function Header() {
   const emailUnreadCount = emailUnread?.count ?? 0;
 
   const visibleNav = React.useMemo(
-    () =>
-      HORIZONTAL_NAV.filter((item) => {
-        if (isMember && MEMBER_HIDDEN_HORIZONTAL.has(item.title)) return false;
-        if (isMember && item.title === "Events") {
-          // Members keep the Calendar child but not staff event subpages.
-          item = {
-            ...item,
-            children: item.children?.filter((child) => {
-              if (child.href !== "/events") return false;
-              return !child.permission || canAny(child.permission);
-            }),
-          };
-        } else if (item.children) {
-          // Drop children gated by a surface permission the user lacks.
-          const children = item.children.filter(
-            (child) => !child.permission || canAny(child.permission),
-          );
-          if (children.length === 0) return false;
-          item = { ...item, children };
-        }
-        return !item.permission || canAny(item.permission);
-      }),
-    [isMember, canAny],
+    () => permissionsReady ? filterPermissionNavigation(HORIZONTAL_NAV, canAny) : [],
+    [permissionsReady, canAny],
   );
 
   const displayName =

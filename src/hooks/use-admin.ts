@@ -173,7 +173,7 @@ export function useDepartmentsList(
     }],
     queryFn: ({ signal }) => api.get<Department[]>(`/admin/departments${queryString ? `?${queryString}` : ""}`, { signal }),
     enabled: (params.enabled ?? true) && !!profile,
-    staleTime: 0,
+    staleTime: 60_000,
   });
 }
 

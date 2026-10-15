@@ -27,7 +27,7 @@ export interface CurrentProfile {
   memberId?: string;
   mfaEnabled: boolean;
   twoFactorEnabled: boolean;
-  /** Admin HQ flag — grants cross-branch read access within the user's permission scope. */
+  /** Admin HQ flag — grants cross-branch access within the user's permission scope. */
   isAdminHq: boolean;
   status: string;
   createdAt: string;
@@ -62,6 +62,9 @@ export function useCurrentProfile() {
     queryKey: ["current-profile"],
     queryFn: fetchCurrentProfile,
     staleTime: 60 * 1000,
+    // Override the global defaults for authorization state only.
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
