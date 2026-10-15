@@ -77,7 +77,7 @@ function RecordRow({ record }: { record: AttendanceRecord }) {
 
 export default function AttendanceDashboardPage() {
   const { can } = usePermissions();
-  const canCreate = can("attendance", "create");
+  const canCreate = can("attendance:checkin", "create");
   const [branchId, setBranchId] = React.useState("");
 
   const monthStart = React.useMemo(() => {

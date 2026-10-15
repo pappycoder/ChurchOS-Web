@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 
 export interface RoleInfo {
@@ -152,6 +153,7 @@ export function useBranches() {
 }
 
 export function useUsers(params: ListUsersParams = {}) {
+  const { can } = usePermissions();
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.set("page", String(params.page));
   if (params.limit) searchParams.set("limit", String(params.limit));
@@ -167,6 +169,7 @@ export function useUsers(params: ListUsersParams = {}) {
 
   return useQuery({
     queryKey: ["admin-users", params],
+    enabled: can("profiles", "read"),
     queryFn: ({ signal }) => api.get<UserListResponse>(path, { signal }),
   });
 }

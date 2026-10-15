@@ -207,9 +207,9 @@ function MediaLibraryContent() {
   const router = useRouter();
   const { can } = usePermissions();
   const canReadRestricted = can("media:restricted", "read");
-  const canCreate = can("media", "create");
-  const canUpdate = can("media", "update");
-  const canDelete = can("media", "delete");
+  const canCreate = can("media:upload", "create");
+  const canUpdate = can("media:library", "update");
+  const canDelete = can("media:library", "delete");
   const canManage = canUpdate || canDelete;
 
   const searchParams = useSearchParams();

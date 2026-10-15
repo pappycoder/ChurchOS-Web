@@ -87,9 +87,9 @@ const STATUS_OPTIONS: Array<{ value: FormStatus | "all"; label: string }> = [
 
 export default function FormsPage() {
   const { can } = usePermissions();
-  const canCreate = can("forms", "create");
-  const canUpdate = can("forms", "update");
-  const canDelete = can("forms", "delete");
+  const canCreate = can("forms:list", "create");
+  const canUpdate = can("forms:list", "update");
+  const canDelete = can("forms:list", "delete");
   const canManage = canCreate || canUpdate || canDelete;
   const router = useRouter();
 

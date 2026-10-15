@@ -81,10 +81,11 @@ export default function FormDetailPage() {
   const params = useParams();
   const formId = params.formId as string;
   const { can } = usePermissions();
-  const canCreate = can("forms", "create");
+  const canReview = can("forms:submissions", "update");
+  const canReadSubmissions = can("forms:submissions", "read");
   const canRead = can("forms", "read");
-  const canUpdate = can("forms", "update");
-  const canDelete = can("forms", "delete");
+  const canUpdate = can("forms:list", "update");
+  const canDelete = can("forms:list", "delete");
 
   const { data: form, isLoading, error } = useForm(formId);
   const [statusFilter, setStatusFilter] = React.useState<SubmissionStatus | undefined>(undefined);
@@ -240,7 +241,7 @@ export default function FormDetailPage() {
       )}
       {!form.archivedAt && (
         <>
-          {canCreate && (
+          {canUpdate && (
             <Button variant="outline" onClick={handleClone}>
               <FilePlus2 className="mr-1 h-4 w-4" />
               Clone
@@ -376,7 +377,7 @@ export default function FormDetailPage() {
         </div>
       </div>
 
-      <TableCard
+      {canReadSubmissions && <TableCard
         title="Submissions"
         description={`${submissionsMeta?.total ?? 0} total`}
         itemName="submissions"
@@ -445,7 +446,7 @@ export default function FormDetailPage() {
                   <TableCell>{s.submittedBy ? "Member" : "Public"}</TableCell>
                   <TableCell>{format(new Date(s.createdAt), "MMM d, yyyy h:mm a")}</TableCell>
                   <TableCell className="text-right">
-                    {s.status === "pending" && canUpdate && (
+                    {s.status === "pending" && canReview && (
                       <div className="flex justify-end gap-2">
                         <Button
                           variant="outline"
@@ -493,7 +494,7 @@ export default function FormDetailPage() {
             </TableBody>
           </Table>
         )}
-      </TableCard>
+      </TableCard>}
 
       <SubmissionDetailDialog
         form={form}

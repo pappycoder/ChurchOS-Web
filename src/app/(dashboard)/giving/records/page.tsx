@@ -271,7 +271,7 @@ export default function GivingRecordsPage() {
               <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
             </Select>
           )}
-          <Select value={categoryId} onValueChange={(v) => { setCategoryId(v); setPage(1); }}>
+          {can("giving:categories", "read") && <Select value={categoryId} onValueChange={(v) => { setCategoryId(v); setPage(1); }}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
@@ -283,7 +283,7 @@ export default function GivingRecordsPage() {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </Select>}
           <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
             <SelectTrigger className="w-full sm:w-36">
               <SelectValue placeholder="All Statuses" />
@@ -307,7 +307,7 @@ export default function GivingRecordsPage() {
               <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={serviceId} onValueChange={(v) => { setServiceId(v); setPage(1); }}>
+          {can("attendance:services", "read") && <Select value={serviceId} onValueChange={(v) => { setServiceId(v); setPage(1); }}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="All Services" />
             </SelectTrigger>
@@ -319,7 +319,7 @@ export default function GivingRecordsPage() {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </Select>}
           <div className="flex items-center gap-2">
             <Input
               type="date"

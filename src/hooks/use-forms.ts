@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
@@ -204,13 +205,14 @@ export function useForm(formId: string | undefined) {
 }
 
 export function useFormSubmissions(formId: string | undefined, params: ListSubmissionsParams = {}) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["form-submissions", formId, params],
     queryFn: ({ signal }) =>
       api.get<PaginatedResponse<FormSubmission>>(
         `/forms/${formId}/submissions${buildQuery(params)}`, { signal },
       ),
-    enabled: !!formId,
+    enabled: !!formId && can("forms:submissions", "read"),
   });
 }
 

@@ -1,5 +1,6 @@
 interface PermissionNavItem {
   permission?: string;
+  anyOf?: string[];
   children?: PermissionNavItem[];
 }
 
@@ -10,7 +11,11 @@ export function filterPermissionNavigation<T extends PermissionNavItem>(
 ): T[] {
   return items.flatMap((item) => {
     // Containers only open menus; their children decide which actions exist.
-    if (!item.children) return !item.permission || can(item.permission) ? [item] : [];
+    if (!item.children) {
+      const allowed = (!item.permission && !item.anyOf?.length) ||
+        (!!item.permission && can(item.permission)) || (item.anyOf ?? []).some(can);
+      return allowed ? [item] : [];
+    }
     const children = filterPermissionNavigation(item.children, can);
     return children.length ? [{ ...item, children }] : [];
   });

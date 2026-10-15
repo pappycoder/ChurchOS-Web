@@ -64,8 +64,8 @@ export default function ServiceDetailPage({
   const { serviceId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
-  const canUpdate = can("attendance", "update");
-  const canDelete = can("attendance", "delete");
+  const canUpdate = can("attendance:services", "update");
+  const canDelete = can("attendance:services", "delete");
 
   const serviceQuery = useService(serviceId);
   const attendanceQuery = useServiceAttendance(serviceId);

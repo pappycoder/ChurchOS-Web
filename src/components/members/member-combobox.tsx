@@ -41,8 +41,8 @@ export function MemberCombobox({
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
 
-  const initialQuery = useMembersList({ limit: 20, branchId });
-  const searchQuery = useSearchMembers(searchTerm.trim());
+  const initialQuery = useMembersList({ limit: 20, branchId }, { enabled: open && !disabled && searchTerm.trim().length < 2 });
+  const searchQuery = useSearchMembers(searchTerm.trim(), 20, { branchId, enabled: open && !disabled });
 
   const excluded = React.useMemo(() => new Set(excludeIds), [excludeIds]);
 

@@ -36,9 +36,9 @@ import {
 
 export default function AssetCategoriesPage() {
   const { can } = usePermissions();
-  const canCreate = can("assets", "create");
-  const canUpdate = can("assets", "update");
-  const canDelete = can("assets", "delete");
+  const canCreate = can("assets:categories", "create");
+  const canUpdate = can("assets:categories", "update");
+  const canDelete = can("assets:categories", "delete");
 
   const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";

@@ -147,7 +147,7 @@ function CardBody({
 
 export default function FollowUpBoardPage() {
   const { can } = usePermissions();
-  const canUpdateVisitors = can("visitors", "update");
+  const canUpdateVisitors = can("visitors:list", "update");
 
   const { data, isLoading, error } = useVisitorsList({ limit: 200 });
   const usersQuery = useUsers({ limit: 100, status: "active" });

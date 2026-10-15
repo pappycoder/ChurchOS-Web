@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
@@ -171,11 +172,12 @@ export function useAttendanceServices(
   params: ListServicesParams = {},
   options: { enabled?: boolean } = {}
 ) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["attendance-services", params],
     queryFn: ({ signal }) =>
       api.get<PaginatedResponse<ChurchService>>(`/services${buildQuery({ ...params })}`, { signal }),
-    enabled: options.enabled ?? true,
+    enabled: (options.enabled ?? true) && can("attendance:services", "read"),
   });
 }
 
@@ -248,7 +250,9 @@ export function useRestoreArchiveService() {
 // ─── Attendance records ──────────────────────────────────
 
 export function useAttendanceRecords(params: ListAttendanceParams = {}) {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("attendance:records", "read"),
     queryKey: ["attendance-records", params],
     queryFn: ({ signal }) =>
       api.get<PaginatedResponse<AttendanceRecord>>(`/attendance${buildQuery({ ...params })}`, { signal }),
@@ -285,7 +289,9 @@ export function useDeleteAttendance() {
 // ─── Analytics ───────────────────────────────────────────
 
 export function useAttendanceSummary(params: { startDate?: string; endDate?: string; branchId?: string } = {}) {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("attendance:dashboard", "read"),
     queryKey: ["attendance-summary", params],
     queryFn: ({ signal }) =>
       api.get<AttendanceSummary>(`/attendance/summary${buildQuery({ ...params })}`, { signal }),
@@ -295,7 +301,9 @@ export function useAttendanceSummary(params: { startDate?: string; endDate?: str
 export function useAttendanceTrends(
   params: { days?: number; startDate?: string; endDate?: string; branchId?: string } = {}
 ) {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("attendance:reports", "read"),
     queryKey: ["attendance-trends", params],
     queryFn: ({ signal }) =>
       api.get<AttendanceTrendPoint[]>(`/attendance/trends${buildQuery({ ...params })}`, { signal }),

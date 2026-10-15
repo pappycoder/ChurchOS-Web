@@ -101,8 +101,9 @@ export default function VisitorDetailPage({
   const { visitorId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
-  const canUpdateVisitors = can("visitors", "update");
-  const canDeleteVisitors = can("visitors", "delete");
+  const canUpdateVisitors = can("visitors:list", "update");
+  const canConvertVisitor = can("visitors:followup", "update");
+  const canDeleteVisitors = can("visitors:list", "delete");
 
   const { data: visitor, isLoading, error } = useVisitor(visitorId);
   const updateMutation = useUpdateVisitor(visitorId);
@@ -248,7 +249,7 @@ export default function VisitorDetailPage({
               </p>
             </div>
           </div>
-          {(canUpdateVisitors || canDeleteVisitors) && (
+          {(canUpdateVisitors || canDeleteVisitors || canConvertVisitor) && (
             <div className="flex flex-wrap items-center gap-2">
               {display.archivedAt ? (
                 <>
@@ -274,7 +275,7 @@ export default function VisitorDetailPage({
                 </>
               ) : (
                 <>
-                  {canDeleteVisitors && (
+                  {canUpdateVisitors && (
                     <>
                       <Button
                         variant="outline"
@@ -283,6 +284,10 @@ export default function VisitorDetailPage({
                         <Archive className="h-4 w-4 mr-2" />
                         Archive
                       </Button>
+                    </>
+                  )}
+                  {canDeleteVisitors && (
+                    <>
                       <Button
                         variant="outline"
                         className="text-destructive hover:text-destructive"
@@ -293,16 +298,16 @@ export default function VisitorDetailPage({
                       </Button>
                     </>
                   )}
-                  {canUpdateVisitors && !isConverted && (
+                  {!isConverted && (
                     <>
-                      <Button variant="outline" onClick={() => setConvertOpen(true)}>
+                      {canConvertVisitor && <Button variant="outline" onClick={() => setConvertOpen(true)}>
                         <Repeat className="h-4 w-4 mr-2" />
                         Convert to Member
-                      </Button>
-                      <Button onClick={() => setEditOpen(true)}>
+                      </Button>}
+                      {canUpdateVisitors && <Button onClick={() => setEditOpen(true)}>
                         <Pencil className="h-4 w-4 mr-2" />
                         Edit Visitor
-                      </Button>
+                      </Button>}
                     </>
                   )}
                 </>

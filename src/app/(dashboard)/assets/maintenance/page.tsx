@@ -27,7 +27,7 @@ import {
 
 export default function AssetMaintenancePage() {
   const { can } = usePermissions();
-  const canSchedule = can("assets", "create") || can("assets", "update");
+  const canSchedule = can("assets:maintenance", "create");
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");

@@ -44,7 +44,7 @@ import { BranchFilter } from "@/components/shared/branch-filter";
 export default function SubmissionsPage() {
   const router = useRouter();
   const { can } = usePermissions();
-  const canUpdate = can("forms", "update");
+  const canUpdate = can("forms:submissions", "update");
   const canRead = can("forms", "read");
 
   const [searchInput, setSearchInput] = React.useState("");

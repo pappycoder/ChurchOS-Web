@@ -124,10 +124,11 @@ function FollowUpStatusCell({ status }: { status: FollowUpStatus }) {
 export default function VisitorsPage() {
   const router = useRouter();
   const { can } = usePermissions();
-  const canCreateVisitors = can("visitors", "create");
-  const canUpdateVisitors = can("visitors", "update");
-  const canDeleteVisitors = can("visitors", "delete");
-  const canManage = canCreateVisitors || canUpdateVisitors || canDeleteVisitors;
+  const canCreateVisitors = can("visitors:new", "create");
+  const canUpdateVisitors = can("visitors:list", "update");
+  const canDeleteVisitors = can("visitors:list", "delete");
+  const canConvertVisitor = can("visitors:followup", "update");
+  const canManage = canCreateVisitors || canUpdateVisitors || canDeleteVisitors || canConvertVisitor;
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -570,13 +571,17 @@ export default function VisitorsPage() {
                                     <Pencil className="mr-2 h-4 w-4" />
                                     Edit Visitor
                                   </DropdownMenuItem>
+                                </>
+                              )}
+                              {canConvertVisitor && !visitor.convertedMemberId && (
+                                <>
                                   <DropdownMenuItem onClick={() => setConvertVisitor(visitor)}>
                                     <Repeat className="mr-2 h-4 w-4" />
                                     Convert to Member
                                   </DropdownMenuItem>
                                 </>
                               )}
-                              {canDeleteVisitors && (
+                              {canUpdateVisitors && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -587,6 +592,10 @@ export default function VisitorsPage() {
                                     <Archive className="mr-2 h-4 w-4" />
                                     Archive
                                   </DropdownMenuItem>
+                                </>
+                              )}
+                              {canDeleteVisitors && (
+                                <>
                                   <DropdownMenuItem
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => setDeleteTargets([visitor])}

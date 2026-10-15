@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
@@ -325,7 +326,9 @@ export function useAssetStats(branchId?: string) {
 }
 
 export function useAssetCategories(archived?: boolean) {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("assets:categories", "read"),
     queryKey: ["assets-categories", archived ?? false],
     queryFn: ({ signal }) =>
       api.get<AssetCategory[]>(`/assets/categories${archived ? "?archived=true" : ""}`, { signal }),

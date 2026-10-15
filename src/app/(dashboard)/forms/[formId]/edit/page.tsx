@@ -16,7 +16,7 @@ export default function EditFormPage() {
   const params = useParams();
   const formId = params.formId as string;
   const { can } = usePermissions();
-  const canUpdate = can("forms", "update");
+  const canUpdate = can("forms:list", "update");
 
   const { data: form, isLoading, error } = useForm(formId);
   const updateMutation = useUpdateForm(formId);

@@ -78,9 +78,9 @@ const SORT_OPTIONS = [
 
 export default function LifeEventsPage() {
   const { can } = usePermissions();
-  const canCreate = can("pastoral", "create");
-  const canUpdate = can("pastoral", "update");
-  const canDelete = can("pastoral", "delete");
+  const canCreate = can("pastoral:life-events", "create");
+  const canUpdate = can("pastoral:life-events", "update");
+  const canDelete = can("pastoral:life-events", "delete");
 
   const [typeFilter, setTypeFilter] = React.useState<LifeEventType | "all">("all");
   const [upcomingOnly, setUpcomingOnly] = React.useState(false);

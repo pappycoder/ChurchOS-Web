@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
@@ -164,7 +165,9 @@ export async function fetchMediaFolders(context?: { signal?: AbortSignal }): Pro
 }
 
 export function useMediaFolders() {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("media:folders", "read"),
     queryKey: ["media-folders"],
     queryFn: fetchMediaFolders,
     staleTime: 60 * 1000,

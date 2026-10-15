@@ -126,9 +126,9 @@ export default function MembersPage() {
   const isAdminHq = !!profile?.isAdminHq;
   const router = useRouter();
   const { can } = usePermissions();
-  const canCreateMembers = can("members", "create");
-  const canUpdateMembers = can("members", "update");
-  const canDeleteMembers = can("members", "delete");
+  const canCreateMembers = can("members:new", "create");
+  const canUpdateMembers = can("members:all", "update");
+  const canDeleteMembers = can("members:all", "delete");
   const canManage = canCreateMembers || canUpdateMembers || canDeleteMembers;
 
   const [searchInput, setSearchInput] = React.useState("");

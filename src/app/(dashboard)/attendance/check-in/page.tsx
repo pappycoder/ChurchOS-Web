@@ -77,7 +77,7 @@ export default function CheckInPage() {
   const router = useRouter();
   const { can } = usePermissions();
   // Route gate already requires attendance:create; keep button-level checks consistent.
-  const canCreate = can("attendance", "create");
+  const canCreate = can("attendance:checkin", "create");
 
   // Selected service + category override.
   const servicesQuery = useAttendanceServices({ isActive: true, limit: 100 });

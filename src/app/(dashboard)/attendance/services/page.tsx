@@ -134,8 +134,8 @@ export default function AttendanceServicesPage() {
   const router = useRouter();
   const { can, canAny } = usePermissions();
   const canCreate = canAny("attendance:services:create");
-  const canUpdate = can("attendance", "update");
-  const canDelete = can("attendance", "delete");
+  const canUpdate = can("attendance:services", "update");
+  const canDelete = can("attendance:services", "delete");
   const canManage = canCreate || canUpdate || canDelete;
 
   const [page, setPage] = React.useState(1);

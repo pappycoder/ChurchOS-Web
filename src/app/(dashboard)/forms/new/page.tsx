@@ -13,7 +13,7 @@ import { ShieldX } from "lucide-react";
 export default function NewFormPage() {
   const router = useRouter();
   const { can } = usePermissions();
-  const canCreate = can("forms", "create");
+  const canCreate = can("forms:list", "create");
   const createMutation = useCreateForm();
 
   if (!canCreate) {

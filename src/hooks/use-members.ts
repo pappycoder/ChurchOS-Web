@@ -111,9 +111,10 @@ function invalidateMemberCaches(
   if (memberId) queryClient.removeQueries({ queryKey: ["member", memberId] });
 }
 
-export function useMembersList(params: ListMembersParams = {}) {
+export function useMembersList(params: ListMembersParams = {}, options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: ["members-list", params],
+    enabled: options.enabled ?? true,
     queryFn: ({ signal }) => api.get<MemberListResponse>(buildListPath(params), { signal }),
   });
 }
@@ -126,14 +127,14 @@ export function useMember(memberId: string) {
   });
 }
 
-export function useSearchMembers(searchTerm: string, limit = 20) {
+export function useSearchMembers(searchTerm: string, limit = 20, options: { enabled?: boolean; branchId?: string } = {}) {
   return useQuery({
-    queryKey: ["members-search", searchTerm, limit],
+    queryKey: ["members-search", searchTerm, limit, options.branchId],
     queryFn: ({ signal }) =>
       api.get<{ data: Member[] }>(
-        `/members/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}`, { signal }
+        `/members/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}${options.branchId ? `&branchId=${encodeURIComponent(options.branchId)}` : ""}`, { signal }
       ),
-    enabled: searchTerm.trim().length >= 2,
+    enabled: (options.enabled ?? true) && searchTerm.trim().length >= 2,
   });
 }
 

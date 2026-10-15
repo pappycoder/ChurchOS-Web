@@ -63,9 +63,9 @@ const defaultFormData: TierFormData = {
 
 export default function EventTiersPage() {
   const { can } = usePermissions();
-  const canCreate = can("events", "create");
-  const canUpdate = can("events", "update");
-  const canDelete = can("events", "delete");
+  const canCreate = can("events:tickets", "create");
+  const canUpdate = can("events:tickets", "update");
+  const canDelete = can("events:tickets", "delete");
 
   const router = useRouter();
   const params = useParams();

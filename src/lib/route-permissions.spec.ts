@@ -4,6 +4,7 @@ import * as path from "node:path";
 import {
   ROUTE_PERMISSIONS,
   matchRoutePermission,
+  checkRule,
   type RoutePermissionRule,
 } from "./route-permissions";
 import {
@@ -121,7 +122,7 @@ describe("route-permissions guard", () => {
 describe("dynamic route authorization", () => {
   it.each([
     ["/events/123/edit", "events:update"],
-    ["/events/123/tiers", "events:update"],
+    ["/events/123/tiers", "events:tickets:read"],
     ["/sermons/123/edit", "sermons:update"],
     ["/forms/123/edit", "forms:list:update"],
     ["/forms/123/fill", "forms:list:read"],
@@ -150,5 +151,21 @@ describe("dashboard route coverage", () => {
       const route = `/${path.relative(root, directory)}`;
       if (!openPages.has(route)) expect(matchRoutePermission(route), route).not.toBeNull();
     }
+  });
+});
+
+
+describe("read-only page access", () => {
+  it("allows report readers without an unrelated view or write grant", () => {
+    const rule = matchRoutePermission("/reports");
+    expect(checkRule(rule, (name) => name === "reports:financial:read")).toBe(true);
+    expect(checkRule(rule, (name) => name === "reports:financial:create")).toBe(false);
+  });
+  it("opens ticket tiers with a read grant and keeps edit pages write protected", () => {
+    expect(checkRule(matchRoutePermission("/events/123/tiers"), (name) => name === "events:tickets:read")).toBe(true);
+    expect(checkRule(matchRoutePermission("/events/123/edit"), (name) => name === "events:tickets:read")).toBe(false);
+  });
+  it("allows read-only follow-up viewing", () => {
+    expect(checkRule(matchRoutePermission("/visitors/follow-up"), (name) => name === "visitors:list:read")).toBe(true);
   });
 });

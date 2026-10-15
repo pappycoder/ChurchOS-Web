@@ -12,6 +12,7 @@ export interface RoutePermissionRule {
   /** Required `resource:surface:action` permission, e.g. "members:all:read".
    * Single-page resources keep coarse `resource:action` codes. */
   permission?: string;
+  anyOf?: string[];
 }
 
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
@@ -42,7 +43,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/events/list", permission: "events:all:read" },
   { prefix: "/events/registrations", permission: "events:registrations:read" },
   { prefix: "/events/[eventId]/edit", permission: "events:update" },
-  { prefix: "/events/[eventId]/tiers", permission: "events:update" },
+  { prefix: "/events/[eventId]/tiers", permission: "events:tickets:read" },
   { prefix: "/events/[eventId]", permission: "events:all:read" },
   { prefix: "/events", permission: "events:calendar:read" },
 
@@ -64,7 +65,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/pastoral/engagement", permission: "pastoral:engagement:read" },
   { prefix: "/pastoral", permission: "pastoral:notes:read" },
   { prefix: "/visitors/new", permission: "visitors:new:create" },
-  { prefix: "/visitors/follow-up", permission: "visitors:followup:update" },
+  { prefix: "/visitors/follow-up", permission: "visitors:list:read" },
   { prefix: "/visitors", permission: "visitors:list:read" },
 
   // Communication
@@ -88,7 +89,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/forms", permission: "forms:list:read" },
 
   // Reports — single generator page guarded by the reports:read permission
-  { prefix: "/reports", permission: "reports:view" },
+  { prefix: "/reports", permission: "reports:view", anyOf: ["reports:financial:read", "reports:attendance:read", "reports:members:read"] },
 
   // Diagnostics
   { prefix: "/debug/sentry", permission: "diagnostics:read" },
@@ -136,6 +137,6 @@ export function checkRule(
   can: (permissionName: string) => boolean
 ): boolean {
   if (!rule) return true;
-  if (rule.permission) return can(rule.permission);
-  return true;
+  if (!rule.permission && !rule.anyOf?.length) return true;
+  return (!!rule.permission && can(rule.permission)) || (rule.anyOf ?? []).some(can);
 }

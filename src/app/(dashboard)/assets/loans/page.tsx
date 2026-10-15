@@ -29,7 +29,8 @@ import {
 
 export default function AssetLoansPage() {
   const { can } = usePermissions();
-  const canLoan = can("assets", "create") || can("assets", "update");
+  const canLoan = can("assets:loans", "create");
+  const canReturn = can("assets:loans", "update");
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -184,13 +185,13 @@ export default function AssetLoansPage() {
         onOpenChange={setDrawerOpen}
         assetId={detailAsset?.id ?? ""}
       >
-        {canLoan && detailAsset && (
+        {(canLoan || canReturn) && detailAsset && (
           <div className="flex flex-col gap-2">
-            <Button onClick={() => setLoanOutOpen(true)}>
+            {canLoan && <Button onClick={() => setLoanOutOpen(true)}>
               <HandCoins className="h-4 w-4 mr-2" />
               Loan Out
-            </Button>
-            {activeLoan && (
+            </Button>}
+            {canReturn && activeLoan && (
               <Button variant="outline" onClick={() => setReturnLoanId(activeLoan.id)}>
                 Record Return
               </Button>

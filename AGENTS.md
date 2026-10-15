@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-15 — Read-only UI workflow audit.** Aligned assets, attendance, forms, media, giving, members, pastoral and visitor controls with exact API surface grants. Follow-up board is readable without update grants; mutations keep their own checks. Dashboard giving reads aggregate data independently of transaction access. Supporting category/service/folder/submission queries require their own read grants, not writes; unavailable filters and asset tabs are omitted. Member pickers fetch only when open and send branch-scoped searches. Added read-only query regressions and browser cases. See backend docs/READ-ONLY-UI-VERIFICATION-2026-10-15.md.
+
+
 - **2026-10-15 — Role contract verification.** Completed frontend permission-code families and special read-only grants to match the backend catalog. Added backend cross-project catalog verification covering literal frontend action/navigation codes. This changes validation metadata, not role grants.
 
 

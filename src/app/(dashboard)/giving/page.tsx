@@ -50,26 +50,13 @@ export default function GivingDashboardPage() {
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
   const [branchId, setBranchId] = React.useState("");
-  const canCreate = can("giving", "create");
+  const canCreate = can("giving:records", "create");
 
   const [recordOpen, setRecordOpen] = React.useState(false);
 
   const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const recentQuery = useGivingTransactions({ limit: 8, branchId: effectiveBranchId || undefined });
-
-  // Calendar-month-start bound for the "Gifts This Month" count query.
-  const monthStart = React.useMemo(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  }, []);
-
-  const monthQuery = useGivingTransactions({
-    status: "success",
-    startDate: monthStart,
-    limit: 1,
-    branchId: effectiveBranchId || undefined,
-  });
 
   const summaryQuery = useGivingSummary({ branchId: effectiveBranchId || undefined });
   const summary = summaryQuery.data;
@@ -83,12 +70,12 @@ export default function GivingDashboardPage() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Giving" }]}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" asChild>
+            {can("giving:categories", "read") && <Button variant="outline" asChild>
               <Link href="/giving/categories">
                 <Settings2 className="h-4 w-4 mr-2" />
                 Categories
               </Link>
-            </Button>
+            </Button>}
             {canCreate && (
               <Button onClick={() => setRecordOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -139,19 +126,19 @@ export default function GivingDashboardPage() {
         />
         <StatsCard
           title="Gifts This Month"
-          value={monthQuery.data?.meta.total ?? 0}
+          value={summary?.monthCount ?? 0}
           icon={<CalendarRange className="h-4 w-4" />}
         />
         <StatsCard
-          title="All Transactions"
-          value={recentQuery.data?.meta.total ?? 0}
+          title="Successful Gifts"
+          value={summary?.count ?? 0}
           icon={<Wallet className="h-4 w-4" />}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Trend */}
-        <Card className="lg:col-span-2">
+        <Card className={can("giving:records", "read") ? "lg:col-span-2" : "lg:col-span-3"}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Giving Trend</CardTitle>
             <CardDescription>Successful gifts over the last 30 days.</CardDescription>
@@ -198,8 +185,8 @@ export default function GivingDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent transactions */}
-        <Card>
+        {/* Recent transactions require their own read grant. */}
+        {can("giving:records", "read") && <Card>
           <CardHeader className="pb-2 flex flex-row items-center justify-between">
             <div>
               <CardTitle className="text-sm font-semibold">Recent Gifts</CardTitle>
@@ -259,7 +246,7 @@ export default function GivingDashboardPage() {
               ))
             )}
           </CardContent>
-        </Card>
+        </Card>}
       </div>
 
       <RecordCashDialog open={recordOpen} onOpenChange={setRecordOpen} branchId={effectiveBranchId || undefined} />

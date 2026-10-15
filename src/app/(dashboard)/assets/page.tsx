@@ -69,9 +69,9 @@ export default function AssetsPage() {
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
   const { can, canAny } = usePermissions();
-  const canCreate = can("assets", "create");
-  const canUpdate = can("assets", "update");
-  const canDelete = can("assets", "delete");
+  const canCreate = can("assets:list", "create");
+  const canUpdate = can("assets:list", "update");
+  const canDelete = can("assets:list", "delete");
   const canReadAssets = canAny("assets:read", "assets:list:read");
 
   const [searchInput, setSearchInput] = React.useState("");
@@ -265,7 +265,7 @@ export default function AssetsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select
+              {can("assets:categories", "read") && <Select
                 value={categoryFilter}
                 onValueChange={(v) => {
                   setCategoryFilter(v);
@@ -283,7 +283,7 @@ export default function AssetsPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </Select>}
               {isAdminHq ? <Select
                 value={branchFilter}
                 onValueChange={(v) => { setBranchFilter(v); setPage(1); }}

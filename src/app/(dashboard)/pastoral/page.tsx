@@ -72,9 +72,9 @@ const CONFIDENTIALITY_OPTIONS: Array<{ value: ConfidentialityLevel | "all"; labe
 
 export default function PastoralNotesPage() {
   const { can } = usePermissions();
-  const canCreate = can("pastoral", "create");
-  const canUpdate = can("pastoral", "update");
-  const canDelete = can("pastoral", "delete");
+  const canCreate = can("pastoral:notes", "create");
+  const canUpdate = can("pastoral:notes", "update");
+  const canDelete = can("pastoral:notes", "delete");
   const canManage = canCreate || canUpdate || canDelete;
 
   const [confidentiality, setConfidentiality] = React.useState<

@@ -60,7 +60,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 
 export default function AttendanceRecordsPage() {
   const { can } = usePermissions();
-  const canDelete = can("attendance", "delete");
+  const canDelete = can("attendance:records", "delete");
 
   // Filters
   const [serviceId, setServiceId] = React.useState<string>("all");
@@ -195,7 +195,7 @@ export default function AttendanceRecordsPage() {
         }}
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
-          <Select
+          {can("attendance:services", "read") && <Select
             value={serviceId}
             onValueChange={(v) => {
               setServiceId(v);
@@ -213,7 +213,7 @@ export default function AttendanceRecordsPage() {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </Select>}
           <Select
             value={category}
             onValueChange={(v) => {

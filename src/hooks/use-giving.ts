@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 import { fetchAllPages, listUrl } from "@/lib/export-all";
 import type { PaginatedResponse } from "@/hooks/use-attendance";
@@ -99,6 +100,7 @@ export interface GivingTrendPoint {
 /** Shape returned by GET /giving/transactions/summary (TransactionSummaryResponseDto). */
 export interface GivingSummary {
   monthTotal: number;
+  monthCount: number;
   allTimeTotal: number;
   count: number;
   trend: GivingTrendPoint[];
@@ -164,13 +166,14 @@ export function useGivingCategories(
   params: ListCategoriesParams = {},
   options: { enabled?: boolean } = {}
 ) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["giving-categories", params],
     queryFn: ({ signal }) =>
       api.get<PaginatedResponse<GivingCategory>>(
         `/giving/categories${buildQuery({ ...params })}`, { signal }
       ),
-    enabled: options.enabled ?? true,
+    enabled: (options.enabled ?? true) && can("giving:categories", "read"),
   });
 }
 
@@ -224,7 +227,9 @@ export function useRestoreArchiveGivingCategory() {
 // ─── Transactions ────────────────────────────────────────
 
 export function useGivingTransactions(params: ListGivingTransactionsParams = {}) {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("giving:records", "read"),
     queryKey: ["giving-transactions", params],
     queryFn: ({ signal }) =>
       api.get<PaginatedResponse<GivingTransaction>>(
@@ -234,10 +239,12 @@ export function useGivingTransactions(params: ListGivingTransactionsParams = {})
 }
 
 export function useGivingSummary(params: Pick<ListGivingTransactionsParams, "branchId"> = {}) {
+  const { can } = usePermissions();
   return useQuery({
+    enabled: can("giving:dashboard", "read"),
     queryKey: ["giving-summary", params],
     queryFn: ({ signal }) =>
-      api.get<GivingSummary>(`/giving/transactions/summary${buildQuery(params)}`, { signal }),
+      api.get<GivingSummary>(`/giving/dashboard${buildQuery(params)}`, { signal }),
     staleTime: 60_000,
   });
 }

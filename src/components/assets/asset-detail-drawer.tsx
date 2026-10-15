@@ -78,8 +78,10 @@ export function AssetDetailDrawer({
   const { can } = usePermissions();
   const assetQuery = useAsset(open ? assetId : undefined);
   const qrQuery = useAssetQr(open ? assetId : undefined);
-  const maintenanceQuery = useAssetMaintenance(open ? assetId : undefined);
-  const loansQuery = useAssetLoans(open ? assetId : undefined);
+  const canReadMaintenance = can("assets:maintenance", "read");
+  const canReadLoans = can("assets:loans", "read");
+  const maintenanceQuery = useAssetMaintenance(open && canReadMaintenance ? assetId : undefined);
+  const loansQuery = useAssetLoans(open && canReadLoans ? assetId : undefined);
   const depreciationQuery = useAssetDepreciationSummary(open ? assetId : undefined);
   const generateQrMutation = useGenerateAssetQr(assetId);
 
@@ -138,11 +140,11 @@ export function AssetDetailDrawer({
             </div>
 
             <Tabs defaultValue="overview">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="flex w-full flex-wrap h-auto">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="qr">QR</TabsTrigger>
-                <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
-                <TabsTrigger value="loans">Loans</TabsTrigger>
+                {canReadMaintenance && <TabsTrigger value="maintenance">Maintenance</TabsTrigger>}
+                {canReadLoans && <TabsTrigger value="loans">Loans</TabsTrigger>}
                 <TabsTrigger value="depreciation">Depreciation</TabsTrigger>
               </TabsList>
 
@@ -207,7 +209,7 @@ export function AssetDetailDrawer({
                 <p className="text-center text-xs text-muted-foreground break-all">
                   {qrQuery.data?.qrData}
                 </p>
-                {can("assets", "create") && (
+                {can("assets:list", "create") && (
                   <Button
                     size="sm"
                     variant="outline"

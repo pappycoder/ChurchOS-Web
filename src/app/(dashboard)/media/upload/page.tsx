@@ -55,7 +55,7 @@ function validateFile(file: File): string | null {
 function MediaUploadPage() {
   const router = useRouter();
   const { can } = usePermissions();
-  const canCreate = can("media", "create");
+  const canCreate = can("media:upload", "create");
 
   const foldersQuery = useMediaFolders();
   const folders = foldersQuery.data ?? [];

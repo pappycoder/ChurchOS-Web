@@ -66,6 +66,7 @@ interface NavItem {
   children?: NavItem[];
   /** Required `resource:action` permission, e.g. "members:read". */
   permission?: string;
+  anyOf?: string[];
 }
 
 const navItems: { section: string; items: NavItem[] }[] = [
@@ -91,12 +92,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Add Member",
             href: "/members/new",
-            permission: "members:create",
+            permission: "members:new:create",
           },
           {
             title: "Import Members",
             href: "/members/import",
-            permission: "members:create",
+            permission: "members:import:create",
           },
           {
             title: "Families",
@@ -203,7 +204,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "All Sermons",
             href: "/sermons",
-            permission: "sermons:read",
+            permission: "sermons:list:read",
           },
           {
             title: "Add Sermon",
@@ -213,12 +214,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Series",
             href: "/sermons/series",
-            permission: "sermons:read",
+            permission: "sermons:series:read",
           },
           {
             title: "Speakers",
             href: "/sermons/speakers",
-            permission: "sermons:read",
+            permission: "sermons:speakers:read",
           },
         ],
       },
@@ -228,7 +229,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: Film,
         permission: "media:read",
         children: [
-          { title: "Library", href: "/media", permission: "media:read" },
+          { title: "Library", href: "/media", permission: "media:library:read" },
           {
             title: "Upload",
             href: "/media/upload",
@@ -237,7 +238,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "Folders",
             href: "/media/folders",
-            permission: "media:read",
+            permission: "media:folders:read",
           },
         ],
       },
@@ -247,21 +248,21 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: HeartHandshake,
         permission: "pastoral:read",
         children: [
-          { title: "Notes", href: "/pastoral", permission: "pastoral:read" },
+          { title: "Notes", href: "/pastoral", permission: "pastoral:notes:read" },
           {
             title: "Life Events",
             href: "/pastoral/life-events",
-            permission: "pastoral:read",
+            permission: "pastoral:life-events:read",
           },
           {
             title: "Risk Scores",
             href: "/pastoral/risk-scores",
-            permission: "pastoral:read",
+            permission: "pastoral:risk-scores:read",
           },
           {
             title: "Engagement",
             href: "/pastoral/engagement",
-            permission: "pastoral:read",
+            permission: "pastoral:engagement:read",
           },
         ],
       },
@@ -274,17 +275,17 @@ const navItems: { section: string; items: NavItem[] }[] = [
           {
             title: "All Visitors",
             href: "/visitors",
-            permission: "visitors:read",
+            permission: "visitors:list:read",
           },
           {
             title: "Add Visitor",
             href: "/visitors/new",
-            permission: "visitors:create",
+            permission: "visitors:new:create",
           },
           {
             title: "Follow-Up",
             href: "/visitors/follow-up",
-            permission: "visitors:update",
+            permission: "visitors:list:read",
           },
         ],
       },
@@ -351,18 +352,18 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: Package,
         permission: "assets:read",
         children: [
-          { title: "All Assets", href: "/assets", permission: "assets:read" },
+          { title: "All Assets", href: "/assets", permission: "assets:list:read" },
           {
             title: "Categories",
             href: "/assets/categories",
-            permission: "assets:read",
+            permission: "assets:categories:read",
           },
           {
             title: "Maintenance",
             href: "/assets/maintenance",
-            permission: "assets:read",
+            permission: "assets:maintenance:read",
           },
-          { title: "Loans", href: "/assets/loans", permission: "assets:read" },
+          { title: "Loans", href: "/assets/loans", permission: "assets:loans:read" },
         ],
       },
       {
@@ -371,11 +372,11 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: ClipboardList,
         permission: "forms:read",
         children: [
-          { title: "All Forms", href: "/forms", permission: "forms:read" },
+          { title: "All Forms", href: "/forms", permission: "forms:list:read" },
           {
             title: "Submissions",
             href: "/forms/submissions",
-            permission: "forms:read",
+            permission: "forms:submissions:read",
           },
         ],
       },
@@ -384,11 +385,13 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/reports",
         icon: FileBarChart,
         permission: "reports:view",
+        anyOf: ["reports:financial:read", "reports:attendance:read", "reports:members:read"],
         children: [
           {
             title: "Generate Report",
             href: "/reports",
             permission: "reports:view",
+            anyOf: ["reports:financial:read", "reports:attendance:read", "reports:members:read"],
           },
         ],
       },
