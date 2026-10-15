@@ -10,6 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-15 — Role contract verification.** Completed frontend permission-code families and special read-only grants to match the backend catalog. Added backend cross-project catalog verification covering literal frontend action/navigation codes. This changes validation metadata, not role grants.
+
+
 - **2026-10-15 — Frontend permissions and performance audit.** Dynamic route matching now handles real IDs and precompiles rules once. Navigation retains filtered children and uses effective grants without a member-presentation override. Event/media/sermon controls follow surface permissions; role-admin and event participant queries are permission gated. Broader grants supersede own-scope restrictions. Permission checks fail closed on failed profile verification/inactive accounts; profile authorization refreshes on focus/reconnect with an in-place retry state. Authorization scope changes mask the dashboard and cancel/reset old workspace queries before rendering. Shared immutable permission indexes avoid repeated Set construction, closed department drawers defer fetching, and department lists use the standard cache window. Added behavioral regressions for route IDs, navigation, query policy, permission failure states and index reuse. See docs/FRONTEND-AUDIT-2026-10-15.md.
 
 

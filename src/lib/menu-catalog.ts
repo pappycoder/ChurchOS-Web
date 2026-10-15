@@ -18,31 +18,37 @@ export const PERMISSION_ACTIONS = [
 
 /** Resources with a dedicated surface hierarchy (matches backend seed). */
 export const SURFACE_RESOURCES: Record<string, string[]> = {
-  members: ["all", "new", "import"],
+  members: ["all", "new", "import", "own"],
   attendance: ["dashboard", "services", "checkin", "records", "reports"],
   giving: ["dashboard", "categories", "records", "reports", "recurring"],
-  events: ["calendar", "all", "list", "checkin", "registrations", "tickets"],
+  events: ["calendar", "all", "list", "checkin", "registrations", "tickets", "ticket-records"],
   sermons: ["list", "new", "series", "speakers"],
   media: ["library", "upload", "folders"],
   pastoral: ["notes", "life-events", "risk-scores", "engagement"],
   visitors: ["list", "new", "followup"],
   assets: ["list", "categories", "maintenance", "loans"],
   forms: ["list", "submissions"],
-  analytics: ["dashboard", "giving", "attendance", "members"],
-  branches: ["directory"],
+  analytics: ["dashboard", "giving", "attendance", "members", "events", "communication"],
   reports: ["financial", "attendance", "members"],
   departments: ["own"],
-  cell_groups: ["own"],
+  cell_groups: ["own", "giving", "details"],
+  appointments: ["branch"],
 };
 
 /** Single-page / no-surface resources (only coarse `resource:action` codes). */
 export const COARSE_RESOURCES = [
+  "church",
+  "profiles",
+  "pastoral_confidential",
+  "pastoral_restricted",
+  "pastoral_moderation",
   "offline",
   "families",
   "appointments",
   "templates",
   "broadcasts",
   "whatsapp",
+  "webhooks",
   "emails",
   "departments",
   "cell_groups",
@@ -54,6 +60,13 @@ export const COARSE_RESOURCES = [
   "roles",
   "diagnostics",
 ];
+
+/** Special grants are not full CRUD surface families. */
+export const EXTRA_PERMISSIONS = [
+  "branches:directory:read",
+  "data_scope:church:read",
+  "media:restricted:read",
+] as const;
 
 export interface ParsedPermission {
   resource: string;
@@ -70,6 +83,7 @@ export function parsePermission(name: string): ParsedPermission {
 
 /** True when `name` is a known coarse (`resource:action`) or surface (`resource:surface:action`) code. */
 export function isValidPermission(name: string): boolean {
+  if ((EXTRA_PERMISSIONS as readonly string[]).includes(name)) return true;
   const parts = name.split(":");
   if (parts.length === 2) {
     const [resource, action] = parts;
