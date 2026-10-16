@@ -61,6 +61,7 @@ function buildListPath(params: ListFamiliesParams): string {
   if (params.limit) searchParams.set("limit", String(params.limit));
   if (params.search) searchParams.set("search", params.search);
   if (params.archived) searchParams.set("archived", "true");
+  if (params.branchId) searchParams.set("branchId", params.branchId);
   const queryString = searchParams.toString();
   return `/families${queryString ? `?${queryString}` : ""}`;
 }

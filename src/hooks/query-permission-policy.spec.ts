@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useRolesSummary, useRolePermissions, useAllPermissions } from "./use-roles";
 import { useAttendanceServices, useAttendanceRecords, useAttendanceSummary, useAttendanceTrends } from "./use-attendance";
-import { useGivingCategories, useGivingSummary, useGivingTransactions } from "./use-giving";
+import { useGivingCategories, useGivingSummary, useGivingTransactions, useGivingTransactionsAll } from "./use-giving";
 import { useAssetCategories } from "./use-assets";
 import { useMediaFolders } from "./use-media";
 import { useFormSubmissions } from "./use-forms";
 import { useCurrentProfile } from "./use-profile";
 import { useEventRegistrations, useEventAttendance } from "./use-events";
+import { useFamiliesList } from "./use-families";
+import { api } from "@/lib/api";
 
 const state = vi.hoisted(() => ({ grants: new Set<string>(), query: vi.fn((options: { enabled?: boolean; refetchOnWindowFocus?: boolean; refetchOnReconnect?: boolean }) => options) }));
 vi.mock("@tanstack/react-query", () => ({ useQuery: state.query, useMutation: vi.fn(), useQueryClient: vi.fn() }));
@@ -44,6 +46,17 @@ describe("permission-gated queries", () => {
 describe("read-only workflow queries", () => {
   beforeEach(() => { state.grants.clear(); state.query.mockClear(); });
 
+  it("passes the selected family branch and list filters to the API without write grants", async () => {
+    useFamiliesList({ branchId: "branch-selected", page: 2, limit: 15, search: "Family & friends", archived: true });
+    const options = state.query.mock.calls[0][0] as unknown as { queryFn: (context: { signal: AbortSignal }) => Promise<unknown> };
+    const signal = new AbortController().signal;
+    await options.queryFn({ signal });
+    const request = vi.mocked(api.get).mock.calls.at(-1)!;
+    const url = new URL(request[0], "https://churchos.invalid");
+    expect(Object.fromEntries(url.searchParams)).toEqual({ branchId: "branch-selected", page: "2", limit: "15", search: "Family & friends", archived: "true" });
+    expect(request[1]).toEqual({ signal });
+  });
+
   it("loads authorized filter data without write grants", () => {
     for (const grant of ["attendance:services:read", "giving:categories:read", "assets:categories:read", "media:folders:read", "forms:submissions:read"]) state.grants.add(grant);
     useAttendanceServices(); useGivingCategories(); useAssetCategories(); useMediaFolders(); useFormSubmissions("form");
@@ -59,6 +72,15 @@ describe("read-only workflow queries", () => {
     state.grants.add("giving:dashboard:read");
     useGivingSummary(); useGivingTransactions();
     expect(state.query.mock.calls.map(([options]) => options.enabled)).toEqual([true, false]);
+  });
+
+  it("fetches service-linked giving only with transaction read permission", () => {
+    state.grants.add("attendance:services:read");
+    useGivingTransactionsAll({ serviceId: "service" });
+    expect(state.query.mock.calls[0][0].enabled).toBe(false);
+    state.grants.add("giving:records:read");
+    useGivingTransactionsAll({ serviceId: "service" });
+    expect(state.query.mock.calls[1][0].enabled).toBe(true);
   });
 
   it("loads attendance totals without requiring records, reports or check-in writes", () => {

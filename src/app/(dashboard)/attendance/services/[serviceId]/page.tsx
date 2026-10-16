@@ -66,6 +66,7 @@ export default function ServiceDetailPage({
   const { can } = usePermissions();
   const canUpdate = can("attendance:services", "update");
   const canDelete = can("attendance:services", "delete");
+  const canReadGiving = can("giving:records", "read");
 
   const serviceQuery = useService(serviceId);
   const attendanceQuery = useServiceAttendance(serviceId);
@@ -247,7 +248,7 @@ export default function ServiceDetailPage({
             <p className="text-xs text-muted-foreground mt-1">Children Check-Ins</p>
           </CardContent>
         </Card>
-        <Card>
+        {canReadGiving && <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-semibold flex items-center gap-2">
               <HandCoins className="h-5 w-5 text-muted-foreground" />
@@ -255,7 +256,7 @@ export default function ServiceDetailPage({
             </div>
             <p className="text-xs text-muted-foreground mt-1">Total Giving (₦)</p>
           </CardContent>
-        </Card>
+        </Card>}
       </div>
 
       {/* Breakdowns */}
@@ -273,7 +274,7 @@ export default function ServiceDetailPage({
           </CardContent>
         </Card>
 
-        <Card>
+        {canReadGiving && <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <HandCoins className="h-4 w-4" />
@@ -306,7 +307,7 @@ export default function ServiceDetailPage({
               </ChartContainer>
             )}
           </CardContent>
-        </Card>
+        </Card>}
       </div>
 
       {/* Archive / Restore / Delete Forever confirmation */}

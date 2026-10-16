@@ -19,6 +19,7 @@ async function installReadOnlySession(context: BrowserContext, grants: string[],
       else if (path.endsWith("/profiles/me")) data = { profileId: "profile-a", userId: "user-a", churchId: "church-a", branchId: "branch-a", role: ["custom_readonly"], status: "active", isAdminHq: hq, firstName: "Read", lastName: "Only", permissions: grants, branch: { branchId: "branch-a", name: "Branch A" } };
       else if (path.endsWith("/profiles/profile-b")) data = user;
       else if (path.endsWith("/forms/form-a")) data = form;
+      else if (path.endsWith("/services/service-a")) data = { serviceId: "service-a", name: "Read-only Service", isActive: true, category: "adult" };
       else if (path.endsWith("/forms")) data = { data: [form], meta: { total: 1, page: 1, limit: 20, totalPages: 1 } };
       else if (path.endsWith("/giving/dashboard")) data = { monthTotal: 1234, monthCount: 2, allTimeTotal: 4567, count: 8, trend: [] };
       else if (path.endsWith("/assets")) data = { data: [asset], meta: { total: 1, page: 1, limit: 20, totalPages: 1 } };
@@ -56,6 +57,19 @@ test("asset list and details remain readable without maintenance, loans or write
   await expect(page.getByRole("button", { name: /Generate.*QR/ })).toHaveCount(0);
   const calls = await page.evaluate(() => (window as unknown as { auditCalls: string[] }).auditCalls);
   expect(calls.some((call) => /\/maintenance|\/loans|\/assets\/categories/.test(call))).toBe(false);
+});
+
+for (const giving of [false, true]) test(`service details load with independently authorized giving (giving=${giving})`, async ({ page, context }) => {
+  await installReadOnlySession(context, ["attendance:services:read", ...(giving ? ["giving:records:read"] : [])]);
+  await page.goto("/attendance/services/service-a");
+  await expect(page.getByRole("heading", { name: "Read-only Service", exact: true })).toBeVisible();
+  await expect(page.getByText("Attendance Breakdown", { exact: true })).toBeVisible();
+  await expect(page.getByText("Giving Breakdown", { exact: true })).toHaveCount(giving ? 1 : 0);
+  await expect(page.getByText("Total Giving (₦)", { exact: true })).toHaveCount(giving ? 1 : 0);
+  await expect(page.getByRole("button", { name: "Archive", exact: true })).toHaveCount(0);
+  const calls = await page.evaluate(() => (window as unknown as { auditCalls: string[] }).auditCalls);
+  expect(calls.some((call) => call.includes("/attendance/by-service/service-a"))).toBe(true);
+  expect(calls.some((call) => call.includes("/giving/transactions"))).toBe(giving);
 });
 
 

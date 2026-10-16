@@ -257,6 +257,7 @@ export function useGivingSummary(params: Pick<ListGivingTransactionsParams, "bra
  * invalidate prefix so new gifts refresh these views too.
  */
 export function useGivingTransactionsAll(params: ListGivingTransactionsParams = {}) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["giving-transactions-all", params],
     queryFn: ({ signal }) =>
@@ -270,6 +271,7 @@ export function useGivingTransactionsAll(params: ListGivingTransactionsParams = 
           }), { signal }
         )
       ),
+    enabled: can("giving:records", "read"),
   });
 }
 

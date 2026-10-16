@@ -1,5 +1,7 @@
 # UI access audit — 16 October 2026
 
+Follow-up deployed acceptance evidence and additional required fixes are in [ROLE-ACCEPTANCE-2026-10-16.md](ROLE-ACCEPTANCE-2026-10-16.md). The no-migration statement below applies only to this initial UI audit; the follow-up found a form-submission trigger requiring a migration.
+
 ## Coverage and result
 
 The final source audit inventories **85 pages (78 dashboard pages), 445 concrete/template link references, 70 navigation leaves, and 715 controls**. Controls include native buttons, Button components, menu actions, tab triggers and self-closing variants. There are zero issues in the automated link, page coverage, navigation agreement and archive-gate checks.

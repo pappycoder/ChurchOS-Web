@@ -60,7 +60,7 @@ import { TableCard } from "@/components/shared/table-card";
 import { DeleteFamilyDialog } from "@/components/families/delete-family-dialog";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
-const STATS_FETCH_LIMIT = 200;
+const STATS_FETCH_LIMIT = 100;
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
