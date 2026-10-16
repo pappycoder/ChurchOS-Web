@@ -222,7 +222,7 @@ export default function LoginPage() {
             transition={{ duration: 0.35, ease: AUTH_EASE }}
           >
             <div className="space-y-4">
-              {/* TODO: Remove or comment out this seed-account picker before release. */}
+              {process.env.NODE_ENV === "development" && (
               <div className="space-y-1.5">
                 <label
                   htmlFor="dev-account"
@@ -254,6 +254,7 @@ export default function LoginPage() {
                   ))}
                 </select>
               </div>
+              )}
               <AuthField
                 label="Email Address"
                 type="email"

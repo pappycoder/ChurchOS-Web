@@ -1,5 +1,12 @@
 import { expect, test, type BrowserContext } from "@playwright/test";
 
+test("production login omits the seeded-account helper", async ({ page }) => {
+  await page.goto("/login");
+  await expect(page.getByRole("button", { name: "Sign In", exact: true })).toBeVisible();
+  await expect(page.locator("#dev-account")).toHaveCount(0);
+  await expect(page.getByText("Quick sign-in (development)", { exact: true })).toHaveCount(0);
+});
+
 async function installReadOnlySession(context: BrowserContext, grants: string[], hq = false) {
   await context.addCookies([{ name: "churchos_token", value: "readonly-test", url: "http://127.0.0.1:3107" }]);
   await context.addInitScript(({ grants, hq }) => {

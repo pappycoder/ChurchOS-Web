@@ -1,0 +1,378 @@
+{
+  "date": "2026-10-16",
+  "origin": "https://church-os-web.vercel.app",
+  "liveBusinessMutationsAllowed": false,
+  "actors": [
+    {
+      "label": "Lekki \u00b7 Secretary",
+      "roles": [
+        "secretary"
+      ],
+      "scope": "branch",
+      "permissions": 132,
+      "pages": 78,
+      "passed": 77,
+      "denials": 29,
+      "unverified": [
+        "/attendance/services/[serviceId]"
+      ],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [
+        {
+          "route": "/members/families",
+          "endpoint": "families",
+          "status": 400
+        }
+      ],
+      "primaryActionsChecked": 7,
+      "primaryActionsOpened": 4
+    },
+    {
+      "label": "Lekki \u00b7 Treasurer",
+      "roles": [
+        "treasurer"
+      ],
+      "scope": "branch",
+      "permissions": 75,
+      "pages": 78,
+      "passed": 77,
+      "denials": 49,
+      "unverified": [
+        "/attendance/services/[serviceId]"
+      ],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 4,
+      "primaryActionsOpened": 1
+    },
+    {
+      "label": "Lekki \u00b7 Usher",
+      "roles": [
+        "usher"
+      ],
+      "scope": "branch",
+      "permissions": 102,
+      "pages": 78,
+      "passed": 77,
+      "denials": 44,
+      "unverified": [
+        "/attendance/services/[serviceId]"
+      ],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 4,
+      "primaryActionsOpened": 1
+    },
+    {
+      "label": "Lekki \u00b7 Department Head",
+      "roles": [
+        "department_head"
+      ],
+      "scope": "branch",
+      "permissions": 32,
+      "pages": 78,
+      "passed": 78,
+      "denials": 65,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 2,
+      "primaryActionsOpened": 0
+    },
+    {
+      "label": "Lekki \u00b7 Cell Leader",
+      "roles": [
+        "cell_leader",
+        "member"
+      ],
+      "scope": "branch",
+      "permissions": 34,
+      "pages": 78,
+      "passed": 78,
+      "denials": 64,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 2,
+      "primaryActionsOpened": 0
+    },
+    {
+      "label": "Lekki \u00b7 Member",
+      "roles": [
+        "member"
+      ],
+      "scope": "branch",
+      "permissions": 22,
+      "pages": 78,
+      "passed": 78,
+      "denials": 66,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 1,
+      "primaryActionsOpened": 0
+    },
+    {
+      "label": "HQ \u00b7 Super Admin",
+      "roles": [
+        "super_admin"
+      ],
+      "scope": "HQ",
+      "permissions": 383,
+      "pages": 78,
+      "passed": 78,
+      "denials": 0,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [
+        {
+          "route": "/members/families",
+          "endpoint": "families",
+          "status": 400
+        }
+      ],
+      "primaryActionsChecked": 11,
+      "primaryActionsOpened": 11
+    },
+    {
+      "label": "HQ \u00b7 Senior Pastor",
+      "roles": [
+        "senior_pastor"
+      ],
+      "scope": "HQ",
+      "permissions": 346,
+      "pages": 78,
+      "passed": 78,
+      "denials": 1,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [
+        {
+          "route": "/members/families",
+          "endpoint": "families",
+          "status": 400
+        }
+      ],
+      "primaryActionsChecked": 11,
+      "primaryActionsOpened": 10
+    },
+    {
+      "label": "HQ \u00b7 Church Admin",
+      "roles": [
+        "church_admin"
+      ],
+      "scope": "HQ",
+      "permissions": 383,
+      "pages": 78,
+      "passed": 78,
+      "denials": 0,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [
+        {
+          "route": "/members/families",
+          "endpoint": "families",
+          "status": 400
+        }
+      ],
+      "primaryActionsChecked": 11,
+      "primaryActionsOpened": 11
+    },
+    {
+      "label": "HQ \u00b7 Treasurer",
+      "roles": [
+        "treasurer"
+      ],
+      "scope": "HQ",
+      "permissions": 75,
+      "pages": 78,
+      "passed": 78,
+      "denials": 49,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 4,
+      "primaryActionsOpened": 1
+    },
+    {
+      "label": "HQ \u00b7 Usher",
+      "roles": [
+        "usher"
+      ],
+      "scope": "HQ",
+      "permissions": 102,
+      "pages": 78,
+      "passed": 78,
+      "denials": 44,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 4,
+      "primaryActionsOpened": 1
+    },
+    {
+      "label": "HQ \u00b7 Secretary",
+      "roles": [
+        "secretary"
+      ],
+      "scope": "HQ",
+      "permissions": 132,
+      "pages": 78,
+      "passed": 78,
+      "denials": 29,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [
+        {
+          "route": "/members/families",
+          "endpoint": "families",
+          "status": 400
+        },
+        {
+          "route": "/attendance/services/[serviceId]",
+          "endpoint": "giving/transactions",
+          "status": 403
+        }
+      ],
+      "primaryActionsChecked": 7,
+      "primaryActionsOpened": 4
+    },
+    {
+      "label": "HQ \u00b7 Department Head",
+      "roles": [
+        "department_head"
+      ],
+      "scope": "HQ",
+      "permissions": 32,
+      "pages": 78,
+      "passed": 78,
+      "denials": 65,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 2,
+      "primaryActionsOpened": 0
+    },
+    {
+      "label": "HQ \u00b7 Member",
+      "roles": [
+        "member"
+      ],
+      "scope": "branch",
+      "permissions": 22,
+      "pages": 78,
+      "passed": 78,
+      "denials": 66,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 1,
+      "primaryActionsOpened": 0
+    },
+    {
+      "label": "HQ \u00b7 Cell Leader",
+      "roles": [
+        "cell_leader",
+        "member"
+      ],
+      "scope": "HQ",
+      "permissions": 34,
+      "pages": 78,
+      "passed": 78,
+      "denials": 64,
+      "unverified": [],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [],
+      "primaryActionsChecked": 2,
+      "primaryActionsOpened": 0
+    },
+    {
+      "label": "Lekki \u00b7 Branch Pastor",
+      "roles": [
+        "branch_pastor"
+      ],
+      "scope": "branch",
+      "permissions": 346,
+      "pages": 78,
+      "passed": 77,
+      "denials": 1,
+      "unverified": [
+        "/attendance/services/[serviceId]"
+      ],
+      "pageFailures": [],
+      "navChecks": 57,
+      "navFailures": 0,
+      "scopeFailures": 0,
+      "pageErrors": 0,
+      "apiFailures": [
+        {
+          "route": "/members/families",
+          "endpoint": "families",
+          "status": 400
+        }
+      ],
+      "primaryActionsChecked": 11,
+      "primaryActionsOpened": 10
+    }
+  ]
+}
