@@ -5,7 +5,6 @@ set -uo pipefail
 umask 077
 OPS_CALLER_DIR=$(pwd -P)
 OPS_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P) || exit 1
-OPS_KIND=frontend
 OPS_ENV_FILE="$OPS_ROOT/.env.local"
 OPS_MANAGER=npm
 OPS_DRY_RUN=0
@@ -18,12 +17,12 @@ Usage: bash scripts/console.sh [--env FILE] [--manager npm|pnpm] [--dry-run]
        bash scripts/console.sh --list
 Options:
   --env FILE       Select dotenv file; it overrides inherited values, never executes shell code.
-  --manager NAME   Choose npm (default) or pnpm; installation requires its existing lockfile.
+  --manager NAME   Choose npm (default) or pnpm.
   --dry-run        Print the selected action plan without any commands/network/writes.
   --action ACTION  Run one menu action; confirmations and hidden passwords still apply.
   --list           List all action IDs.
   --help           Show this help.
-Database/auth operations belong to the backend console. No --yes bypass is provided.
+Migrations and account creation belong to the backend console.
 HELP
 }
 OPS_LIST=0
@@ -50,37 +49,18 @@ ops_read() {
   printf '%s' "$1" >&2
   IFS= read -r OPS_ANSWER || return 130
 }
-ops_confirm() {
-  printf '\nType exactly: %s\n' "$1" >&2
-  ops_read '> ' || return 130
-  if [[ "$OPS_ANSWER" != "$1" ]]; then printf 'Cancelled; confirmation did not match.\n' >&2; return 130; fi
-  OPS_CONFIRM=$OPS_ANSWER
-}
 ops_dispatch() {
-  local action=$1 input value status
+  local action=$1 input token
   input=$(ops_helper input "$action") || return $?
   if ((OPS_DRY_RUN)); then ops_helper plan "$action"; return $?; fi
-  case "$action" in
-    open-backend)
-      if [[ ! -f "$OPS_ROOT/../ChurchOS-Backend/scripts/console.sh" ]]; then printf 'Sibling backend console not found. Open its scripts/console.sh separately.\n' >&2; return 1; fi
-      bash "$OPS_ROOT/../ChurchOS-Backend/scripts/console.sh" --manager "$OPS_MANAGER"; return $? ;;
-  esac
   case "$input" in
+
     port)
       ops_read 'Port [3000]: ' || return 130
       printf '%s\0' "${OPS_ANSWER:-3000}" | ops_helper run "$action" ;;
-    url)
-      value='http://127.0.0.1:3000'
-      ops_read "Base URL [$value]: " || return 130
-      printf '%s\0' "${OPS_ANSWER:-$value}" | ops_helper run "$action" ;;
-    clean)
-      ops_confirm 'CLEAN .next' || return $?
-      printf '%s\0' "$OPS_CONFIRM" | ops_helper run "$action" ;;
     none) ops_helper run "$action" ;;
     *) printf 'Unsupported input mode.\n' >&2; return 2 ;;
   esac
-  status=$?
-  return "$status"
 }
 # Keep the terminal UI small; the helpers parse dotenv safely and protect DB/auth work.
 RESET='' BOLD='' CYAN='' GREEN='' YELLOW='' RED='' DIM=''
@@ -98,81 +78,26 @@ ops_result() {
     *) printf '\n%bCommand exited %s. The menu remains available.%b\n' "$RED" "$status" "$RESET" >&2 ;;
   esac
 }
-ops_production() {
-  if ((!OPS_DRY_RUN)) && [[ ! -f "$OPS_ROOT/.next/BUILD_ID" ]]; then
-    printf '\nNo production build found.\n'
-    ops_read 'Build now? [Y/n]: ' || return 130
-    case "$OPS_ANSWER" in
-      ''|y|Y|yes|YES) ops_dispatch build || return $? ;;
-      n|N|no|NO) printf 'Production start cancelled.\n'; return 130 ;;
-      *) printf 'Choose y or n.\n' >&2; return 2 ;;
-    esac
-  fi
-  ops_dispatch start
-}
-ops_more() {
-  local group=$1 heading=$2
-  local listing id label choice index status
-  local ids=() labels=()
-  listing=$(ops_helper menu "$group") || return $?
-  while IFS=$'\t' read -r id label; do ids+=("$id"); labels+=("$label"); done <<< "$listing"
-  while true; do
-    ops_title "$heading"
-    for ((index=0; index<${#ids[@]}; index++)); do printf ' [%2d] %s\n' "$((index+1))" "${labels[$index]}"; done
-    printf '  [b] Back\n\n'
-    ops_read '> ' || return 0; choice=$OPS_ANSWER
-    case "$choice" in b|B|0|q|Q) return 0 ;; esac
-    if [[ ! "$choice" =~ ^[1-9][0-9]*$ || ${#choice} -gt 3 ]] || ((choice>${#ids[@]})); then
-      printf 'Choose a listed number.\n'; continue
-    fi
-    if [[ "${ids[$((choice-1))]}" == start ]]; then ops_production; else ops_dispatch "${ids[$((choice-1))]}"; fi
-    status=$?; ops_result "$status"
-    ops_pause || return 0
-  done
-}
-ops_tools() {
-  while true; do
-    ops_title 'Tools'
-    cat <<'MENU'
-  [1] Setup
-  [2] Quality checks
-  [3] Maintenance & backend console
-  [b] Back
-MENU
-    ops_read '> ' || return 0
-    case "$OPS_ANSWER" in
-      1) ops_more setup 'Setup' ;;
-      2) ops_more quality 'Quality checks' ;;
-      3) ops_more maintenance 'Maintenance & backend console' ;;
-      b|B|q|Q|0) return 0 ;;
-      *) printf 'Choose a listed number.\n' ;;
-    esac
-  done
-}
 trap 'printf "\nInterrupted; returning to console when the foreground action exits.\n" >&2' INT
 if ((OPS_LIST)); then ops_helper list; exit $?; fi
 if [[ -n "$OPS_SINGLE_ACTION" ]]; then
-  # Scripted actions retain their existing explicit behavior (no automatic build).
+  # Single actions use the same prompts as the menu.
   ops_dispatch "$OPS_SINGLE_ACTION"; OPS_STATUS=$?; ops_result "$OPS_STATUS"; exit "$OPS_STATUS"
 fi
 while true; do
   ops_title 'ChurchOS Frontend'
   printf '%bEnv: %s | %s%b\n\n' "$DIM" "$OPS_ENV_FILE" "$OPS_MANAGER" "$RESET"
   cat <<'MENU'
-  [1] Run dev
-  [2] Run production
-  [3] Build
-  [4] Run tests
-  [5] Tools
+  [1] Dev build (watch)
+  [2] Production build
+  [3] Test
   [q] Quit
 MENU
   ops_read '> ' || exit 0
   case "$OPS_ANSWER" in
     1) ops_dispatch dev ;;
-    2) ops_production ;;
-    3) ops_dispatch build ;;
-    4) ops_dispatch test ;;
-    5) ops_tools; continue ;;
+    2) ops_dispatch build ;;
+    3) ops_dispatch test ;;
     q|Q|0) printf 'Bye!\n'; exit 0 ;;
     *) printf 'Choose a listed number.\n'; continue ;;
   esac
