@@ -370,7 +370,7 @@ function AppointmentsContent() {
                                 <Pencil className="size-4" /> Edit
                               </DropdownMenuItem>
                             )}
-                            {canDelete && (
+                            {canUpdate && (
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem

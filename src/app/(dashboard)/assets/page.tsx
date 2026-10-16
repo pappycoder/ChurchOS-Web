@@ -435,24 +435,24 @@ export default function AssetsPage() {
                                     <Pencil className="h-4 w-4" />
                                   </Button>
                                 )}
-                                {canDelete && (
+                                {(canUpdate || canDelete) && (
                                   <>
-                                    <Button
+                                    {canUpdate && (<Button
                                       size="icon"
                                       variant="ghost"
                                       title="Archive"
                                       onClick={() => setArchiveTarget({ kind: "archive", asset })}
                                     >
                                       <Archive className="h-4 w-4" />
-                                    </Button>
-                                    <Button
+                                    </Button>)}
+                                    {canDelete && (<Button
                                       size="icon"
                                       variant="ghost"
                                       title="Delete"
                                       onClick={() => setDeleteTarget(asset)}
                                     >
                                       <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
+                                    </Button>)}
                                   </>
                                 )}
                               </div>

@@ -339,7 +339,7 @@ export default function LifeEventsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {canDelete && (
+                                {canUpdate && (
                                   <DropdownMenuItem
                                     onClick={() => setArchiveTarget({ kind: "archive", event })}
                                   >

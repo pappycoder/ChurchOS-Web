@@ -506,10 +506,10 @@ export default function FormsPage() {
                                 Reopen
                               </DropdownMenuItem>
                             )}
-                            {canDelete && !form.archivedAt && (
+                            {(canUpdate || canDelete) && !form.archivedAt && (
                               <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem
+                                {canUpdate && (<DropdownMenuItem
                                   className="text-destructive focus:text-destructive"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -518,8 +518,8 @@ export default function FormsPage() {
                                 >
                                   <Archive className="mr-2 h-4 w-4" />
                                   Archive
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
+                                </DropdownMenuItem>)}
+                                {canDelete && (<DropdownMenuItem
                                   className="text-destructive focus:text-destructive"
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -528,7 +528,7 @@ export default function FormsPage() {
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Delete
-                                </DropdownMenuItem>
+                                </DropdownMenuItem>)}
                               </>
                             )}
                           </DropdownMenuContent>

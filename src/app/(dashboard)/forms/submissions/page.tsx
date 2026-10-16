@@ -45,7 +45,7 @@ export default function SubmissionsPage() {
   const router = useRouter();
   const { can } = usePermissions();
   const canUpdate = can("forms:submissions", "update");
-  const canRead = can("forms", "read");
+  const canRead = can("forms:submissions", "read");
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -126,7 +126,7 @@ export default function SubmissionsPage() {
           <EmptyState
             icon={<ShieldX className="h-8 w-8" />}
             title="You do not have permission to view submissions"
-            description="Contact your church administrator to request forms:read access."
+            description="Contact your church administrator to request access to form submissions."
           />
         </div>
       </div>

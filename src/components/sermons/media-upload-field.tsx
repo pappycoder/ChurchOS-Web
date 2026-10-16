@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { usePermissions } from "@/hooks/use-permissions";
+import { mediaUploadPermissions } from "@/lib/media-upload-policy";
 
 interface MediaUploadFieldProps {
   label: string;
@@ -35,8 +36,8 @@ export function MediaUploadField({
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
-  const { can } = usePermissions();
-  const canUpload = can("media", "create");
+  const { canAny } = usePermissions();
+  const canUpload = canAny(...mediaUploadPermissions("sermons"));
   const effectiveMode: Mode = canUpload ? mode : "url";
   const Icon = mediaType === "audio" ? FileAudio : FileVideo;
 

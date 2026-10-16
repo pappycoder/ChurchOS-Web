@@ -76,7 +76,7 @@ export default function GivingRecordsPage() {
   const [branchId, setBranchId] = React.useState("");
   const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
-  const canCreate = can("giving", "create");
+  const canCreate = can("giving:records", "create");
 
   // Filters
   const [categoryId, setCategoryId] = React.useState("all");

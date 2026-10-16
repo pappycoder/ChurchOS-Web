@@ -1,4 +1,8 @@
+"use client";
+
 import * as React from "react";
+import { usePermissions } from "@/hooks/use-permissions";
+import { checkRule, matchRoutePermission } from "@/lib/route-permissions";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,6 +26,7 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, breadcrumbs, action, description }: PageHeaderProps) {
+  const { ready, canAny } = usePermissions();
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
       <div className="min-w-0">
@@ -38,7 +43,7 @@ export function PageHeader({ title, breadcrumbs, action, description }: PageHead
               <React.Fragment key={i}>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                  {item.href ? (
+                  {item.href && ready && checkRule(matchRoutePermission(item.href), canAny) ? (
                     <BreadcrumbLink href={item.href}>{item.label}</BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{item.label}</BreadcrumbPage>

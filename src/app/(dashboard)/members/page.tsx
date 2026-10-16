@@ -692,10 +692,10 @@ export default function MembersPage() {
                                     )}
                                   </>
                                 )}
-                                {canDeleteMembers && (
+                                {(canUpdateMembers || canDeleteMembers) && (
                                   <>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem
+                                    {canUpdateMembers && (<DropdownMenuItem
                                       onClick={() =>
                                         setArchiveTarget({
                                           kind: "archive",
@@ -705,8 +705,8 @@ export default function MembersPage() {
                                     >
                                       <Archive className="mr-2 h-4 w-4" />
                                       Archive
-                                    </DropdownMenuItem>
-                                    {member.status !== "inactive" && (
+                                    </DropdownMenuItem>)}
+                                    {canDeleteMembers && member.status !== "inactive" && (
                                       <DropdownMenuItem
                                         className="text-destructive focus:text-destructive"
                                         onClick={() =>

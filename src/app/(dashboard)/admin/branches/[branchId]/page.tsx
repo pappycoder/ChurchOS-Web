@@ -203,23 +203,23 @@ export default function BranchDetailPage({
                   </>
                 ) : (
                   <>
-                    {canDeleteBranches && (
+                    {(canUpdateBranches || canDeleteBranches) && (
                       <>
-                        <Button
+                        {canDeleteBranches && (<Button
                           variant="outline"
                           className="text-destructive hover:text-destructive"
                           onClick={() => setDeleteOpen(true)}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
-                        </Button>
-                        <Button
+                        </Button>)}
+                        {canUpdateBranches && (<Button
                           variant="outline"
                           onClick={() => setArchiveAction("archive")}
                         >
                           <Archive className="h-4 w-4 mr-2" />
                           Archive
-                        </Button>
+                        </Button>)}
                       </>
                     )}
                     {canUpdateBranches && (

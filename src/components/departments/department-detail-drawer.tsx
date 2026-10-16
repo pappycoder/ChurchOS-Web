@@ -54,13 +54,13 @@ export function DepartmentDetailDrawer({
   onOpenChange,
   departmentId,
 }: DepartmentDetailDrawerProps) {
-  const { canAny } = usePermissions();
+  const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Department heads manage members only in the department they head (the
   // backend rejects add/remove elsewhere), so the Add/Remove affordances are
   // also gated on ownership for any department head.
   const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
-  const canUpdate = canAny("departments:update", "departments:own:update");
+  const canUpdate = can("departments", "update");
   const { data: department, isLoading, error } = useDepartment(open ? departmentId : "");
   const isOwnDepartment =
     isDepartmentHead && !!profile?.memberId && department?.headMemberId === profile.memberId;

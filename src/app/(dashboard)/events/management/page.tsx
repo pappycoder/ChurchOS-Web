@@ -90,7 +90,9 @@ function TicketStatusBadge({ status }: { status: string }) {
 export default function ManagementPage() {
   const { can } = usePermissions();
   const { isTicketMember } = useIsTicketMember();
-  const canCreate = can("events", "create");
+  const canCreate = can("events:tickets", "create");
+
+  const canManageTypes = canCreate || can("events:tickets", "update") || can("events:tickets", "delete");
 
   // Members and cell group leaders share the member-like ticket surface, so
   // both get the "My Tickets" title.
@@ -107,15 +109,15 @@ export default function ManagementPage() {
         ]}
       />
 
-      <Tabs defaultValue={canCreate ? "types" : "assigned"}>
-        {canCreate && (
+      <Tabs defaultValue={canManageTypes ? "types" : "assigned"}>
+        {canManageTypes && (
           <TabsList>
             <TabsTrigger value="types">Ticket Types</TabsTrigger>
             <TabsTrigger value="assigned">Assigned Tickets</TabsTrigger>
           </TabsList>
         )}
 
-        {canCreate && (
+        {canManageTypes && (
           <TabsContent value="types">
             <TicketTypesTab />
           </TabsContent>
@@ -147,9 +149,9 @@ const defaultTierForm: TierFormData = {
 
 function TicketTypesTab() {
   const { can } = usePermissions();
-  const canCreate = can("events", "create");
-  const canUpdate = can("events", "update");
-  const canDelete = can("events", "delete");
+  const canCreate = can("events:tickets", "create");
+  const canUpdate = can("events:tickets", "update");
+  const canDelete = can("events:tickets", "delete");
 
   const eventsQuery = useEventsSummary();
   const events = eventsQuery.data?.data ?? [];
@@ -754,7 +756,7 @@ function AssignTicketDialog({
   events: EventItem[];
 }) {
   const { can } = usePermissions();
-  const canCreateVisitor = can("visitors", "create");
+  const canCreateVisitor = can("visitors:new", "create");
 
   const [selectedEventId, setSelectedEventId] = React.useState("");
   const [selectedTierId, setSelectedTierId] = React.useState("");

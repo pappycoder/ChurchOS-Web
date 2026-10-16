@@ -68,7 +68,7 @@ type WalkInFormValues = z.infer<typeof walkInSchema>;
 
 export default function EventsCheckInPage() {
   const { can } = usePermissions();
-  const canCreate = can("events", "create");
+  const canCreate = can("events:checkin", "create");
 
   // Event selector.
   const eventsQuery = useEventsList({ limit: 50, sortBy: "startDate", sortOrder: "asc" });

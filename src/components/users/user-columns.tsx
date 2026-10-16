@@ -75,10 +75,9 @@ export function UserActionsCell({
   onForceSignout,
 }: UserActionsCellProps) {
   const { can } = usePermissions();
-  const canUpdate = can("users", "update");
-  const canDelete = can("users", "delete");
-  const canEditRole = canUpdate;
-  const canToggleStatus = canDelete;
+  const canUpdate = can("profiles", "update");
+  const canEditRole = can("roles", "update");
+  const canToggleStatus = canUpdate;
   const canResetPassword = canUpdate;
   const canForceSignout = canUpdate;
 

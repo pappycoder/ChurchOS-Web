@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { useSettings } from "@/contexts/settings-context";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePrefetchRoute } from "@/lib/prefetch";
@@ -27,7 +28,6 @@ import {
   Search,
   Calendar as CalendarIcon,
   MessageSquare,
-  Bell,
   Mail,
   BookOpen,
   Upload,
@@ -67,6 +67,7 @@ interface NavItem {
   /** Required `resource:action` permission, e.g. "members:read". */
   permission?: string;
   anyOf?: string[];
+  allOf?: string[];
 }
 
 const navItems: { section: string; items: NavItem[] }[] = [
@@ -404,9 +405,9 @@ const navItems: { section: string; items: NavItem[] }[] = [
         title: "User Management",
         href: "/admin/users",
         icon: UserCog,
-        permission: "users:read",
+        permission: "users:read", allOf: ["profiles:read"],
         children: [
-          { title: "Users", href: "/admin/users", permission: "users:read" },
+          { title: "Users", href: "/admin/users", permission: "users:read", allOf: ["profiles:read"] },
           {
             title: "Roles & Permissions",
             href: "/admin/roles",
@@ -910,17 +911,14 @@ export function Sidebar() {
           </div>
 
           <div className="flex items-center justify-between menu-item mb-3">
-            <div className="me-3">
-              <Link href="/calendar" className="btn-menubar">
-                <CalendarIcon size={18} />
-              </Link>
-            </div>
-            <div className="me-3 notification-item">
-              <Link href="/activity" className="btn-menubar relative me-1">
-                <Bell size={18} />
-                <span className="notification-status-dot"></span>
-              </Link>
-            </div>
+            {canAny("events:calendar:read") && (
+              <div className="me-3">
+                <Link href="/events" aria-label="Event calendar" className="btn-menubar">
+                  <CalendarIcon size={18} />
+                </Link>
+              </div>
+            )}
+            <NotificationBell compact />
             {canAny("emails:read") && (
               <div className="me-0">
                 <Link href="/communication/inbox" className="btn-menubar">

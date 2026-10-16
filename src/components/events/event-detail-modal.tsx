@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import { useRouter } from "next/navigation";
 import { format, isSameDay } from "date-fns";
 import { toast } from "@/lib/toast";

@@ -83,7 +83,7 @@ export default function FormDetailPage() {
   const { can } = usePermissions();
   const canReview = can("forms:submissions", "update");
   const canReadSubmissions = can("forms:submissions", "read");
-  const canRead = can("forms", "read");
+  const canRead = can("forms:list", "read");
   const canUpdate = can("forms:list", "update");
   const canDelete = can("forms:list", "delete");
 
@@ -277,7 +277,7 @@ export default function FormDetailPage() {
               Edit
             </Button>
           )}
-          {canDelete && (
+          {canUpdate && (
             <Button variant="outline" onClick={() => setArchiveTarget({ kind: "archive", form })}>
               <ShieldX className="mr-1 h-4 w-4" />
               Archive

@@ -258,7 +258,7 @@ export default function SermonDetailPage() {
                     Edit
                   </Button>
                 )}
-                {canDelete && (
+                {canUpdate && (
                   <Button
                     variant="outline"
                     size="sm"

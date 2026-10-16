@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { CellGroupGivingPanel } from "@/components/giving/cell-group-giving-panel";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -93,8 +93,8 @@ export default function CellGroupDetailPage({
     !!group &&
     !!profile?.memberId &&
     profile.memberId === group.leaderId;
-  const canManageMembers = canAny("cell_groups:create", "cell_groups:own:update") && (!isCellLeader || isOwnGroup);
-  const canUpdate = canAny("cell_groups:update", "cell_groups:own:update") && (!isCellLeader || isOwnGroup);
+  const canManageMembers = can("cell_groups", "create") && (!isCellLeader || isOwnGroup);
+  const canUpdate = can("cell_groups", "update") && (!isCellLeader || isOwnGroup);
   const canDelete = can("cell_groups", "delete") && !isCellLeader;
   const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(canReadDetails ? groupId : "");
   const { data: summary } = useCellGroupAttendanceSummary(canReadDetails ? groupId : "");
@@ -254,7 +254,7 @@ export default function CellGroupDetailPage({
                   </>
                 ) : (
                   <>
-                    {canDelete && (
+                    {canUpdate && (
                       <Button variant="outline" onClick={() => setArchiveAction("archive")}>
                         <Archive className="h-4 w-4 mr-1" /> Archive
                       </Button>

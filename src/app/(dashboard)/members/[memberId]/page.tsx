@@ -91,8 +91,8 @@ export default function MemberDetailPage({
   const { memberId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
-  const canUpdateMembers = can("members", "update");
-  const canDeleteMembers = can("members", "delete");
+  const canUpdateMembers = can("members:all", "update");
+  const canDeleteMembers = can("members:all", "delete");
 
   const { data: member, isLoading, error } = useMember(memberId);
   const givingQuery = useMemberGivingHistory(memberId);
@@ -264,7 +264,7 @@ export default function MemberDetailPage({
                       Deactivate
                     </Button>
                   )}
-                  {canDeleteMembers && (
+                  {canUpdateMembers && (
                     <Button variant="outline" onClick={() => setArchiveAction("archive")}>
                       <Archive className="h-4 w-4 mr-2" />
                       Archive

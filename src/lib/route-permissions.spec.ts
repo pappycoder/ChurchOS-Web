@@ -5,6 +5,7 @@ import {
   ROUTE_PERMISSIONS,
   matchRoutePermission,
   checkRule,
+  permissionReturnTo,
   type RoutePermissionRule,
 } from "./route-permissions";
 import {
@@ -167,5 +168,36 @@ describe("read-only page access", () => {
   });
   it("allows read-only follow-up viewing", () => {
     expect(checkRule(matchRoutePermission("/visitors/follow-up"), (name) => name === "visitors:list:read")).toBe(true);
+  });
+});
+
+describe("explicit authenticated routes", () => {
+  it("allows shared authenticated pages without a module grant", () => {
+    for (const href of ["/dashboard", "/profile", "/docs"]) {
+      expect(checkRule(matchRoutePermission(href), () => false)).toBe(true);
+    }
+  });
+  it("denies unknown dashboard routes and descendants of open shared pages", () => {
+    for (const href of ["/missing-page", "/profile/unconfigured-admin", "/dashboard/new-admin"]) {
+      expect(checkRule(matchRoutePermission(href), () => true)).toBe(false);
+    }
+  });
+  it("requires both the user administration entry grant and the API read grant", () => {
+    const rule = matchRoutePermission("/admin/users/profile-1");
+    expect(checkRule(rule, (name) => name === "profiles:read")).toBe(false);
+    expect(checkRule(rule, (name) => name === "users:read")).toBe(false);
+    expect(checkRule(rule, (name) => ["users:read", "profiles:read"].includes(name))).toBe(true);
+  });
+});
+
+
+describe("authorized login return destinations", () => {
+  it("retains authorized routes with their query and fragment", () => {
+    expect(permissionReturnTo("/forms/form-a?tab=answers#top", (name) => name === "forms:list:read")).toBe("/forms/form-a?tab=answers#top");
+  });
+  it("falls back from missing, unauthorized, external and backslash destinations", () => {
+    for (const destination of [null, "/missing", "/admin/settings", "https://example.com", "//example.com", "/\\example.com", "/api/session"]) {
+      expect(permissionReturnTo(destination, () => false)).toBe("/dashboard");
+    }
   });
 });

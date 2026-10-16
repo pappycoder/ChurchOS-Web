@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { toast } from "@/lib/toast";
 import { Paperclip, UploadCloud, X } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import { mediaUploadPermissions } from "@/lib/media-upload-policy";
 import { useUploadMediaFile, formatBytes, MEDIA_UPLOAD_LIMITS } from "@/hooks/use-media";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,8 +23,8 @@ export interface SubmissionAttachmentsProps {
 }
 
 export function SubmissionAttachments({ onChange, disabled }: SubmissionAttachmentsProps) {
-  const { can } = usePermissions();
-  const canUpload = can("media", "create");
+  const { canAny } = usePermissions();
+  const canUpload = canAny(...mediaUploadPermissions("form-attachments"));
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useUploadMediaFile();
   const [attachments, setAttachments] = React.useState<PendingAttachment[]>([]);

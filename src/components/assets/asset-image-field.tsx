@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePermissions } from "@/hooks/use-permissions";
+import { mediaUploadPermissions } from "@/lib/media-upload-policy";
 import { MEDIA_UPLOAD_LIMITS, useUploadMediaFile } from "@/hooks/use-media";
 
 const ASSET_IMAGE_FOLDER = "assets";
@@ -28,8 +29,8 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
 
-  const { can } = usePermissions();
-  const canUpload = can("media", "create");
+  const { canAny } = usePermissions();
+  const canUpload = canAny(...mediaUploadPermissions("assets"));
   const effectiveMode: Mode = canUpload ? mode : "url";
 
   const uploadMutation = useUploadMediaFile();

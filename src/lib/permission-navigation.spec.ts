@@ -31,3 +31,17 @@ describe("permission-driven navigation", () => {
     expect(filtered[0].children).toHaveLength(2);
   });
 });
+
+describe("compound navigation requirements", () => {
+  it("requires the API read capability as well as the administration entry grant", () => {
+    const entries = [{ title: "Users", permission: "users:read", allOf: ["profiles:read"] }];
+    expect(filterPermissionNavigation(entries, (name) => name === "users:read")).toEqual([]);
+    expect(filterPermissionNavigation(entries, (name) => name === "profiles:read")).toEqual([]);
+    expect(filterPermissionNavigation(entries, () => true)).toEqual(entries);
+  });
+  it("opens reports with an individual report-read grant", () => {
+    const entries = [{ title: "Reports", permission: "reports:view", anyOf: ["reports:financial:read"] }];
+    expect(filterPermissionNavigation(entries, (name) => name === "reports:financial:read")).toEqual(entries);
+    expect(filterPermissionNavigation(entries, () => false)).toEqual([]);
+  });
+});

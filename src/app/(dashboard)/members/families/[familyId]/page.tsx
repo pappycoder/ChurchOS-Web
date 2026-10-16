@@ -3,7 +3,7 @@
 import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -176,19 +176,19 @@ export default function FamilyDetailPage({
                       Edit
                     </Button>
                   )}
-                  {canDeleteFamilies && (
+                  {(canUpdateFamilies || canDeleteFamilies) && (
                     <>
-                      <Button
+                      {canUpdateFamilies && (<Button
                         variant="outline"
                         onClick={() => setArchiveAction("archive")}
                       >
                         <Archive className="h-4 w-4 mr-2" />
                         Archive
-                      </Button>
-                      <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
+                      </Button>)}
+                      {canDeleteFamilies && (<Button variant="destructive" onClick={() => setDeleteOpen(true)}>
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
-                      </Button>
+                      </Button>)}
                     </>
                   )}
                 </>

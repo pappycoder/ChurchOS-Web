@@ -1,6 +1,7 @@
 interface PermissionNavItem {
   permission?: string;
   anyOf?: string[];
+  allOf?: string[];
   children?: PermissionNavItem[];
 }
 
@@ -14,7 +15,7 @@ export function filterPermissionNavigation<T extends PermissionNavItem>(
     if (!item.children) {
       const allowed = (!item.permission && !item.anyOf?.length) ||
         (!!item.permission && can(item.permission)) || (item.anyOf ?? []).some(can);
-      return allowed ? [item] : [];
+      return allowed && (item.allOf ?? []).every(can) ? [item] : [];
     }
     const children = filterPermissionNavigation(item.children, can);
     return children.length ? [{ ...item, children }] : [];

@@ -406,7 +406,7 @@ function TemplatesListContent() {
                               Publish
                             </DropdownMenuItem>
                           )}
-                          {canDelete && !template.archivedAt && (
+                          {canUpdate && !template.archivedAt && (
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem

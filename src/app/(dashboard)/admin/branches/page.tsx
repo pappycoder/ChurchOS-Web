@@ -277,7 +277,7 @@ export default function BranchesPage() {
       <div>
         <PageHeader
           title="Branches"
-          breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
+          breadcrumbs={[{ label: "Admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
         />
         <ErrorState title="Failed to load branches." />
       </div>
@@ -288,7 +288,7 @@ export default function BranchesPage() {
     <div>
       <PageHeader
         title="Branches"
-        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
+        breadcrumbs={[{ label: "Admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
@@ -556,24 +556,24 @@ export default function BranchesPage() {
                                           Edit Branch
                                         </DropdownMenuItem>
                                       )}
-                                      {canDeleteBranches && (
+                                      {(canUpdateBranches || canDeleteBranches) && (
                                         <>
                                           <DropdownMenuSeparator />
-                                          <DropdownMenuItem
+                                          {canUpdateBranches && (<DropdownMenuItem
                                             onClick={() =>
                                               setArchiveTarget({ kind: "archive", branch })
                                             }
                                           >
                                             <Archive className="mr-2 h-4 w-4" />
                                             Archive
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem
+                                          </DropdownMenuItem>)}
+                                          {canDeleteBranches && (<DropdownMenuItem
                                             className="text-destructive focus:text-destructive"
                                             onClick={() => setDeleteTargets([branch])}
                                           >
                                             <Trash2 className="mr-2 h-4 w-4" />
                                             Delete Branch
-                                          </DropdownMenuItem>
+                                          </DropdownMenuItem>)}
                                         </>
                                       )}
                                     </>

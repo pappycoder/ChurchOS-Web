@@ -181,7 +181,7 @@ export default function ServiceDetailPage({
           </p>
           {(canUpdate || canDelete) && !service.archivedAt && (
             <div className="flex flex-wrap items-center gap-2 mt-4">
-              {canDelete && (
+              {canUpdate && (
                 <Button
                   variant="outline"
                   size="sm"

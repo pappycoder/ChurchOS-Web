@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "vitest run",
     "lint": "eslint",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "audit:ui": "node scripts/audit-ui-contracts.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

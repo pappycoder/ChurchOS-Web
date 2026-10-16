@@ -342,7 +342,7 @@ export default function GivingCategoriesPage() {
                                 Edit
                               </DropdownMenuItem>
                             )}
-                            {canDelete && !category.archivedAt && (
+                            {canUpdate && !category.archivedAt && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   setArchiveTarget({

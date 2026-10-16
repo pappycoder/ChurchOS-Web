@@ -17,7 +17,7 @@ export default function FillFormPage() {
   const params = useParams<{ formId: string }>();
   const formId = params.formId;
   const { can, ready } = usePermissions();
-  const canRead = can("forms", "read");
+  const canRead = can("forms:list", "read");
 
   const { data: form, isLoading, error } = useForm(formId);
   const submitMutation = useSubmitForm(formId);

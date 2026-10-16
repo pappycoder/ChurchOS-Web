@@ -59,7 +59,7 @@ export default function DepartmentsPage() {
   // departments); branch-scoped heads manage their own department directly.
   const canExport = !isDepartmentHead || isAdminHq;
   const canCreate = can("departments", "create");
-  const canUpdate = canAny("departments:update", "departments:own:update");
+  const canUpdate = can("departments", "update");
   const canDelete = can("departments", "delete");
   // A department head edits only the department they head; the row Edit button
   // therefore also requires ownership whenever the viewer is a head.
@@ -344,9 +344,9 @@ export default function DepartmentsPage() {
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             )}
-                            {canDelete && (
+                            {(canUpdate || canDelete) && (
                               <>
-                                <Button
+                                {canUpdate && (<Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
@@ -356,8 +356,8 @@ export default function DepartmentsPage() {
                                   }
                                 >
                                   <Archive className="h-4 w-4" />
-                                </Button>
-                                <Button
+                                </Button>)}
+                                {canDelete && (<Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
@@ -365,7 +365,7 @@ export default function DepartmentsPage() {
                                   onClick={() => setDeleting(department)}
                                 >
                                   <Trash2 className="h-4 w-4" />
-                                </Button>
+                                </Button>)}
                               </>
                             )}
                           </div>

@@ -76,6 +76,7 @@ export default function EventDetailPage({
   const router = useRouter();
   const { can } = usePermissions();
   const canUpdate = can("events", "update");
+  const canReadTiers = can("events:tickets", "read");
   const canDelete = can("events", "delete");
 
   const eventQuery = useEvent(eventId);
@@ -205,7 +206,7 @@ export default function EventDetailPage({
                 : `${event.registrationCount} registered`}
             </span>
           </p>
-          {(canUpdate || canDelete) && !event.archivedAt && (
+          {(canUpdate || canDelete || canReadTiers) && !event.archivedAt && (
             <div className="flex flex-wrap items-center gap-2 mt-4">
               {canUpdate && (
                 <Button
@@ -217,7 +218,7 @@ export default function EventDetailPage({
                   Edit
                 </Button>
               )}
-              {canDelete && (
+              {canUpdate && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -238,7 +239,7 @@ export default function EventDetailPage({
                   Delete
                 </Button>
               )}
-              {!event.isFree && canUpdate && (
+              {!event.isFree && canReadTiers && (
                 <Button
                   variant="outline"
                   size="sm"

@@ -6,7 +6,7 @@ import { toast } from "@/lib/toast";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import {
   AlertTriangle,
   Check,

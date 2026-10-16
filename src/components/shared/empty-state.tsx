@@ -1,5 +1,5 @@
 import { Inbox } from "lucide-react";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 

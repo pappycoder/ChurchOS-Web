@@ -416,7 +416,7 @@ export default function AttendanceServicesPage() {
                                 Edit
                               </DropdownMenuItem>
                             )}
-                            {canDelete && !service.archivedAt && (
+                            {canUpdate && !service.archivedAt && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   setArchiveTarget({ kind: "archive", service })

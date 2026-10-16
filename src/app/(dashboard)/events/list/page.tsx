@@ -406,7 +406,7 @@ export default function EventsListPage() {
                                   Edit
                                 </DropdownMenuItem>
                               )}
-                              {canDelete && !event.archivedAt && (
+                              {canUpdate && !event.archivedAt && (
                                 <DropdownMenuItem
                                   onClick={() =>
                                     setArchiveTarget({

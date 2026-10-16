@@ -3,7 +3,7 @@ import { LeaderMeetingGiving } from "@/components/giving/leader-meeting-giving";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import {
   CalendarDays,
   ChevronRight,
@@ -73,7 +73,7 @@ export default function CellGroupsPage() {
   // branch cell leaders export their own group from its detail page instead.
   const canExport = !isCellLeader || !!profile?.isAdminHq;
   const canCreate = can("cell_groups", "create") && !isCellLeader;
-  const canUpdate = canAny("cell_groups:update", "cell_groups:own:update");
+  const canUpdate = can("cell_groups", "update");
   const canDelete = can("cell_groups", "delete");
 
   const [searchInput, setSearchInput] = React.useState("");
@@ -363,9 +363,9 @@ export default function CellGroupsPage() {
                               <Pencil className="h-4 w-4" />
                             </Button>
                           )}
-                          {canDelete && (
+                          {(canUpdate || canDelete) && (
                             <>
-                              <Button
+                              {canUpdate && (<Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
@@ -375,8 +375,8 @@ export default function CellGroupsPage() {
                                 }
                               >
                                 <Archive className="h-4 w-4" />
-                              </Button>
-                              <Button
+                              </Button>)}
+                              {canDelete && (<Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive"
@@ -384,7 +384,7 @@ export default function CellGroupsPage() {
                                 onClick={() => setDeleting(group)}
                               >
                                 <Trash2 className="h-4 w-4" />
-                              </Button>
+                              </Button>)}
                             </>
                           )}
                         </div>

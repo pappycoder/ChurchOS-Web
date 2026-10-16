@@ -439,24 +439,24 @@ export default function FamiliesPage() {
                                   Edit Family
                                 </DropdownMenuItem>
                               )}
-                              {canDeleteFamilies && (
+                              {(canUpdateFamilies || canDeleteFamilies) && (
                                 <>
                                   <DropdownMenuSeparator />
-                                  <DropdownMenuItem
+                                  {canUpdateFamilies && (<DropdownMenuItem
                                     onClick={() =>
                                       setArchiveTarget({ kind: "archive", family })
                                     }
                                   >
                                     <Archive className="mr-2 h-4 w-4" />
                                     Archive
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
+                                  </DropdownMenuItem>)}
+                                  {canDeleteFamilies && (<DropdownMenuItem
                                     className="text-destructive focus:text-destructive"
                                     onClick={() => setDeleteTargets([family])}
                                   >
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Delete
-                                  </DropdownMenuItem>
+                                  </DropdownMenuItem>)}
                                 </>
                               )}
                             </DropdownMenuContent>

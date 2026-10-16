@@ -314,24 +314,24 @@ export default function PastoralNotesPage() {
                                       Edit Note
                                     </DropdownMenuItem>
                                   )}
-                                  {canDelete && (
+                                  {(canUpdate || canDelete) && (
                                     <>
                                       <DropdownMenuSeparator />
-                                      <DropdownMenuItem
+                                      {canUpdate && (<DropdownMenuItem
                                         onClick={() =>
                                           setArchiveTarget({ kind: "archive", note })
                                         }
                                       >
                                         <Archive className="mr-2 h-4 w-4" />
                                         Archive
-                                      </DropdownMenuItem>
-                                      <DropdownMenuItem
+                                      </DropdownMenuItem>)}
+                                      {canDelete && (<DropdownMenuItem
                                         className="text-destructive focus:text-destructive"
                                         onClick={() => setDeleteTarget(note)}
                                       >
                                         <Trash2 className="mr-2 h-4 w-4" />
                                         Delete
-                                      </DropdownMenuItem>
+                                      </DropdownMenuItem>)}
                                     </>
                                   )}
                                 </DropdownMenuContent>

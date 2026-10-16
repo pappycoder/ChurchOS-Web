@@ -412,7 +412,7 @@ function SermonsListContent() {
                                   Edit
                                 </DropdownMenuItem>
                               )}
-                              {canDelete && !sermon.archivedAt && (
+                              {canUpdate && !sermon.archivedAt && (
                                 <DropdownMenuItem
                                   onClick={() =>
                                     setArchiveTarget({

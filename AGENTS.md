@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-16 — UI link and guard verification.** Added a reproducible AST audit of all pages, concrete/template destinations, navigation grant combinations and archive controls (`npm run audit:ui`, `-- --inventory` for details). Unknown dashboard routes fail closed; internal cross-links, breadcrumbs and login return destinations follow destination grants. Corrected form, check-in, Giving, member, ticket, profile administration and archive/update checks. Upload controls share purpose-specific grant contracts with backend enforcement, preserving self-service profile photos and authorized form-response attachments. Added unit and production-browser regressions; see docs/UI-ACCESS-AUDIT-2026-10-16.md.
+
 - **2026-10-15 — Read-only UI workflow audit.** Aligned assets, attendance, forms, media, giving, members, pastoral and visitor controls with exact API surface grants. Follow-up board is readable without update grants; mutations keep their own checks. Dashboard giving reads aggregate data independently of transaction access. Supporting category/service/folder/submission queries require their own read grants, not writes; unavailable filters and asset tabs are omitted. Member pickers fetch only when open and send branch-scoped searches. Added read-only query regressions and browser cases. See backend docs/READ-ONLY-UI-VERIFICATION-2026-10-15.md.
 
 

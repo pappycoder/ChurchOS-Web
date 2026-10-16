@@ -156,10 +156,9 @@ export default function UsersPage() {
   const roleLabels = useRoleLabelMap();
   const assignableRoles = useAssignableRoles();
   const { can } = usePermissions();
-  const canCreateUsers = can("users", "create");
-  const canDeleteUsers = can("users", "delete");
-  const canUpdateUsers = can("users", "update");
-  const canManageUsers = canUpdateUsers || canDeleteUsers;
+  const canCreateUsers = can("profiles", "create");
+  const canUpdateUsers = can("profiles", "update");
+  const canManageUsers = canUpdateUsers || can("roles", "update");
 
   const users = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
@@ -278,7 +277,7 @@ export default function UsersPage() {
       <div>
         <PageHeader
           title="Users"
-          breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "User management" }, { label: "Users" }]}
+          breadcrumbs={[{ label: "Admin" }, { label: "User management" }, { label: "Users" }]}
         />
         <ErrorState title="Failed to load users." />
       </div>
@@ -289,7 +288,7 @@ export default function UsersPage() {
     <div>
       <PageHeader
         title="Users"
-        breadcrumbs={[{ label: "Admin", href: "/admin" }, { label: "User management" }, { label: "Users" }]}
+        breadcrumbs={[{ label: "Admin" }, { label: "User management" }, { label: "Users" }]}
         action={
           <div className="flex items-center gap-2">
             <ExportDropdown
@@ -387,7 +386,7 @@ export default function UsersPage() {
               setPage(1);
             }}
           >
-            {someSelected && canDeleteUsers && (
+            {someSelected && canUpdateUsers && (
               <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
                 <span className="text-sm font-medium">{selectedIds.size} selected</span>
                 <Button

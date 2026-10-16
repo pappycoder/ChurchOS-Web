@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
 import { api, refreshSession, setUnauthorizedHandler, advanceSessionGeneration } from "@/lib/api";
-import { fetchCurrentProfile } from "@/hooks/use-profile";
+import { fetchCurrentProfile, type CurrentProfile } from "@/hooks/use-profile";
+import { permissionReturnTo } from "@/lib/route-permissions";
 import { clearTokens } from "@/lib/session";
 import type {
   LoginInput,
@@ -144,7 +145,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Non-fatal: the dashboard will fetch on mount if priming fails.
       }
       const destination = new URLSearchParams(window.location.search).get("returnTo");
-      router.push(destination?.startsWith("/") && !destination.startsWith("//") && !destination.startsWith("/api/") ? destination : "/dashboard");
+      const profile = queryClient.getQueryData<CurrentProfile>(["current-profile"]);
+      const grants = new Set(profile?.status === "active" ? profile.permissions : []);
+      router.push(permissionReturnTo(destination, (name) => grants.has(name)));
     },
     [router, queryClient]
   );

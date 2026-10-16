@@ -26,15 +26,12 @@ interface CanProps {
 }
 
 export function Can({ perm, resource, action, fallback = null, children }: CanProps) {
-  const { can, ready } = usePermissions();
+  const { can, canAny, ready } = usePermissions();
 
   if (!ready) return null;
   const allowed = resource && action
     ? can(resource, action)
-    : (() => {
-        const [res, act] = perm.split(":");
-        return can(res, act as PermissionAction);
-      })();
+    : canAny(perm);
 
   return <>{allowed ? children : fallback}</>;
 }

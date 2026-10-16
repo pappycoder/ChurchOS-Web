@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import {
   CalendarCheck,
   Users,
@@ -99,20 +99,20 @@ export default function AttendanceDashboardPage() {
         title="Attendance"
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Attendance" }]}
         action={
-          canCreate && (
+          (canCreate || can("attendance:services", "read")) && (
             <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
+              {can("attendance:services", "read") && <Button variant="outline" asChild>
                 <Link href="/attendance/services">
                   <Settings2 className="h-4 w-4 mr-2" />
                   Services
                 </Link>
-              </Button>
-              <Button asChild>
+              </Button>}
+              {canCreate && <Button asChild>
                 <Link href="/attendance/check-in">
                   <ClipboardList className="h-4 w-4 mr-2" />
                   Check-In
                 </Link>
-              </Button>
+              </Button>}
             </div>
           )
         }

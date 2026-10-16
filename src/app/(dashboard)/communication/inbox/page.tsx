@@ -64,6 +64,7 @@ function formatWhen(iso?: string): string {
 function InboxContent() {
   const { can } = usePermissions();
   const canSend = can("emails", "create");
+  const canUpdate = can("emails", "update");
   const canDelete = can("emails", "delete");
 
   const [folder, setFolder] = React.useState<Folder>("inbox");
@@ -102,14 +103,14 @@ function InboxContent() {
 
   // Auto-mark a selected inbox message as read.
   React.useEffect(() => {
-    if (selectedId && !isTrashView && box === "inbox") {
+    if (canUpdate && selectedId && !isTrashView && box === "inbox") {
       const item = items.find((m) => m.id === selectedId);
       if (item && !item.readAt) {
         markRead.mutate(selectedId);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, box, isTrashView]);
+  }, [selectedId, box, isTrashView, canUpdate]);
 
   const handleReply = () => {
     if (!detail) return;
@@ -277,11 +278,11 @@ function InboxContent() {
                   <Button variant="ghost" size="sm" className="lg:hidden" onClick={backToList}><ChevronLeft className="size-4" /> Back</Button>
                   {detail && !isTrashView && <>
                     {canSend && <Button variant="ghost" size="sm" onClick={handleReply}><Reply className="size-4" /> Reply</Button>}
-                    {box === "inbox" && <Button variant="ghost" size="sm" disabled={markUnread.isPending} onClick={handleMarkUnread} loading={markUnread.isPending}><Mail className="size-4" /> Mark unread</Button>}
+                    {canUpdate && box === "inbox" && <Button variant="ghost" size="sm" disabled={markUnread.isPending} onClick={handleMarkUnread} loading={markUnread.isPending}><Mail className="size-4" /> Mark unread</Button>}
                     {canDelete && <Button variant="ghost" size="icon" className="ml-auto text-muted-foreground hover:text-destructive" aria-label="Move to trash" disabled={trash.isPending} onClick={handleTrash} loading={trash.isPending}><Trash2 className="size-4" /></Button>}
                   </>}
                   {detail && isTrashView && <>
-                    <Button variant="ghost" size="sm" disabled={restore.isPending} onClick={handleRestore} loading={restore.isPending}><ArchiveRestore className="size-4" /> Restore</Button>
+                    {canUpdate && <Button variant="ghost" size="sm" disabled={restore.isPending} onClick={handleRestore} loading={restore.isPending}><ArchiveRestore className="size-4" /> Restore</Button>}
                     {canDelete && <Button variant="ghost" size="sm" className="ml-auto text-destructive hover:text-destructive" disabled={deleteForever.isPending} onClick={handleDeleteForever} loading={deleteForever.isPending}><Trash2 className="size-4" /> Delete forever</Button>}
                   </>}
                 </div>

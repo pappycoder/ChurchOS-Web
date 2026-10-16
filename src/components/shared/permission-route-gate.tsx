@@ -3,7 +3,7 @@
 /**
  * Mounted once inside the dashboard layout: resolves the current route's
  * view rule and blocks the page body when the user lacks access.
- * Unmapped routes pass straight through; loading shows a skeleton.
+ * Unmapped routes are denied; loading shows a skeleton.
  */
 
 import * as React from "react";

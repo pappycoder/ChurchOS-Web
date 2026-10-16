@@ -81,6 +81,7 @@ interface AccountInfoTabProps {
 }
 
 function AccountInfoTab({ user }: AccountInfoTabProps) {
+  const canUpdate = usePermissions().can("profiles", "update");
   const [editing, setEditing] = React.useState(false);
   const [form, setForm] = React.useState({
     firstName: user.firstName,
@@ -107,6 +108,7 @@ function AccountInfoTab({ user }: AccountInfoTabProps) {
   }, [editing, user]);
 
   const handleSave = () => {
+    if (!canUpdate) return;
     const payload: Record<string, string> = {};
     if (form.firstName !== user.firstName) payload.firstName = form.firstName.trim();
     if (form.lastName !== user.lastName) payload.lastName = form.lastName.trim();
@@ -141,7 +143,7 @@ function AccountInfoTab({ user }: AccountInfoTabProps) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg">Account Information</CardTitle>
-          {editing ? (
+          {editing && canUpdate ? (
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -161,15 +163,15 @@ function AccountInfoTab({ user }: AccountInfoTabProps) {
                 Save
               </Button>
             </div>
-          ) : (
+          ) : canUpdate ? (
             <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
               <Pencil className="h-4 w-4 mr-1" />
               Edit
             </Button>
-          )}
+          ) : null}
         </CardHeader>
         <CardContent>
-          {editing ? (
+          {editing && canUpdate ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-sm text-muted-foreground">First Name</label>

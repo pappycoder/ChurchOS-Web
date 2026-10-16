@@ -4,7 +4,7 @@
  *
  * Matching is longest-prefix-first: a rule matches when the pathname equals
  * the prefix or lives beneath it (`prefix` or `prefix/...`). Unmapped routes
- * (e.g. /dashboard, /profile) are open to every authenticated user.
+ * are denied. Shared authenticated pages are listed explicitly.
  */
 
 export interface RoutePermissionRule {
@@ -13,9 +13,15 @@ export interface RoutePermissionRule {
    * Single-page resources keep coarse `resource:action` codes. */
   permission?: string;
   anyOf?: string[];
+  allOf?: string[];
 }
 
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
+  // Shared pages require an active authenticated profile, without a module grant.
+  { prefix: "/dashboard" },
+  { prefix: "/docs" },
+  { prefix: "/profile" },
+
   // Members
   { prefix: "/members/import", permission: "members:import:create" },
   { prefix: "/members/new", permission: "members:new:create" },
@@ -95,7 +101,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/debug/sentry", permission: "diagnostics:read" },
 
   // Administration
-  { prefix: "/admin/users", permission: "users:read" },
+  { prefix: "/admin/users", permission: "users:read", allOf: ["profiles:read"] },
   { prefix: "/admin/roles", permission: "roles:read" },
   { prefix: "/admin/settings", permission: "church_settings:update" },
   { prefix: "/admin/branches", permission: "branches:directory:read" },
@@ -123,6 +129,7 @@ export function matchRoutePermission(pathname: string): RoutePermissionRule | nu
   const segments = pathname.split("/").slice(1);
   for (const { rule, segments: pattern } of compiledRules) {
     if (pattern.length > segments.length) continue;
+    if (!rule.permission && !rule.anyOf?.length && pattern.length !== segments.length) continue;
     if (pattern.every((segment, index) =>
       segment === segments[index] ||
       (/^\[[^\]]+\]$/.test(segment) && !!segments[index])
@@ -131,12 +138,22 @@ export function matchRoutePermission(pathname: string): RoutePermissionRule | nu
   return null;
 }
 
-/** True when the user passes the given rule (or when there is no rule). */
+/** Unmapped dashboard routes fail closed. */
 export function checkRule(
   rule: RoutePermissionRule | null,
   can: (permissionName: string) => boolean
 ): boolean {
-  if (!rule) return true;
-  if (!rule.permission && !rule.anyOf?.length) return true;
-  return (!!rule.permission && can(rule.permission)) || (rule.anyOf ?? []).some(can);
+  if (!rule) return false;
+  const baseAllowed = (!rule.permission && !rule.anyOf?.length) ||
+    (!!rule.permission && can(rule.permission)) || (rule.anyOf ?? []).some(can);
+  return baseAllowed && (rule.allOf ?? []).every(can);
+}
+
+/** Login returns only to a known, authorized application page. */
+export function permissionReturnTo(destination: string | null, can: (permission: string) => boolean): string {
+  if (!destination?.startsWith("/") || destination.startsWith("//") || /[\\\u0000-\u001f]/.test(destination)) return "/dashboard";
+  const url = new URL(destination, "https://churchos.invalid");
+  return checkRule(matchRoutePermission(url.pathname), can)
+    ? `${url.pathname}${url.search}${url.hash}`
+    : "/dashboard";
 }

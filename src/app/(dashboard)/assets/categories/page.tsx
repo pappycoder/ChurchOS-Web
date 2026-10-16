@@ -200,9 +200,9 @@ export default function AssetCategoriesPage() {
                                 <Pencil className="h-4 w-4" />
                               </Button>
                             )}
-                            {canDelete && (
+                            {(canUpdate || canDelete) && (
                               <>
-                                <Button
+                                {canUpdate && (<Button
                                   size="icon"
                                   variant="ghost"
                                   title="Archive"
@@ -211,15 +211,15 @@ export default function AssetCategoriesPage() {
                                   }
                                 >
                                   <Archive className="h-4 w-4" />
-                                </Button>
-                                <Button
+                                </Button>)}
+                                {canDelete && (<Button
                                   size="icon"
                                   variant="ghost"
                                   title="Delete"
                                   onClick={() => setDeleteTarget(category)}
                                 >
                                   <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                                </Button>)}
                               </>
                             )}
                           </div>
