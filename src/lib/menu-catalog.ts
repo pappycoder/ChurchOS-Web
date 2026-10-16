@@ -55,6 +55,7 @@ export const COARSE_RESOURCES = [
   "reports",
   "users",
   "church_settings",
+  "messaging_integrations",
   "branches",
   "analytics",
   "roles",

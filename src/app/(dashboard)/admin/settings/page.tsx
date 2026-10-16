@@ -19,6 +19,7 @@ import {
   useScrollSpy,
   type SettingsTabId,
 } from "@/components/settings/settings-nav";
+import { MessagingIntegrationsTab } from "@/components/settings/messaging-integrations-tab";
 import { GeneralSettingsTab } from "@/components/settings/general-settings-tab";
 import { SecuritySettingsTab } from "@/components/settings/security-settings-tab";
 import { useChurch } from "@/hooks/use-church";
@@ -28,7 +29,9 @@ export default function ChurchSettingsPage() {
   const [activeTabId, setActiveTabId] = React.useState<SettingsTabId>("general");
   const churchQuery = useChurch();
   // Editing church settings requires the church_settings:update permission.
-  const canManage = usePermissions().can("church_settings", "update");
+  const { can } = usePermissions();
+  const canManage = can("church_settings", "update");
+  const canReadMessaging = can("messaging_integrations", "read");
 
   const sections = getSettingsSections(activeTabId);
   const activeSection = useScrollSpy();
@@ -37,7 +40,7 @@ export default function ChurchSettingsPage() {
     <div className="space-y-4">
       <PageHeader title="Settings" breadcrumbs={[{ label: "Settings" }]} />
 
-      <SettingsTabsNav activeId={activeTabId} onSelect={setActiveTabId} />
+      <SettingsTabsNav activeId={activeTabId} onSelect={setActiveTabId} showMessaging={canReadMessaging} />
 
       {churchQuery.data && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -60,7 +63,7 @@ export default function ChurchSettingsPage() {
 
         <Card>
           <CardContent className="p-6">
-            {activeTabId === "general" ? <GeneralSettingsTab /> : <SecuritySettingsTab />}
+            {activeTabId === "messaging" ? (canReadMessaging && <MessagingIntegrationsTab />) : activeTabId === "general" ? <GeneralSettingsTab /> : <SecuritySettingsTab />}
           </CardContent>
         </Card>
       </div>

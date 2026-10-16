@@ -8,10 +8,10 @@
  */
 
 import * as React from "react";
-import { ArrowRight, Settings, ShieldCheck, type LucideIcon } from "lucide-react";
+import { ArrowRight, Settings, ShieldCheck, Plug, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SettingsTabId = "general" | "security";
+export type SettingsTabId = "general" | "security" | "messaging";
 
 export interface SettingsTab {
   id: SettingsTabId;
@@ -23,6 +23,7 @@ export interface SettingsTab {
 export const SETTINGS_TABS: SettingsTab[] = [
   { id: "general", label: "General Settings", icon: Settings },
   { id: "security", label: "Security", icon: ShieldCheck },
+  { id: "messaging", label: "Messaging", icon: Plug },
 ];
 
 export interface SettingsSectionLink {
@@ -37,6 +38,7 @@ export const SETTINGS_SECTIONS_BY_TAB: Record<SettingsTabId, SettingsSectionLink
     { id: "email", label: "Email" },
     { id: "preferences", label: "Preferences" },
   ],
+  messaging: [{ id: "resend", label: "Email" }, { id: "termii", label: "SMS & WhatsApp" }],
   security: [
     { id: "password", label: "Password" },
     { id: "two-factor", label: "Two-Factor Authentication" },
@@ -53,14 +55,16 @@ export function getSettingsSections(tabId: SettingsTabId): SettingsSectionLink[]
 export function SettingsTabsNav({
   activeId,
   onSelect,
+  showMessaging = false,
 }: {
+  showMessaging?: boolean;
   activeId: SettingsTabId;
   onSelect: (id: SettingsTabId) => void;
 }) {
   return (
     <div className="border-b border-border">
       <nav className="-mb-px flex items-center gap-1 overflow-x-auto">
-        {SETTINGS_TABS.map((tab) => {
+        {SETTINGS_TABS.filter(tab => tab.id !== "messaging" || showMessaging).map((tab) => {
           const Icon = tab.icon;
           const isActive = tab.id === activeId;
           return (

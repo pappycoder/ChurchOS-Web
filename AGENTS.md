@@ -1,5 +1,8 @@
 <!-- BEGIN:nextjs-agent-rules -->
 
+- **2026-10-16 — Church-owned messaging credentials.** Added permission-gated Settings → Messaging with platform/custom/disabled Resend/Termii accounts. Backend AES-256-GCM credentials are tenant/provider-bound and write-only; browser roles cannot access the new table. Dedicated reserved messaging integration permissions, no silent account fallback, church-scoped WhatsApp callbacks, documented Termii SHA512 verification, provider-origin allowlisting, request timeouts and safe error handling. Apply migration `20261016170000_messaging_credentials`, seed reference permissions, set `MESSAGING_ENCRYPTION_KEY` on API/workers and deploy both projects. Tests use isolated PostgreSQL and provider/browser fixtures; real delivery remains a deployment acceptance step. See docs/MESSAGING-INTEGRATIONS.md.
+
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
