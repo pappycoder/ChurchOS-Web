@@ -1,5 +1,8 @@
 # Deployed role acceptance — 16 October 2026
 
+**Latest follow-up:** [Go-live verification](GO-LIVE-VERIFICATION-2026-10-16.md) now confirms 51/51 matching migrations, the invalid trigger physically absent and the production login helper removed. Seeded privileged authentication still works, and health/worker readiness remains unverified; these remain go-live requirements.
+
+
 ## Outcome and release status
 
 Tested the user-supplied deployment, https://church-os-web.vercel.app/, using **16 existing demo accounts representing all ten built-in roles**. Each account was checked against its actual stored effective permissions and `is_admin_hq` value. All **1248 dashboard route/account combinations** were evaluated: **1244 passed**, **4 record-dependent cases remain unverified**, and **0 unexpected route/action failures** were observed. Passing includes correctly denied pages, not just allowed pages. The shared sidebar supplied **912 grant/link checks**, with no mismatches.
