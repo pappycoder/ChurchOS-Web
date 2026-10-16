@@ -11,6 +11,8 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Application deployment is handled by the Vercel Git integration.
+# This workflow validates changes only.
 jobs:
   lint:
     name: Lint

@@ -23,7 +23,6 @@ Options:
   --action ACTION  Run one menu action; confirmations and hidden passwords still apply.
   --list           List all action IDs.
   --help           Show this help.
-Database reset is limited to local dev/test databases. Destructive DB actions back up first.
 Database/auth operations belong to the backend console. No --yes bypass is provided.
 HELP
 }
@@ -57,62 +56,21 @@ ops_confirm() {
   if [[ "$OPS_ANSWER" != "$1" ]]; then printf 'Cancelled; confirmation did not match.\n' >&2; return 130; fi
   OPS_CONFIRM=$OPS_ANSWER
 }
-ops_admin() {
-  local action=$1 email password='' repeated='' first last phone church_mode church_id='' church_name='' auth_mode auth_id='' token role
-  ops_helper preview "$action" || return $?
-  printf '\nAccount mode: 1) NEW login (default)  2) Link ORPHAN auth UUID (no existing profile)\n'
-  ops_read 'Choice [1]: ' || return 130
-  case "$OPS_ANSWER" in ''|1) auth_mode=new ;; 2) auth_mode=existing ;; *) printf 'Invalid account mode.\n' >&2; return 2 ;; esac
-  ops_read 'Email: ' || return 130; email=$OPS_ANSWER
-  if [[ "$auth_mode" == new ]]; then
-    printf 'Password (12+ chars; upper/lower/number/symbol; hidden): ' >&2
-    IFS= read -r -s password || { printf '\n' >&2; return 130; }; printf '\n' >&2
-    printf 'Repeat password (hidden): ' >&2
-    IFS= read -r -s repeated || { printf '\n' >&2; return 130; }; printf '\n' >&2
-    [[ "$password" == "$repeated" ]] || { printf 'Passwords do not match.\n' >&2; return 2; }
-  else
-    ops_read 'Existing Supabase auth user UUID: ' || return 130; auth_id=$OPS_ANSWER
-  fi
-  ops_read 'First name: ' || return 130; first=$OPS_ANSWER
-  ops_read 'Last name: ' || return 130; last=$OPS_ANSWER
-  ops_read 'Phone (optional): ' || return 130; phone=$OPS_ANSWER
-  printf '\nChurch: 1) Existing church  2) Create a new church\n'
-  ops_read 'Choice: ' || return 130
-  case "$OPS_ANSWER" in
-    1) church_mode=existing; ops_helper run church-list || return $?; ops_read 'Church UUID: ' || return 130; church_id=$OPS_ANSWER ;;
-    2) church_mode=new; ops_read 'New church name: ' || return 130; church_name=$OPS_ANSWER ;;
-    *) printf 'Invalid church mode.\n' >&2; return 2 ;;
-  esac
-  role=church_admin; [[ "$action" != admin-super ]] || role=super_admin
-  printf '\nReview: role=%s, email=%s, church=%s %s, auth=%s\nHQ scope: all branches WITHIN this church, subject to role permissions.\n' "$role" "$email" "$church_id" "$church_name" "$auth_mode"
-  token=$(ops_helper token "$action") || return $?
-  ops_confirm "$token" || return $?
-  printf '%s\0' "$OPS_CONFIRM" "$email" "$password" "$first" "$last" "$phone" "$church_mode" "$church_id" "$church_name" "$auth_mode" "$auth_id" | ops_helper run "$action"
-}
 ops_dispatch() {
-  local action=$1 input token value status
+  local action=$1 input value status
   input=$(ops_helper input "$action") || return $?
   if ((OPS_DRY_RUN)); then ops_helper plan "$action"; return $?; fi
   case "$action" in
     open-backend)
       if [[ ! -f "$OPS_ROOT/../ChurchOS-Backend/scripts/console.sh" ]]; then printf 'Sibling backend console not found. Open its scripts/console.sh separately.\n' >&2; return 1; fi
       bash "$OPS_ROOT/../ChurchOS-Backend/scripts/console.sh" --manager "$OPS_MANAGER"; return $? ;;
-    admin-super|admin-church) ops_admin "$action"; return $? ;;
   esac
   case "$input" in
-    confirm|restore|name)
-      ops_helper preview "$action" || return $?
-      value=''
-      if [[ "$input" == restore ]]; then ops_read 'Trusted console .dump backup path (metadata sidecar required): ' || return 130; value=$OPS_ANSWER; printf '%s\0' "$value" | ops_helper backup-info "$action" || return $?; fi
-      if [[ "$input" == name ]]; then ops_read 'Migration name (letters, numbers, underscore, hyphen): ' || return 130; value=$OPS_ANSWER; fi
-      token=$(ops_helper token "$action") || return $?
-      ops_confirm "$token" || return $?
-      printf '%s\0' "$OPS_CONFIRM" "$value" | ops_helper run "$action" ;;
     port)
       ops_read 'Port [3000]: ' || return 130
       printf '%s\0' "${OPS_ANSWER:-3000}" | ops_helper run "$action" ;;
     url)
-      if [[ "$OPS_KIND" == frontend ]]; then value='http://127.0.0.1:3000'; else value='http://127.0.0.1:3001'; fi
+      value='http://127.0.0.1:3000'
       ops_read "Base URL [$value]: " || return 130
       printf '%s\0' "${OPS_ANSWER:-$value}" | ops_helper run "$action" ;;
     clean)
@@ -124,39 +82,100 @@ ops_dispatch() {
   status=$?
   return "$status"
 }
+# Keep the terminal UI small; the helpers parse dotenv safely and protect DB/auth work.
+RESET='' BOLD='' CYAN='' GREEN='' YELLOW='' RED='' DIM=''
+if [[ -t 1 && -z "${NO_COLOR:-}" ]]; then
+  RESET=$'\033[0m'; BOLD=$'\033[1m'; CYAN=$'\033[36m'
+  GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; DIM=$'\033[2m'
+fi
+ops_title() { printf '\n%b== %s%b\n\n' "$BOLD$CYAN" "$1" "$RESET"; }
+ops_pause() { ops_read 'Press Enter to continue… ' || return 130; }
 ops_result() {
   local status=$1
-  case "$status" in 0) printf '\nAction completed.\n' ;; 130) printf '\nAction cancelled.\n' ;; *) printf '\nAction failed (exit %s). The menu remains available.\n' "$status" >&2 ;; esac
+  case "$status" in
+    0) printf '\n%bFinished OK.%b\n' "$GREEN" "$RESET" ;;
+    130) printf '\n%bAction cancelled.%b\n' "$YELLOW" "$RESET" ;;
+    *) printf '\n%bCommand exited %s. The menu remains available.%b\n' "$RED" "$status" "$RESET" >&2 ;;
+  esac
 }
-ops_submenu() {
-  local group=$1 title=$2 id label choice status index
+ops_production() {
+  if ((!OPS_DRY_RUN)) && [[ ! -f "$OPS_ROOT/.next/BUILD_ID" ]]; then
+    printf '\nNo production build found.\n'
+    ops_read 'Build now? [Y/n]: ' || return 130
+    case "$OPS_ANSWER" in
+      ''|y|Y|yes|YES) ops_dispatch build || return $? ;;
+      n|N|no|NO) printf 'Production start cancelled.\n'; return 130 ;;
+      *) printf 'Choose y or n.\n' >&2; return 2 ;;
+    esac
+  fi
+  ops_dispatch start
+}
+ops_more() {
+  local group=$1 heading=$2
+  local listing id label choice index status
   local ids=() labels=()
-  while IFS=$'\t' read -r id label; do ids+=("$id"); labels+=("$label"); done < <(ops_helper menu "$group")
+  listing=$(ops_helper menu "$group") || return $?
+  while IFS=$'\t' read -r id label; do ids+=("$id"); labels+=("$label"); done <<< "$listing"
   while true; do
-    printf '\n%s\nEnvironment: %s | Manager: %s\n' "$title" "$OPS_ENV_FILE" "$OPS_MANAGER"
-    for ((index=0; index<${#ids[@]}; index++)); do printf ' %2d) %s\n' "$((index+1))" "${labels[$index]}"; done
-    printf '  0) Back\n'
-    ops_read 'Choice: ' || return 0; choice=$OPS_ANSWER
-    [[ "$choice" != 0 ]] || return 0
-    if [[ ! "$choice" =~ ^[1-9][0-9]*$ || ${#choice} -gt 3 ]] || ((choice>${#ids[@]})); then printf 'Choose a listed number.\n'; continue; fi
-    ops_dispatch "${ids[$((choice-1))]}"; status=$?; ops_result "$status"
+    ops_title "$heading"
+    for ((index=0; index<${#ids[@]}; index++)); do printf ' [%2d] %s\n' "$((index+1))" "${labels[$index]}"; done
+    printf '  [b] Back\n\n'
+    ops_read '> ' || return 0; choice=$OPS_ANSWER
+    case "$choice" in b|B|0|q|Q) return 0 ;; esac
+    if [[ ! "$choice" =~ ^[1-9][0-9]*$ || ${#choice} -gt 3 ]] || ((choice>${#ids[@]})); then
+      printf 'Choose a listed number.\n'; continue
+    fi
+    if [[ "${ids[$((choice-1))]}" == start ]]; then ops_production; else ops_dispatch "${ids[$((choice-1))]}"; fi
+    status=$?; ops_result "$status"
+    ops_pause || return 0
+  done
+}
+ops_tools() {
+  while true; do
+    ops_title 'Tools'
+    cat <<'MENU'
+  [1] Setup
+  [2] Quality checks
+  [3] Maintenance & backend console
+  [b] Back
+MENU
+    ops_read '> ' || return 0
+    case "$OPS_ANSWER" in
+      1) ops_more setup 'Setup' ;;
+      2) ops_more quality 'Quality checks' ;;
+      3) ops_more maintenance 'Maintenance & backend console' ;;
+      b|B|q|Q|0) return 0 ;;
+      *) printf 'Choose a listed number.\n' ;;
+    esac
   done
 }
 trap 'printf "\nInterrupted; returning to console when the foreground action exits.\n" >&2' INT
 if ((OPS_LIST)); then ops_helper list; exit $?; fi
-if [[ -n "$OPS_SINGLE_ACTION" ]]; then ops_dispatch "$OPS_SINGLE_ACTION"; OPS_STATUS=$?; ops_result "$OPS_STATUS"; exit "$OPS_STATUS"; fi
+if [[ -n "$OPS_SINGLE_ACTION" ]]; then
+  # Scripted actions retain their existing explicit behavior (no automatic build).
+  ops_dispatch "$OPS_SINGLE_ACTION"; OPS_STATUS=$?; ops_result "$OPS_STATUS"; exit "$OPS_STATUS"
+fi
 while true; do
-  printf '\nChurchOS %s console\nEnvironment: %s | Manager: %s\n 1) Setup and diagnostics\n 2) Development and quality\n' "$OPS_KIND" "$OPS_ENV_FILE" "$OPS_MANAGER"
-  if [[ "$OPS_KIND" == backend ]]; then printf ' 3) Database and backups\n 4) Permissions and administrators\n 5) Workers and maintenance\n'; else printf ' 3) Maintenance and backend administration\n'; fi
-  printf ' 0) Exit\n'
-  ops_read 'Choice: ' || exit 0
+  ops_title 'ChurchOS Frontend'
+  printf '%bEnv: %s | %s%b\n\n' "$DIM" "$OPS_ENV_FILE" "$OPS_MANAGER" "$RESET"
+  cat <<'MENU'
+  [1] Run dev
+  [2] Run production
+  [3] Build
+  [4] Run tests
+  [5] Tools
+  [q] Quit
+MENU
+  ops_read '> ' || exit 0
   case "$OPS_ANSWER" in
-    0) exit 0 ;;
-    1) ops_submenu setup 'Setup and diagnostics' ;;
-    2) ops_submenu quality 'Development and quality' ;;
-    3) if [[ "$OPS_KIND" == backend ]]; then ops_submenu database 'Database and backups'; else ops_submenu maintenance 'Maintenance'; fi ;;
-    4) if [[ "$OPS_KIND" == backend ]]; then ops_submenu access 'Permissions and administrators'; else printf 'Choose a listed number.\n'; fi ;;
-    5) if [[ "$OPS_KIND" == backend ]]; then ops_submenu maintenance 'Workers and maintenance'; else printf 'Choose a listed number.\n'; fi ;;
-    *) printf 'Choose a listed number.\n' ;;
+    1) ops_dispatch dev ;;
+    2) ops_production ;;
+    3) ops_dispatch build ;;
+    4) ops_dispatch test ;;
+    5) ops_tools; continue ;;
+    q|Q|0) printf 'Bye!\n'; exit 0 ;;
+    *) printf 'Choose a listed number.\n'; continue ;;
   esac
+  OPS_STATUS=$?; ops_result "$OPS_STATUS"
+  ops_pause || exit 0
 done

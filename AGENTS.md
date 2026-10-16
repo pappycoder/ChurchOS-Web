@@ -16,6 +16,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-16 — Five-action consoles and Vercel-owned deployment.** Both consoles now show only dev, production, build, tests and Tools. Other operations are grouped inside Tools with existing safeguards. Removed the obsolete commented backend deploy job and documented Vercel deployment ownership in both CI workflows; validation jobs and disposable test-database migrations remain.
+
+- **2026-10-16 — Simpler Bash console.** Replaced nested everyday menus with direct numbered build/run, test and administration options, colored terminal results and an Enter-to-continue flow. More commands retains the full operations inventory. Interactive production start offers a build when missing and stops on build failure; scripted action behavior and database/auth safeguards are unchanged. Console regressions cover menu routing, navigation, cancellation and build/start ordering.
+
+
 - **2026-10-16 — Interactive operations console.** Added `scripts/console.sh` / `npm run console` for private env initialization/selection, locked installs, frontend lifecycle/quality/browser checks, bounded health, safe local build-cache cleanup and sibling backend-console handoff. Node-only helpers use allowlisted subprocesses, dry-run plans, failure/cancellation handling and secure config parsing; no backend credentials enter the browser app. Tests cover menu actions, failure propagation, terminal interruption, health and cache boundaries. See docs/OPERATIONS-CONSOLE.md.
 
 - **2026-10-16 — Direct backend health check.** The supplied backend origin is `https://church-os-backend-gamma.vercel.app`. Direct unauthenticated profile access returns 401; direct backend and web-proxy health both exceeded a 35-second bound. Backend queue processors default off under VERCEL; a persistent worker process is not verified. Evidence is in docs/GO-LIVE-VERIFICATION-2026-10-16.md. No runtime/deployment changes were made.

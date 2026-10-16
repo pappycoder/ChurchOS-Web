@@ -12,13 +12,23 @@ bash scripts/console.sh --action dev
 
 Use Bash 3.2+, Node.js 20.19+ or 22.12+, and npm. `--manager pnpm` is available when a matching pnpm lockfile already exists. Locked dependency installs use `npm ci --include=dev` or `pnpm install --frozen-lockfile`. Select the manager matching the repository lockfile; the console does not invent one.
 
-## Menus
+## Simple menu
 
-| Menu | Operations |
-|---|---|
-| Setup and diagnostics | Create an environment template, show redacted configuration/tool diagnostics, install locked dependencies, install Chromium |
-| Development and quality | Dev server, production build/start, lint/check/fix, type check, unit tests, browser tests, console tests, source UI/permission audit, combined verification, production dependency audit |
-| Maintenance | Bounded backend-health check through the frontend proxy, explicit local `.next` cache cleanup, open the sibling backend console |
+The simplified console passed 13 console regression tests, Bash syntax checks and a terminal-input smoke check. Menu and build/start tests use temporary files and stubbed commands; this verification does not change live accounts or databases.
+
+Start with `npm run console`. Both projects show only five main actions:
+
+1. Run dev
+2. Run production
+3. Build
+4. Run tests
+5. Tools
+
+Press Enter after a command to return, `q` to quit, or `b` to go back inside Tools. Colors are enabled only in a terminal and respect `NO_COLOR`.
+
+Tools groups setup, quality checks and maintenance/backend-console access. Browser tests, lint, install, health and cache cleanup remain here; administrator/database actions are in the backend console.
+
+Choosing **Run production** offers `Build now? [Y/n]` if the compiled build is missing. Enter accepts; declining cancels startup, and a failed build never starts the server. Existing builds start directly. This convenience applies to interactive menus; `--action start` continues to start an existing build without building automatically.
 
 The default env file is `.env.local`; choose another with `--env FILE`. Relative paths use the invocation directory. **Selected file values override inherited environment values.** Files are parsed as dotenv data, never sourced or executed. Initialization copies `.env.example` with permissions 0600 and refuses overwrite. Doctor reports configuration presence, not secret values, and flags environment files with overly broad permissions. Configure values manually before using services.
 
@@ -47,3 +57,5 @@ Tests cover all action plans, argument rejection, dotenv injection resistance, t
 These consoles run local commands and foreground services. They do not silently deploy to Vercel, change cloud environment values or install a production process supervisor. A persistent backend worker and real provider delivery still need verification in the hosting environment.
 
 Validation for this change: 11 frontend console/unit tests passed; the backend has 18 console/unit tests and 13 PostgreSQL workflow cases. Both production builds and changed-file lint passed. Actual frontend startup through the console and the hydrated production login were verified in Chromium, including absence of the development login helper. `python3 test/ops/terminal.test.py` optionally checks real controlling-terminal input on POSIX without contacting services.
+
+CI runs validation only; application deployment is handled by Vercel. The backend E2E job still applies migrations to its disposable test database. Production migrations remain an explicit backend-console operation.
