@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-16 — Interactive operations console.** Added `scripts/console.sh` / `npm run console` for private env initialization/selection, locked installs, frontend lifecycle/quality/browser checks, bounded health, safe local build-cache cleanup and sibling backend-console handoff. Node-only helpers use allowlisted subprocesses, dry-run plans, failure/cancellation handling and secure config parsing; no backend credentials enter the browser app. Tests cover menu actions, failure propagation, terminal interruption, health and cache boundaries. See docs/OPERATIONS-CONSOLE.md.
+
 - **2026-10-16 — Direct backend health check.** The supplied backend origin is `https://church-os-backend-gamma.vercel.app`. Direct unauthenticated profile access returns 401; direct backend and web-proxy health both exceeded a 35-second bound. Backend queue processors default off under VERCEL; a persistent worker process is not verified. Evidence is in docs/GO-LIVE-VERIFICATION-2026-10-16.md. No runtime/deployment changes were made.
 
 - **2026-10-16 — Follow-up go-live verification.** Latest fresh checks confirm 51/51 matching migrations and the legacy form-submission trigger physically absent in the deployed backend database. The production login helper and seeded credentials are absent from loaded public assets. Permission templates and targeted page checks pass; seeded super-admin authentication still succeeds and health/queue verification still times out. See docs/GO-LIVE-VERIFICATION-2026-10-16.md. No live migration, deployment or business/account cleanup was performed.

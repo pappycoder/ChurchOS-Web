@@ -34,3 +34,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Interactive operations console
+
+Run `npm run console` for the interactive terminal app, or `bash scripts/console.sh --help` for environment selection, dry runs and individual action IDs. See [the operations guide](docs/OPERATIONS-CONSOLE.md) for supported actions, safety controls and tests.
