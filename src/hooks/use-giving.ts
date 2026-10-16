@@ -354,3 +354,8 @@ export function useCancelRecurringGiving() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["giving-recurring"] }),
   });
 }
+
+export function useRecurringPaymentOptions() {
+  const { can } = usePermissions();
+  return useQuery({ queryKey: ["giving-payment-options"], queryFn: ({ signal }) => api.get<{ recurringAvailable: boolean }>("/giving/payment-options", { signal }), enabled: can("giving:recurring", "read"), staleTime: 60_000 });
+}

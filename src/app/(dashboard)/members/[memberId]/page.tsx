@@ -1,5 +1,6 @@
 "use client";
 
+import { LiveCallButton } from "@/components/members/live-call-button";
 import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
@@ -228,6 +229,7 @@ export default function MemberDetailPage({
               </p>
             </div>
           </div>
+          <LiveCallButton memberId={display.memberId} memberName={`${display.firstName} ${display.lastName}`} disabled={!display.phone || !!display.archivedAt} />
           {(canUpdateMembers || canDeleteMembers) && (
             <div className="flex flex-wrap items-center gap-2">
               {display.archivedAt ? (

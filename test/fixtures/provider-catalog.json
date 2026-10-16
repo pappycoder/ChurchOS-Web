@@ -1,0 +1,184 @@
+[
+  {
+    "id": "resend",
+    "label": "Resend",
+    "channels": [
+      "email"
+    ],
+    "fields": [
+      {
+        "key": "apiKey",
+        "label": "API key",
+        "secret": true
+      }
+    ],
+    "help": "Use a Resend API key. Sending-only keys may need a delivery test instead of account verification."
+  },
+  {
+    "id": "sendgrid",
+    "label": "SendGrid",
+    "channels": [
+      "email"
+    ],
+    "fields": [
+      {
+        "key": "apiKey",
+        "label": "API key",
+        "secret": true
+      }
+    ],
+    "help": "Use a SendGrid API key with Mail Send permission and an authenticated sender."
+  },
+  {
+    "id": "mailgun",
+    "label": "Mailgun",
+    "channels": [
+      "email"
+    ],
+    "fields": [
+      {
+        "key": "apiKey",
+        "label": "API key",
+        "secret": true
+      },
+      {
+        "key": "domain",
+        "label": "Sending domain"
+      },
+      {
+        "key": "region",
+        "label": "Region",
+        "options": [
+          "us",
+          "eu"
+        ]
+      }
+    ],
+    "help": "Choose the region where your Mailgun sending domain is registered."
+  },
+  {
+    "id": "termii",
+    "label": "Termii",
+    "channels": [
+      "sms",
+      "whatsapp"
+    ],
+    "fields": [
+      {
+        "key": "apiKey",
+        "label": "API key",
+        "secret": true
+      },
+      {
+        "key": "baseUrl",
+        "label": "API origin",
+        "options": [
+          "https://api.ng.termii.com",
+          "https://api.termii.com"
+        ]
+      },
+      {
+        "key": "webhookSecret",
+        "label": "Webhook signing key",
+        "secret": true,
+        "optional": true
+      }
+    ],
+    "help": "One Termii account can serve SMS and WhatsApp. WhatsApp callbacks need the signing key from the provider."
+  },
+  {
+    "id": "twilio",
+    "label": "Twilio",
+    "channels": [
+      "sms",
+      "whatsapp",
+      "voice"
+    ],
+    "fields": [
+      {
+        "key": "accountSid",
+        "label": "Account SID"
+      },
+      {
+        "key": "authToken",
+        "label": "Auth token",
+        "secret": true
+      }
+    ],
+    "help": "Use the Account SID and Auth Token from the same Twilio account. Sender numbers must be enabled for the selected channel."
+  },
+  {
+    "id": "meta",
+    "label": "Meta WhatsApp Cloud",
+    "channels": [
+      "whatsapp"
+    ],
+    "fields": [
+      {
+        "key": "accessToken",
+        "label": "System-user access token",
+        "secret": true
+      },
+      {
+        "key": "phoneNumberId",
+        "label": "WhatsApp phone number ID"
+      },
+      {
+        "key": "appSecret",
+        "label": "Meta app secret",
+        "secret": true
+      },
+      {
+        "key": "verifyToken",
+        "label": "Webhook verification token",
+        "secret": true
+      }
+    ],
+    "help": "Requires a WhatsApp Business account, a registered number, and a token with WhatsApp messaging permissions."
+  },
+  {
+    "id": "paystack",
+    "label": "Paystack",
+    "channels": [
+      "payment"
+    ],
+    "fields": [
+      {
+        "key": "secretKey",
+        "label": "Secret key",
+        "secret": true
+      },
+      {
+        "key": "publicKey",
+        "label": "Public key",
+        "optional": true
+      }
+    ],
+    "help": "Use matching test or live Paystack keys. Credential verification does not charge a card."
+  },
+  {
+    "id": "flutterwave",
+    "label": "Flutterwave",
+    "channels": [
+      "payment"
+    ],
+    "fields": [
+      {
+        "key": "secretKey",
+        "label": "Secret key",
+        "secret": true
+      },
+      {
+        "key": "publicKey",
+        "label": "Public key",
+        "optional": true
+      },
+      {
+        "key": "webhookSecret",
+        "label": "Webhook secret hash",
+        "secret": true
+      }
+    ],
+    "help": "Use Flutterwave v3 keys and the separate secret hash configured on your webhook."
+  }
+]

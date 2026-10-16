@@ -1,3 +1,5 @@
+> Superseded for new setup by [Provider integrations](PROVIDER-INTEGRATIONS.md). The legacy API and encrypted records remain supported.
+
 # Messaging settings
 
 **Settings → Messaging** lets authorized church administrators choose platform-owned, church-owned or disabled Resend/Termii accounts. The tab and status query require `messaging_integrations:read`; account changes and paid tests require `messaging_integrations:update`. Admin HQ alone does not grant access.

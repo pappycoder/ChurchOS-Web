@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/select";
 import {
   useRecurringGiving,
+  useRecurringPaymentOptions,
   usePauseRecurringGiving,
   useResumeRecurringGiving,
   useCancelRecurringGiving,
@@ -82,6 +83,7 @@ export default function RecurringGivingPage() {
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const canUpdate = canAny("giving:recurring:update");
   const canCreate = canAny("giving:recurring:create");
+  const paymentOptions = useRecurringPaymentOptions();
   const [createOpen, setCreateOpen] = React.useState(false);
 
   const [page, setPage] = React.useState(1);
@@ -146,7 +148,7 @@ export default function RecurringGivingPage() {
     <div className="space-y-4">
       <PageHeader
         title="Recurring Giving"
-        action={canCreate ? <Button onClick={() => setCreateOpen(true)}>Create Recurring Giving</Button> : undefined}
+        action={canCreate ? <Button disabled={!paymentOptions.data?.recurringAvailable} onClick={() => setCreateOpen(true)}>Create Recurring Giving</Button> : undefined}
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Giving", href: "/giving" },
@@ -154,6 +156,8 @@ export default function RecurringGivingPage() {
         ]}
       />
 
+      {canCreate && paymentOptions.isError && <p role="alert" className="text-sm">Unable to check payment availability. <Button variant="outline" onClick={() => void paymentOptions.refetch()}>Retry</Button></p>}
+      {canCreate && paymentOptions.data?.recurringAvailable === false && <p className="text-sm text-muted-foreground">Recurring giving requires an enabled Paystack account. Ask an administrator to check payment integration settings.</p>}
       <RecurringGivingDialog open={createOpen} onOpenChange={setCreateOpen} branchId={effectiveBranchId || undefined} />
       <p className="text-sm text-muted-foreground">Create and manage recurring giving schedules for members in the selected branch.</p>
 

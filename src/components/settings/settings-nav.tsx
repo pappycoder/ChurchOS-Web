@@ -23,7 +23,7 @@ export interface SettingsTab {
 export const SETTINGS_TABS: SettingsTab[] = [
   { id: "general", label: "General Settings", icon: Settings },
   { id: "security", label: "Security", icon: ShieldCheck },
-  { id: "messaging", label: "Messaging", icon: Plug },
+  { id: "messaging", label: "Integrations", icon: Plug },
 ];
 
 export interface SettingsSectionLink {
@@ -38,7 +38,7 @@ export const SETTINGS_SECTIONS_BY_TAB: Record<SettingsTabId, SettingsSectionLink
     { id: "email", label: "Email" },
     { id: "preferences", label: "Preferences" },
   ],
-  messaging: [{ id: "resend", label: "Email" }, { id: "termii", label: "SMS & WhatsApp" }],
+  messaging: [{ id: "provider-accounts", label: "Provider accounts" }, { id: "channel-email", label: "Email" }, { id: "channel-whatsapp", label: "WhatsApp" }, { id: "channel-sms", label: "SMS" }, { id: "channel-voice", label: "Live calls" }, { id: "channel-payment", label: "Payments" }],
   security: [
     { id: "password", label: "Password" },
     { id: "two-factor", label: "Two-Factor Authentication" },

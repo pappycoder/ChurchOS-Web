@@ -31,7 +31,7 @@ export default function ChurchSettingsPage() {
   // Editing church settings requires the church_settings:update permission.
   const { can } = usePermissions();
   const canManage = can("church_settings", "update");
-  const canReadMessaging = can("messaging_integrations", "read");
+  const canReadMessaging = can("integrations", "read");
 
   const sections = getSettingsSections(activeTabId);
   const activeSection = useScrollSpy();
