@@ -1,5 +1,6 @@
 "use client"
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export"
 import * as React from "react"
 
 import { ColumnSelector } from "@/components/shared/column-selector"
@@ -44,13 +45,15 @@ function headerColumns(children: React.ReactNode): TableColumn[] {
 }
 
 function Table({ className, children, tableId, ...props }: React.ComponentProps<"table"> & { tableId?: string }) {
+  const exportRoot = React.useRef<HTMLDivElement>(null)
   const generatedId = React.useId()
   const state = useTableColumns(tableId ?? generatedId, headerColumns(children))
   return (
     <TableVisibility.Provider value={state}>
-      <div className="w-full">
+      <div className="w-full" ref={exportRoot}>
         {state.columns.some((column) => column.hideable) && (
-          <div className="flex justify-end px-4 py-2 border-b bg-muted/20">
+          <div className="flex justify-end gap-2 px-4 py-2 border-b bg-muted/20">
+            <VisibleDataExport getRoot={() => exportRoot.current} label="Export visible rows" />
             <ColumnSelector columns={state.columns} hidden={state.hidden} onChange={state.setHidden} />
           </div>
         )}

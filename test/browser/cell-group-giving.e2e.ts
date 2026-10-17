@@ -1,3 +1,4 @@
+import fs from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 
 const groupId = "44444444-4444-4444-8444-444444444444";
@@ -5,7 +6,7 @@ const groupId = "44444444-4444-4444-8444-444444444444";
 test.beforeEach(async ({ context }, testInfo) => {
   const role = testInfo.title.startsWith("treasurer") ? "treasurer" : testInfo.title.startsWith("usher") ? "usher" : "cell_leader";
   await context.addCookies([{ name: "churchos_token", value: "browser-test-only", url: "http://127.0.0.1:3107" }]);
-  await context.addInitScript(({ role, groupId }) => {
+  await context.addInitScript(({ role, groupId, hq, unowned }) => {
     const nativeFetch = window.fetch.bind(window);
     const records: Record<string, unknown>[] = [];
     const calls: string[] = [];
@@ -14,7 +15,8 @@ test.beforeEach(async ({ context }, testInfo) => {
     const memberId = "55555555-5555-4555-8555-555555555555";
     const categoryId = "66666666-6666-4666-8666-666666666666";
     window.fetch = async (input, options) => {
-      const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+      const url = new URL(input instanceof Request ? input.url : String(input), location.origin);
+      const path = url.pathname;
       if (!path.startsWith("/api/")) return nativeFetch(input, options);
       calls.push(path);
       let data: unknown;
@@ -22,8 +24,8 @@ test.beforeEach(async ({ context }, testInfo) => {
       if (path.endsWith("/auth/session")) data = { userId: "browser-user", email: "test@example.com" };
       else if (path.endsWith("/profiles/me")) data = {
         profileId: "11111111-1111-4111-8111-111111111111", churchId: "22222222-2222-4222-8222-222222222222", branchId, memberId,
-        firstName: "Test", lastName: "User", role: [role], isAdminHq: false, branch: { branchId, name: "Lekki" },
-        permissions: ["cell_groups:read", "cell_groups:giving:read", ...(role === "treasurer" ? [] : ["cell_groups:details:read"]), ...(role === "cell_leader" ? ["cell_groups:own:read", "cell_groups:giving:create"] : [])],
+        status: "active", firstName: "Test", lastName: "User", role: [role], isAdminHq: hq, branch: { branchId, name: "Lekki" },
+        permissions: ["cell_groups:read", "cell_groups:giving:read", ...(role === "treasurer" ? [] : ["cell_groups:details:read"]), ...(role === "cell_leader" ? ["cell_groups:own:read", "cell_groups:giving:create", ...(hq ? ["cell_groups:create"] : [])] : [])],
       };
       else if (path.endsWith(`/giving/cell-groups/${groupId}`)) {
         if (options?.method === "POST") {
@@ -35,15 +37,21 @@ test.beforeEach(async ({ context }, testInfo) => {
           records.push(data as Record<string, unknown>);
         } else data = { data: records, total: records.length, categories: [{ categoryId, name: "Offering", isActive: true }], summary: { allTimeTotal: records.reduce((sum, record) => sum + Number(record.amount), 0), monthTotal: 0, count: records.length, trend: [] } };
       }
-      else if (path.endsWith(`/admin/cell-groups/${groupId}`)) data = { id: groupId, name: "Lekki Fellowship", leaderId: memberId, leaderFirstName: "Cell", leaderLastName: "Leader", branchId, branchName: "Lekki", createdAt: "2026-10-11T10:00:00Z", updatedAt: "2026-10-11T10:00:00Z" };
+      else if (path.endsWith("/admin/cell-groups")) data = [{ id: groupId, name: "Lekki Fellowship", leaderId: memberId, branchId, createdAt: "2026-10-11T10:00:00Z" }];
+      else if (path.endsWith("/branches")) data = { data: [{ branchId, name: "Lekki" }] };
+      else if (path.endsWith(`/admin/cell-groups/${groupId}`)) data = { id: groupId, name: "Lekki Fellowship", leaderId: unowned ? "other-member" : memberId, leaderFirstName: "Cell", leaderLastName: "Leader", branchId, branchName: "Lekki", createdAt: "2026-10-11T10:00:00Z", updatedAt: "2026-10-11T10:00:00Z" };
       else if (path.endsWith("/attendance/summary")) data = { totalMeetings: 0, averageAttendance: 0 };
-      else if (path.endsWith("/members") || path.endsWith("/attendance") || path.endsWith("/roles") || path.endsWith("/roles/labels")) data = [];
+      else if (path.endsWith("/attendance")) data = [
+        { id: "att-a", memberId, firstName: "Alice", lastName: "Cell", meetingDate: "2026-10-17", status: "present", notes: "Present" },
+        { id: "att-b", visitorName: "Visitor Cell", firstName: "", lastName: "", meetingDate: "2026-10-16", status: "absent", notes: "Absent" },
+      ].filter(row => !url.searchParams.get("meetingDate") || row.meetingDate === url.searchParams.get("meetingDate"));
+      else if (path.endsWith("/members") || path.endsWith("/roles") || path.endsWith("/roles/labels")) data = [];
       else if (path.endsWith("/notifications/unread-count")) data = { count: 0 };
       else if (path.endsWith("/notifications") || path.endsWith("/audit-logs/me")) data = { data: [], total: 0, unreadCount: 0 };
       else throw new Error(`Unexpected API call ${path}`);
       return new Response(JSON.stringify({ success: true, data }), { headers: { "Content-Type": "application/json" } });
     };
-  }, { role, groupId });
+  }, { role, groupId, hq: testInfo.title.startsWith("hq"), unowned: testInfo.title.includes("another group") });
 });
 
 test("treasurer sees group giving without requesting members or attendance", async ({ page }) => {
@@ -82,4 +90,32 @@ test("leader records a combined meeting total and receives duplicate feedback", 
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Giving has already been recorded" })).toBeVisible();
   await expect(page.getByText("2026/OFF/001", { exact: true })).toHaveCount(1);
+});
+
+test("hq leader cannot record giving for another group", async ({ page }) => {
+  await page.goto(`/departments/cell-groups/${groupId}`);
+  await expect(page.getByText("Meeting Giving", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Record Meeting Giving" })).toHaveCount(0);
+});
+test("hq leader can record giving for the group they lead", async ({ page }) => {
+  await page.goto(`/departments/cell-groups/${groupId}`);
+  await expect(page.getByRole("button", { name: "Record Meeting Giving" })).toBeVisible();
+});
+
+test("hq leader can create cell groups", async ({ page }) => {
+  await page.goto("/departments/cell-groups");
+  await expect(page.getByRole("button", { name: "Add Cell Group", exact: true })).toBeVisible();
+});
+test("leader attendance filters and exports respect the selected records", async ({ page }) => {
+  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.getByLabel("Cell group attendance status", { exact: true }).selectOption("present");
+  await page.getByLabel("Cell group attendance search", { exact: true }).fill("Alice");
+  const table = page.getByRole("table", { name: "Cell group attendance", exact: true });
+  await expect(table.getByText("Alice Cell", { exact: true })).toBeVisible();
+  await expect(table.getByText("Visitor Cell", { exact: true })).toHaveCount(0);
+  await table.locator("xpath=ancestor::section[1]").getByRole("button", { name: "Export", exact: true }).click();
+  const pending = page.waitForEvent("download");
+  await page.getByRole("menuitem", { name: "Export as CSV", exact: true }).click();
+  const download = await pending; const csv = await fs.readFile((await download.path())!, "utf8");
+  expect(csv).toContain("Alice Cell"); expect(csv).not.toContain("Visitor Cell");
 });

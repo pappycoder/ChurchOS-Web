@@ -66,13 +66,11 @@ const EXPORT_COLUMNS: ExportColumn[] = [
 export default function CellGroupsPage() {
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
-  // Cell group leaders only record attendance for their own group — they get
-  // no group-level create/update/delete affordances here.
+  // Own-group grants limit edits and attendance; HQ additionally permits creation.
   const isCellLeader = canAny("cell_groups:own:read") && !canAny("cell_groups:delete");
-  // Export stays available to staff and HQ cell leaders (they see all groups);
-  // branch cell leaders export their own group from its detail page instead.
-  const canExport = !isCellLeader || !!profile?.isAdminHq;
-  const canCreate = can("cell_groups", "create") && !isCellLeader;
+  // Export follows the same read permission and scope as the list.
+  const canExport = can("cell_groups", "read");
+  const canCreate = can("cell_groups", "create") && (!isCellLeader || !!profile?.isAdminHq);
   const canUpdate = can("cell_groups", "update");
   const canDelete = can("cell_groups", "delete");
 

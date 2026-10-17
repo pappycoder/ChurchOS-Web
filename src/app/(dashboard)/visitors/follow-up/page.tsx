@@ -314,7 +314,7 @@ export default function FollowUpBoardPage() {
           onDragEnd={handleDragEnd}
           onDragCancel={() => setActiveId(null)}
         >
-          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5 items-start">
+          <div data-export-list className="grid gap-4 md:grid-cols-3 xl:grid-cols-5 items-start">
             {BOARD_COLUMNS.map((column) => (
               <BoardColumnView
                 key={column.key}

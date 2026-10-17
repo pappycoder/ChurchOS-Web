@@ -170,7 +170,7 @@ export function AnalyticsLegend({ entries, formatValue }: AnalyticsLegendProps) 
     return <p className="py-4 text-center text-sm text-muted-foreground">No data yet.</p>;
   }
   return (
-    <div className="flex flex-wrap gap-x-6 gap-y-2">
+    <div data-export-list className="flex flex-wrap gap-x-6 gap-y-2">
       {entries.map((entry) => (
         <div key={entry.name} className="flex items-center gap-2 text-sm">
           <span className="h-2.5 w-2.5 rounded-[2px]" style={{ backgroundColor: entry.color }} />

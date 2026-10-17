@@ -1,4 +1,5 @@
 "use client";
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
 import { usePathname } from "next/navigation";
 import { TableColumnsProvider } from "@/contexts/table-columns-context";
 import { Sidebar } from "@/components/layouts/sidebar";
@@ -17,7 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <main id="main-content" className="page-wrapper min-h-dvh" tabIndex={-1}>
       <div className="px-4 pt-4 pb-8 md:px-6 md:pt-6 md:pb-10">
         <OfflineEntry />
-        <TableColumnsProvider key={pathname}><PermissionRouteGate>{children}</PermissionRouteGate></TableColumnsProvider>
+        <TableColumnsProvider key={pathname}><PermissionRouteGate><VisibleDataExport />{children}</PermissionRouteGate></TableColumnsProvider>
       </div>
     </main>
   </div>;

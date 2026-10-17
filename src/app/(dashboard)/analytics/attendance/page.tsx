@@ -111,7 +111,7 @@ export default function AnalyticsAttendancePage() {
                 {data && Object.keys(data.bySource).length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">By source</p>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    <div data-export-list className="flex flex-wrap gap-x-6 gap-y-2">
                       {Object.entries(data.bySource).map(([key, value]) => (
                         <div key={key} className="flex items-center gap-2 text-sm">
                           <span className="capitalize text-muted-foreground">{key}</span>
@@ -124,7 +124,7 @@ export default function AnalyticsAttendancePage() {
                 {data && data.byBranch.length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">By branch</p>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    <div data-export-list className="flex flex-wrap gap-x-6 gap-y-2">
                       {data.byBranch.map((b) => (
                         <div key={b.branchName} className="flex items-center gap-2 text-sm">
                           <span className="text-muted-foreground">{b.branchName}</span>

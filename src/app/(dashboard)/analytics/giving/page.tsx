@@ -249,7 +249,7 @@ export default function AnalyticsGivingPage() {
                 {Object.keys(byStatus).length > 0 && (
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">By status</p>
-                    <div className="flex flex-wrap gap-x-6 gap-y-2">
+                    <div data-export-list className="flex flex-wrap gap-x-6 gap-y-2">
                       {Object.entries(byStatus).map(([key, value]) => (
                         <div key={key} className="flex items-center gap-2 text-sm">
                           <span className="capitalize text-muted-foreground">{key}</span>

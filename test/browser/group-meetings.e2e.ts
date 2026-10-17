@@ -1,0 +1,72 @@
+import { test, expect } from "@playwright/test";
+import fs from "node:fs/promises";
+
+test.beforeEach(async ({ context }, info) => {
+  await context.addCookies([{name:"churchos_token",value:"test-only",url:"http://127.0.0.1:3107"}]);
+  await context.addInitScript(({ hq, readOnly }) => {
+    const native = window.fetch.bind(window);
+    const records = [
+      {id:"row-a",memberId:"member-a",firstName:"Alice",lastName:"Test",meetingDate:"2026-10-17",status:"present",notes:"Present note"},
+      {id:"row-b",memberId:"member-b",firstName:"Bob",lastName:"Test",meetingDate:"2026-10-16",status:"absent",notes:"Absent note"},
+    ];
+    const department = {id:"dept-a",churchId:"church-a",branchId:"branch-a",name:"Choir",headMemberId:"head-a",memberCount:2,members:[{memberId:"member-a",id:"dm-a",firstName:"Alice",lastName:"Test",role:"member",joinedAt:"2026-10-01"},{memberId:"member-b",id:"dm-b",firstName:"Bob",lastName:"Test",role:"member",joinedAt:"2026-10-01"}],createdAt:"2026-10-01",updatedAt:"2026-10-01"};
+    window.fetch = async (input, options) => {
+      const url=new URL(input instanceof Request ? input.url : String(input),location.origin); const path=url.pathname;
+      if(!path.startsWith("/api/"))return native(input,options);
+      if(path==="/api/session")return new Response(JSON.stringify({hasSession:true}));
+      let data: unknown=[];
+      if(path.endsWith("/auth/session"))data={userId:"user-a",email:"fixture@example.test"};
+      else if(path.endsWith("/profiles/me"))data={profileId:"profile-a",churchId:"church-a",branchId:"branch-a",memberId:"head-a",status:"active",firstName:"Head",lastName:"Test",role:["department_head"],isAdminHq:hq,permissions:["departments:read","departments:own:read","branches:read",...(readOnly?[]:["departments:update","departments:own:update"]),...(hq&&!readOnly?["departments:create"]:[])]};
+      else if(path.endsWith("/admin/departments/dept-a/attendance")) {
+        if(options?.method==="POST"){ const body=JSON.parse(String(options.body));records.push({id:"row-c",memberId:body.memberId,firstName:"Alice",lastName:"Test",meetingDate:body.meetingDate,status:body.status,notes:body.notes});data={id:"row-c"}; }
+        else data=records.filter(row=>!url.searchParams.get("meetingDate")||row.meetingDate===url.searchParams.get("meetingDate"));
+      }
+      else if(path.endsWith("/admin/departments/dept-a"))data=department;
+      else if(path.endsWith("/admin/departments"))data=[department];
+      else if(path.endsWith("/branches"))data={data:[{branchId:"branch-a",name:"Branch A"}]};
+      else if(path.endsWith("/unread-count"))data={count:0};
+      else if(path.endsWith("/notifications")||path.endsWith("/audit-logs/me"))data={data:[],total:0};
+      return new Response(JSON.stringify({success:true,data}),{headers:{"Content-Type":"application/json"}});
+    };
+  },{hq:info.title.startsWith("hq"),readOnly:info.title.startsWith("readonly")});
+});
+async function openDepartment(page: import("@playwright/test").Page) {
+  await page.goto("/departments");
+  await page.getByText("Choir",{exact:true}).first().click();
+  await expect(page.getByText("Department meeting attendance (2)",{exact:true})).toBeVisible();
+}
+test("hq head can create departments and record their department meeting attendance",async({page})=>{
+  await page.goto("/departments");await expect(page.getByRole("button",{name:"Add Department",exact:true})).toBeVisible();
+  await openDepartment(page);await page.getByRole("button",{name:"Record meeting attendance",exact:true}).click();
+  const dialog=page.getByRole("dialog").last();
+  await dialog.getByLabel("Department meeting date",{exact:true}).fill("2026-10-18");
+  await dialog.getByLabel("Department attendee",{exact:true}).selectOption("member-a");
+  await dialog.getByRole("button",{name:"Save attendance",exact:true}).click();
+  await expect(page.getByText("Department meeting attendance (3)",{exact:true})).toBeVisible();
+});
+test("branch head cannot create departments but can record their department attendance",async({page})=>{
+  await page.goto("/departments");await expect(page.getByRole("button",{name:"Add Department",exact:true})).toHaveCount(0);
+  await openDepartment(page);await expect(page.getByRole("button",{name:"Record meeting attendance",exact:true})).toBeVisible();
+});
+test("readonly department attendance filters and exports without write permission",async({page})=>{
+  await openDepartment(page);await expect(page.getByRole("button",{name:"Record meeting attendance",exact:true})).toHaveCount(0);
+  await page.getByLabel("Department meeting attendance status",{exact:true}).selectOption("present");
+  await page.getByLabel("Department meeting attendance search",{exact:true}).fill("Alice");
+  const table=page.getByRole("table",{name:"Department meeting attendance",exact:true});
+  await expect(table.getByText("Alice Test",{exact:true})).toBeVisible();await expect(table.getByText("Bob Test",{exact:true})).toHaveCount(0);
+  const section=table.locator("xpath=ancestor::section[1]");
+  await section.getByRole("button",{name:"Export",exact:true}).click();
+  const downloadPromise=page.waitForEvent("download", { timeout: 10000 });await page.getByRole("menuitem",{name:"Export as CSV",exact:true}).click();
+  const download=await downloadPromise;const content=await fs.readFile((await download.path())!,"utf8");
+  expect(content).toContain("Alice Test");expect(content).not.toContain("Bob Test");
+});
+test("readonly shared table and list exports include only visible rows",async({page})=>{
+  await page.goto("/departments");
+  const main=page.locator("#main-content");
+  // Include an explicit accessible data list and hidden data to exercise the shared export boundary.
+  await main.evaluate(element=>{const list=document.createElement("ul");list.innerHTML='<li>Visible list item</li><li hidden>Hidden list item</li>';element.appendChild(list);});
+  await page.getByRole("button",{name:"Export visible data",exact:true}).click();
+  const promise=page.waitForEvent("download", { timeout: 10000 });await page.getByRole("menuitem",{name:"Visible data as CSV",exact:true}).click();
+  const download=await promise;const content=await fs.readFile((await download.path())!,"utf8");
+  expect(content).toContain("Choir");expect(content).toContain("Visible list item");expect(content).not.toContain("Hidden list item");
+});

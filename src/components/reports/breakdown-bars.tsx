@@ -28,7 +28,7 @@ export function BreakdownBars({
   const max = Math.max(...items.map((i) => i.value), 1);
 
   return (
-    <div className="divide-y">
+    <div data-export-list className="divide-y">
       {items.map((item) => (
         <div key={item.name} className="py-3">
           <div className="flex items-center justify-between gap-3 text-sm">

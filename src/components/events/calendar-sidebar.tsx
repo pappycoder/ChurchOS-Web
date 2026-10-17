@@ -111,7 +111,7 @@ export function CalendarSidebar({
               No upcoming events.
             </p>
           ) : (
-            <div className="space-y-2">
+            <div data-export-list className="space-y-2">
               {upcomingEvents.map((event) => (
                 <div
                   key={event.eventId}

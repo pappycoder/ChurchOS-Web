@@ -134,7 +134,7 @@ export default function EngagementPage() {
       />
 
       {/* Distribution overview */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div data-export-list className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {BUCKET_ORDER.map((bucket) => {
           const count = distribution?.[bucket] ?? 0;
           return (

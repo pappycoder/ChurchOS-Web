@@ -398,7 +398,7 @@ export default function CheckInPage() {
                 No members match your search.
               </p>
             ) : (
-              <div className="rounded-md border divide-y max-h-[52vh] overflow-y-auto">
+              <div data-export-list className="rounded-md border divide-y max-h-[52vh] overflow-y-auto">
                 {members.map((member) => {
                   const checked = selectedIds.has(member.memberId);
                   return (

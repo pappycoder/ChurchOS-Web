@@ -169,7 +169,7 @@ function MonthView({
             >
               {format(day, "d")}
             </span>
-            <div className="mt-0.5 space-y-px">
+            <div data-export-list className="mt-0.5 space-y-px">
               {shown.map((ev) => (
                 <button
                   key={ev.id}
@@ -251,7 +251,7 @@ function AgendaView({
               Add
             </button>
           </div>
-          <div className="space-y-1">
+          <div data-export-list className="space-y-1">
             {events.map((ev) => (
               <button
                 key={ev.id}
@@ -330,7 +330,7 @@ function TimeGridView({
               });
 
               return (
-                <div
+                <div data-export-list
                   key={`${day.toISOString()}-${hour}`}
                   className="relative min-h-[2.5rem] border-b border-l cursor-pointer hover:bg-muted/30"
                   onClick={() => {

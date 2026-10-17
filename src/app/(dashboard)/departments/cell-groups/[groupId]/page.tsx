@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { MeetingAttendanceTable } from "@/components/departments/meeting-attendance-table";
 import { CellGroupGivingPanel } from "@/components/giving/cell-group-giving-panel";
 import { PermissionLink as Link } from "@/components/shared/permission-link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CalendarDays,
-  ClipboardCheck,
   Clock,
   MapPin,
   Pencil,
@@ -24,8 +24,6 @@ import { Button } from "@/components/ui/button";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -34,14 +32,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -101,7 +91,7 @@ export default function CellGroupDetailPage({
   const { data: nearestGroups } = useNearestCellGroups(canReadDetails ? group?.latitude : undefined, canReadDetails ? group?.longitude : undefined);
 
   const [meetingDate, setMeetingDate] = React.useState("");
-  const { data: attendance = [], isLoading: attendanceLoading } = useCellGroupAttendance(
+  const { data: attendance = [], isLoading: attendanceLoading, isError: attendanceError } = useCellGroupAttendance(
     canReadDetails ? groupId : "",
     meetingDate || undefined
   );
@@ -344,103 +334,8 @@ export default function CellGroupDetailPage({
                 )}
               </section>
 
-              <section className="rounded-lg border">
-                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-b">
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <ClipboardCheck className="h-4 w-4" /> Attendance Records ({attendance.length})
-                  </p>
-                  {canManageMembers && (
-                    <Button size="sm" onClick={() => setAttendanceDialogOpen(true)}>
-                      <ClipboardCheck className="h-3.5 w-3.5 mr-1" /> Record Attendance
-                    </Button>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 px-4 py-3 border-b">
-                  <Label htmlFor="meeting-date-filter" className="text-sm text-muted-foreground shrink-0">
-                    Meeting date
-                  </Label>
-                  <Input
-                    id="meeting-date-filter"
-                    type="date"
-                    value={meetingDate}
-                    onChange={(e) => setMeetingDate(e.target.value)}
-                    className="w-44"
-                  />
-                  {meetingDate && (
-                    <Button variant="ghost" size="sm" onClick={() => setMeetingDate("")}>
-                      Clear
-                    </Button>
-                  )}
-                </div>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Attendee</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Notes</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {attendanceLoading ? (
-                        <TableRow>
-                          <TableCell colSpan={4}>
-                            <Skeleton className="h-5 w-full" />
-                          </TableCell>
-                        </TableRow>
-                      ) : attendance.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={4} className="h-20 text-center text-sm text-muted-foreground">
-                            {meetingDate
-                              ? "No attendance recorded for this date."
-                              : "No attendance recorded yet."}
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        attendance.map((record) => (
-                          <TableRow key={record.id}>
-                            <TableCell>
-                              {record.memberId ? (
-                                <p className="font-medium">
-                                  {record.firstName} {record.lastName}
-                                </p>
-                              ) : (
-                                <div>
-                                  <p className="font-medium">{record.visitorName || "Visitor"}</p>
-                                  <span className="mt-0.5 inline-block">
-                                    <Badge variant="outline" className="text-purple-600">
-                                      Visitor
-                                    </Badge>
-                                  </span>
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  record.status === "present" || record.status === "late"
-                                    ? "secondary"
-                                    : "outline"
-                                }
-                                className="capitalize"
-                              >
-                                {record.status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {formatDate(record.meetingDate)}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                              {record.notes ?? "—"}
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </section>
+              <MeetingAttendanceTable title="Cell group attendance" records={attendance} loading={attendanceLoading} error={attendanceError} date={meetingDate} onDateChange={setMeetingDate}
+                action={canManageMembers ? <Button size="sm" onClick={() => setAttendanceDialogOpen(true)}>Record Attendance</Button> : undefined} />
             </div>
 
             <div className="space-y-6">

@@ -381,3 +381,13 @@ export function useRecordCellGroupAttendance(groupId: string) {
     },
   });
 }
+
+export function useDepartmentAttendance(departmentId: string, meetingDate?: string) {
+  return useQuery({ queryKey: ["department-attendance", departmentId, meetingDate ?? ""],
+    queryFn: ({ signal }) => api.get<CellGroupAttendanceRecord[]>(`/admin/departments/${departmentId}/attendance${meetingDate ? `?meetingDate=${encodeURIComponent(meetingDate)}` : ""}`, { signal }), enabled: !!departmentId });
+}
+export function useRecordDepartmentAttendance(departmentId: string) {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: (data: { memberId?: string; visitorName?: string; meetingDate: string; status: string; notes?: string }) => api.post(`/admin/departments/${departmentId}/attendance`, data),
+    onSuccess: () => client.invalidateQueries({ queryKey: ["department-attendance", departmentId] }) });
+}

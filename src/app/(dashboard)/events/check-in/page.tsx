@@ -342,7 +342,7 @@ export default function EventsCheckInPage() {
                 No members match your search.
               </p>
             ) : (
-              <div className="rounded-md border divide-y max-h-[52vh] overflow-y-auto">
+              <div data-export-list className="rounded-md border divide-y max-h-[52vh] overflow-y-auto">
                 {members.map((member) => {
                   const checked = selectedIds.has(member.memberId);
                   return (
@@ -538,7 +538,7 @@ export default function EventsCheckInPage() {
                 No check-ins recorded yet for this event.
               </p>
             ) : (
-              <div className="rounded-md border divide-y">
+              <div data-export-list className="rounded-md border divide-y">
                 {recentAttendance.map((record) => (
                   <div
                     key={record.attendanceId}

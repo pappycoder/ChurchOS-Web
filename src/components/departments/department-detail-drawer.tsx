@@ -3,6 +3,8 @@
 import * as React from "react";
 import { format, parseISO } from "date-fns";
 import { toast } from "@/lib/toast";
+import { ExportDropdown } from "@/components/shared/export-dropdown";
+import { DepartmentAttendancePanel } from "./department-attendance-panel";
 import { Building2, UserPlus, X } from "lucide-react";
 import {
   Sheet,
@@ -112,7 +114,7 @@ export function DepartmentDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto p-5">
+      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto p-5">
         <SheetHeader className="px-0 py-0">
           <SheetTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
@@ -129,6 +131,7 @@ export function DepartmentDetailDrawer({
           </div>
         ) : (
           <div className="mt-6 space-y-6">
+            <DepartmentAttendancePanel department={department} canManage={canUpdate && (!isDepartmentHead || !!isOwnDepartment)} />
             <section>
               <p className="text-sm font-medium mb-2">Details</p>
               <div className="rounded-lg border px-4 py-1">
@@ -141,6 +144,7 @@ export function DepartmentDetailDrawer({
             <section>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-medium">Members ({department.memberCount})</p>
+                <ExportDropdown title="Department members" filename="department-members" columns={[{key:"firstName",label:"First name"},{key:"lastName",label:"Last name"},{key:"role",label:"Role"},{key:"joinedAt",label:"Joined"}]} data={department.members.map(member => ({...member}))} />
               </div>
               <div className="rounded-lg border divide-y">
                 {department.members.length === 0 ? (

@@ -55,10 +55,9 @@ export default function DepartmentsPage() {
   // department they head (backend-enforced ownership).
   const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
   const isAdminHq = !!profile?.isAdminHq;
-  // Export stays available to staff and HQ department heads (they see all
-  // departments); branch-scoped heads manage their own department directly.
-  const canExport = !isDepartmentHead || isAdminHq;
-  const canCreate = can("departments", "create");
+  // Export follows the same read permission and scope as the list.
+  const canExport = can("departments", "read");
+  const canCreate = can("departments", "create") && (!isDepartmentHead || isAdminHq);
   const canUpdate = can("departments", "update");
   const canDelete = can("departments", "delete");
   // A department head edits only the department they head; the row Edit button

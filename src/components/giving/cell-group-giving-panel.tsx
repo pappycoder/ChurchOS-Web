@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useCellGroup } from "@/hooks/use-admin";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCellGroupGiving, useRecordCellGroupGiving } from "@/hooks/use-giving";
 import { toast } from "@/lib/toast";
@@ -20,7 +22,11 @@ const money = (value: number) => new Intl.NumberFormat("en-NG", { style: "curren
 
 export function CellGroupGivingPanel({ groupId, archived = false }: { groupId: string; archived?: boolean }) {
   const { canAny } = usePermissions();
-  const canRecord = canAny("cell_groups:giving:create") && !archived;
+  const { data: profile } = useCurrentProfile();
+  const { data: group } = useCellGroup(canAny("cell_groups:giving:create") ? groupId : "");
+  const ownOnly = canAny("cell_groups:own:read", "cell_groups:own:update") && !canAny("cell_groups:delete");
+  const canRecord = canAny("cell_groups:giving:create") && !archived &&
+    (!ownOnly || (!!profile?.memberId && group?.leaderId === profile.memberId));
   const [page, setPage] = useState(1);
   const query = useCellGroupGiving(groupId, page);
   const mutation = useRecordCellGroupGiving(groupId);

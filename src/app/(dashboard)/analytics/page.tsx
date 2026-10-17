@@ -105,7 +105,7 @@ export default function AnalyticsOverviewPage() {
               </CardHeader>
               <CardContent>
                 {data && Object.keys(data.engagementDistribution).length > 0 ? (
-                  <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  <div data-export-list className="flex flex-wrap gap-x-6 gap-y-2">
                     {Object.entries(data.engagementDistribution).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-2 text-sm">
                         <span className="capitalize text-muted-foreground">{key.replace(/_/g, " ")}</span>
