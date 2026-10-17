@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -148,7 +148,7 @@ export default function CheckInPage() {
       setSelectedIds(new Set());
     } catch (error) {
       toast.error("Bulk check-in failed", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     }
   };
@@ -220,7 +220,7 @@ export default function CheckInPage() {
       router.push(`/visitors/${visitor.id}`);
     } catch (error) {
       toast.error("Failed to register visitor", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setVisitorPending(false);

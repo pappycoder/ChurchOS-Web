@@ -13,7 +13,7 @@ import {
   Loader2,
   ShieldCheck,
 } from "lucide-react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -178,7 +178,7 @@ export default function MemberImportPage() {
     } catch (error) {
       toast.error("Could not parse file", {
         description:
-          error instanceof Error ? error.message : "Use a .csv or .xlsx file.",
+          getToastErrorMessage(error, "Use a .csv or .xlsx file."),
       });
     } finally {
       setParsing(false);
@@ -206,7 +206,7 @@ export default function MemberImportPage() {
         ] },
       ], "member-import-template");
     } catch (error) {
-      toast.error("Template download failed", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Template download failed", { description: getToastErrorMessage(error, "Please try again.") });
     }
   };
 
@@ -309,7 +309,7 @@ export default function MemberImportPage() {
       setStep("review");
     } catch (error) {
       toast.error("Dry run failed", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setDryRunning(false);
@@ -324,7 +324,7 @@ export default function MemberImportPage() {
       setStep("done");
     } catch (error) {
       toast.error("Import failed", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setImporting(false);

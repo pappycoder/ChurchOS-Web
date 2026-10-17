@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft, Loader2, Megaphone } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -132,7 +132,7 @@ export default function NewBroadcastPage() {
       router.push("/communication/broadcasts");
     } catch (err) {
       toast.error("Failed to create broadcast", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };

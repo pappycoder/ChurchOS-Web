@@ -4,7 +4,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Users,
   Plus,
@@ -678,9 +678,7 @@ export default function MembersPage() {
                                               },
                                               onError: (e) =>
                                                 toast.error(
-                                                  e instanceof Error
-                                                    ? e.message
-                                                    : "Failed to restore member"
+                                                  getToastErrorMessage(e, "Failed to restore member")
                                                 ),
                                             },
                                           )

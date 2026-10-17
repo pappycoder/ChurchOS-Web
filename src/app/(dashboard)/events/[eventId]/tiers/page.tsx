@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   ArrowLeft,
   Plus,
@@ -138,7 +138,7 @@ export default function EventTiersPage() {
       setDialogOpen(false);
     } catch (err) {
       toast.error("Failed to save tier", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     } finally {
       setSaving(false);
@@ -153,7 +153,7 @@ export default function EventTiersPage() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete tier", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };

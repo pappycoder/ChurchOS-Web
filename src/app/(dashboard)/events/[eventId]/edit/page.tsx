@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import {
@@ -154,7 +154,7 @@ export default function EditEventPage() {
       router.push(`/events/${eventId}`);
     } catch (error) {
       toast.error("Failed to update event", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setSaving(false);

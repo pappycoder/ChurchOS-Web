@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   Calendar,
@@ -132,7 +132,7 @@ export default function EventsCheckInPage() {
       setSelectedIds(new Set());
     } catch (error) {
       toast.error("Bulk check-in failed", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     }
   };
@@ -174,7 +174,7 @@ export default function EventsCheckInPage() {
       });
     } catch (error) {
       toast.error("Walk-in check-in failed", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     }
   };

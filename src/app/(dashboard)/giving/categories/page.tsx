@@ -2,7 +2,7 @@
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   MoreHorizontal,
@@ -172,7 +172,7 @@ export default function GivingCategoriesPage() {
         editing ? "Failed to update category" : "Failed to create category",
         {
           description:
-            error instanceof Error ? error.message : "Please try again.",
+            getToastErrorMessage(error, "Please try again."),
         },
       );
     }
@@ -186,7 +186,7 @@ export default function GivingCategoriesPage() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error(`Failed to delete ${deleteTarget.name}`, {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setDeleteTarget(null);
     }

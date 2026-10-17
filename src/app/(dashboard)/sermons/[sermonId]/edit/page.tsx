@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
@@ -75,7 +75,7 @@ export default function EditSermonPage() {
       router.push(`/sermons/${sermonId}`);
     } catch (err) {
       toast.error("Failed to update sermon", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };

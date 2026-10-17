@@ -1,9 +1,10 @@
 "use client";
+import { AvailableSelect } from "@/components/shared/available-select";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
 import { format } from "date-fns";
-import { toast } from "@/lib/toast";
+import { toast, getToastErrorMessage } from "@/lib/toast";
 import {
   Plus,
   Ticket,
@@ -223,7 +224,7 @@ function TicketTypesTab() {
       setDialogOpen(false);
     } catch (err) {
       toast.error("Failed to save tier", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     } finally {
       setSaving(false);
@@ -238,7 +239,7 @@ function TicketTypesTab() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete tier", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -262,7 +263,9 @@ function TicketTypesTab() {
       }
       toolbar={
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Select
+          <AvailableSelect
+            disabled={eventsQuery.isLoading}
+            unavailableMessage={eventsQuery.isError ? "Unable to load events. Please try again." : events.length === 0 ? "No events are available for ticket types." : undefined}
             value={selectedEventId}
             onValueChange={setSelectedEventId}
           >
@@ -276,7 +279,7 @@ function TicketTypesTab() {
                 </SelectItem>
               ))}
             </SelectContent>
-          </Select>
+          </AvailableSelect>
         </div>
       }
     >
@@ -850,9 +853,7 @@ function AssignTicketDialog({
       toast.success("Ticket assigned successfully");
       onOpenChange(false);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to assign ticket";
-      toast.error(message);
+      toast.error(getToastErrorMessage(err, "Failed to assign ticket"));
     }
   };
 
@@ -869,7 +870,7 @@ function AssignTicketDialog({
         <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label>Event *</Label>
-            <Select value={selectedEventId} onValueChange={setSelectedEventId}>
+            <AvailableSelect value={selectedEventId} onValueChange={setSelectedEventId} unavailableMessage={events.length === 0 ? "No events are available to assign tickets. Please try again later." : undefined}>
               <SelectTrigger>
                 <SelectValue placeholder="Select an event" />
               </SelectTrigger>
@@ -881,7 +882,7 @@ function AssignTicketDialog({
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </AvailableSelect>
           </div>
 
           {selectedEvent && !selectedEvent.isFree && tiers.length > 0 && (
@@ -1095,6 +1096,7 @@ function ClaimTicketDialog({
   const { data: currentProfile } = useCurrentProfile();
 
   const [selectedEventId, setSelectedEventId] = React.useState("");
+  const [eventSelectOpen, setEventSelectOpen] = React.useState(false);
   const [selectedTierId, setSelectedTierId] = React.useState("");
 
   const eligibleEvents = React.useMemo(() => {
@@ -1132,6 +1134,7 @@ function ClaimTicketDialog({
 
   React.useEffect(() => {
     if (open) {
+      setEventSelectOpen(false);
       setSelectedEventId("");
       setSelectedTierId("");
     }
@@ -1163,9 +1166,7 @@ function ClaimTicketDialog({
       toast.success("Ticket claimed successfully");
       onOpenChange(false);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to claim ticket";
-      toast.error(message);
+      toast.error(getToastErrorMessage(err, "Failed to claim ticket"));
     }
   };
 
@@ -1186,6 +1187,16 @@ function ClaimTicketDialog({
             <Select
               value={selectedEventId}
               onValueChange={setSelectedEventId}
+              open={eventSelectOpen}
+              onOpenChange={(nextOpen) => {
+                if (nextOpen && claimableEvents.length === 0) {
+                  toast.error("No tickets are available to claim.", {
+                    description: "You may already hold a ticket for each eligible event.",
+                  });
+                  return;
+                }
+                setEventSelectOpen(nextOpen);
+              }}
             >
               <SelectTrigger>
                 <SelectValue
@@ -1197,12 +1208,6 @@ function ClaimTicketDialog({
                 />
               </SelectTrigger>
               <SelectContent>
-                {claimableEvents.length === 0 && (
-                  <div className="py-2 px-2 text-sm text-muted-foreground">
-                    No events available to claim. You may already hold a ticket
-                    for each eligible event.
-                  </div>
-                )}
                 {claimableEvents.map((ev) => (
                   <SelectItem key={ev.eventId} value={ev.eventId}>
                     {ev.title}

@@ -5,7 +5,7 @@ import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   ArrowLeft,
   Pencil,
@@ -177,7 +177,7 @@ export default function MemberDetailPage({
         toast.success("Note added");
       },
       onError: (e) =>
-        toast.error(e instanceof Error ? e.message : "Failed to add note"),
+        toast.error(getToastErrorMessage(e, "Failed to add note")),
     });
   };
 

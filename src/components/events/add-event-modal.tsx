@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -109,7 +109,7 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
       onOpenChange(false);
     } catch (error) {
       toast.error("Failed to create event", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setPending(false);

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { toast, getToastErrorMessage } from "@/lib/toast";
 import { ClipboardList, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useSubmitFormPublic, type FormField } from "@/hooks/use-forms";
 import { FormFieldsRenderer } from "@/components/forms/form-fields-renderer";
@@ -79,7 +79,9 @@ export default function PublicFormPage() {
       });
       setSubmitted(true);
     } catch (err) {
-      setFailed(err instanceof Error ? err.message : "Unable to submit. Please try again.");
+      const message = getToastErrorMessage(err, "Unable to submit. Please try again.");
+        setFailed(message);
+        toast.error("Form submission failed", { description: message });
     }
   };
 

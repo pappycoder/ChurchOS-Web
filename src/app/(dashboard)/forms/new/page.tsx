@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCreateForm } from "@/hooks/use-forms";
 import { PageHeader } from "@/components/shared/page-header";
@@ -45,7 +45,7 @@ export default function NewFormPage() {
       router.push(`/forms/${created.id}`);
     } catch (err) {
       toast.error("Failed to create form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       throw err;
     }

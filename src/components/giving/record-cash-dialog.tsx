@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,7 @@ import {
 import { useAttendanceServices } from "@/hooks/use-attendance";
 import { useEventsList } from "@/hooks/use-events";
 import { MemberCombobox } from "@/components/members/member-combobox";
+import { AvailableSelect } from "@/components/shared/available-select";
 import { api } from "@/lib/api";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useBranchesList } from "@/hooks/use-branches";
@@ -178,7 +179,7 @@ export function RecordCashDialog({
       onRecorded?.(transaction);
     } catch (error) {
       toast.error("Failed to record giving", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setPending(false);
@@ -206,7 +207,7 @@ export function RecordCashDialog({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Branch *</p>
-            <Select value={branchId || undefined} disabled={!profile?.isAdminHq} onValueChange={(value) => {
+            <AvailableSelect unavailableMessage={profile?.isAdminHq && !branchesQuery.data?.data.length ? "No branches are available. Please try again later." : undefined} value={branchId || undefined} disabled={!profile?.isAdminHq || branchesQuery.isLoading} onValueChange={(value) => {
               setSelectedBranchId(value);
               setCategoryId("");
               setMemberId("");
@@ -221,7 +222,7 @@ export function RecordCashDialog({
                   <SelectItem value={profile.branchId}>{profile.branch?.name ?? "Your branch"}</SelectItem>
                 ) : null}
               </SelectContent>
-            </Select>
+            </AvailableSelect>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -282,7 +283,7 @@ export function RecordCashDialog({
               </div>
             )}
             {linkTo === "service" && (
-              <Select value={serviceId} onValueChange={setServiceId}>
+              <AvailableSelect value={serviceId} onValueChange={setServiceId} disabled={servicesQuery.isLoading} unavailableMessage={servicesQuery.isError ? "Unable to load services. Please try again." : !servicesQuery.data?.data.length ? "No services are available for this branch." : undefined}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select service" />
                 </SelectTrigger>
@@ -293,10 +294,10 @@ export function RecordCashDialog({
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </AvailableSelect>
             )}
             {linkTo === "event" && (
-              <Select value={eventId} onValueChange={setEventId}>
+              <AvailableSelect value={eventId} onValueChange={setEventId} disabled={eventsQuery.isLoading} unavailableMessage={eventsQuery.isError ? "Unable to load events. Please try again." : !eventsQuery.data?.data.length ? "No events are available for this branch." : undefined}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select event" />
                 </SelectTrigger>
@@ -307,7 +308,7 @@ export function RecordCashDialog({
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
+              </AvailableSelect>
             )}
           </div>
 

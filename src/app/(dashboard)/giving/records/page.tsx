@@ -3,7 +3,7 @@
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   MoreHorizontal,
   Plus,
@@ -166,7 +166,7 @@ export default function GivingRecordsPage() {
       URL.revokeObjectURL(url);
     } catch (error) {
       toast.error("Failed to download receipt", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     }
   };
@@ -179,7 +179,7 @@ export default function GivingRecordsPage() {
       setReceiptTarget(null);
     } catch (err) {
       toast.error("Failed to send receipt", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setReceiptTarget(null);
     }

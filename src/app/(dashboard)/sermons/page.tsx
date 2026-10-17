@@ -5,7 +5,7 @@ import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   BookOpen,
@@ -181,7 +181,7 @@ function SermonsListContent() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete sermon", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setDeleteTarget(null);
     }

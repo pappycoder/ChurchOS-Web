@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -107,7 +107,7 @@ export function ConvertVisitorDialog({
     } catch (error) {
       toast.error("Failed to convert visitor", {
         description:
-          error instanceof Error ? error.message : "Please try again.",
+          getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setPending(false);

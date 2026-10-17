@@ -4,7 +4,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Suspense } from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -171,7 +171,7 @@ function TemplatesListContent() {
       onSuccess: () => toast.success(`"${template.name}" published`),
       onError: (err) =>
         toast.error("Failed to publish template", {
-          description: err instanceof Error ? err.message : "Please try again.",
+          description: getToastErrorMessage(err, "Please try again."),
         }),
     });
   };
@@ -184,7 +184,7 @@ function TemplatesListContent() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete template", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setDeleteTarget(null);
     }

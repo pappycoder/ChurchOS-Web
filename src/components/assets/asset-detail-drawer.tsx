@@ -3,7 +3,7 @@
 import { ContentImage } from "@/components/shared/content-image";
 
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import QRCode from "qrcode";
 import { format, parseISO } from "date-fns";
 import { Boxes, RefreshCw } from "lucide-react";
@@ -218,7 +218,7 @@ export function AssetDetailDrawer({
                         onSuccess: () => toast.success("QR code generated"),
                         onError: (e) =>
                           toast.error(
-                            e instanceof Error ? e.message : "Failed to generate QR code"
+                            getToastErrorMessage(e, "Failed to generate QR code")
                           ),
                       })
                     }

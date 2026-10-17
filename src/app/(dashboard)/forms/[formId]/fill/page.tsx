@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { toast, getToastErrorMessage } from "@/lib/toast";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useForm, useSubmitForm } from "@/hooks/use-forms";
@@ -61,7 +61,9 @@ export default function FillFormPage() {
       if (err instanceof Error && "statusCode" in err && (err as { statusCode?: number }).statusCode === 409) {
         setAlreadySubmitted(true);
       } else {
-        setFailMsg(err instanceof Error ? err.message : "Unable to submit. Please try again.");
+        const message = getToastErrorMessage(err, "Unable to submit. Please try again.");
+        setFailMsg(message);
+        toast.error("Form submission failed", { description: message });
       }
     }
   };

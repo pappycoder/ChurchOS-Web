@@ -32,6 +32,14 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }}
       style={
         {
+          // Keep the application viewport anchored even if modal/page CSS
+          // overrides Sonner's injected positioning stylesheet.
+          position: "fixed",
+          top: "var(--app-toast-top, 24px)",
+          right: "var(--app-toast-right, 24px)",
+          left: "var(--app-toast-left, auto)",
+          bottom: "auto",
+          zIndex: 999999999,
           "--normal-bg": "var(--popover)",
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",

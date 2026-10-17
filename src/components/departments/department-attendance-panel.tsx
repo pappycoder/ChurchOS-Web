@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 export function DepartmentAttendancePanel({ department, canManage }: { department: Department; canManage: boolean }) {
   const [date, setDate] = useState("");
   const [open, setOpen] = useState(false);
@@ -20,7 +20,7 @@ export function DepartmentAttendancePanel({ department, canManage }: { departmen
   return <><MeetingAttendanceTable title="Department meeting attendance" records={query.data ?? []} date={date} onDateChange={setDate} loading={query.isLoading} error={query.isError}
     action={canManage && !department.archivedAt ? <Button onClick={() => { setMemberId(""); setVisitorName(""); setMeetingDate(date); setStatus("present"); setNotes(""); setOpen(true); }}>Record meeting attendance</Button> : undefined} />
     <Dialog open={open && canManage} onOpenChange={setOpen}><DialogContent><DialogHeader><DialogTitle>Record department meeting attendance</DialogTitle><DialogDescription>Record a department member or visitor. Saving the same member and meeting date updates that member’s attendance.</DialogDescription></DialogHeader>
-      <form className="space-y-4" onSubmit={async event => { event.preventDefault(); if (!canManage) return; try { await mutation.mutateAsync({ ...(memberId ? { memberId } : { visitorName: visitorName.trim() }), meetingDate, status, notes }); setOpen(false); toast.success("Attendance recorded"); } catch (error) { toast.error("Attendance could not be recorded", { description: error instanceof Error ? error.message : "Please try again." }); } }}>
+      <form className="space-y-4" onSubmit={async event => { event.preventDefault(); if (!canManage) return; try { await mutation.mutateAsync({ ...(memberId ? { memberId } : { visitorName: visitorName.trim() }), meetingDate, status, notes }); setOpen(false); toast.success("Attendance recorded"); } catch (error) { toast.error("Attendance could not be recorded", { description: getToastErrorMessage(error, "Please try again.") }); } }}>
         <Label className="grid gap-2">Meeting date<Input aria-label="Department meeting date" type="date" required value={meetingDate} onChange={event => setMeetingDate(event.target.value)} /></Label>
         <Label className="grid gap-2">Member<select aria-label="Department attendee" className="h-10 rounded-md border bg-background px-3" value={memberId} onChange={event => { setMemberId(event.target.value); setVisitorName(""); }}><option value="">Visitor</option>{department.members.map(member => <option key={member.memberId} value={member.memberId}>{member.firstName} {member.lastName}</option>)}</select></Label>
         {!memberId && <Label className="grid gap-2">Visitor name<Input aria-label="Department visitor name" required maxLength={200} value={visitorName} onChange={event => setVisitorName(event.target.value)} /></Label>}

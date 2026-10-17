@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { toast, getToastErrorMessage } from "@/lib/toast";
 import { Loader2, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,7 +90,7 @@ export function ComposeEmailDialog({
       toast.success("Email sent");
       onOpenChange(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to send email";
+      const message = getToastErrorMessage(err, "Failed to send email");
       toast.error(message);
     }
   };

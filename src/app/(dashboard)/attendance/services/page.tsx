@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   CalendarDays,
@@ -233,7 +233,7 @@ export default function AttendanceServicesPage() {
         editing ? "Failed to update service" : "Failed to create service",
         {
           description:
-            error instanceof Error ? error.message : "Please try again.",
+            getToastErrorMessage(error, "Please try again."),
         },
       );
     }
@@ -248,7 +248,7 @@ export default function AttendanceServicesPage() {
     } catch (error) {
       toast.error(`Failed to delete ${deleteTarget.name}`, {
         description:
-          error instanceof Error ? error.message : "Please try again.",
+          getToastErrorMessage(error, "Please try again."),
       });
       setDeleteTarget(null);
     }

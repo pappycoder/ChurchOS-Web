@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
 import { format } from "date-fns";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -144,7 +144,7 @@ export default function FormDetailPage() {
       toast.success("Share link regenerated. The old link no longer works.");
     } catch (err) {
       toast.error("Failed to regenerate link", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -156,7 +156,7 @@ export default function FormDetailPage() {
       router.push(`/forms/${cloned.id}`);
     } catch (err) {
       toast.error("Failed to clone form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -167,7 +167,7 @@ export default function FormDetailPage() {
       toast.success("Form closed to new submissions");
     } catch (err) {
       toast.error("Failed to close form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -178,7 +178,7 @@ export default function FormDetailPage() {
       toast.success("Form reopened");
     } catch (err) {
       toast.error("Failed to reopen form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -463,9 +463,7 @@ export default function FormDetailPage() {
                                 onSuccess: () => toast.success("Submission approved"),
                                 onError: (err) =>
                                   toast.error(
-                                    err instanceof Error
-                                      ? err.message
-                                      : "Failed to approve submission"
+                                    getToastErrorMessage(err, "Failed to approve submission")
                                   ),
                               }
                             );

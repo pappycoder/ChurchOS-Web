@@ -4,7 +4,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Suspense } from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import {
   CalendarClock,
@@ -118,7 +118,7 @@ function BroadcastsListContent() {
       setViewing((v) => (v && v.broadcastId === cancelTarget.broadcastId ? null : v));
     } catch (err) {
       toast.error("Failed to cancel broadcast", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setCancelTarget(null);
     }

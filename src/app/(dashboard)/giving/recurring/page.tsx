@@ -3,7 +3,7 @@
 import { RecurringGivingDialog } from "@/components/giving/recurring-giving-dialog";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Pause,
   Play,
@@ -122,7 +122,7 @@ export default function RecurringGivingPage() {
       setActionTarget(null);
     } catch (err) {
       toast.error(`Failed to ${actionTarget.action} schedule`, {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setActionTarget(null);
     }

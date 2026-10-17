@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +54,7 @@ export function SubmissionStatusDialog({
       onOpenChange(false);
     } catch (err) {
       toast.error("Failed to update submission", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };

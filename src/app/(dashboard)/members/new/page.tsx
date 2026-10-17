@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -214,7 +214,7 @@ export default function AddMemberPage() {
     } catch (error) {
       toast.error("Failed to add member", {
         description:
-          error instanceof Error ? error.message : "Please try again.",
+          getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setSaving(false);

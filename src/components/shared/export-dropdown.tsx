@@ -2,7 +2,7 @@
 
 import { useVisibleExportColumns } from "@/contexts/table-columns-context";
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { Download, FileText, FileSpreadsheet, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,9 +48,7 @@ export function ExportDropdown({
       } catch (error) {
         toast.error("Could not load all rows for export", {
           description:
-            error instanceof Error
-              ? error.message
-              : "Exporting the loaded rows instead.",
+            getToastErrorMessage(error, "Exporting the loaded rows instead."),
         });
       }
     }
@@ -71,7 +69,7 @@ export function ExportDropdown({
     try {
       await exportPDF(title, columns, await resolveRows(), filename);
     } catch (error) {
-      toast.error("PDF export failed", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("PDF export failed", { description: getToastErrorMessage(error, "Please try again.") });
     } finally {
       setLoading(null);
     }
@@ -82,7 +80,7 @@ export function ExportDropdown({
     try {
       await exportExcel([{ name: title, columns, data: await resolveRows() }], filename);
     } catch (error) {
-      toast.error("Excel export failed", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Excel export failed", { description: getToastErrorMessage(error, "Please try again.") });
     } finally {
       setLoading(null);
     }

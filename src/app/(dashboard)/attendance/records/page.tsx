@@ -3,7 +3,7 @@
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   CalendarCheck,
@@ -130,7 +130,7 @@ export default function AttendanceRecordsPage() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete record", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setDeleteTarget(null);
     }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { format } from "date-fns";
 import { ArrowLeft, Loader2, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -114,7 +114,7 @@ export default function AddVisitorPage() {
       router.push(`/visitors/${visitor.id}`);
     } catch (error) {
       toast.error("Failed to register visitor", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setSaving(false);

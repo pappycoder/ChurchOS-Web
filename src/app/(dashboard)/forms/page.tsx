@@ -4,7 +4,7 @@ import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
 import { format } from "date-fns";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import {
   ClipboardList,
@@ -158,7 +158,7 @@ export default function FormsPage() {
       toast.success("Form cloned");
     } catch (err) {
       toast.error("Failed to clone form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -169,7 +169,7 @@ export default function FormsPage() {
       toast.success("Form closed to new submissions");
     } catch (err) {
       toast.error("Failed to close form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -180,7 +180,7 @@ export default function FormsPage() {
       toast.success("Form reopened");
     } catch (err) {
       toast.error("Failed to reopen form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };
@@ -194,7 +194,7 @@ export default function FormsPage() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     } finally {
       setDeletePending(false);

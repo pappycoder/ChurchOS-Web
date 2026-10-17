@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useForm, useUpdateForm } from "@/hooks/use-forms";
 import { PageHeader } from "@/components/shared/page-header";
@@ -91,7 +91,7 @@ export default function EditFormPage() {
       router.push(`/forms/${formId}`);
     } catch (err) {
       toast.error("Failed to update form", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       throw err;
     }

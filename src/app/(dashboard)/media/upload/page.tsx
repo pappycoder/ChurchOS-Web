@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { toast, getToastErrorMessage } from "@/lib/toast";
 import {
   ArrowLeft,
   Check,
@@ -113,10 +113,12 @@ function MediaUploadPage() {
         setUploaded((prev) => [...prev, { ...item, status: "done", result }]);
         toast.success(`${item.file.name} uploaded`);
       } catch (err) {
+        const message = getToastErrorMessage(err, "Upload failed");
+        toast.error(`${item.file.name} upload failed`, { description: message });
         setQueue((prev) =>
           prev.map((q) =>
             q.id === item.id
-              ? { ...q, status: "error", error: err instanceof Error ? err.message : "Upload failed" }
+              ? { ...q, status: "error", error: message }
               : q
           )
         );

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRef } from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { Paperclip, UploadCloud, X } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { mediaUploadPermissions } from "@/lib/media-upload-policy";
@@ -55,7 +55,7 @@ export function SubmissionAttachments({ onChange, disabled }: SubmissionAttachme
         toast.success(`"${file.name}" attached`);
       } catch (err) {
         toast.error("Upload failed", {
-          description: err instanceof Error ? err.message : "Please try again.",
+          description: getToastErrorMessage(err, "Please try again."),
         });
       }
     }

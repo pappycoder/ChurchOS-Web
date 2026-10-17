@@ -19,6 +19,8 @@
 
 [data-sonner-toaster] {
   font-family: inherit;
+  --app-toast-top: var(--offset-top, 24px);
+  --app-toast-right: var(--offset-right, 24px);
 }
 
 [data-sonner-toast].app-toast {
@@ -75,4 +77,12 @@
 /* Native controls retain readable text without triggering mobile input zoom. */
 @media (max-width: 639px) {
   [data-slot="select-trigger"], [data-slot="command-input"] { font-size: 16px; }
+}
+
+@media (max-width: 600px) {
+  [data-sonner-toaster] {
+    --app-toast-left: var(--mobile-offset-left, 16px);
+    --app-toast-top: var(--mobile-offset-top, 16px);
+    --app-toast-right: var(--mobile-offset-right, 16px);
+  }
 }

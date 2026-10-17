@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Dialog,
   DialogContent,
@@ -107,7 +107,7 @@ export function VisitorFormDialog({
       onSaved?.(saved);
     } catch (error) {
       toast.error(isEdit ? "Failed to update visitor" : "Failed to register visitor", {
-        description: error instanceof Error ? error.message : "Please try again.",
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setPending(false);

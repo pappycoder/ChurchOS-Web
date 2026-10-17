@@ -3,7 +3,7 @@
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Download,
   FileBarChart,
@@ -176,7 +176,7 @@ export default function ReportsGeneratorPage() {
         }
       }
     } catch (error) {
-      toast.error("Report export failed", { description: error instanceof Error ? error.message : "Please try again." });
+      toast.error("Report export failed", { description: getToastErrorMessage(error, "Please try again.") });
     } finally {
       setExporting(false);
     }

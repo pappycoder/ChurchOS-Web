@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
 import { ClipboardList, Inbox, ShieldX } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -105,7 +105,7 @@ export default function SubmissionsPage() {
         onSuccess: () => toast.success("Submission approved"),
         onError: (err) =>
           toast.error("Failed to update submission", {
-            description: err instanceof Error ? err.message : "Please try again.",
+            description: getToastErrorMessage(err, "Please try again."),
           }),
       }
     );

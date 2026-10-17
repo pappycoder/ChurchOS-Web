@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { format } from "date-fns";
 import {
   ArchiveRestore,
@@ -140,7 +140,7 @@ function InboxContent() {
         toast.success("Message moved to trash");
       },
       onError: (e) =>
-        toast.error(e instanceof Error ? e.message : "Failed to move to trash"),
+        toast.error(getToastErrorMessage(e, "Failed to move to trash")),
     });
   };
 
@@ -153,7 +153,7 @@ function InboxContent() {
         toast.success("Message deleted forever");
       },
       onError: (e) =>
-        toast.error(e instanceof Error ? e.message : "Failed to delete"),
+        toast.error(getToastErrorMessage(e, "Failed to delete")),
     });
   };
 
@@ -171,7 +171,7 @@ function InboxContent() {
         toast.success("Message restored");
       },
       onError: (e) =>
-        toast.error(e instanceof Error ? e.message : "Failed to restore"),
+        toast.error(getToastErrorMessage(e, "Failed to restore")),
     });
   };
 

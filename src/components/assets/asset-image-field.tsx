@@ -5,7 +5,7 @@ import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { ContentImage } from "@/components/shared/content-image";
 
 import * as React from "react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { Image as ImageIcon, Link, Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,7 @@ export function AssetImageField({ value, onChange }: AssetImageFieldProps) {
       toast.success("Image uploaded");
     } catch (err) {
       toast.error("Failed to upload image", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };

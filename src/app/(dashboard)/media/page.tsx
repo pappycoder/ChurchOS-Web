@@ -5,7 +5,7 @@ import { ContentImage } from "@/components/shared/content-image";
 import * as React from "react";
 import { Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   Clipboard,
@@ -284,7 +284,7 @@ function MediaLibraryContent() {
       setDeleteTarget(null);
     } catch (err) {
       toast.error("Failed to delete file", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
       setDeleteTarget(null);
     }
@@ -303,7 +303,7 @@ function MediaLibraryContent() {
       setPermissionsTarget(null);
     } catch (err) {
       toast.error("Failed to update permissions", {
-        description: err instanceof Error ? err.message : "Please try again.",
+        description: getToastErrorMessage(err, "Please try again."),
       });
     }
   };

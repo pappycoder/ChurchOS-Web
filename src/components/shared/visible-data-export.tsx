@@ -4,7 +4,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Download } from "lucide-react";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 export function VisibleDataExport({ getRoot, label = "Export visible data" }: { getRoot?: () => Element | null; label?: string }) {
   const { ready } = usePermissions();
   const [busy, setBusy] = useState(false);
@@ -29,7 +29,7 @@ export function VisibleDataExport({ getRoot, label = "Export visible data" }: { 
         const labels = [...new Set(sections.flatMap(section => section.columns.map(column => column.label)))];
         exports.exportCSV(data, [{ key: "section", label: "Collection" }, { key: "row", label: "Row" }, ...labels.map(label => ({ key: label, label }))], filename);
       }
-    } catch (error) { toast.error("Export failed", { description: error instanceof Error ? error.message : "Please try again." }); }
+    } catch (error) { toast.error("Export failed", { description: getToastErrorMessage(error, "Please try again.") }); }
     finally { setBusy(false); }
   }
   return <div className="flex justify-end" data-export-ignore>

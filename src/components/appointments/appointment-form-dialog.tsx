@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { toast } from "@/lib/toast";
+import { getToastErrorMessage, toast } from "@/lib/toast";
 import { Loader2, UserPlus } from "lucide-react";
 import {
   Dialog,
@@ -190,7 +190,7 @@ export function AppointmentFormDialog({
         },
         onError: (e) =>
           toast.error("Failed to create visitor", {
-            description: e instanceof Error ? e.message : "Please try again.",
+            description: getToastErrorMessage(e, "Please try again."),
           }),
       }
     );
@@ -235,7 +235,7 @@ export function AppointmentFormDialog({
           },
           onError: (e) =>
             toast.error("Failed to update appointment", {
-              description: e instanceof Error ? e.message : "Please try again.",
+              description: getToastErrorMessage(e, "Please try again."),
             }),
         }
       );
@@ -258,7 +258,7 @@ export function AppointmentFormDialog({
       },
       onError: (e) =>
         toast.error("Failed to book appointment", {
-          description: e instanceof Error ? e.message : "Please try again.",
+          description: getToastErrorMessage(e, "Please try again."),
         }),
     });
   };
