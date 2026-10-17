@@ -16,6 +16,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-17 — Seeded login picker restored for deployed testing.** At the user’s request, the seeded-account dropdown is visible in all builds again. Selection fills the existing seeded email/password without submitting or bypassing authentication. Updated the production browser regression. This temporarily re-exposes seeded credentials and must be removed or disabled when testing ends.
+
 - **2026-10-16 — Console reduced to requested actions only.** Backend exposes only dev build/watch, production build, tests, migration deployment, super-user creation and church-admin creation; frontend exposes the first three. Removed Tools menus, production-start helpers and all extra CLI action IDs. Simplified the command dispatcher and docs; retained dotenv parsing, hidden admin passwords, tenant-bound confirmations and verified backups before migrations.
 
 - **2026-10-16 — Five-action consoles and Vercel-owned deployment.** Both consoles now show only dev, production, build, tests and Tools. Other operations are grouped inside Tools with existing safeguards. Removed the obsolete commented backend deploy job and documented Vercel deployment ownership in both CI workflows; validation jobs and disposable test-database migrations remain.

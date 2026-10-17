@@ -16,7 +16,7 @@ import { RecoveryCodesPanel } from "@/components/shared/recovery-codes-panel";
 import type { LoginResponse } from "@/types/auth";
 import { useCompleteLogin, useLogin, useVerifyTwoFactor } from "@/hooks/use-auth";
 
-// Temporary development helper for the seeded demo accounts.
+// Temporary testing helper for the seeded accounts, including deployed testing.
 const DEV_PASSWORD = "ChurchOS@1234";
 const DEV_ACCOUNTS = [
   { label: "HQ · Super Admin", email: "superadmin@churchos.dev" },
@@ -222,13 +222,12 @@ export default function LoginPage() {
             transition={{ duration: 0.35, ease: AUTH_EASE }}
           >
             <div className="space-y-4">
-              {process.env.NODE_ENV === "development" && (
               <div className="space-y-1.5">
                 <label
                   htmlFor="dev-account"
                   className="text-sm font-medium leading-none"
                 >
-                  Quick sign-in (development)
+                  Quick sign-in (seeded accounts)
                 </label>
                 <select
                   id="dev-account"
@@ -254,7 +253,6 @@ export default function LoginPage() {
                   ))}
                 </select>
               </div>
-              )}
               <AuthField
                 label="Email Address"
                 type="email"
