@@ -57,7 +57,7 @@ function Table({ className, children, tableId, ...props }: React.ComponentProps<
             <ColumnSelector columns={state.columns} hidden={state.hidden} onChange={state.setHidden} />
           </div>
         )}
-        <div data-slot="table-container" tabIndex={0} role="region" aria-label={props["aria-label"] ?? "Scrollable data table"} className="relative w-full overflow-x-auto overscroll-x-contain rounded-b-xl outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40">
+        <div data-slot="table-container" tabIndex={0} role="region" aria-label={props["aria-label"] ?? "Scrollable data table"} className="relative w-full overflow-x-auto overscroll-x-contain rounded-b-lg outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/40">
           <table data-slot="table" className={cn("w-full caption-bottom text-sm", className)} {...props}>
             {children}
           </table>
@@ -71,7 +71,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-      className={cn("bg-muted/40 [&_tr]:border-b", className)}
+      className={cn("[&_tr]:border-b", className)}
       {...props}
     />
   )
@@ -116,7 +116,7 @@ function TableRow({ className, children, ...props }: React.ComponentProps<"tr">)
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-primary/3 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-primary/8",
+        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
         className
       )}
       {...props}
@@ -133,7 +133,7 @@ function TableHead({ className, ...props }: HeadProps) {
     <th
       data-slot="table-head"
       className={cn(
-        "h-11 px-4 text-left align-middle text-xs font-semibold whitespace-nowrap text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "h-11 px-4 text-left align-middle text-sm font-medium whitespace-nowrap text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}

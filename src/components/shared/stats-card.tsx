@@ -4,13 +4,13 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 
-const statsCardVariants = cva("min-w-0 rounded-2xl border p-5 bg-card shadow-xs", {
+const statsCardVariants = cva("min-w-0 rounded-xl border p-6 bg-card shadow-sm", {
   variants: {
     variant: {
       default: "",
-      primary: "border-primary/20 bg-primary/5",
-      success: "border-emerald-500/20 bg-emerald-500/5",
-      warning: "border-amber-500/20 bg-amber-500/5",
+      primary: "",
+      success: "",
+      warning: "",
     },
   },
   defaultVariants: {
@@ -42,7 +42,7 @@ export function StatsCard({
     <div className={cn(statsCardVariants({ variant }), className)}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-medium text-muted-foreground mb-2">
+          <p className="text-sm font-medium mb-2">
             {title}
           </p>
           <div className="flex flex-wrap items-center gap-2">
@@ -65,7 +65,7 @@ export function StatsCard({
           {subtitle && <div className="text-xs text-muted-foreground mt-1">{subtitle}</div>}
         </div>
         {icon && (
-          <div className="shrink-0 p-2.5 rounded-xl bg-primary/8 text-primary [&_svg]:size-5">{icon}</div>
+          <div className="shrink-0 text-muted-foreground [&_svg]:size-4">{icon}</div>
         )}
       </div>
     </div>

@@ -12,7 +12,7 @@ export function OfflineHeaderButton() {
   return (
     <a
       href="/offline"
-      className="btn-menubar inline-flex items-center gap-2"
+      className="inline-flex size-9 items-center justify-center rounded-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label="Offline workspace"
       title="Offline workspace"
     >

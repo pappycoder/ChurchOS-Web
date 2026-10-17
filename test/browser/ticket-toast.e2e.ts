@@ -14,7 +14,7 @@ test("cell leader claim failures use the universal toast while the modal is open
         profileId: "11111111-1111-4111-8111-111111111111",
         churchId: "22222222-2222-4222-8222-222222222222",
         branchId: "33333333-3333-4333-8333-333333333333",
-        firstName: "Test", lastName: "Leader", role: ["cell_leader", "member"], isAdminHq: false,
+        status: "active", firstName: "Test", lastName: "Leader", role: ["cell_leader", "member"], isAdminHq: false,
         permissions: ["members:own:read", "events:view", "events:list:read", "events:calendar:read", "events:tickets:read"],
         branch: { branchId: "33333333-3333-4333-8333-333333333333", name: "Lekki" },
       };

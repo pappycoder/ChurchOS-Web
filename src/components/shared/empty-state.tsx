@@ -29,7 +29,7 @@ export function EmptyState({
         className
       )}
     >
-      <div aria-hidden="true" className="relative mb-5 flex size-16 items-center justify-center rounded-2xl border border-border/70 bg-gradient-to-b from-card to-muted/60 text-muted-foreground shadow-xs [&_svg]:size-7 [&_svg]:stroke-[1.5]">
+      <div aria-hidden="true" className="relative mb-5 flex size-16 items-center justify-center rounded-lg border bg-muted/50 text-muted-foreground shadow-xs [&_svg]:size-7 [&_svg]:stroke-[1.5]">
         {icon ?? <Inbox />}
       </div>
       <h3 className="text-base font-semibold tracking-tight mb-2">{title}</h3>

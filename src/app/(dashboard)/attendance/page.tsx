@@ -211,13 +211,13 @@ export default function AttendanceDashboardPage() {
           </CardHeader>
           <CardContent>
             {trendsQuery.isLoading ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full aspect-auto" />
             ) : (trendsQuery.data ?? []).length === 0 ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
                 No check-ins recorded in this period.
               </div>
             ) : (
-              <ChartContainer config={trendConfig} className="h-64 w-full">
+              <ChartContainer config={trendConfig} className="h-64 w-full aspect-auto">
                 <AreaChart
                   data={trendsQuery.data ?? []}
                   margin={{ left: -16, right: 8 }}
@@ -228,7 +228,7 @@ export default function AttendanceDashboardPage() {
                       <stop offset="95%" stopColor="var(--color-total)" stopOpacity={0.03} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="date"
                     tickLine={false}

@@ -286,13 +286,13 @@ export default function ServiceDetailPage({
           </CardHeader>
           <CardContent>
             {givingQuery.isLoading ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full aspect-auto" />
             ) : givingByCategory.length === 0 ? (
               <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
                 No gifts recorded against this service yet.
               </div>
             ) : (
-              <ChartContainer config={givingConfig} className="h-64 w-full">
+              <ChartContainer config={givingConfig} className="h-64 w-full aspect-auto">
                 <BarChart data={givingByCategory} layout="vertical" margin={{ left: 32 }}>
                   <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                   <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />

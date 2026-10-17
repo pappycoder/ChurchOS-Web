@@ -42,7 +42,7 @@ export function AuthField({
         <Input
           id={fieldId}
           type={isPassword ? (show ? "text" : "password") : type}
-          className={cn("h-11 rounded-lg", icon && "pl-9", isPassword && "pr-10", className)}
+          className={cn("h-9 rounded-md", icon && "pl-9", isPassword && "pr-10", className)}
           {...props}
         />
         {isPassword && (

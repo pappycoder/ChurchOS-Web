@@ -6,13 +6,11 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useSidebar } from "@/contexts/sidebar-context";
-import { useSettings } from "@/contexts/settings-context";
-import { NotificationBell } from "@/components/notifications/notification-bell";
+
+
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePrefetchRoute } from "@/lib/prefetch";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import {
   LayoutDashboard,
@@ -25,8 +23,6 @@ import {
   Heart,
   Settings,
   UserCog,
-  Search,
-  Calendar as CalendarIcon,
   MessageSquare,
   Mail,
   BookOpen,
@@ -56,6 +52,16 @@ import {
   UsersRound,
   Eye,
 } from "lucide-react";
+
+
+import { ChevronRight } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { Sidebar as SidebarPrimitive, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail,
+  SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
+  SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, useSidebar } from "@/components/ui/sidebar";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { AccountMenu } from "./account-menu";
 
 interface NavItem {
   title: string;
@@ -534,430 +540,84 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Overview: BarChart3,
 };
 
-function MenuArrow({ open, level }: { open: boolean; level: number }) {
-  return (
-    <span
-      className={cn(
-        "menu-arrow",
-        level === 2 && "inside-submenu",
-        level === 3 && "inside-submenu inside-submenu-two",
-      )}
-      style={{
-        transform: open
-          ? "translateY(-50%) rotate(90deg)"
-          : "translateY(-50%) rotate(0deg)",
-      }}
-    />
-  );
+
+export function useVisibleNavigation() {
+  const { ready, canAny } = usePermissions();
+  const { data: profile } = useCurrentProfile();
+  return React.useMemo(() => !ready || !profile ? [] : navItems.map((group) => ({
+    ...group, items: filterPermissionNavigation(group.items, canAny),
+  })).filter((group) => group.items.length > 0), [ready, canAny, profile]);
 }
 
-function NavLink({
-  item,
-  pathname,
-  closeMobile,
-  level = 1,
-  openMenus,
-  toggleMenu,
-  isLinkActive,
-}: {
-  item: NavItem;
-  pathname: string;
-  closeMobile: () => void;
-  level?: number;
-  openMenus: Record<string, boolean>;
-  toggleMenu: (key: string) => void;
-  isLinkActive: (href?: string) => boolean;
-}) {
-  const Icon = item.icon || ICON_MAP[item.title];
-  const hasChildren = !!item.children?.length;
-  const itemKey = `${level}-${item.title}`;
-  const open = openMenus[itemKey];
+export function navigationLeaves(items: NavItem[]): NavItem[] {
+  return items.flatMap((item) => item.children?.length ? navigationLeaves(item.children) : [item]);
+}
+
+function NavigationItem({ item, activeHref }: { item: NavItem; activeHref?: string }) {
+  const { state, isMobile, setOpenMobile } = useSidebar();
+  const pathname = usePathname();
   const prefetch = usePrefetchRoute();
-
-  const isActive = (href?: string) => {
-    if (!href) return false;
-    return pathname === href || pathname.startsWith(href + "/");
-  };
-
-  const active = hasChildren
-    ? item.children!.some((child) => isActive(child.href))
-    : isActive(item.href);
-
-  if (hasChildren) {
-    return (
-      <li
-        className={cn(
-          "submenu",
-          level >= 2 && "submenu-two",
-          level >= 3 && "submenu-three",
-        )}
-      >
-        <a
-          href="#"
-          className={cn(active && "active", open && "subdrop")}
-          onClick={(e) => {
-            e.preventDefault();
-            toggleMenu(itemKey);
-          }}
-        >
-          {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-          <span className="truncate">{item.title}</span>
-          {item.badge && (
-            <span
-              className={cn(
-                "badge badge-danger ml-auto flex-shrink-0",
-                item.badgeVariant && `badge-${item.badgeVariant}`,
-              )}
-            >
-              {item.badge}
-            </span>
-          )}
-          <MenuArrow open={open} level={level} />
-        </a>
-        <ul
-          className={cn(open && "subdrop-show")}
-          style={{
-            overflow: "hidden",
-            transition: "max-height 0.3s ease",
-          }}
-        >
-          {item.children!.map((child) => (
-            <NavLink
-              key={child.title + (child.href || "")}
-              item={child}
-              pathname={pathname}
-              closeMobile={closeMobile}
-              level={level + 1}
-              openMenus={openMenus}
-              toggleMenu={toggleMenu}
-              isLinkActive={isLinkActive}
-            />
-          ))}{" "}
-        </ul>
-      </li>
-    );
-  }
-
-  return (
-    <li>
-      <Link
-        href={item.href || "#"}
-        className={cn(
-          "flex items-center gap-2",
-          isLinkActive(item.href) && "active",
-        )}
-        onClick={closeMobile}
-        onMouseEnter={() => prefetch(item.href)}
-        onFocusCapture={() => prefetch(item.href)}
-      >
-        {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-        <span className="truncate">{item.title}</span>
-        {item.badge && (
-          <span
-            className={cn(
-              "badge badge-danger ms-auto",
-              item.badgeVariant && `badge-${item.badgeVariant}`,
-            )}
-          >
-            {item.badge}
-          </span>
-        )}
-      </Link>
-    </li>
-  );
+  const children = item.children ?? [];
+  const Icon = item.icon ?? ICON_MAP[item.title];
+  const active = children.length ? navigationLeaves(children).some((child) => child.href === activeHref) : item.href === activeHref;
+  const [open, setOpen] = React.useState(active);
+  React.useEffect(() => { if (active) setOpen(true); }, [pathname, active]);
+  const content = <>{Icon && <Icon className="size-4" />}<span>{item.title}</span>{item.badge && <span className="ms-auto rounded-full bg-secondary px-1.5 text-xs">{item.badge}</span>}</>;
+  if (!children.length) return <SidebarMenuItem>
+    <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+      <Link href={item.href!} aria-current={active ? "page" : undefined} onClick={() => setOpenMobile(false)} onMouseEnter={() => prefetch(item.href)} onFocus={() => prefetch(item.href)}>{content}</Link>
+    </SidebarMenuButton>
+  </SidebarMenuItem>;
+  if (state === "collapsed" && !isMobile) return <SidebarMenuItem>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild><SidebarMenuButton tooltip={item.title} isActive={active}>{content}<ChevronRight className="ms-auto size-4" /></SidebarMenuButton></DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start" sideOffset={8}>
+        <DropdownMenuLabel>{item.title}</DropdownMenuLabel><DropdownMenuSeparator />
+        {navigationLeaves(children).map((child) => <DropdownMenuItem key={child.href} asChild>
+          <Link href={child.href!} aria-current={child.href === activeHref ? "page" : undefined} className={cn(child.href === activeHref && "bg-accent")} onClick={() => setOpenMobile(false)}>{child.title}</Link>
+        </DropdownMenuItem>)}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </SidebarMenuItem>;
+  return <Collapsible asChild open={open} onOpenChange={setOpen} className="group/collapsible">
+    <SidebarMenuItem>
+      <CollapsibleTrigger asChild><SidebarMenuButton tooltip={item.title}>{content}<ChevronRight className="ms-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" /></SidebarMenuButton></CollapsibleTrigger>
+      <CollapsibleContent className="CollapsibleContent"><SidebarMenuSub>
+        {children.map((child) => child.children?.length ? <NavigationItem key={child.title} item={child} activeHref={activeHref} /> : <SidebarMenuSubItem key={child.title + child.href}>
+          <SidebarMenuSubButton asChild isActive={child.href === activeHref}>
+            <Link href={child.href!} aria-current={child.href === activeHref ? "page" : undefined} onClick={() => setOpenMobile(false)} onMouseEnter={() => prefetch(child.href)} onFocus={() => prefetch(child.href)}><span>{child.title}</span></Link>
+          </SidebarMenuSubButton>
+        </SidebarMenuSubItem>)}
+      </SidebarMenuSub></CollapsibleContent>
+    </SidebarMenuItem>
+  </Collapsible>;
 }
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { collapsed, mobileOpen, closeMobile } = useSidebar();
-  const { settings } = useSettings();
-  const { ready, canAny } = usePermissions();
-  const { data: currentProfile } = useCurrentProfile();
-  const [openMenus, setOpenMenus] = React.useState<Record<string, boolean>>({});
-  const [hoverExpand, setHoverExpand] = React.useState(false);
-  const sidebarRef = React.useRef<HTMLElement>(null);
-  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  const isModern = settings.layout === "modern";
-
-  const profileName = currentProfile
-    ? `${currentProfile.firstName ?? ""} ${currentProfile.lastName ?? ""}`.trim() ||
-      "Admin User"
-    : "Admin User";
-  const profileRole = currentProfile?.role?.[0] || "Administrator";
-  const profileInitials = (currentProfile?.firstName?.[0] ?? "") +
-    `${currentProfile?.lastName?.[0] ?? ""}`.toUpperCase() || "AD";
-
-  // Permission-filtered nav: items without a gate stay visible; gated items
-  // require their permission. Parents survive only when at
-  // least one child survives; empty sections are dropped. Fail-closed while
-  // the profile loads.
-  const visibleNav = React.useMemo(() => {
-    if (!ready || !currentProfile) return [];
-    return navItems
-      .map((group) => ({
-        ...group,
-        items: filterPermissionNavigation(group.items, canAny),
-      }))
-      .filter(
-        (group) =>
-          group.items.length > 0,
-      );
-  }, [ready, canAny, currentProfile]);
-
-  React.useEffect(() => {
-    const expanded: Record<string, boolean> = {};
-    const walk = (items: NavItem[], level = 1) => {
-      items.forEach((item) => {
-        const key = `${level}-${item.title}`;
-        if (item.children) {
-          const childActive = item.children.some(
-            (child) =>
-              pathname === child.href ||
-              (child.href && pathname.startsWith(child.href + "/")),
-          );
-          if (childActive) {
-            expanded[key] = true;
-          }
-          walk(item.children, level + 1);
-        }
-      });
-    };
-    walk(navItems.flatMap((g) => g.items));
-    setOpenMenus((prev) => ({ ...prev, ...expanded }));
-  }, [pathname]);
-
-  // Close the mobile (off-canvas) sidebar with the Escape key.
-  React.useEffect(() => {
-    if (!mobileOpen) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMobile();
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [mobileOpen, closeMobile]);
-
-  // Close the mobile menu on every route change (covers the logo links and
-  // any future nav path that doesn't call closeMobile) so the scroll-lock
-  // `menu-opened` class can never survive a navigation. closeMobile is a
-  // stable callback, so this only re-runs when the pathname actually changes.
-  React.useEffect(() => {
-    closeMobile();
-  }, [pathname, closeMobile]);
-
-  const toggleMenu = (key: string) => {
-    setOpenMenus((prev) => {
-      // Single-open accordion: clicking a menu collapses every other one.
-      // Clicking the already-open menu just closes it (empty object).
-      return { [key]: !prev[key] };
-    });
-  };
-
-  // Every leaf link's href in the (permission-filtered) tree.
-  const leafHrefs = React.useMemo(() => {
-    const out: string[] = [];
-    const walk = (items: NavItem[]) =>
-      items.forEach((i) => {
-        if (i.children?.length) walk(i.children);
-        else if (i.href) out.push(i.href);
-      });
-    visibleNav.forEach((g) => walk(g.items));
-    return out;
-  }, [visibleNav]);
-
-  // Longest matching href wins, so an index link ("/members") doesn't stay
-  // lit on its own subpages ("/members/import", "/members/families", ...).
-  const isLinkActive = React.useCallback(
-    (href?: string) => {
-      if (!href) return false;
-      const matches = (candidate?: string) =>
-        !!candidate &&
-        (pathname === candidate || pathname.startsWith(candidate + "/"));
-      if (!matches(href)) return false;
-      return !leafHrefs.some(
-        (other) =>
-          other !== href && other.length > href.length && matches(other),
-      );
-    },
-    [pathname, leafHrefs],
-  );
-
-  // Hover-expand is a mouse-pointer affordance only; without this guard a
-  // tap/touch that synthesizes a mouseenter would flip the mobile off-canvas
-  // drawer into the half-expanded `expand-menu` state on a collapsed sidebar.
-  const hoverCapable = React.useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia("(hover: hover)").matches,
-    [],
-  );
-
-  const handleMouseEnter = React.useCallback(() => {
-    if (!collapsed || !hoverCapable) return;
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setHoverExpand(true);
-  }, [collapsed, hoverCapable]);
-
-  const handleMouseLeave = React.useCallback(() => {
-    if (!collapsed || !hoverCapable) return;
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoverExpand(false);
-    }, 100);
-  }, [collapsed, hoverCapable]);
-
-  return (
-    <>
-      {mobileOpen && (
-        <div className="sidebar-overlay opened" onClick={closeMobile} />
-      )}
-
-      <aside
-        ref={sidebarRef}
-        className={cn(
-          "sidebar",
-          collapsed && "mini-sidebar",
-          collapsed && hoverExpand && "expand-menu",
-          mobileOpen && "slide-nav",
-        )}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-      >
-        <div className="sidebar-logo">
-          <Link href="/dashboard" className="logo" onClick={closeMobile}>
-            <BrandLogo emblemClassName="h-20" />
-          </Link>
-          <Link href="/dashboard" className="logo dark-logo" onClick={closeMobile}>
-            <BrandLogo tone="light" emblemClassName="h-20" />
-          </Link>
-          <Link href="/dashboard" className="logo-small" onClick={closeMobile}>
-            <BrandLogo variant="mark" emblemClassName="h-14 w-14 dark:brightness-0 dark:invert" />
-          </Link>
-        </div>
-
-        {/* Modern Profile */}
-        {isModern && (
-          <div className="modern-profile p-3 pb-0">
-            <div
-              className="text-center rounded p-3 mb-4 user-profile"
-              style={{ background: "var(--muted)" }}
-            >
-              <div className="avatar avatar-lg online mb-3">
-                <Avatar className="w-12 h-12">
-                  <AvatarImage src={currentProfile?.avatarUrl ?? ""} alt={profileName} />
-                  <AvatarFallback className="text-sm font-semibold">
-                    {profileInitials}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
-              <h6 className="text-xs font-normal mb-1">{profileName}</h6>
-              <p className="text-[10px] text-muted-foreground m-0">
-                {profileRole}
-              </p>
-            </div>
-            <div className="sidebar-nav mb-3">
-              <ul className="flex list-none m-0 p-0 bg-transparent rounded">
-                <li className="flex-1">
-                  <button
-                    type="button"
-                    className="block w-full text-center text-xs font-medium py-1.5 px-2 rounded bg-primary text-primary-foreground"
-                  >
-                    Menu
-                  </button>
-                </li>
-                {canAny("emails:read") && (
-                  <li className="flex-1">
-                    <Link
-                      href="/communication/inbox"
-                      className="block text-center text-xs font-medium py-1.5 px-2 rounded text-muted-foreground hover:bg-muted"
-                    >
-                      Inbox
-                    </Link>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {/* Sidebar Header */}
-        <div className="sidebar-header">
-          <div
-            className="rounded p-2 mb-4 sidebar-profile flex items-center"
-            style={{ background: "var(--muted)" }}
-          >
-            <div className="avatar avatar-md online">
-              <Avatar className="w-9 h-9">
-                <AvatarImage src={currentProfile?.avatarUrl ?? ""} alt={profileName} />
-                <AvatarFallback className="text-xs font-semibold">
-                  {profileInitials}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="text-start sidebar-profile-info ms-2">
-              <h6>{profileName}</h6>
-              <p>{profileRole}</p>
-            </div>
-          </div>
-
-          <div className="input-group input-group-flat inline-flex mb-4">
-            <span className="input-icon-addon">
-              <Search size={14} />
-            </span>
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Search in ChurchOS"
-            />
-          </div>
-
-          <div className="flex items-center justify-between menu-item mb-3">
-            {canAny("events:calendar:read") && (
-              <div className="me-3">
-                <Link href="/events" aria-label="Event calendar" className="btn-menubar">
-                  <CalendarIcon size={18} />
-                </Link>
-              </div>
-            )}
-            <NotificationBell compact />
-            {canAny("emails:read") && (
-              <div className="me-0">
-                <Link href="/communication/inbox" className="btn-menubar">
-                  <Mail size={18} />
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="sidebar-inner slimscroll">
-          <div className="sidebar-menu" id="sidebar-menu">
-            <ul>
-              {visibleNav.map((group) => (
-                <React.Fragment key={group.section}>
-                  <li className="menu-title">
-                    <span>{group.section}</span>
-                  </li>
-                  <li>
-                    <ul>
-                      {group.items.map((item) => (
-                        <NavLink
-                          key={item.title}
-                          item={item}
-                          pathname={pathname}
-                          closeMobile={closeMobile}
-                          openMenus={openMenus}
-                          toggleMenu={toggleMenu}
-                          isLinkActive={isLinkActive}
-                        />
-                      ))}
-                    </ul>
-                  </li>
-                </React.Fragment>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </aside>
-    </>
-  );
+  const groups = useVisibleNavigation();
+  const { setOpenMobile } = useSidebar();
+  const { data: profile } = useCurrentProfile();
+  React.useEffect(() => { setOpenMobile(false); }, [pathname, setOpenMobile]);
+  const activeHref = navigationLeaves(groups.flatMap((group) => group.items))
+    .map((item) => item.href).filter((href): href is string => !!href && (pathname === href || pathname.startsWith(href + "/")))
+    .sort((a, b) => b.length - a.length)[0];
+  return <SidebarPrimitive collapsible="icon" variant="inset" aria-label="Main navigation">
+    <SidebarHeader><SidebarMenu><SidebarMenuItem>
+      <SidebarMenuButton size="lg" asChild className="gap-2">
+        <Link href="/dashboard" onClick={() => setOpenMobile(false)}>
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-background"><BrandLogo variant="mark" emblemClassName="size-7 dark:brightness-0 dark:invert" /></div>
+          <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{profile?.church?.name || "ChurchOS"}</span><span className="truncate text-xs text-muted-foreground">{profile?.isAdminHq ? "Headquarters workspace" : profile?.branch?.name || "Church workspace"}</span></div>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem></SidebarMenu></SidebarHeader>
+    <SidebarContent><nav id="sidebar-menu" aria-label="Workspace">
+      {groups.map((group) => <SidebarGroup key={group.section}>
+        <SidebarGroupLabel>{group.section === "MAIN MENU" ? "General" : group.section.charAt(0) + group.section.slice(1).toLowerCase()}</SidebarGroupLabel>
+        <SidebarMenu>{group.items.map((item) => <NavigationItem key={item.title} item={item} activeHref={activeHref} />)}</SidebarMenu>
+      </SidebarGroup>)}
+    </nav></SidebarContent>
+    <SidebarFooter><AccountMenu placement="sidebar" /></SidebarFooter>
+    <SidebarRail />
+  </SidebarPrimitive>;
 }

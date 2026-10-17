@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -31,8 +33,9 @@ export function AnalyticsTrendChart({
   kind = "single",
   formatValue,
 }: AnalyticsTrendChartProps) {
+  const gradientId = useId().replace(/:/g, "");
   if (loading) {
-    return <Skeleton className="h-64 w-full" />;
+    return <Skeleton className="h-64 w-full aspect-auto" />;
   }
 
   if (data.length === 0) {
@@ -53,27 +56,27 @@ export function AnalyticsTrendChart({
   const config: ChartConfig = kind === "split" ? splitConfig : singleConfig;
 
   return (
-    <ChartContainer config={config} className="h-64 w-full">
+    <ChartContainer config={config} className="h-64 w-full aspect-auto">
       <AreaChart data={chartData} margin={{ left: 8, right: 8 }}>
         <defs>
-          <linearGradient id="analysisSingle" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-total)" stopOpacity={0.3} />
+          <linearGradient id={`${gradientId}-analysisSingle`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-total)" stopOpacity={0.16} />
             <stop offset="95%" stopColor="var(--color-total)" stopOpacity={0} />
           </linearGradient>
           {kind === "split" && (
             <>
-              <linearGradient id="analysisMembers" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-members)" stopOpacity={0.3} />
+              <linearGradient id={`${gradientId}-analysisMembers`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-members)" stopOpacity={0.16} />
                 <stop offset="95%" stopColor="var(--color-members)" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="analysisVisitors" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-visitors)" stopOpacity={0.3} />
+              <linearGradient id={`${gradientId}-analysisVisitors`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-visitors)" stopOpacity={0.16} />
                 <stop offset="95%" stopColor="var(--color-visitors)" stopOpacity={0} />
               </linearGradient>
             </>
           )}
         </defs>
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid vertical={false} />
         <XAxis dataKey="label" tickLine={false} axisLine={false} />
         <ChartTooltip
           content={
@@ -92,14 +95,14 @@ export function AnalyticsTrendChart({
               type="monotone"
               dataKey="members"
               stroke="var(--color-members)"
-              fill="url(#analysisMembers)"
+              fill={`url(#${gradientId}-analysisMembers)`}
               strokeWidth={2}
             />
             <Area
               type="monotone"
               dataKey="visitors"
               stroke="var(--color-visitors)"
-              fill="url(#analysisVisitors)"
+              fill={`url(#${gradientId}-analysisVisitors)`}
               strokeWidth={2}
             />
           </>
@@ -108,7 +111,7 @@ export function AnalyticsTrendChart({
             type="monotone"
             dataKey="total"
             stroke="var(--color-total)"
-            fill="url(#analysisSingle)"
+            fill={`url(#${gradientId}-analysisSingle)`}
             strokeWidth={2}
           />
         )}
@@ -127,7 +130,7 @@ const barConfig = { value: { label: "Value", color: "var(--chart-1)" } } satisfi
 
 export function AnalyticsBars({ data, loading, formatValue }: AnalyticsBarsProps) {
   if (loading) {
-    return <Skeleton className="h-64 w-full" />;
+    return <Skeleton className="h-64 w-full aspect-auto" />;
   }
 
   if (data.length === 0) {
@@ -140,9 +143,9 @@ export function AnalyticsBars({ data, loading, formatValue }: AnalyticsBarsProps
 
   return (
     <>
-      <ChartContainer config={barConfig} className="h-56 w-full">
+      <ChartContainer config={barConfig} className="h-56 w-full aspect-auto">
         <BarChart data={data} margin={{ left: 8, right: 8 }}>
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} />
           <XAxis dataKey="label" tickLine={false} axisLine={false} />
           <ChartTooltip
             content={
@@ -153,7 +156,7 @@ export function AnalyticsBars({ data, loading, formatValue }: AnalyticsBarsProps
               />
             }
           />
-          <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]} maxBarSize={48} />
         </BarChart>
       </ChartContainer>
     </>

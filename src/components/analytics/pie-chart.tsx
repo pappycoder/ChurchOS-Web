@@ -1,6 +1,7 @@
 "use client";
 
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart } from "recharts";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface PieSlice {
@@ -48,7 +49,7 @@ export function DonutChart({ data, loading, unit, height = 220 }: PieChartCardPr
   if (loading) {
     return <Skeleton className="w-full" style={{ height }} />;
   }
-  if (data.length === 0) {
+  if (data.length === 0 || data.every((slice) => slice.value === 0)) {
     return (
       <div className="flex items-center justify-center text-sm text-muted-foreground" style={{ height }}>
         No data yet.
@@ -60,8 +61,8 @@ export function DonutChart({ data, loading, unit, height = 220 }: PieChartCardPr
 
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row">
-      <div className="relative" style={{ height, minWidth: height }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="relative shrink-0" style={{ height, width: height, maxWidth: "100%" }}>
+        <ChartContainer config={{ value: { label: unit || "Total" } }} className="h-full w-full aspect-square">
           <PieChart>
             <Pie
               data={data}
@@ -71,14 +72,16 @@ export function DonutChart({ data, loading, unit, height = 220 }: PieChartCardPr
               cy="50%"
               innerRadius="62%"
               outerRadius="90%"
-              paddingAngle={1}
-              stroke="transparent"
+              paddingAngle={3}
+              cornerRadius={4}
+              stroke="var(--background)"
+              strokeWidth={2}
             >
               {data.map((entry) => (
                 <Cell key={entry.name} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip
+            <ChartTooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 const p = payload[0];
@@ -86,7 +89,7 @@ export function DonutChart({ data, loading, unit, height = 220 }: PieChartCardPr
                 const value = Number(p.value ?? 0);
                 const pct = total > 0 ? Math.round((value / total) * 100) : 0;
                 return (
-                  <div className="rounded-md border bg-background px-3 py-2 text-xs shadow">
+                  <div className="rounded-lg border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-md">
                     <div className="font-medium capitalize">{p.name}</div>
                     <div className="text-muted-foreground">
                       {value.toLocaleString()} {slice?.unit ?? unit ?? ""} · {pct}%
@@ -96,7 +99,7 @@ export function DonutChart({ data, loading, unit, height = 220 }: PieChartCardPr
               }}
             />
           </PieChart>
-        </ResponsiveContainer>
+        </ChartContainer>
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-xs text-muted-foreground">Total</span>
           <span className="text-lg font-semibold tabular-nums">{total.toLocaleString()}</span>

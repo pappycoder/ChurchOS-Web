@@ -28,15 +28,15 @@ interface PageHeaderProps {
 export function PageHeader({ title, breadcrumbs, action, description }: PageHeaderProps) {
   const { ready, canAny } = usePermissions();
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-6">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
       <div className="min-w-0">
-        <h2 className="text-2xl font-semibold tracking-tight mb-2 sm:text-[1.75rem]">{title}</h2>
+        <h1 className="text-2xl font-bold tracking-tight mb-2 md:text-3xl">{title}</h1>
         {description && <p className="mb-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>}
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink href="/dashboard">
-                <Home className="h-4 w-4" />
+                <Home className="h-4 w-4" /><span className="sr-only">Dashboard</span>
               </BreadcrumbLink>
             </BreadcrumbItem>
             {breadcrumbs.map((item, i) => (

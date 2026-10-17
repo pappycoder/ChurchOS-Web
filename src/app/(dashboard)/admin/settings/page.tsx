@@ -1,16 +1,11 @@
 "use client";
 
-/**
- * @file Church settings page — a single route hosting both settings tabs in
- * the SmartHR grammar: breadcrumb header, solid top-tab strip (General
- * Settings · Security switched client-side), member/branch badges and the
- * two-column grid with a sticky left settings-list of the active tab's
- * sections plus one tall content card.
- */
+/** Church settings with shared Shadcn navigation and forms. */
 
 import * as React from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
   getSettingsSections,
@@ -37,10 +32,10 @@ export default function ChurchSettingsPage() {
   const activeSection = useScrollSpy();
 
   return (
-    <div className="space-y-4">
+    <Tabs value={activeTabId} onValueChange={(value) => setActiveTabId(value as SettingsTabId)} className="space-y-4">
       <PageHeader title="Settings" breadcrumbs={[{ label: "Settings" }]} />
 
-      <SettingsTabsNav activeId={activeTabId} onSelect={setActiveTabId} showMessaging={canReadMessaging} />
+      <SettingsTabsNav showMessaging={canReadMessaging} />
 
       {churchQuery.data && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -52,7 +47,7 @@ export default function ChurchSettingsPage() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
           <Card>
             <CardContent className="py-3">
@@ -63,10 +58,12 @@ export default function ChurchSettingsPage() {
 
         <Card>
           <CardContent className="p-6">
-            {activeTabId === "messaging" ? (canReadMessaging && <MessagingIntegrationsTab />) : activeTabId === "general" ? <GeneralSettingsTab /> : <SecuritySettingsTab />}
+            <TabsContent value="general"><GeneralSettingsTab /></TabsContent>
+            <TabsContent value="security"><SecuritySettingsTab /></TabsContent>
+            {canReadMessaging && <TabsContent value="messaging"><MessagingIntegrationsTab /></TabsContent>}
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Tabs>
   );
 }

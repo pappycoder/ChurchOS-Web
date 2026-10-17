@@ -3,7 +3,8 @@
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
-import { IconBell } from "@tabler/icons-react";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,14 +81,14 @@ export function NotificationBell({ compact = false }: NotificationBellProps) {
       <div className={compact ? "" : "me-2"}>
         <DropdownMenu open={previewOpen} onOpenChange={setPreviewOpen}>
           <DropdownMenuTrigger asChild>
-            <a href="#" className="btn-menubar relative me-1" id="notification_popup" aria-label="Notifications">
-              <IconBell size={compact ? 20 : 18} />
+            <Button variant="ghost" size="icon" className="relative" id="notification_popup" aria-label="Notifications" disableTooltip>
+              <Bell className="size-4" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
-            </a>
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-80 p-0" align="end">
             <DropdownMenuLabel className="flex items-center justify-between px-4 py-3 border-b border-border">

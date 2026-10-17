@@ -33,8 +33,8 @@ export function ErrorState({
   };
   const busy = retrying || pending;
   return (
-    <div role="alert" className={cn("flex flex-col items-center justify-center gap-3 rounded-2xl border border-destructive/15 bg-destructive/5 px-6 py-12 text-center sm:py-16", className)}>
-      <div className="mb-2 flex size-14 items-center justify-center rounded-2xl border border-destructive/15 bg-card text-destructive shadow-xs">
+    <div role="alert" className={cn("flex flex-col items-center justify-center gap-3 rounded-lg border border-destructive/15 bg-destructive/5 px-6 py-12 text-center sm:py-16", className)}>
+      <div className="mb-2 flex size-14 items-center justify-center rounded-lg border border-destructive/15 bg-card text-destructive shadow-xs">
         <CircleAlert className="size-6" aria-hidden="true" />
       </div>
       <h3 className="text-base font-semibold tracking-tight text-foreground">{title}</h3>

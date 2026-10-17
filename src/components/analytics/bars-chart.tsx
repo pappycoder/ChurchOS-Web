@@ -1,6 +1,7 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface BarsChartDatum {
@@ -39,10 +40,9 @@ export function BarsChart({
   }
 
   return (
-    <div style={{ height, width: "100%" }}>
-      <ResponsiveContainer width="100%" height="100%">
+    <ChartContainer config={{ value: { label: valueLabel || "Total", color } }} style={{ height }} className="w-full aspect-auto">
         <BarChart data={data} margin={{ top: 8, right: 8, bottom: 4, left: -4 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid vertical={false} />
           <XAxis dataKey="label" tickLine={false} axisLine={false} />
           <YAxis
             tickLine={false}
@@ -52,24 +52,9 @@ export function BarsChart({
               formatValue ? formatValue(Number(v)) : Number(v).toLocaleString()
             }
           />
-          <Tooltip
-            cursor={{ fill: "var(--muted)", opacity: 0.4 }}
-            content={({ active, payload, label }) => {
-              if (!active || !payload?.length) return null;
-              const v = Number(payload[0].value ?? 0);
-              return (
-                <div className="rounded-md border bg-background px-3 py-2 text-xs shadow">
-                  <div className="font-medium">{label}</div>
-                  <div className="text-muted-foreground">
-                    {formatValue ? formatValue(v) : `${v.toLocaleString()} ${valueLabel ?? ""}`}
-                  </div>
-                </div>
-              );
-            }}
-          />
-          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} maxBarSize={48} />
+          <ChartTooltip cursor={{ fill: "var(--muted)", opacity: 0.5 }} content={<ChartTooltipContent formatter={(value) => <span className="font-medium tabular-nums">{formatValue ? formatValue(Number(value)) : `${Number(value).toLocaleString()} ${valueLabel ?? ""}`}</span>} />} />
+          <Bar dataKey="value" fill="var(--color-value)" radius={[4, 4, 0, 0]} maxBarSize={48} />
         </BarChart>
-      </ResponsiveContainer>
-    </div>
+    </ChartContainer>
   );
 }

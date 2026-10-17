@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -24,8 +26,9 @@ interface TrendChartProps {
 const trendConfig = { total: { label: "Total", color: "var(--chart-1)" } } satisfies ChartConfig;
 
 export function TrendChart({ data, loading, color }: TrendChartProps) {
+  const gradientId = useId().replace(/:/g, "");
   if (loading) {
-    return <Skeleton className="h-64 w-full" />;
+    return <Skeleton className="h-64 w-full aspect-auto" />;
   }
 
   if (data.length === 0) {
@@ -46,22 +49,22 @@ export function TrendChart({ data, loading, color }: TrendChartProps) {
   }));
 
   return (
-    <ChartContainer config={config} className="h-64 w-full">
+    <ChartContainer config={config} className="h-64 w-full aspect-auto">
       <AreaChart data={chartData} margin={{ left: 8, right: 8 }}>
         <defs>
-          <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-total)" stopOpacity={0.3} />
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-total)" stopOpacity={0.16} />
             <stop offset="95%" stopColor="var(--color-total)" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid vertical={false} />
         <XAxis dataKey="month" tickLine={false} axisLine={false} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <Area
           type="monotone"
           dataKey="total"
           stroke="var(--color-total)"
-          fill="url(#trendFill)"
+          fill={`url(#${gradientId})`}
           strokeWidth={2}
         />
       </AreaChart>

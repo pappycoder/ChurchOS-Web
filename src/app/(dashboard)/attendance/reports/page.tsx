@@ -228,15 +228,15 @@ export default function AttendanceReportsPage() {
           </CardHeader>
           <CardContent>
             {trendsQuery.isLoading ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full aspect-auto" />
             ) : (trendsQuery.data ?? []).length === 0 ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
                 No data in this period.
               </div>
             ) : (
-              <ChartContainer config={trendConfig} className="h-64 w-full">
+              <ChartContainer config={trendConfig} className="h-64 w-full aspect-auto">
                 <BarChart data={trendsQuery.data ?? []} margin={{ left: -16 }}>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="date"
                     tickLine={false}
@@ -267,13 +267,13 @@ export default function AttendanceReportsPage() {
           </CardHeader>
           <CardContent>
             {recordsQuery.isLoading ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full aspect-auto" />
             ) : byService.length === 0 ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
                 No check-ins in the selected range.
               </div>
             ) : (
-              <ChartContainer config={serviceConfig} className="h-64 w-full">
+              <ChartContainer config={serviceConfig} className="h-64 w-full aspect-auto">
                 <BarChart data={byService} layout="vertical" margin={{ left: 24 }}>
                   <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                   <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />

@@ -1,15 +1,10 @@
 "use client";
 
-/**
- * @file Navigation chrome for the settings area, modeled on the SmartHR
- * settings pages: a solid top-tab strip switching between settings
- * categories (client-side state, one route) and a sticky left
- * settings-list of the active tab's section anchors with scrollspy.
- */
+/** Settings navigation built with shared Shadcn tabs and section links. */
 
 import * as React from "react";
-import { ArrowRight, Settings, ShieldCheck, Plug, type LucideIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Settings, ShieldCheck, Plug, type LucideIcon } from "lucide-react";
+import { TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export type SettingsTabId = "general" | "security" | "messaging";
 
@@ -51,50 +46,12 @@ export function getSettingsSections(tabId: SettingsTabId): SettingsSectionLink[]
   return SETTINGS_SECTIONS_BY_TAB[tabId];
 }
 
-/** Solid top-tab strip — active tab gets the primary underline treatment. */
-export function SettingsTabsNav({
-  activeId,
-  onSelect,
-  showMessaging = false,
-}: {
-  showMessaging?: boolean;
-  activeId: SettingsTabId;
-  onSelect: (id: SettingsTabId) => void;
-}) {
-  return (
-    <div className="border-b border-border">
-      <nav className="-mb-px flex items-center gap-1 overflow-x-auto">
-        {SETTINGS_TABS.filter(tab => tab.id !== "messaging" || showMessaging).map((tab) => {
-          const Icon = tab.icon;
-          const isActive = tab.id === activeId;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => onSelect(tab.id)}
-              className={cn(
-                "inline-flex items-center gap-2 whitespace-nowrap border-b-2 px-3 py-2.5 text-sm transition-colors",
-                isActive
-                  ? "border-primary font-medium text-primary"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {tab.label}
-            </button>
-          );
-        })}
-      </nav>
-    </div>
-  );
+export function SettingsTabsNav({ showMessaging = false }: { showMessaging?: boolean }) {
+  return <TabsList aria-label="Settings categories">
+    {SETTINGS_TABS.filter((tab) => tab.id !== "messaging" || showMessaging).map((tab) => <TabsTrigger key={tab.id} value={tab.id}><tab.icon className="size-4" />{tab.label}</TabsTrigger>)}
+  </TabsList>;
 }
 
-/**
- * Left settings-list card content. The active entry mirrors SmartHR's
- * arrow-badge-right treatment.
- */
 export function SettingsSideNav({
   sections,
   activeId,
@@ -113,7 +70,6 @@ export function SettingsSideNav({
             aria-current="true"
             className="inline-flex items-center rounded px-3 py-2 text-sm font-medium text-foreground transition-colors bg-muted"
           >
-            <ArrowRight className="mr-2 h-3.5 w-3.5" />
             {section.label}
           </a>
         ) : (

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Roboto } from "next/font/google";
+import localFont from "next/font/local";
 import "sonner/dist/styles.css";
 import "./globals.css";
 import "./modern-ui.css";
@@ -10,10 +10,10 @@ import { Providers } from "@/components/providers/providers";
 import { SonnerProvider } from "@/components/providers/sonner-provider";
 import { SITE_DESCRIPTION, SITE_NAME, absoluteUrl } from "@/lib/site";
 
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["100", "300", "400", "500", "700", "900"],
-  variable: "--font-roboto",
+const inter = localFont({
+  src: "../assets/fonts/inter-variable.ttf",
+  weight: "100 900",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -88,11 +88,9 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#2563EB",
+  themeColor: "#0f172a",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({
@@ -103,7 +101,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(roboto.variable, "h-full antialiased")}
+      className={cn(inter.variable, "h-full antialiased")}
       suppressHydrationWarning
     >
       <head>
@@ -124,7 +122,7 @@ export default function RootLayout({
       </head>
       <body
         className="min-h-full flex flex-col bg-background text-foreground"
-        style={{ fontFamily: "Roboto, sans-serif" }}
+        style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
       >
         <ThemeProvider
           attribute="class"

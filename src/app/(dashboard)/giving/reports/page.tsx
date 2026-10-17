@@ -212,13 +212,13 @@ export default function GivingReportsPage() {
           </CardHeader>
           <CardContent>
             {loadingRows ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full aspect-auto" />
             ) : byCategory.length === 0 ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
                 No giving in the selected range.
               </div>
             ) : (
-              <ChartContainer config={categoryConfig} className="h-64 w-full">
+              <ChartContainer config={categoryConfig} className="h-64 w-full aspect-auto">
                 <BarChart data={byCategory} layout="vertical" margin={{ left: 40 }}>
                   <CartesianGrid horizontal={false} strokeDasharray="3 3" />
                   <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />

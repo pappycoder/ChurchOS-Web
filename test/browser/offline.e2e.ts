@@ -35,6 +35,7 @@ test.beforeEach(async ({ context }, testInfo) => {
             profileId,
             churchId,
             branchId,
+            status: "active",
             firstName: "Test",
             lastName: "Secretary",
             role: [member ? "member" : "secretary"],
@@ -268,6 +269,7 @@ test("member accounts cannot open the offline workspace or see event management 
   await expect(
     page.getByRole("heading", { name: "Dashboard", exact: true }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "Events", exact: true }).click();
   await expect(
     page.getByRole("link", { name: "Calendar", exact: true }).first(),
   ).toBeVisible();

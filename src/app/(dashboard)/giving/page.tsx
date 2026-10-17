@@ -145,13 +145,13 @@ export default function GivingDashboardPage() {
           </CardHeader>
           <CardContent>
             {!summary ? (
-              <Skeleton className="h-64 w-full" />
+              <Skeleton className="h-64 w-full aspect-auto" />
             ) : !hasTrend ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
                 No giving recorded in this period.
               </div>
             ) : (
-              <ChartContainer config={trendConfig} className="h-64 w-full">
+              <ChartContainer config={trendConfig} className="h-64 w-full aspect-auto">
                 <AreaChart data={summary?.trend ?? []} margin={{ left: -8, right: 8 }}>
                   <defs>
                     <linearGradient id="fillGiven" x1="0" y1="0" x2="0" y2="1">
@@ -159,7 +159,7 @@ export default function GivingDashboardPage() {
                       <stop offset="95%" stopColor="var(--color-total)" stopOpacity={0.03} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="date"
                     tickLine={false}
