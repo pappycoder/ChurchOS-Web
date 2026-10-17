@@ -222,7 +222,7 @@ export default function DepartmentsPage() {
           </div>
         }
       >
-        <Table tableId="departments">
+        <Table exportable={false} tableId="departments">
           <TableHeader>
             <TableRow>
               <TableHead exportKeys={["name"]}>Department</TableHead>

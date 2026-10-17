@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import * as React from "react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -60,12 +62,15 @@ export default function EventsDashboardPage() {
         title="Events"
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Events" }]}
         action={
-          canCreate && (
-            <Button onClick={handleCreateClick}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Event
-            </Button>
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            <VisibleDataExport includeTables={false} label="Export visible lists" />
+            {canCreate && (
+              <Button onClick={handleCreateClick}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Event
+              </Button>
+            )}
+          </div>
         }
       />
 

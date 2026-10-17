@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { format } from "date-fns";
@@ -197,6 +199,7 @@ function InboxContent() {
       <PageHeader
         title="Inbox"
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Communication" }, { label: "Inbox" }]}
+        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
       />
 
       <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">

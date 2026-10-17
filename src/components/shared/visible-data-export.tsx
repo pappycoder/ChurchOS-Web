@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Download } from "lucide-react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
-export function VisibleDataExport({ getRoot, label = "Export visible data" }: { getRoot?: () => Element | null; label?: string }) {
+export function VisibleDataExport({ getRoot, label = "Export visible data", includeTables = true }: { getRoot?: () => Element | null; label?: string; includeTables?: boolean }) {
   const { ready } = usePermissions();
   const [busy, setBusy] = useState(false);
   async function download(format: "csv" | "xlsx" | "pdf") {
@@ -14,7 +14,7 @@ export function VisibleDataExport({ getRoot, label = "Export visible data" }: { 
     try {
       const root = getRoot ? getRoot() : document.getElementById("main-content");
       const { collectVisibleData } = await import("@/lib/visible-data-export");
-      const sections = root ? collectVisibleData(root) : [];
+      const sections = root ? collectVisibleData(root, { includeTables }) : [];
       if (!sections.length) { toast.info("No visible table rows or list items to export"); return; }
       const exports = await import("@/lib/export-utils");
       const filename = "churchos-visible-data";
@@ -33,7 +33,7 @@ export function VisibleDataExport({ getRoot, label = "Export visible data" }: { 
     finally { setBusy(false); }
   }
   return <div className="flex justify-end" data-export-ignore>
-    <DropdownMenu modal={false}><DropdownMenuTrigger asChild><Button variant="outline" size="sm" aria-label={label} disabled={!ready || busy} title="Export the visible table rows and list items on this page"><Download className="size-4" />{busy ? "Exporting…" : label}</Button></DropdownMenuTrigger><DropdownMenuContent align="end">
+    <DropdownMenu modal={false}><DropdownMenuTrigger asChild><Button variant="outline" size="sm" aria-label={label} disabled={!ready || busy} title={includeTables ? "Export the visible rows in this table" : "Export visible list items on this page"}><Download className="size-4" />{busy ? "Exporting…" : label}</Button></DropdownMenuTrigger><DropdownMenuContent align="end">
       <DropdownMenuItem onClick={() => void download("csv")}>Visible data as CSV</DropdownMenuItem>
       <DropdownMenuItem onClick={() => void download("xlsx")}>Visible data as Excel</DropdownMenuItem>
       <DropdownMenuItem onClick={() => void download("pdf")}>Visible data as PDF</DropdownMenuItem>

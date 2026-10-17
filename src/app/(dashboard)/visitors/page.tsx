@@ -445,7 +445,7 @@ export default function VisitorsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table tableId="visitors">
+              <Table exportable={false} tableId="visitors">
                 <TableHeader>
                   <TableRow>
                     {!archivedView && (

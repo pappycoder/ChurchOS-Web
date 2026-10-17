@@ -413,21 +413,13 @@ export default function ReportsGeneratorPage() {
         </CardContent>
       </Card>
 
-      {/* Export summary + action */}
+      {/* Export summary; the page header owns the download action. */}
       <Card className="border-primary/40 bg-primary/5">
         <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-sm font-semibold">Ready to export</div>
             <p className="text-xs text-muted-foreground mt-0.5">{summaryLabel}</p>
           </div>
-          <Button
-            size="sm"
-            onClick={handleGenerate}
-            disabled={blocks.length === 0 || loading || exporting}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {exporting ? "Generating…" : `Download ${outputFormat.toUpperCase()}`}
-          </Button>
         </CardContent>
       </Card>
 

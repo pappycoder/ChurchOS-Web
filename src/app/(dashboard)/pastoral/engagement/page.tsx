@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import { ErrorState } from "@/components/shared/error-state";
 
 import { LoadingState } from "@/components/shared/loading-state";
@@ -131,6 +133,7 @@ export default function EngagementPage() {
           { label: "Pastoral Care" },
           { label: "Engagement" },
         ]}
+        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
       />
 
       {/* Distribution overview */}

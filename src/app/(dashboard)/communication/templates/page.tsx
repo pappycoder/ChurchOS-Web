@@ -334,7 +334,7 @@ function TemplatesListContent() {
             />
           </div>
         ) : (
-          <Table tableId="templates">
+          <Table exportable={false} tableId="templates">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>

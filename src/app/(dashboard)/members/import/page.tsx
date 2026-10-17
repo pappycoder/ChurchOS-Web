@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -703,13 +705,16 @@ export default function MemberImportPage() {
               </p>
             </div>
             {finalResult.errors.length > 0 && (
-              <ul className="max-w-lg space-y-1 text-sm text-muted-foreground max-h-48 overflow-y-auto">
-                {finalResult.errors.slice(0, 15).map((err, i) => (
-                  <li key={i}>
-                    Row {err.row}: {err.message}
-                  </li>
-                ))}
-              </ul>
+              <>
+                <VisibleDataExport includeTables={false} label="Export visible errors" />
+                <ul className="max-w-lg space-y-1 text-sm text-muted-foreground max-h-48 overflow-y-auto">
+                  {finalResult.errors.slice(0, 15).map((err, i) => (
+                    <li key={i}>
+                      Row {err.row}: {err.message}
+                    </li>
+                  ))}
+                </ul>
+              </>
             )}
             <div className="flex gap-2">
               <Button variant="outline" onClick={resetAll}>

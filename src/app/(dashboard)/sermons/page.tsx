@@ -339,7 +339,7 @@ function SermonsListContent() {
             />
           </div>
         ) : (
-          <Table tableId="sermons">
+          <Table exportable={false} tableId="sermons">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>

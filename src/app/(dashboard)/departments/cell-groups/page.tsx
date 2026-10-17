@@ -231,7 +231,7 @@ export default function CellGroupsPage() {
           </div>
         }
       >
-        <Table tableId="cell-groups">
+        <Table exportable={false} tableId="cell-groups">
           <TableHeader>
             <TableRow>
               <TableHead exportKeys={["name", "leader"]}>Group</TableHead>

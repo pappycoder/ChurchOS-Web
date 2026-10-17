@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
@@ -213,6 +215,7 @@ export default function EventsCheckInPage() {
           { label: "Events", href: "/events" },
           { label: "Check-In" },
         ]}
+        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
       />
 
       {/* Event picker */}

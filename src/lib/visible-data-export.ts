@@ -15,9 +15,9 @@ function titleFor(element: Element, fallback: string): string {
   return heading && dataText(heading) || fallback;
 }
 /** Exports only currently rendered, visible data. Never reads query caches, inputs or hidden rows. */
-export function collectVisibleData(root: Element): PdfReportSection[] {
+export function collectVisibleData(root: Element, { includeTables = true }: { includeTables?: boolean } = {}): PdfReportSection[] {
   const sections: PdfReportSection[] = [];
-  for (const [index, table] of Array.from(root.querySelectorAll('table')).entries()) {
+  for (const [index, table] of Array.from(includeTables ? root.querySelectorAll('table') : []).entries()) {
     if (!visible(table) || table.closest('nav, [role="navigation"], [data-export-ignore]')) continue;
     const heads = Array.from(table.querySelectorAll('thead tr:last-child th'));
     const selected = heads.map((head, i) => ({ label: dataText(head), i })).filter(head => head.label && !/^(actions?|select( all)?)$/i.test(head.label));

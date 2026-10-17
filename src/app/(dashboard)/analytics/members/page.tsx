@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Users } from "lucide-react";
@@ -35,9 +37,12 @@ export default function AnalyticsMembersPage() {
           { label: "Members" },
         ]}
         action={
-          <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isLoading}>
-            Refresh
-          </Button>
+          <>
+            <VisibleDataExport includeTables={false} label="Export visible lists" />
+            <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isLoading}>
+              Refresh
+            </Button>
+          </>
         }
       />
 

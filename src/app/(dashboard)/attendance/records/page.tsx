@@ -275,7 +275,7 @@ export default function AttendanceRecordsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table tableId="attendance-records">
+              <Table exportable={false} tableId="attendance-records">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>

@@ -363,7 +363,7 @@ export default function GivingRecordsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table tableId="giving-records">
+              <Table exportable={false} tableId="giving-records">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Date</TableHead>

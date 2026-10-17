@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { toast } from "@/lib/toast";
@@ -279,12 +281,15 @@ export default function FollowUpBoardPage() {
           { label: "Follow-Up" },
         ]}
         action={
-          <SearchInput
-            value={searchInput}
-            onChange={setSearchInput}
-            placeholder="Filter by name, email, phone..."
-            className="w-full sm:w-64"
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <VisibleDataExport includeTables={false} label="Export visible lists" />
+            <SearchInput
+              value={searchInput}
+              onChange={setSearchInput}
+              placeholder="Filter by name, email, phone..."
+              className="w-full sm:w-64"
+            />
+          </div>
         }
       />
 

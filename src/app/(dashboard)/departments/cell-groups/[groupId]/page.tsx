@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import * as React from "react";
 import { MeetingAttendanceTable } from "@/components/departments/meeting-attendance-table";
 import { CellGroupGivingPanel } from "@/components/giving/cell-group-giving-panel";
@@ -225,7 +227,8 @@ export default function CellGroupDetailPage({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                {group.archivedAt ? (
+                <VisibleDataExport includeTables={false} label="Export visible lists" />
+              {group.archivedAt ? (
                   <>
                     {canUpdate && (
                       <Button variant="outline" onClick={() => setArchiveAction("restore")}>

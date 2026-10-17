@@ -16,13 +16,15 @@ test.beforeEach(async ({ context }, info) => {
       if(path==="/api/session")return new Response(JSON.stringify({hasSession:true}));
       let data: unknown=[];
       if(path.endsWith("/auth/session"))data={userId:"user-a",email:"fixture@example.test"};
-      else if(path.endsWith("/profiles/me"))data={profileId:"profile-a",churchId:"church-a",branchId:"branch-a",memberId:"head-a",status:"active",firstName:"Head",lastName:"Test",role:["department_head"],isAdminHq:hq,permissions:["departments:read","departments:own:read","branches:read",...(readOnly?[]:["departments:update","departments:own:update"]),...(hq&&!readOnly?["departments:create"]:[])]};
+      else if(path.endsWith("/profiles/me"))data={profileId:"profile-a",churchId:"church-a",branchId:"branch-a",memberId:"head-a",status:"active",firstName:"Head",lastName:"Test",role:["department_head"],isAdminHq:hq,permissions:["reports:members:read","events:calendar:read","attendance:services:read","departments:read","departments:own:read","branches:read",...(readOnly?[]:["departments:update","departments:own:update"]),...(hq&&!readOnly?["departments:create"]:[])]};
       else if(path.endsWith("/admin/departments/dept-a/attendance")) {
         if(options?.method==="POST"){ const body=JSON.parse(String(options.body));records.push({id:"row-c",memberId:body.memberId,firstName:"Alice",lastName:"Test",meetingDate:body.meetingDate,status:body.status,notes:body.notes});data={id:"row-c"}; }
         else data=records.filter(row=>!url.searchParams.get("meetingDate")||row.meetingDate===url.searchParams.get("meetingDate"));
       }
       else if(path.endsWith("/admin/departments/dept-a"))data=department;
       else if(path.endsWith("/admin/departments"))data=[department];
+      else if(path.endsWith("/reports/members"))data={startDate:"2026-01-01",endDate:"2026-10-17",totalMembers:2,newMembersInPeriod:1,activeMembers:2,byStatus:[],byGender:[],monthlyGrowth:[]};
+      else if(path.endsWith("/services"))data={data:[{serviceId:"service-a",name:"Sunday Service",category:"adult",isActive:true,createdAt:"2026-10-01"}],meta:{total:1,page:1,limit:20,totalPages:1}};
       else if(path.endsWith("/branches"))data={data:[{branchId:"branch-a",name:"Branch A"}]};
       else if(path.endsWith("/unread-count"))data={count:0};
       else if(path.endsWith("/notifications")||path.endsWith("/audit-logs/me"))data={data:[],total:0};
@@ -55,18 +57,65 @@ test("readonly department attendance filters and exports without write permissio
   const table=page.getByRole("table",{name:"Department meeting attendance",exact:true});
   await expect(table.getByText("Alice Test",{exact:true})).toBeVisible();await expect(table.getByText("Bob Test",{exact:true})).toHaveCount(0);
   const section=table.locator("xpath=ancestor::section[1]");
+  await expect(section.getByRole("button",{name:/^Export/})).toHaveCount(1);
   await section.getByRole("button",{name:"Export",exact:true}).click();
   const downloadPromise=page.waitForEvent("download", { timeout: 10000 });await page.getByRole("menuitem",{name:"Export as CSV",exact:true}).click();
   const download=await downloadPromise;const content=await fs.readFile((await download.path())!,"utf8");
   expect(content).toContain("Alice Test");expect(content).not.toContain("Bob Test");
 });
-test("readonly shared table and list exports include only visible rows",async({page})=>{
+test("readonly department list has one export menu and keeps its data export",async({page})=>{
   await page.goto("/departments");
+  await expect(page.getByText("Choir",{exact:true}).first()).toBeVisible();
   const main=page.locator("#main-content");
-  // Include an explicit accessible data list and hidden data to exercise the shared export boundary.
-  await main.evaluate(element=>{const list=document.createElement("ul");list.innerHTML='<li>Visible list item</li><li hidden>Hidden list item</li>';element.appendChild(list);});
-  await page.getByRole("button",{name:"Export visible data",exact:true}).click();
-  const promise=page.waitForEvent("download", { timeout: 10000 });await page.getByRole("menuitem",{name:"Visible data as CSV",exact:true}).click();
+  await expect(main.getByRole("button",{name:/^Export/})).toHaveCount(1);
+  await main.getByRole("button",{name:"Export",exact:true}).click();
+  const promise=page.waitForEvent("download");
+  await page.getByRole("menuitem",{name:"Export as CSV",exact:true}).click();
   const download=await promise;const content=await fs.readFile((await download.path())!,"utf8");
-  expect(content).toContain("Choir");expect(content).toContain("Visible list item");expect(content).not.toContain("Hidden list item");
+  expect(content).toContain("Choir");
+});
+test("readonly table without a dedicated export retains one visible-row export",async({page})=>{
+  await page.goto("/attendance/services");
+  await expect(page.getByRole("table").getByText("Sunday Service",{exact:true})).toBeVisible();
+  const main=page.locator("#main-content");
+  await expect(main.getByRole("button",{name:/^Export/})).toHaveCount(1);
+  await main.getByRole("button",{name:"Export visible rows",exact:true}).click();
+  const promise=page.waitForEvent("download");
+  await page.getByRole("menuitem",{name:"Visible data as CSV",exact:true}).click();
+  const download=await promise;const content=await fs.readFile((await download.path())!,"utf8");
+  expect(content).toContain("Sunday Service");
+});
+test("readonly list export excludes hidden items and independently exported tables",async({page})=>{
+  await page.goto("/events");
+  const main=page.locator("#main-content");
+  // Exercise the list export boundary with visible, hidden and unrelated table data.
+  await main.evaluate(element=>{
+    const collection=document.createElement("section");
+    collection.innerHTML='<ul><li>Visible list item</li><li hidden>Hidden list item</li></ul><table><thead><tr><th>Name</th></tr></thead><tbody><tr><td>Separately exported table row</td></tr></tbody></table>';
+    element.appendChild(collection);
+  });
+  await expect(main.getByRole("button",{name:/^Export/})).toHaveCount(1);
+  await main.getByRole("button",{name:"Export visible lists",exact:true}).click();
+  const promise=page.waitForEvent("download");
+  await page.getByRole("menuitem",{name:"Visible data as CSV",exact:true}).click();
+  const download=await promise;const content=await fs.readFile((await download.path())!,"utf8");
+  expect(content).toContain("Visible list item");expect(content).not.toContain("Hidden list item");
+  expect(content).not.toContain("Separately exported table row");
+});
+test("readonly report generator has one download action for the chosen format",async({page})=>{
+  await page.goto("/reports");
+  const main=page.locator("#main-content");
+  await expect(main.getByText("Total Members",{exact:true})).toBeVisible();
+  await expect(main.getByRole("button",{name:/^Download /})).toHaveCount(1);
+  await expect(main.getByRole("button",{name:"Download PDF",exact:true})).toBeEnabled();
+  await main.getByRole("button",{name:"CSV One file per block",exact:true}).click();
+  await expect(main.getByRole("button",{name:/^Download /})).toHaveCount(1);
+  await expect(main.getByRole("button",{name:"Download CSV",exact:true})).toBeEnabled();
+  const downloadPromise=page.waitForEvent("download");
+  await main.getByRole("button",{name:"Download CSV",exact:true}).click();
+  const download=await downloadPromise;const content=await fs.readFile((await download.path())!,"utf8");
+  expect(content).toContain("Total Members,2");
+  await main.getByRole("button",{name:"XLSX One sheet per block",exact:true}).click();
+  await expect(main.getByRole("button",{name:/^Download /})).toHaveCount(1);
+  await expect(main.getByRole("button",{name:"Download XLSX",exact:true})).toBeEnabled();
 });

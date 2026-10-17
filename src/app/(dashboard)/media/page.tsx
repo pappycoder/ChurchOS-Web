@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import { ContentImage } from "@/components/shared/content-image";
 
 import * as React from "react";
@@ -344,12 +346,15 @@ function MediaLibraryContent() {
         title="Media Library"
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Media", href: "/media" }, { label: "Library" }]}
         action={
-          canCreate && (
-            <Button onClick={() => router.push("/media/upload")}>
-              <Plus className="mr-2 h-4 w-4" />
-              Upload File
-            </Button>
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            <VisibleDataExport includeTables={false} label="Export visible lists" />
+            {canCreate && (
+              <Button onClick={() => router.push("/media/upload")}>
+                <Plus className="mr-2 h-4 w-4" />
+                Upload File
+              </Button>
+            )}
+          </div>
         }
       />
 

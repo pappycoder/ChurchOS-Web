@@ -323,7 +323,7 @@ export default function FamiliesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table tableId="families">
+              <Table exportable={false} tableId="families">
                 <TableHeader>
                   <TableRow>
                     {!archivedView && (

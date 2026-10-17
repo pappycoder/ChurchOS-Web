@@ -1,5 +1,7 @@
 "use client";
 
+import { VisibleDataExport } from "@/components/shared/visible-data-export";
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
@@ -257,6 +259,7 @@ export default function CheckInPage() {
           { label: "Attendance", href: "/attendance" },
           { label: "Check-In" },
         ]}
+        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
       />
 
       {/* Service picker */}

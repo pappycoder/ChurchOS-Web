@@ -418,7 +418,7 @@ export default function BranchesPage() {
                 />
               </div>
             ) : (
-              <Table tableId="branches">
+              <Table exportable={false} tableId="branches">
                     <TableHeader>
                       <TableRow>
                         {!archivedView && (

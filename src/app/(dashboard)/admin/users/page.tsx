@@ -422,7 +422,7 @@ export default function UsersPage() {
                 />
               </div>
             ) : (
-              <Table tableId="users">
+              <Table exportable={false} tableId="users">
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">

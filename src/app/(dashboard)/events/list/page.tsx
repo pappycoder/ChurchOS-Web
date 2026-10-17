@@ -340,7 +340,7 @@ export default function EventsListPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table tableId="events">
+              <Table exportable={false} tableId="events">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>
