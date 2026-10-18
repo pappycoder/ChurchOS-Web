@@ -96,8 +96,6 @@ export default function EventRegistrationsPage() {
     return { total, checkedIn, pending, paid };
   }, [allRegistrations]);
 
-
-
   if (!canRead) {
     return (
       <div>
@@ -237,7 +235,7 @@ export default function EventRegistrationsPage() {
                   </p>
                 </div>
               ) : (
-                <Table>
+                <Table exportable>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Member ID</TableHead>

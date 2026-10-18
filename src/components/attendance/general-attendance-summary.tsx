@@ -16,7 +16,7 @@ import {
 
 export function GeneralAttendanceSummaryCard({
   summary,
-  exportable = true,
+  exportable = false,
 }: {
   summary?: Summary;
   exportable?: boolean;

@@ -23,10 +23,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
+
 import { TableCard } from "@/components/shared/table-card";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
+
 import {
   Dialog,
   DialogContent,
@@ -151,27 +150,6 @@ function SermonsListContent() {
   const toggleSortOrder = () => {
     setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
   };
-
-  const buildExportRows = React.useCallback(
-    (rows: Sermon[]) =>
-      rows.map((s) => ({
-        title: s.title,
-        speaker: s.speaker || "",
-        date: format(new Date(s.sermonDate), "yyyy-MM-dd"),
-        series: s.seriesName || "",
-        scripture: s.scriptureReference || "",
-        duration: formatDuration(s.durationSeconds),
-        tags: s.tags.join(", "),
-      })),
-    []
-  );
-
-  const fetchAllExportRows = React.useCallback(async () => {
-    const rows = await fetchAllPages<Sermon>((p) =>
-      api.get(listUrl("/sermons", { ...queryParams, page: p, limit: 200 }))
-    );
-    return buildExportRows(rows);
-  }, [queryParams, buildExportRows]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -301,25 +279,7 @@ function SermonsListContent() {
         onPerPageChange={(n) => {
           setPerPage(n);
           setPage(1);
-        }} exportAction={
-          <ExportDropdown
-              tableId="sermons"
-                columns={[
-                  { key: "title", label: "Title" },
-                  { key: "speaker", label: "Speaker" },
-                  { key: "date", label: "Date" },
-                  { key: "series", label: "Series" },
-                  { key: "scripture", label: "Scripture" },
-                  { key: "duration", label: "Duration" },
-                  { key: "tags", label: "Tags" },
-                ]}
-                data={buildExportRows(sermons)}
-                fetchAllRows={fetchAllExportRows}
-                title="Sermons"
-                filename="sermons-export"
-                disabled={sermons.length === 0}
-              />
-        }
+        }}
       >
         {isLoading ? (
           <LoadingState variant="table" />

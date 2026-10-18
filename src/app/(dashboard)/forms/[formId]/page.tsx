@@ -426,7 +426,7 @@ export default function FormDetailPage() {
             />
           </div>
         ) : (
-          <Table>
+          <Table exportable>
             <TableHeader>
               <TableRow>
                 <TableHead>Status</TableHead>

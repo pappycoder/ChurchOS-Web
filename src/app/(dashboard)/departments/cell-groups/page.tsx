@@ -38,8 +38,7 @@ import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
 } from "@/components/shared/archive-confirm-dialog";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
-import type { ExportColumn } from "@/lib/export-utils";
+
 import { CellGroupFormDialog } from "@/components/departments/cell-group-form-dialog";
 import { DeleteCellGroupDialog } from "@/components/departments/delete-cell-group-dialog";
 import {
@@ -50,25 +49,12 @@ import {
   type CellGroup,
 } from "@/hooks/use-admin";
 
-const EXPORT_COLUMNS: ExportColumn[] = [
-  { key: "name", label: "Name" },
-  { key: "leader", label: "Leader" },
-  { key: "branch", label: "Branch" },
-  { key: "address", label: "Address" },
-  { key: "meetingDay", label: "Meeting Day" },
-  { key: "meetingTime", label: "Meeting Time" },
-  { key: "latitude", label: "Latitude" },
-  { key: "longitude", label: "Longitude" },
-  { key: "createdAt", label: "Date Added" },
-];
-
 export default function CellGroupsPage() {
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Own-group grants limit edits and attendance; HQ additionally permits creation.
   const isCellLeader = canAny("cell_groups:own:read") && !canAny("cell_groups:delete");
-  // Export follows the same read permission and scope as the list.
-  const canExport = can("cell_groups", "read");
+
   const canCreate = can("cell_groups", "create") && (!isCellLeader || !!profile?.isAdminHq);
   const canUpdate = can("cell_groups", "update");
   const canDelete = can("cell_groups", "delete");
@@ -114,22 +100,6 @@ export default function CellGroupsPage() {
     );
   }, [groups, search]);
 
-  const exportRows = React.useMemo(
-    () =>
-      filtered.map((group) => ({
-        name: group.name,
-        leader: [group.leaderFirstName, group.leaderLastName].filter(Boolean).join(" "),
-        branch: group.branchName ?? "",
-        address: group.address ?? "",
-        meetingDay: group.meetingDay ?? "",
-        meetingTime: group.meetingTime ?? "",
-        latitude: group.latitude ?? "",
-        longitude: group.longitude ?? "",
-        createdAt: new Date(group.createdAt).toLocaleDateString(),
-      })),
-    [filtered]
-  );
-
   const paged = React.useMemo(
     () => filtered.slice((page - 1) * perPage, page * perPage),
     [filtered, page, perPage]
@@ -150,7 +120,7 @@ export default function CellGroupsPage() {
           { label: "Cell Groups" },
         ]}
         action={
-          canCreate || canExport ? (
+          canCreate ? (
             <div className="flex items-center gap-2">
               {canCreate && (
                 <Button
@@ -217,15 +187,6 @@ export default function CellGroupsPage() {
               />
             </div>
           </div>
-        } exportAction={
-          <ExportDropdown
-              tableId="cell-groups"
-                  columns={EXPORT_COLUMNS}
-                  data={exportRows}
-                  title="Cell Groups"
-                  filename="cell-groups-export"
-                  disabled={exportRows.length === 0}
-                />
         }
       >
         <Table exportable={false} tableId="cell-groups">

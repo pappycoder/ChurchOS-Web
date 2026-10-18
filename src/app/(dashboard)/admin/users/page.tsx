@@ -16,10 +16,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
+
 import { TableCard } from "@/components/shared/table-card";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
+
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -46,7 +45,7 @@ import {
   type UserProfile,
   type ListUsersParams,
 } from "@/hooks/use-users";
-import { useAssignableRoles, useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
+import { useAssignableRoles } from "@/hooks/use-roles";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   UserCheckboxCell,
@@ -153,7 +152,7 @@ export default function UsersPage() {
   const reactivateMutation = useReactivateUser();
   const resetPasswordMutation = useResetPassword();
   const forceSignoutMutation = useForceSignout();
-  const roleLabels = useRoleLabelMap();
+
   const assignableRoles = useAssignableRoles();
   const { can } = usePermissions();
   const canCreateUsers = can("profiles", "create");
@@ -240,37 +239,6 @@ export default function UsersPage() {
       },
     });
   };
-
-  const exportColumns = [
-    { key: "name", label: "Name" },
-    { key: "email", label: "Email" },
-    { key: "createdAt", label: "Created Date" },
-    { key: "role", label: "Role" },
-    { key: "status", label: "Status" },
-  ];
-
-  const buildExportRows = React.useCallback(
-    (rows: UserProfile[]) =>
-      rows.map((u) => ({
-        name: `${u.firstName} ${u.lastName}`,
-        email: u.email || "",
-        createdAt: u.createdAt,
-        role: (u.role?.length ? u.role : ["member"])
-          .map((r) => resolveRoleLabel(r, roleLabels))
-          .join(", "),
-        status: u.status,
-      })),
-    [roleLabels]
-  );
-  const exportData = buildExportRows(users);
-
-  // "Export all": walks every page of the current filter/sort server-side.
-  const fetchAllExportRows = React.useCallback(async () => {
-    const rows = await fetchAllPages<UserProfile>((p) =>
-      api.get(listUrl("/profiles", { ...queryParams, page: p, limit: 100 }))
-    );
-    return buildExportRows(rows);
-  }, [queryParams, buildExportRows]);
 
   if (error) {
     return (
@@ -375,17 +343,7 @@ export default function UsersPage() {
             onPerPageChange={(n) => {
               setPerPage(n);
               setPage(1);
-            }} exportAction={
-          <ExportDropdown
-              tableId="users"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title="User Management"
-              filename="users-export"
-              disabled={users.length === 0}
-            />
-        }
+            }}
           >
             {someSelected && canUpdateUsers && (
               <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">

@@ -220,7 +220,7 @@ export default function SubmissionsPage() {
             />
           </div>
         ) : submissionsLoading ? (
-          <Table>
+          <Table exportable>
             <TableHeader>
               <TableRow>
                 <TableHead>Status</TableHead>
@@ -249,7 +249,7 @@ export default function SubmissionsPage() {
             />
           </div>
         ) : (
-          <Table>
+          <Table exportable>
             <TableHeader>
               <TableRow>
                 <TableHead>Status</TableHead>

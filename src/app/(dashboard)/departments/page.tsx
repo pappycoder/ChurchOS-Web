@@ -27,8 +27,7 @@ import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
 } from "@/components/shared/archive-confirm-dialog";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
-import type { ExportColumn } from "@/lib/export-utils";
+
 import { DepartmentFormDialog } from "@/components/departments/department-form-dialog";
 import { DeleteDepartmentDialog } from "@/components/departments/delete-department-dialog";
 import {
@@ -39,15 +38,6 @@ import {
   type Department,
 } from "@/hooks/use-admin";
 
-const EXPORT_COLUMNS: ExportColumn[] = [
-  { key: "name", label: "Name" },
-  { key: "head", label: "Head" },
-  { key: "branch", label: "Branch" },
-  { key: "parent", label: "Parent" },
-  { key: "members", label: "Members" },
-  { key: "createdAt", label: "Date Added" },
-];
-
 export default function DepartmentsPage() {
   const router = useRouter();
   const { can, canAny } = usePermissions();
@@ -57,8 +47,7 @@ export default function DepartmentsPage() {
   // department they head (backend-enforced ownership).
   const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
   const isAdminHq = !!profile?.isAdminHq;
-  // Export follows the same read permission and scope as the list.
-  const canExport = can("departments", "read");
+
   const canCreate = can("departments", "create") && (!isDepartmentHead || isAdminHq);
   const canUpdate = can("departments", "update");
   const canDelete = can("departments", "delete");
@@ -108,22 +97,6 @@ export default function DepartmentsPage() {
     );
   }, [departments, search]);
 
-  const exportRows = React.useMemo(
-    () =>
-      filtered.map((department) => {
-        const parent = (departments ?? []).find((d) => d.id === department.parentId);
-        return {
-          name: department.name,
-          head: [department.headFirstName, department.headLastName].filter(Boolean).join(" "),
-          branch: department.branchName ?? "",
-          parent: parent?.name ?? "",
-          members: department.memberCount,
-          createdAt: new Date(department.createdAt).toLocaleDateString(),
-        };
-      }),
-    [filtered, departments]
-  );
-
   const paged = React.useMemo(
     () => filtered.slice((page - 1) * perPage, page * perPage),
     [filtered, page, perPage]
@@ -147,7 +120,7 @@ export default function DepartmentsPage() {
           { label: "Departments" },
         ]}
         action={
-          canCreate || canExport ? (
+          canCreate ? (
             <div className="flex items-center gap-2">
               {canCreate && (
                 <Button
@@ -209,15 +182,6 @@ export default function DepartmentsPage() {
               />
             </div>
           </div>
-        } exportAction={
-          <ExportDropdown
-              tableId="departments"
-                  columns={EXPORT_COLUMNS}
-                  data={exportRows}
-                  title="Departments"
-                  filename="departments-export"
-                  disabled={exportRows.length === 0}
-                />
         }
       >
         <Table exportable={false} tableId="departments">

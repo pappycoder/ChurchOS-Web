@@ -1,7 +1,5 @@
 "use client";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
-
 import * as React from "react";
 import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -87,7 +85,7 @@ export default function EventsDashboardPage() {
         {/* Calendar */}
         <div className="min-w-0">
           <Card className="p-0 overflow-hidden">
-            <div className="flex justify-end p-3"><VisibleDataExport includeTables={false} label="Export visible lists" /></div><CalendarView
+            <CalendarView
               events={listEvents}
               services={services}
               onDateClick={handleDateClick}

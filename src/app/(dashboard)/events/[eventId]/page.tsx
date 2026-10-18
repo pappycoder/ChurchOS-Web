@@ -111,8 +111,6 @@ export default function EventDetailPage({
   const isLoading = eventQuery.isLoading || statsQuery.isLoading;
   const event = eventQuery.data;
 
-
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -352,7 +350,7 @@ export default function EventDetailPage({
               No registrations for this event yet.
             </p>
           ) : (
-            <Table>
+            <Table exportable>
               <TableHeader>
                 <TableRow>
                   <TableHead>Member</TableHead>
@@ -433,7 +431,7 @@ export default function EventDetailPage({
               No attendance records for this event yet.
             </p>
           ) : (
-            <Table>
+            <Table exportable>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

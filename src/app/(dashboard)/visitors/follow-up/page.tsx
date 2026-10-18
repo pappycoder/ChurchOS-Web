@@ -290,7 +290,7 @@ export default function FollowUpBoardPage() {
               placeholder="Filter by name, email, phone..."
               className="w-full sm:w-64"
             />
-          </div><VisibleDataExport includeTables={false} label="Export visible lists" />      <p className="text-sm text-muted-foreground">
+          </div><VisibleDataExport includeTables={false} />      <p className="text-sm text-muted-foreground">
         Track every visitor through the follow-up pipeline.
         {canUpdateVisitors &&
           " Drag cards by the grip handle between columns, or use each card's dropdown."}

@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
+
 import { getToastErrorMessage, toast } from "@/lib/toast";
 
 export interface RosterMember {
@@ -105,17 +105,7 @@ export function MemberAttendanceRoster({
               Select members and record their attendance together.
             </CardDescription>
           </div>
-          <ExportDropdown
-            title="Attendance roster"
-            filename="attendance-roster"
-            columns={[
-              { key: "firstName", label: "First name" },
-              { key: "lastName", label: "Last name" },
-              { key: "phone", label: "Phone" },
-            ]}
-            data={rows.map((member) => ({ ...member }))}
-            disabled={loading || error}
-          />
+
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

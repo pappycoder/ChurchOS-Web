@@ -44,7 +44,7 @@ function headerColumns(children: React.ReactNode): TableColumn[] {
   })
 }
 
-function Table({ className, children, tableId, exportable = true, ...props }: React.ComponentProps<"table"> & { tableId?: string; /** Disable when this collection already has a dedicated Export menu. */ exportable?: boolean }) {
+function Table({ className, children, tableId, exportable = false, ...props }: React.ComponentProps<"table"> & { tableId?: string; /** Opt in only for important record collections without a dedicated Export menu. */ exportable?: boolean }) {
   const exportRoot = React.useRef<HTMLDivElement>(null)
   const generatedId = React.useId()
   const state = useTableColumns(tableId ?? generatedId, headerColumns(children))
@@ -53,7 +53,7 @@ function Table({ className, children, tableId, exportable = true, ...props }: Re
       <div className="w-full" ref={exportRoot}>
         {state.columns.some((column) => column.hideable) && (
           <div className="flex justify-end gap-2 px-4 py-2 border-b bg-muted/20">
-            {exportable && <VisibleDataExport getRoot={() => exportRoot.current} label="Export visible rows" />}
+            {exportable && <VisibleDataExport getRoot={() => exportRoot.current} />}
             <ColumnSelector columns={state.columns} hidden={state.hidden} onChange={state.setHidden} />
           </div>
         )}

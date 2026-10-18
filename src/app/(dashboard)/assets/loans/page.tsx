@@ -115,7 +115,7 @@ export default function AssetLoansPage() {
           </div>
         }
       >
-        <Table>
+        <Table exportable>
           <TableHeader>
             <TableRow>
               <TableHead>Asset</TableHead>

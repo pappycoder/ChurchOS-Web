@@ -21,10 +21,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
+
 import { TableCard } from "@/components/shared/table-card";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
+
 import {
   Table,
   TableBody,
@@ -225,53 +224,6 @@ export default function BranchesPage() {
 
   const selectedBranches = branches.filter((b) => selectedIds.has(b.branchId));
 
-  const exportColumns = [
-    { key: "name", label: "Branch Name" },
-    { key: "email", label: "Email" },
-    { key: "phone", label: "Phone" },
-    { key: "address", label: "Address" },
-    { key: "city", label: "City" },
-    { key: "state", label: "State" },
-    { key: "country", label: "Country" },
-    { key: "isHeadquarters", label: "Headquarters" },
-    { key: "memberCount", label: "Members" },
-    { key: "createdAt", label: "Created Date" },
-  ];
-
-  const exportSource = someSelected ? selectedBranches : branches;
-  const buildExportRows = React.useCallback(
-    (rows: Branch[]) =>
-      rows.map((b) => ({
-        name: b.name,
-        email: b.email || "",
-        phone: b.phone || "",
-        address: b.address || "",
-        city: b.city || "",
-        state: b.state || "",
-        country: b.country || "",
-        isHeadquarters: b.isHeadquarters ? "Yes" : "No",
-        memberCount: b.memberCount,
-        createdAt: b.createdAt,
-      })),
-    []
-  );
-  const exportData = buildExportRows(exportSource);
-
-  // "Export all": walks every page server-side (type filter is client-side,
-  // so the fetch mirrors it in memory before mapping).
-  const fetchAllExportRows = React.useCallback(async () => {
-    const rows = await fetchAllPages<Branch>((p) =>
-      api.get(listUrl("/branches", { page: p, limit: 100, search: search || undefined, archived: archivedView ? true : undefined, sortBy, sortOrder }))
-    );
-    const filtered =
-      typeFilter === "headquarters"
-        ? rows.filter((b) => b.isHeadquarters)
-        : typeFilter === "branches"
-          ? rows.filter((b) => !b.isHeadquarters)
-          : rows;
-    return buildExportRows(filtered);
-  }, [search, sortBy, sortOrder, typeFilter, buildExportRows, archivedView]);
-
   if (error) {
     return (
       <div>
@@ -369,17 +321,7 @@ export default function BranchesPage() {
             onPerPageChange={(n) => {
               setPerPage(n);
               setPage(1);
-            }} exportAction={
-          <ExportDropdown
-              tableId="branches"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={someSelected ? `Branches (${selectedBranches.length} selected)` : "Branches"}
-              filename="branches-export"
-              disabled={exportSource.length === 0}
-            />
-        }
+            }}
           >
             {!archivedView && someSelected && canDeleteBranches && (
               <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">

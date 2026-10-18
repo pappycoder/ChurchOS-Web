@@ -206,6 +206,7 @@ test("service roster loads real pages and records 210 selections in bounded batc
 }) => {
   await selectService(page);
   const roster = await selectAllPages(page);
+  await expect(roster.getByRole("button",{name:/export/i})).toHaveCount(0);
   await roster
     .getByRole("button", { name: "Mark attendance (210)", exact: true })
     .click();

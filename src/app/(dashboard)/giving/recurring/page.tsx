@@ -209,7 +209,7 @@ export default function RecurringGivingPage() {
             </div>
           ) : (
             <div className="overflow-x-auto px-4">
-              <Table>
+              <Table exportable>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Giver</TableHead>

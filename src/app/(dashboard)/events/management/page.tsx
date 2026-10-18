@@ -612,7 +612,7 @@ function AssignedTicketsTab() {
             <p className="text-sm">No tickets found.</p>
           </div>
         ) : (
-            <Table>
+            <Table exportable>
               <TableHeader>
                 <TableRow>
                   <TableHead>Code</TableHead>

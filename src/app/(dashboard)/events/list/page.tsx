@@ -21,10 +21,9 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
+
 import { TableCard } from "@/components/shared/table-card";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
+
 import {
   Dialog,
   DialogContent,
@@ -142,26 +141,6 @@ export default function EventsListPage() {
     setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
   };
 
-  const buildExportRows = React.useCallback(
-    (rows: EventItem[]) =>
-      rows.map((e) => ({
-        title: e.title,
-        type: EVENT_TYPE_MAP[e.type] ?? e.type,
-        startDate: format(new Date(e.startDate), "yyyy-MM-dd"),
-        location: e.location || "",
-        registrations: e.registrationCount,
-        capacity: e.capacity ?? "",
-      })),
-    []
-  );
-
-  const fetchAllExportRows = React.useCallback(async () => {
-    const rows = await fetchAllPages<EventItem>((p) =>
-      api.get(listUrl("/events", { ...queryParams, page: p, limit: 200 }))
-    );
-    return buildExportRows(rows);
-  }, [queryParams, buildExportRows]);
-
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -175,8 +154,6 @@ export default function EventsListPage() {
       setDeleteTarget(null);
     }
   };
-
-
 
   if (error) {
     return (
@@ -304,23 +281,6 @@ export default function EventsListPage() {
             </Button>
           </div>
           </div>
-        } exportAction={
-          <ExportDropdown
-              tableId="events"
-              columns={[
-                { key: "title", label: "Title" },
-                { key: "type", label: "Type" },
-                { key: "startDate", label: "Start Date" },
-                { key: "location", label: "Location" },
-                { key: "registrations", label: "Registrations" },
-                { key: "capacity", label: "Capacity" },
-              ]}
-              data={buildExportRows(events)}
-              fetchAllRows={fetchAllExportRows}
-              title="Events"
-              filename="events-export"
-              disabled={events.length === 0}
-            />
         }
       >
           {isLoading ? (

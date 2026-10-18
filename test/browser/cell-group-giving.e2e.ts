@@ -87,6 +87,12 @@ test("leader records a combined meeting total and receives duplicate feedback", 
   await record();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText("2026/OFF/001", { exact: true })).toBeVisible();
+  const table=page.getByRole("table").filter({hasText:"2026/OFF/001"});
+  await table.locator('xpath=ancestor::*[@data-slot="card"][1]').getByRole("button",{name:"Export",exact:true}).click();
+  for(const format of ["CSV","Excel","PDF"]) await expect(page.getByRole("menuitem",{name:`Export as ${format}`,exact:true})).toBeVisible();
+  const downloadPromise=page.waitForEvent("download");
+  await page.getByRole("menuitem",{name:"Export as CSV",exact:true}).click();
+  const file=await downloadPromise;const content=await fs.readFile((await file.path())!,"utf8");expect(content).toContain("2026/OFF/001");
   await record();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.locator("[data-sonner-toast]").filter({ hasText: "Giving has already been recorded" })).toBeVisible();

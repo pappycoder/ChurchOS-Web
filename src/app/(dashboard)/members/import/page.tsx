@@ -706,7 +706,7 @@ export default function MemberImportPage() {
             </div>
             {finalResult.errors.length > 0 && (
               <>
-                <VisibleDataExport includeTables={false} label="Export visible errors" />
+                <VisibleDataExport includeTables={false} />
                 <ul className="max-w-lg space-y-1 text-sm text-muted-foreground max-h-48 overflow-y-auto">
                   {finalResult.errors.slice(0, 15).map((err, i) => (
                     <li key={i}>

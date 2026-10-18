@@ -18,14 +18,13 @@ import {
   Archive,
   RotateCcw,
 } from "lucide-react";
-import { format } from "date-fns";
+
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { TableCard } from "@/components/shared/table-card";
-import { api } from "@/lib/api";
-import { fetchAllPages, listUrl } from "@/lib/export-all";
+
 import {
   Dialog,
   DialogContent,
@@ -50,7 +49,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ExportDropdown } from "@/components/shared/export-dropdown";
+
 import {
   useTemplatesList,
   usePublishTemplate,
@@ -136,27 +135,6 @@ function TemplatesListContent() {
   const archiveMutation = useArchiveTemplate();
   const restoreArchiveMutation = useRestoreTemplate();
   const deleteMutation = useDeleteTemplate();
-
-  const buildExportRows = React.useCallback(
-    (rows: Template[]) =>
-      rows.map((t) => ({
-        name: t.name,
-        channel: TEMPLATE_CHANNEL_LABELS[t.channel],
-        status: TEMPLATE_STATUS_LABELS[t.status],
-        category: t.category ? TEMPLATE_CATEGORY_LABELS[t.category] : "",
-        language: t.language || "",
-        variables: (t.variables ?? []).join(", "),
-        created: format(new Date(t.createdAt), "yyyy-MM-dd"),
-      })),
-    []
-  );
-
-  const fetchAllExportRows = React.useCallback(async () => {
-    const rows = await fetchAllPages<Template>((p) =>
-      api.get(listUrl("/templates", { ...queryParams, page: p, limit: 200 }))
-    );
-    return buildExportRows(rows);
-  }, [queryParams, buildExportRows]);
 
   const openCreate = () => {
     setEditing(null);
@@ -298,25 +276,7 @@ function TemplatesListContent() {
         onPerPageChange={(n) => {
           setPerPage(n);
           setPage(1);
-        }} exportAction={
-          <ExportDropdown
-              tableId="templates"
-              columns={[
-                { key: "name", label: "Name" },
-                { key: "channel", label: "Channel" },
-                { key: "status", label: "Status" },
-                { key: "category", label: "Category" },
-                { key: "language", label: "Language" },
-                { key: "variables", label: "Variables" },
-                { key: "created", label: "Created" },
-              ]}
-              data={buildExportRows(templates)}
-              fetchAllRows={fetchAllExportRows}
-              title="Templates"
-              filename="templates-export"
-              disabled={templates.length === 0}
-            />
-        }
+        }}
       >
         {isLoading ? (
           <LoadingState variant="table" />

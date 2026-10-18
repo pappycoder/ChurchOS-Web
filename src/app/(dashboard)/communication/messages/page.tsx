@@ -249,7 +249,7 @@ function MessagesListContent() {
             />
           </div>
         ) : (
-          <Table>
+          <Table exportable>
             <TableHeader>
               <TableRow>
                 <TableHead>Phone</TableHead>

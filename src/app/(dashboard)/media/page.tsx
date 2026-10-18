@@ -1,7 +1,5 @@
 "use client";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
-
 import { ContentImage } from "@/components/shared/content-image";
 
 import * as React from "react";
@@ -371,7 +369,7 @@ function MediaLibraryContent() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between"><VisibleDataExport includeTables={false} label="Export visible lists" />
+        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <div className="flex h-8 items-center gap-1 rounded-md border border-input bg-background p-1">

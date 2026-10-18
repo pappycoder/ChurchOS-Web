@@ -1,7 +1,5 @@
 "use client";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
-
 import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { format } from "date-fns";
@@ -222,7 +220,7 @@ function InboxContent() {
             </nav>
           </aside>
 
-          <section data-collection aria-label="Message list" className={`min-w-0 flex-col lg:border-r ${mobileDetailOpen ? "hidden lg:flex" : "flex"}`}><VisibleDataExport includeTables={false} label="Export visible lists" />
+          <section data-collection aria-label="Message list" className={`min-w-0 flex-col lg:border-r ${mobileDetailOpen ? "hidden lg:flex" : "flex"}`}>
             <div className="flex items-center justify-between border-b px-5 py-5">
               <div>
                 <h3 className="font-semibold capitalize">{folder}</h3>

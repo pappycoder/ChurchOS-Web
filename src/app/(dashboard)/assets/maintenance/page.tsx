@@ -107,7 +107,7 @@ export default function AssetMaintenancePage() {
           </div>
         }
       >
-        <Table>
+        <Table exportable>
           <TableHeader>
             <TableRow>
               <TableHead>Asset</TableHead>
