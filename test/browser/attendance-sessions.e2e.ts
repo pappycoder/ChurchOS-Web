@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
+import { DEFAULT_PERMISSION_MATRIX } from "../../../ChurchOS-Backend/prisma/seeds/shared/permissions.seed";
 
 test.beforeEach(async ({ context }, info) => {
   const type = info.title.startsWith("department")
@@ -15,7 +16,7 @@ test.beforeEach(async ({ context }, info) => {
     },
   ]);
   await context.addInitScript(
-    ({ type, readonly, unowned }) => {
+    ({ type, readonly, unowned, usherPermissions }) => {
       const native = window.fetch.bind(window),
         owner = "owner-a",
         id = "context-a";
@@ -83,11 +84,11 @@ test.beforeEach(async ({ context }, info) => {
             branchId: "branch-a",
             memberId: owner,
             status: "active",
-            role: ["custom"],
-            isAdminHq: true,
+            role: [usherPermissions ? "usher" : "custom"],
+            isAdminHq: !usherPermissions,
             firstName: "Staff",
             lastName: "Test",
-            permissions: resources,
+            permissions: usherPermissions ?? resources,
           };
         else if (path.endsWith("/auth/session")) data = { userId: "user-a" };
         else if (path.endsWith("/attendance-sessions")) {
@@ -184,6 +185,9 @@ test.beforeEach(async ({ context }, info) => {
     },
     {
       type,
+      usherPermissions: info.title.startsWith("usher")
+        ? DEFAULT_PERMISSION_MATRIX.usher
+        : null,
       readonly: info.title.includes("readonly"),
       unowned: info.title.includes("unowned"),
     },
@@ -295,4 +299,29 @@ test("event check-in records total-only attendance without named details", async
       .getByRole("table", { name: "General attendance", exact: true })
       .getByRole("cell", { name: "40", exact: true }),
   ).toBeVisible();
+});
+
+test("usher can record general event attendance", async ({ page }) => {
+  await page.goto("/events/context-a");
+  await page
+    .getByRole("button", { name: "Record general attendance", exact: true })
+    .click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("Total attendance *", { exact: true }).fill("25");
+  await dialog
+    .getByRole("button", { name: "Save attendance", exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { sessionBody: { total: number } }).sessionBody
+          .total,
+    ),
+  ).toBe(25);
+});
+
+test("usher can open event creation", async ({ page }) => {
+  await page.goto("/events/new");
+  await expect(page.getByLabel("Title *", { exact: true })).toBeVisible();
 });

@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
+import { DEFAULT_PERMISSION_MATRIX } from "../../../ChurchOS-Backend/prisma/seeds/shared/permissions.seed";
 
 test.beforeEach(async ({ context }, info) => {
   await context.addCookies([
@@ -10,7 +11,7 @@ test.beforeEach(async ({ context }, info) => {
     },
   ]);
   await context.addInitScript(
-    ({ readOnly, createOnly, summaryAccess }) => {
+    ({ readOnly, createOnly, summaryAccess, usherPermissions }) => {
       const native = window.fetch.bind(window);
       const service = {
         serviceId: "service-a",
@@ -65,9 +66,9 @@ test.beforeEach(async ({ context }, info) => {
             status: "active",
             firstName: "Staff",
             lastName: "Test",
-            role: ["staff"],
+            role: [usherPermissions ? "usher" : "staff"],
             isAdminHq: false,
-            permissions: [
+            permissions: usherPermissions ?? [
               "attendance:services:read",
               ...(summaryAccess
                 ? [
@@ -163,6 +164,9 @@ test.beforeEach(async ({ context }, info) => {
       };
     },
     {
+      usherPermissions: info.title.startsWith("usher")
+        ? DEFAULT_PERMISSION_MATRIX.usher
+        : null,
       readOnly: info.title.startsWith("readonly"),
       createOnly: info.title.startsWith("createonly"),
       summaryAccess: info.title.startsWith("summary"),
@@ -365,4 +369,24 @@ test("summary report generator exports headcounts separately with one download a
   expect(content).toContain("Individual check-ins,3");
   expect(content).toContain("General headcount: Total,100");
   expect(content).toContain("General headcount: Age not supplied,40");
+});
+
+test("usher can open general attendance from service check-in", async ({
+  page,
+}) => {
+  await page.goto("/attendance/check-in");
+  await page.getByRole("combobox").first().click();
+  await page.getByRole("option", { name: /Family Service/ }).click();
+  await page
+    .getByRole("button", { name: "Record general attendance", exact: true })
+    .click();
+  await expect(
+    page.getByRole("dialog").getByLabel("Total attendance *", { exact: true }),
+  ).toBeVisible();
+});
+
+test("usher can open service creation", async ({ page }) => {
+  await page.goto("/attendance/services");
+  await page.getByRole("button", { name: "Add Service", exact: true }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
 });
