@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { usePermissions } from "@/hooks/use-permissions";
 
 // ─── Types ───────────────────────────────────────────────
 // Mirror the backend `analytics-response.dto.ts` shapes exactly.
@@ -133,37 +134,55 @@ export function periodLabel(date: string): string {
 // ─── Queries ─────────────────────────────────────────────
 
 export function useAnalyticsDashboard(params: AnalyticsDateRangeParams = {}) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["analytics", "dashboard", params],
-    queryFn: ({ signal }) => api.get<DashboardOverview>(`/analytics/dashboard${buildQuery(params)}`, { signal }),
+    enabled: can("analytics:dashboard", "read"),
+    queryFn: ({ signal }) =>
+      api.get<DashboardOverview>(`/analytics/dashboard${buildQuery(params)}`, {
+        signal,
+      }),
     staleTime: 3 * 60 * 1000,
   });
 }
 
 export function useAnalyticsGiving(
   params: AnalyticsDateRangeParams = {},
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["analytics", "giving", params],
-    queryFn: ({ signal }) => api.get<GivingAnalytics>(`/analytics/giving${buildQuery(params)}`, { signal }),
+    queryFn: ({ signal }) =>
+      api.get<GivingAnalytics>(`/analytics/giving${buildQuery(params)}`, {
+        signal,
+      }),
     staleTime: 5 * 60 * 1000,
-    enabled: options.enabled ?? true,
+    enabled: can("analytics:giving", "read") && (options.enabled ?? true),
   });
 }
 
 export function useAnalyticsAttendance(params: AnalyticsDateRangeParams = {}) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["analytics", "attendance", params],
-    queryFn: ({ signal }) => api.get<AttendanceAnalytics>(`/analytics/attendance${buildQuery(params)}`, { signal }),
+    enabled: can("analytics:attendance", "read"),
+    queryFn: ({ signal }) =>
+      api.get<AttendanceAnalytics>(
+        `/analytics/attendance${buildQuery(params)}`,
+        { signal },
+      ),
     staleTime: 3 * 60 * 1000,
   });
 }
 
 export function useAnalyticsMembers() {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["analytics", "members"],
-    queryFn: ({ signal }) => api.get<MemberAnalytics>(`/analytics/members`, { signal }),
+    enabled: can("analytics:members", "read"),
+    queryFn: ({ signal }) =>
+      api.get<MemberAnalytics>(`/analytics/members`, { signal }),
     staleTime: 10 * 60 * 1000,
   });
 }

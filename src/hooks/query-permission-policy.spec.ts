@@ -8,6 +8,7 @@ import { useFormSubmissions } from "./use-forms";
 import { useCurrentProfile } from "./use-profile";
 import { useEventRegistrations, useEventAttendance } from "./use-events";
 import { useFamiliesList } from "./use-families";
+import { useAnalyticsDashboard, useAnalyticsGiving, useAnalyticsAttendance, useAnalyticsMembers } from "./use-analytics";
 import { api } from "@/lib/api";
 
 const state = vi.hoisted(() => ({ grants: new Set<string>(), query: vi.fn((options: { enabled?: boolean; refetchOnWindowFocus?: boolean; refetchOnReconnect?: boolean }) => options) }));
@@ -17,6 +18,34 @@ vi.mock("@/lib/api", () => ({ api: { get: vi.fn() } }));
 
 describe("permission-gated queries", () => {
   beforeEach(() => { state.grants.clear(); state.query.mockClear(); });
+
+  it("does not request analytics without the matching effective grants", () => {
+    useAnalyticsDashboard();
+    useAnalyticsGiving();
+    useAnalyticsAttendance();
+    useAnalyticsMembers();
+    expect(state.query.mock.calls.map(([options]) => options.enabled)).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
+    state.query.mockClear();
+    for (const name of ["dashboard", "giving", "attendance", "members"])
+      state.grants.add(`analytics:${name}:read`);
+    useAnalyticsDashboard();
+    useAnalyticsGiving();
+    useAnalyticsAttendance();
+    useAnalyticsMembers();
+    useAnalyticsGiving({}, { enabled: false });
+    expect(state.query.mock.calls.map(([options]) => options.enabled)).toEqual([
+      true,
+      true,
+      true,
+      true,
+      false,
+    ]);
+  });
 
   it("does not fetch role administration data for unauthorized label consumers", () => {
     useRolesSummary(); useRolePermissions("secretary"); useAllPermissions();

@@ -1,3 +1,5 @@
+- **2026-10-18 — Analytics reserved for administrators.** Only church_admin/super_admin receive analytics permissions. Central effective-permission resolution removes analytics grants from every other role, including cached/custom overrides and HQ accounts. Migration `20261018210000_admin_only_analytics` removes existing non-admin role/override grants, permission cache namespace v25 replaces old grants, and frontend analytics queries require their own surface read grant.
+
 - **2026-10-18 — Usher event management.** Ushers receive full event CRUD, registration management and ticket management grants through the canonical permission template. Branch/HQ scoping and event history protections remain enforced. Apply `20261018200000_usher_event_management` to update existing global usher roles; cache namespace v24 prevents old grants surviving deployment. Browser fixtures remain local to the frontend repository.
 
 - **2026-10-18 — Independent CI checkouts and isolated E2E database.** Removed sibling-backend imports from browser tests in favor of a local scoped usher attendance fixture. Frontend builds and type checks can run from an isolated checkout.
