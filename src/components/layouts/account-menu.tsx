@@ -16,8 +16,8 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
   const { isMobile } = useSidebar();
   const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || "My account";
   const initials = `${profile?.firstName?.[0] ?? ""}${profile?.lastName?.[0] ?? ""}`.toUpperCase() || "U";
-  const avatar = <Avatar className="size-8 rounded-lg"><AvatarImage src={profile?.avatarUrl ?? ""} alt={name} /><AvatarFallback className="rounded-lg text-xs">{initials}</AvatarFallback></Avatar>;
-  const summary = <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{name}</span><span className="truncate text-xs text-muted-foreground">{profile?.email || profile?.role?.join(", ").replaceAll("_", " ")}</span></div>;
+  const avatar = <Avatar className="size-8 rounded-lg"><AvatarImage src={profile?.avatarUrl ?? ""} alt={name} /><AvatarFallback className="rounded-lg text-xs text-muted-foreground">{initials}</AvatarFallback></Avatar>;
+  const summary = <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{name}</span><span className="truncate text-xs text-muted-foreground [[data-sidebar=sidebar]_&]:text-sidebar-foreground/70">{profile?.email || profile?.role?.join(", ").replaceAll("_", " ")}</span></div>;
   const menu = <DropdownMenu>
     <DropdownMenuTrigger asChild>{placement === "sidebar" ? <SidebarMenuButton size="lg" aria-label="Account menu">{avatar}{summary}<ChevronsUpDown className="ms-auto size-4" /></SidebarMenuButton> : <Button variant="ghost" size="icon" aria-label="Account menu" disableTooltip>{avatar}</Button>}</DropdownMenuTrigger>
     <DropdownMenuContent className="w-64" side={placement === "sidebar" && !isMobile ? "right" : "bottom"} align="end" sideOffset={8}>

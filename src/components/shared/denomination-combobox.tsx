@@ -75,7 +75,7 @@ export function DenominationCombobox({
         <button
           type="button"
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm",
+            "flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm",
             "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}

@@ -607,7 +607,7 @@ export function Sidebar() {
       <SidebarMenuButton size="lg" asChild className="gap-2">
         <Link href="/dashboard" onClick={() => setOpenMobile(false)}>
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-background"><BrandLogo variant="mark" emblemClassName="size-7 dark:brightness-0 dark:invert" /></div>
-          <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{profile?.church?.name || "ChurchOS"}</span><span className="truncate text-xs text-muted-foreground">{profile?.isAdminHq ? "Headquarters workspace" : profile?.branch?.name || "Church workspace"}</span></div>
+          <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{profile?.church?.name || "ChurchOS"}</span><span className="truncate text-xs text-sidebar-foreground/70">{profile?.isAdminHq ? "Headquarters workspace" : profile?.branch?.name || "Church workspace"}</span></div>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem></SidebarMenu></SidebarHeader>

@@ -1,4 +1,5 @@
 import { addDesignedSheet, initializeWorkbook, type ExcelSheet } from "./excel-design";
+import { loadExportLogo, type ExportBranding } from "./export-branding";
 export interface ExportColumn {
   key: string;
   label: string;
@@ -15,20 +16,20 @@ function escapeCSV(value: string): string {
 export function exportCSV<T extends Record<string, unknown>>(
   data: T[],
   columns: ExportColumn[],
-  filename: string
+  filename: string,
+  branding?: ExportBranding,
 ): void {
-  const header = columns.map((c) => escapeCSV(c.label)).join(",");
+  const header = [...columns.map((c) => escapeCSV(c.label)), ...(branding ? ["Church", "Exported with"] : [])].join(",");
   const rows = data.map((row) =>
-    columns
-      .map((c) => escapeCSV(String(row[c.key] ?? "")))
-      .join(",")
+    [...columns.map((c) => escapeCSV(String(row[c.key] ?? ""))), ...(branding ? [escapeCSV(branding.churchName), "ChurchOS"] : [])].join(",")
   );
   const csv = [header, ...rows].join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${filename}.csv`;
+  const churchSlug = branding?.churchName.replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "").slice(0, 80);
+  a.download = `${churchSlug ? `${churchSlug}-` : ""}${filename}${branding ? "-churchos" : ""}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -42,6 +43,7 @@ export interface PdfReportSection {
 
 export interface PdfReportOptions {
   metadata?: import("@/lib/pdf-design").PdfMetadata[];
+  branding?: ExportBranding;
 }
 
 /** Builds a structured document; every section keeps its own column schema. */
@@ -59,14 +61,15 @@ export async function createReportPDF(
   const landscape = sections.some((section) => section.columns.length > 5);
   const doc = new jsPDF({ orientation: landscape ? "landscape" : "portrait", putOnlyUsedFonts: true });
   const assets = await preparePdf(doc);
+  const churchLogo = await loadExportLogo(options.branding);
   const generatedAt = new Date();
-  doc.setProperties({ title, author: "ChurchOS", creator: "ChurchOS", subject: "Church administration report" });
+  doc.setProperties({ title, author: options.branding?.churchName || "ChurchOS", creator: "ChurchOS", subject: "Church administration report" });
 
   sections.forEach((section, index) => {
     if (index) doc.addPage();
     const width = doc.internal.pageSize.getWidth();
     const usable = width - 28;
-    drawPdfHeader(doc, assets.logo);
+    drawPdfHeader(doc, assets.logo, "REPORT", options.branding, churchLogo);
     let y = 39;
     pdfLabel(doc, sections.length > 1 ? `SECTION ${index + 1} OF ${sections.length}` : "EXPORTED REPORT", 14, y);
     y += 9;
@@ -118,7 +121,7 @@ export async function createReportPDF(
       horizontalPageBreak: section.columns.length > 9,
       horizontalPageBreakRepeat: section.columns[0]?.key,
       willDrawPage: ({ pageNumber }) => {
-        drawPdfHeader(doc, assets.logo);
+        drawPdfHeader(doc, assets.logo, "REPORT", options.branding, churchLogo);
         if (pageNumber > 1) pdfText(doc, `${section.title} · continued`, 14, 32, usable, 8, true, colors.muted);
       },
       didParseCell: (cell) => {
@@ -127,14 +130,14 @@ export async function createReportPDF(
         if (!row) return;
         const populated = section.columns.filter((column) => row[column.key] !== undefined && row[column.key] !== null && row[column.key] !== "");
         if (populated.length === 1 && section.columns.length > 1) {
-          cell.cell.styles.fillColor = "#E8EFFB";
+          cell.cell.styles.fillColor = "#EAF1D8";
           cell.cell.styles.fontStyle = "bold";
           cell.cell.styles.textColor = colors.blue;
         }
         const firstValue = String(row[section.columns[0]?.key] ?? "");
         if (/^(grand total|total members|new in period|active members)$/i.test(firstValue)) {
           cell.cell.styles.fontStyle = "bold";
-          cell.cell.styles.fillColor = "#E8EFFB";
+          cell.cell.styles.fillColor = "#EAF1D8";
         }
         const raw = row[cell.column.dataKey];
         if (typeof raw === "number") cell.cell.styles.halign = "right";
@@ -160,17 +163,19 @@ export async function exportPDF(
   await exportReportPDF(title, [{ title, columns, data }], filename, options);
 }
 
-export async function createExcelWorkbook(sheets: ExcelSheet[]) {
+export async function createExcelWorkbook(sheets: ExcelSheet[], options: { branding?: ExportBranding } = {}) {
   const ExcelJS = await import("exceljs");
   const workbook = new ExcelJS.Workbook();
   initializeWorkbook(workbook);
-  sheets.forEach((sheet, index) => addDesignedSheet(workbook, sheet, index));
+  workbook.company = options.branding?.churchName || "ChurchOS";
+  const churchLogo = sheets.some((sheet) => !sheet.template) ? await loadExportLogo(options.branding) : undefined;
+  sheets.forEach((sheet, index) => addDesignedSheet(workbook, sheet, index, options.branding, churchLogo));
   // Keep the input sheet first, including when validation adds a hidden sheet.
   return workbook;
 }
 
-export async function exportExcel(sheets: ExcelSheet[], filename: string): Promise<void> {
-  const workbook = await createExcelWorkbook(sheets);
+export async function exportExcel(sheets: ExcelSheet[], filename: string, options: { branding?: ExportBranding } = {}): Promise<void> {
+  const workbook = await createExcelWorkbook(sheets, options);
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([new Uint8Array(buffer)], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
   const url = URL.createObjectURL(blob);

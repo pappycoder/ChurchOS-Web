@@ -37,6 +37,7 @@ import {
 } from "@/hooks/use-reports";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { useExportBranding } from "@/hooks/use-export-branding";
 import { usePermissions } from "@/hooks/use-permissions";
 import { exportReportPDF, exportExcel, exportCSV } from "@/lib/export-utils";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
@@ -86,6 +87,7 @@ function formatNaira(value: number): string {
 export default function ReportsGeneratorPage() {
   const { canAny, ready: permissionsReady } = usePermissions();
   const { data: profile } = useCurrentProfile();
+  const resolveBranding = useExportBranding();
   const isAdminHq = !!profile?.isAdminHq;
   const [blocks, setBlocks] = React.useState<ReportBlock[]>(["financial"]);
   const [range, setRange] = React.useState<ReportRange>({ startDate: "", endDate: "" });
@@ -166,13 +168,14 @@ export default function ReportsGeneratorPage() {
           const sheet = buildSheet(b);
           return { name: sheetName(b), columns: sheet.columns, data: sheet.rows, metadata: [{ label: "Period", value: rangeLabel }, { label: "Branch", value: branchLabel }] };
         });
-        await exportExcel(sheets, stamp);
+        await exportExcel(sheets, stamp, { branding: await resolveBranding() });
       } else {
         for (const b of blocks) {
           exportCSV(
             buildSheet(b).rows,
             buildSheet(b).columns,
-            `${sheetName(b).toLowerCase()}-report-${format(new Date(), "yyyyMMdd")}`
+            `${sheetName(b).toLowerCase()}-report-${format(new Date(), "yyyyMMdd")}`,
+            await resolveBranding(),
           );
         }
       }
@@ -258,7 +261,7 @@ export default function ReportsGeneratorPage() {
       "ChurchOS Reports",
       sections.map((section) => ({ title: section.title, columns: section.columns, data: section.rows })),
       `report-${format(new Date(), "yyyyMMdd")}`,
-      { metadata: [{ label: "Period", value: rangeLabel }, { label: "Branch", value: branchLabel }] },
+      { branding: await resolveBranding(), metadata: [{ label: "Period", value: rangeLabel }, { label: "Branch", value: branchLabel }] },
     );
   };
 

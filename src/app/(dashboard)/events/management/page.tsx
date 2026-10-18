@@ -67,6 +67,7 @@ import { VisitorCombobox } from "@/components/visitors/visitor-combobox";
 import { useCreateVisitor } from "@/hooks/use-visitors";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { useExportBranding } from "@/hooks/use-export-branding";
 import { useIsTicketMember } from "@/hooks/use-is-member";
 
 // ─── Status Badge ─────────────────────────────────────────
@@ -662,11 +663,12 @@ function assignedEventIds(tickets: AllTicketItem[]): Set<string> {
 
 function TicketRow({ ticket }: { ticket: AllTicketItem }) {
   const [downloading, setDownloading] = React.useState(false);
+  const resolveBranding = useExportBranding();
 
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await (await import("@/lib/ticket-pdf")).generateTicketPDF(ticket);
+      await (await import("@/lib/ticket-pdf")).generateTicketPDF(ticket, await resolveBranding());
       toast.success("Ticket PDF downloaded");
     } catch {
       toast.error("Failed to generate PDF");

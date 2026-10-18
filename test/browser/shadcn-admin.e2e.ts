@@ -36,6 +36,9 @@ test("Shadcn shell preserves permissions, collapsed navigation, search and theme
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/giving");
   await expect(page.getByRole("heading", { name: "Giving", exact: true })).toBeVisible();
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(252, 252, 249)");
+  await expect(page.locator('[data-sidebar="sidebar"]').first()).toHaveCSS("background-color", "rgb(23, 61, 62)");
+  await expect(page.locator('[data-slot="card"]').first()).toHaveCSS("background-color", "rgb(241, 245, 233)");
   const nav = page.getByRole("navigation", { name: "Workspace", exact: true });
   await expect(nav.getByRole("link", { name: "Dashboard", exact: true }).last()).toHaveAttribute("aria-current", "page");
   await expect(nav.getByRole("button", { name: "Members", exact: true })).toHaveCount(0);
@@ -47,6 +50,7 @@ test("Shadcn shell preserves permissions, collapsed navigation, search and theme
   await expect.poll(() => page.locator('[data-slot="chart"]').evaluate((chart) =>
     Array.from(chart.querySelectorAll("clipPath rect")).every((rect) => Number(rect.getAttribute("width")) > chart.getBoundingClientRect().width * 0.8),
   )).toBe(true);
+  await page.screenshot({ path: "/tmp/churchos-dashboard-light.png", fullPage: true });
   await expect(page.locator("body")).not.toHaveClass(/menu-horizontal|mini-sidebar/);
   await page.locator("header").getByRole("button", { name: "Toggle Sidebar", exact: true }).click();
   await expect(page.locator('[data-slot="sidebar"][data-state]')).toHaveAttribute("data-state", "collapsed");
@@ -61,6 +65,7 @@ test("Shadcn shell preserves permissions, collapsed navigation, search and theme
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Switch to dark mode", exact: true }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
+  await expect(page.locator(".recharts-cartesian-axis-tick-value").first()).toHaveCSS("fill", "rgb(185, 205, 189)");
   await page.screenshot({ path: testInfo.outputPath("shadcn-desktop-dark.png"), fullPage: true });
   await page.reload();
   await expect(page.getByRole("heading", { name: "Giving", exact: true })).toBeVisible();

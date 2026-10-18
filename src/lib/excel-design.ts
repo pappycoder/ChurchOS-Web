@@ -1,4 +1,5 @@
 import type { CellValue, Workbook, Worksheet } from "exceljs";
+import type { ExportBranding, ExportLogo } from "./export-branding";
 
 export interface ExcelColumn {
   key: string;
@@ -18,7 +19,7 @@ export interface ExcelSheet {
   inputRows?: number;
 }
 
-const colors = { navy: "FF14243C", blue: "FF2563EB", ink: "FF243449", muted: "FF64748B", soft: "FFF4F7FC", line: "FFE2E8F0", white: "FFFFFFFF" };
+const colors = { navy: "FF173D3E", blue: "FF526F4A", ink: "FF183B40", muted: "FF586D61", soft: "FFF1F5E9", line: "FFD3DED2", white: "FFFCFCF9" };
 
 function displayLabel(key: string): string {
   return key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
@@ -53,7 +54,7 @@ function addChoices(workbook: Workbook, values: string[]): string {
 }
 
 /** Reusable workbook styling and native spreadsheet controls. No macros. */
-export function addDesignedSheet(workbook: Workbook, spec: ExcelSheet, index: number): Worksheet {
+export function addDesignedSheet(workbook: Workbook, spec: ExcelSheet, index: number, branding?: ExportBranding, churchLogo?: ExportLogo): Worksheet {
   const keys = [...new Set(spec.data.flatMap((row) => Object.keys(row)))];
   const columns: ExcelColumn[] = spec.columns ? [...spec.columns] : keys.map((key) => ({ key, label: displayLabel(key) }));
   if (!columns.length) columns.push({ key: "record", label: "Record" });
@@ -71,18 +72,23 @@ export function addDesignedSheet(workbook: Workbook, spec: ExcelSheet, index: nu
 
   if (!spec.template) {
     sheet.mergeCells(1, 1, 1, titleWidth);
-    sheet.getCell("A1").value = `ChurchOS  /  ${spec.name}`;
-    sheet.getRow(1).height = 42;
+    sheet.getCell("A1").value = `${branding?.churchName || "ChurchOS"}  /  ${spec.name}`;
+    sheet.getRow(1).height = branding ? 64 : 42;
     sheet.getCell("A1").fill = { type: "pattern", pattern: "solid", fgColor: { argb: colors.navy } };
     sheet.getCell("A1").font = { name: "Aptos Display", size: 20, bold: true, color: { argb: colors.white } };
-    sheet.getCell("A1").alignment = { vertical: "middle", indent: 1 };
+    sheet.getCell("A1").alignment = { vertical: "middle", indent: churchLogo ? 7 : 1, wrapText: true };
+    if (churchLogo) {
+      const scale = 44 / Math.max(churchLogo.width, churchLogo.height);
+      const id = workbook.addImage({ base64: churchLogo.dataUrl, extension: "png" });
+      sheet.addImage(id, { tl: { col: 0.1, row: 0.15 }, ext: { width: churchLogo.width * scale, height: churchLogo.height * scale }, editAs: "absolute" });
+    }
     sheet.mergeCells(2, 1, 2, titleWidth);
     sheet.getCell("A2").value = [...(spec.metadata ?? []).map((item) => `${item.label}: ${item.value}`), `Generated: ${new Date().toLocaleDateString("en-NG")}`].join("  |  ");
     sheet.getRow(2).height = 28;
     sheet.getCell("A2").font = { name: "Aptos", size: 10, color: { argb: colors.muted } };
     sheet.getCell("A2").alignment = { vertical: "middle", wrapText: true, indent: 1 };
     sheet.mergeCells(3, 1, 3, titleWidth);
-    sheet.getCell("A3").value = "Use the column arrows to sort and filter. Dropdown cells offer choices. Edits stay in this workbook.";
+    sheet.getCell("A3").value = "Powered by ChurchOS · Use the column arrows to sort and filter. Dropdown cells offer choices. Edits stay in this workbook.";
     sheet.getCell("A3").font = { name: "Aptos", size: 10, color: { argb: colors.muted } };
     sheet.getCell("A3").alignment = { wrapText: true, vertical: "middle", indent: 1 };
     sheet.getRow(3).height = 32;
@@ -98,7 +104,7 @@ export function addDesignedSheet(workbook: Workbook, spec: ExcelSheet, index: nu
     sheet.autoFilter = { from: { row: 1, column: 1 }, to: { row: Math.max(2, rows.length + 1), column: columns.length } };
   } else if (rows.length) {
     const tableName = `ChurchOSData${index + 1}`;
-    sheet.addTable({ name: tableName, ref: `A${headerRow}`, headerRow: true, totalsRow: false, style: { theme: "TableStyleMedium2", showRowStripes: true }, columns: labels.map((name) => ({ name, filterButton: true })), rows });
+    sheet.addTable({ name: tableName, ref: `A${headerRow}`, headerRow: true, totalsRow: false, style: { theme: "TableStyleMedium4", showRowStripes: true }, columns: labels.map((name) => ({ name, filterButton: true })), rows });
     const endRow = startRow + rows.length - 1;
     const countColumn = sheet.getColumn(Math.max(3, columns.length + 1));
     countColumn.hidden = true;

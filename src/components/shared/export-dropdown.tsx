@@ -1,6 +1,7 @@
 "use client";
 
 import { useVisibleExportColumns } from "@/contexts/table-columns-context";
+import { useExportBranding } from "@/hooks/use-export-branding";
 import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { Download, FileText, FileSpreadsheet, FileDown } from "lucide-react";
@@ -38,6 +39,7 @@ export function ExportDropdown({
   fetchAllRows,
 }: ExportDropdownProps) {
   const columns = useVisibleExportColumns(tableId, allColumns);
+  const resolveBranding = useExportBranding();
   const [loading, setLoading] = React.useState<"csv" | "pdf" | "xlsx" | null>(null);
 
   const resolveRows = async (): Promise<Record<string, unknown>[]> => {
@@ -58,7 +60,9 @@ export function ExportDropdown({
   const handleCSV = async () => {
     setLoading("csv");
     try {
-      exportCSV(await resolveRows(), columns, filename);
+      exportCSV(await resolveRows(), columns, filename, await resolveBranding());
+    } catch (error) {
+      toast.error("CSV export failed", { description: getToastErrorMessage(error, "Please try again.") });
     } finally {
       setLoading(null);
     }
@@ -67,7 +71,7 @@ export function ExportDropdown({
   const handlePDF = async () => {
     setLoading("pdf");
     try {
-      await exportPDF(title, columns, await resolveRows(), filename);
+      await exportPDF(title, columns, await resolveRows(), filename, { branding: await resolveBranding() });
     } catch (error) {
       toast.error("PDF export failed", { description: getToastErrorMessage(error, "Please try again.") });
     } finally {
@@ -78,7 +82,7 @@ export function ExportDropdown({
   const handleExcel = async () => {
     setLoading("xlsx");
     try {
-      await exportExcel([{ name: title, columns, data: await resolveRows() }], filename);
+      await exportExcel([{ name: title, columns, data: await resolveRows() }], filename, { branding: await resolveBranding() });
     } catch (error) {
       toast.error("Excel export failed", { description: getToastErrorMessage(error, "Please try again.") });
     } finally {

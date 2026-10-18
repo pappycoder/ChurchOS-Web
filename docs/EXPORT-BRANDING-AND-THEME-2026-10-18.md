@@ -1,0 +1,16 @@
+# Church identity in exports and the dashboard palette
+
+Record exports use the signed-in church's name and uploaded logo, while retaining ChurchOS as the producing application. The shared dropdown, visible collection exports, composed reports and event passes all resolve branding from the existing current-profile query. A matching church-settings cache can supply a recently updated name/logo. Exports never require church-settings permissions or a separate settings request, and branding is not cached globally across churches.
+
+- PDF reports and event passes show the church name/logo in the repeated header and “Powered by ChurchOS” in the document. PDF author identifies the church; creator remains ChurchOS.
+- Excel reports include the church identity/logo in their header, ChurchOS attribution and print footer. Workbook company identifies the church; creator remains ChurchOS. Existing filters, formulas, row types and column choices remain available.
+- CSVs retain the original data columns and append Church and Exported with fields. Filenames also identify the church and ChurchOS, including empty exports. CSV cannot embed a logo. Existing spreadsheet-formula escaping applies to church names as well as data values.
+- Import templates retain their first-row machine-readable headers. Offline recovery backups and authentication recovery-code files are not report exports and retain their existing formats.
+
+Browser logo loading accepts PNG/JPEG/WebP, has a five-second timeout, caps downloads at 2 MB and decodes/resizes to at most 256px. Missing, unavailable, unsupported or CORS-blocked images fall back to the church's name. Static app PDF fonts/assets remain shared; church branding remains local to each export. Logos use their original aspect ratio.
+
+Backend giving receipts use the same visual identity. Their logo downloader only accepts the configured Supabase storage origin and public church upload path belonging to the receipt's church. It rejects redirects, caps bytes/time and converts raster PNG/JPEG/WebP with an input-pixel limit. There is no arbitrary server-side image URL fetch. A failed optional logo never prevents receipt generation. Deploy the backend for receipt changes; no schema migration is required.
+
+The app theme now follows the landing page's dashboard illustration: workspace `#fcfcf9`, sidebar `#173d3e`, text/actions `#183b40`, soft-green cards `#f1f5e9`, secondary panels `#eaf1d8`, active navigation `#345654` with `#e0f3ac` text, and lime accents `#d6ed97`. These shared semantic tokens cover cards, tables, inputs, dialogs, menus and charts. Dark mode uses related dark-teal surfaces and pale-green text/accent colours. Sidebar captions, account initials and outline styles use compatible tokens. Chart tick styling supports the installed Recharts label structure. QR-code backgrounds remain light for scanning.
+
+Validation includes production builds for both repositories, frontend type checking/scoped lint and 303 frontend unit tests, 85 backend giving/receipt tests, and browser downloads inspecting actual CSV/PDF/XLSX files for uploaded/missing/broken logos using a read-only role. Browser checks also cover exact light-mode surface colours, dark chart-label contrast, keyboard navigation, sidebar behaviour and mobile layouts. Desktop light/dark screenshots are visually reviewed.

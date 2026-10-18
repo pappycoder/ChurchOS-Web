@@ -3,17 +3,19 @@ import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
 import { format } from "date-fns";
 import type { AllTicketItem } from "@/hooks/use-events";
+import { loadExportLogo, type ExportBranding } from "./export-branding";
 import { PDF_COLORS as colors, PDF_FONT, preparePdf, pdfText, pdfLabel, drawPdfHeader, drawPdfFooters } from "@/lib/pdf-design";
 
 /** A compact, printable admission pass. QR payload and ticket data are unchanged. */
-export async function createTicketPDF(ticket: AllTicketItem) {
+export async function createTicketPDF(ticket: AllTicketItem, branding?: ExportBranding) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a5", putOnlyUsedFonts: true });
   const [assets, qrDataUrl] = await Promise.all([
     preparePdf(doc),
     QRCode.toDataURL(ticket.code, { width: 480, margin: 4, errorCorrectionLevel: "M", color: { dark: colors.navy, light: colors.white } }),
   ]);
-  doc.setProperties({ title: `${ticket.eventName} - Event pass`, author: "ChurchOS", subject: `Ticket ${ticket.code}` });
-  drawPdfHeader(doc, assets.logo, "EVENT PASS");
+  const churchLogo = await loadExportLogo(branding);
+  doc.setProperties({ title: `${ticket.eventName} - Event pass`, author: branding?.churchName || "ChurchOS", creator: "ChurchOS", subject: `Ticket ${ticket.code}` });
+  drawPdfHeader(doc, assets.logo, "EVENT PASS", branding, churchLogo);
   pdfLabel(doc, "YOU'RE INVITED", 14, 36);
 
   // Fit the heading into its own area; retain unusually long names in the details.
@@ -44,7 +46,7 @@ export async function createTicketPDF(ticket: AllTicketItem) {
     styles: { font: PDF_FONT, fontSize: 9, cellPadding: { top: 2.3, bottom: 2.3, left: 0, right: 3 }, textColor: colors.ink, overflow: "linebreak" },
     columnStyles: { 0: { cellWidth: 24, textColor: colors.muted, fontSize: 7, fontStyle: "bold" }, 1: { fontStyle: "bold" } },
     rowPageBreak: "avoid",
-    willDrawPage: () => drawPdfHeader(doc, assets.logo, "EVENT PASS"),
+    willDrawPage: () => drawPdfHeader(doc, assets.logo, "EVENT PASS", branding, churchLogo),
   });
 
   doc.setPage(1);
@@ -68,7 +70,7 @@ export async function createTicketPDF(ticket: AllTicketItem) {
   return doc;
 }
 
-export async function generateTicketPDF(ticket: AllTicketItem): Promise<void> {
-  const doc = await createTicketPDF(ticket);
+export async function generateTicketPDF(ticket: AllTicketItem, branding?: ExportBranding): Promise<void> {
+  const doc = await createTicketPDF(ticket, branding);
   doc.save(`ticket-${ticket.code}.pdf`);
 }
