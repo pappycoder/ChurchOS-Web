@@ -105,6 +105,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/admin/users", permission: "users:read", allOf: ["profiles:read"] },
   { prefix: "/admin/roles", permission: "roles:read" },
   { prefix: "/admin/settings", permission: "church_settings:update" },
+  { prefix: "/admin/integrations", permission: "integrations:read" },
   { prefix: "/admin/branches", permission: "branches:directory:read" },
 
   // Analytics permissions align with the individual backend endpoints.

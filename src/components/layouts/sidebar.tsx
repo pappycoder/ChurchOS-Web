@@ -22,6 +22,7 @@ import {
   Film,
   Heart,
   Settings,
+  Plug,
   UserCog,
   MessageSquare,
   Mail,
@@ -428,6 +429,12 @@ const navItems: { section: string; items: NavItem[] }[] = [
         permission: "church_settings:update",
       },
       {
+        title: "Integrations",
+        href: "/admin/integrations",
+        icon: Plug,
+        permission: "integrations:read",
+      },
+      {
         title: "Branches",
         href: "/admin/branches",
         icon: Building2,
@@ -494,6 +501,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Forms: ClipboardList,
   Reports: FileBarChart,
   "Church Settings": Settings,
+  Integrations: Plug,
   Analytics: BarChart3,
   Families: Users,
   Services: CalendarCheck,

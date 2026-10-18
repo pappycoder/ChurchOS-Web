@@ -1,9 +1,9 @@
 import { expect, test, type BrowserContext } from "@playwright/test";
 import providers from "../fixtures/provider-catalog.json";
 
-async function session(context: BrowserContext, grants: string[], role = "church_admin") {
+async function session(context: BrowserContext, grants: string[], role = "church_admin", settingsAccess = true) {
   await context.addCookies([{ name: "churchos_token", value: "integration-browser-test", url: "http://127.0.0.1:3107" }]);
-  await context.addInitScript(({ grants, role, providers }) => {
+  await context.addInitScript(({ grants, role, providers, settingsAccess }) => {
     const original = window.fetch.bind(window);
     const accounts = [
       { id: "11111111-1111-4111-8111-111111111111", provider: "resend", label: "Church email", verification_status: "verified", verified_at: null, archived_at: null },
@@ -22,7 +22,7 @@ async function session(context: BrowserContext, grants: string[], role = "church
       requests.push({ path, method, body });
       let data: unknown = { data: [], total: 0 };
       if (path.endsWith("/auth/session")) data = { userId: "test-user", email: "admin@example.org" };
-      else if (path.endsWith("/profiles/me")) data = { userId: "test-user", profileId: "profile-a", churchId: "church-a", role: [role], phone: "+12345678901", firstName: "Staff", lastName: "User", status: "active", isAdminHq: true, permissions: ["church:read", "church_settings:update", "members:all:read", ...grants] };
+      else if (path.endsWith("/profiles/me")) data = { userId: "test-user", profileId: "profile-a", churchId: "church-a", role: [role], phone: "+12345678901", firstName: "Staff", lastName: "User", status: "active", isAdminHq: true, permissions: ["church:read", ...(settingsAccess ? ["church_settings:update"] : []), "members:all:read", ...grants] };
       else if (path.endsWith("/church")) data = { churchId: "church-a", name: "Test church", country: "Nigeria", memberCount: 1, branchCount: 1 };
       else if (path.endsWith("/church/config")) data = { config: {} };
       else if (path.endsWith("/church/integrations")) data = { providers, accounts, channels };
@@ -39,9 +39,37 @@ async function session(context: BrowserContext, grants: string[], role = "church
       else if (path.endsWith("/roles") || path.endsWith("/roles/labels")) data = [];
       return new Response(JSON.stringify({ success: true, data }), { headers: { "Content-Type": "application/json" } });
     };
-  }, { grants, role, providers });
+  }, { grants, role, providers, settingsAccess });
 }
-async function openSettings(page: import("@playwright/test").Page) { await page.goto("/admin/settings"); await page.getByRole("tab", { name: "Integrations", exact: true }).click(); }
+async function openSettings(page: import("@playwright/test").Page) { await page.goto("/admin/integrations"); }
+
+for (const role of ["church_admin", "super_admin"]) test(`${role} can find integrations directly without church-settings access`, async ({ page, context }) => {
+  await session(context, ["integrations:read", "integrations:update"], role, false);
+  await page.goto("/docs");
+  const link = page.getByRole("navigation", { name: "Workspace", exact: true }).getByRole("link", { name: "Integrations", exact: true });
+  await expect(link).toHaveAttribute("href", "/admin/integrations");
+  await link.click();
+  await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save provider account", exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
+});
+
+test("church settings still exposes the integrations tab", async ({ page, context }) => {
+  await session(context, ["integrations:read", "integrations:update"]);
+  await page.goto("/admin/settings");
+  await page.getByRole("tab", { name: "Integrations", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
+});
+
+test("HQ staff without integration permissions cannot open the page or fetch credentials settings", async ({ page, context }) => {
+  await session(context, [], "usher", false);
+  await page.goto("/admin/integrations");
+  await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("navigation", { name: "Workspace", exact: true }).getByRole("link", { name: "Integrations", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Access denied", exact: true })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { integrationRequests: { path: string }[] }).integrationRequests.some(row => row.path.includes("/church/integrations")))).toBe(false);
+});
 
 test("provider forms request the correct credential fields and clear failed submissions", async ({ page, context }) => {
   await session(context, ["integrations:read", "integrations:update"]); await openSettings(page);
