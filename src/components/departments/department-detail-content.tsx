@@ -5,14 +5,10 @@ import { format, parseISO } from "date-fns";
 import { toast } from "@/lib/toast";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { DepartmentAttendancePanel } from "./department-attendance-panel";
-import { Building2, UserPlus, X } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from "@/components/ui/sheet";
+import { ArrowLeft, UserPlus, X } from "lucide-react";
+import { PageHeader } from "@/components/shared/page-header";
+import { PermissionLink } from "@/components/shared/permission-link";
+import { ErrorState } from "@/components/shared/error-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -45,17 +41,7 @@ function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
   );
 }
 
-interface DepartmentDetailDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  departmentId: string;
-}
-
-export function DepartmentDetailDrawer({
-  open,
-  onOpenChange,
-  departmentId,
-}: DepartmentDetailDrawerProps) {
+export function DepartmentDetailContent({ departmentId }: { departmentId: string }) {
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Department heads manage members only in the department they head (the
@@ -63,7 +49,8 @@ export function DepartmentDetailDrawer({
   // also gated on ownership for any department head.
   const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
   const canUpdate = can("departments", "update");
-  const { data: department, isLoading, error } = useDepartment(open ? departmentId : "");
+  const query = useDepartment(departmentId);
+  const { data: department, isLoading, error } = query;
   const isOwnDepartment =
     isDepartmentHead && !!profile?.memberId && department?.headMemberId === profile.memberId;
   const addMember = useAddDepartmentMember(departmentId);
@@ -72,14 +59,6 @@ export function DepartmentDetailDrawer({
   const [memberId, setMemberId] = React.useState("");
   const [selectedMemberName, setSelectedMemberName] = React.useState("");
   const [role, setRole] = React.useState("member");
-
-  React.useEffect(() => {
-    if (open) {
-      setMemberId("");
-      setSelectedMemberName("");
-      setRole("member");
-    }
-  }, [open]);
 
   const handleAdd = () => {
     if (!memberId) return;
@@ -113,17 +92,13 @@ export function DepartmentDetailDrawer({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto p-5">
-        <SheetHeader className="px-0 py-0">
-          <SheetTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            {isLoading ? "Department" : department?.name}
-          </SheetTitle>
-        </SheetHeader>
-
+    <div className="space-y-6">
+      <PageHeader title={department?.name ?? "Department"} breadcrumbs={[
+        { label: "Departments", href: "/departments" },
+        { label: department?.name ?? "Department" },
+      ]} action={<Button variant="outline" asChild><PermissionLink href="/departments"><ArrowLeft className="h-4 w-4" /> Back to departments</PermissionLink></Button>} />
         {error ? (
-          <p className="text-sm text-red-600">Failed to load department.</p>
+          <ErrorState title="Could not load department" onRetry={() => void query.refetch()} />
         ) : isLoading || !department ? (
           <div className="space-y-4 mt-6">
             <Skeleton className="h-6 w-3/4" />
@@ -214,12 +189,6 @@ export function DepartmentDetailDrawer({
           </div>
         )}
 
-        <SheetFooter className="mt-6 px-0 py-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+    </div>
   );
 }

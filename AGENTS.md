@@ -16,6 +16,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Changelog
 
+- **2026-10-18 — Department detail pages and group-only giving.** Department list links now navigate to `/departments/[departmentId]` with a permission-gated, refreshable detail page containing the existing roster, attendance, filters and exports. Removed the department drawer and dashboard/group-list giving workspace; giving remains only on the individual cell-group route with existing ownership checks. Removed unused workspace code, avoiding background group/giving fetches on the dashboard. Browser regressions cover navigation, direct reload and giving placement.
+
 - **2026-10-17 — Group ownership, HQ creation, department meetings and read-based exports.** Group-giving writes now check leadership even under HQ and on manual entry. HQ own-update department grants derive creation centrally; group creation validates church/branch/leader assignments. Added scoped department member/visitor meeting attendance, date/status/search tables and exports. All shared tables and visible dashboard collections have read-only exports; branch heads/leaders can export readable lists. Apply `20261017190000_department_meeting_attendance` before deployment. See docs/GROUP-MEETINGS-AND-EXPORTS-2026-10-17.md for rules, export limits and verification.
 
 - **2026-10-17 — Seeded login picker restored for deployed testing.** At the user’s request, the seeded-account dropdown is visible in all builds again. Selection fills the existing seeded email/password without submitting or bypassing authentication. Updated the production browser regression. This temporarily re-exposes seeded credentials and must be removed or disabled when testing ends.

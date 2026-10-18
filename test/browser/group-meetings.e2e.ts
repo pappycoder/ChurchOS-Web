@@ -34,7 +34,9 @@ test.beforeEach(async ({ context }, info) => {
 });
 async function openDepartment(page: import("@playwright/test").Page) {
   await page.goto("/departments");
-  await page.getByText("Choir",{exact:true}).first().click();
+  await page.getByRole("link",{name:"Choir",exact:true}).click();
+  await expect(page).toHaveURL(/\/departments\/dept-a$/);
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(page.getByText("Department meeting attendance (2)",{exact:true})).toBeVisible();
 }
 test("hq head can create departments and record their department meeting attendance",async({page})=>{
@@ -118,4 +120,16 @@ test("readonly report generator has one download action for the chosen format",a
   await main.getByRole("button",{name:"XLSX One sheet per block",exact:true}).click();
   await expect(main.getByRole("button",{name:/^Download /})).toHaveCount(1);
   await expect(main.getByRole("button",{name:"Download XLSX",exact:true})).toBeEnabled();
+});
+
+test("readonly department details open directly and retain attendance exports after refresh", async ({ page }) => {
+  await page.goto("/departments/dept-a");
+  await expect(page.getByRole("heading", { name: "Choir", exact: true })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Department meeting attendance", exact: true })).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Record meeting attendance", exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole("table", { name: "Department meeting attendance", exact: true })).toBeVisible();
+  await page.getByRole("link", { name: "Back to departments", exact: true }).click();
+  await expect(page).toHaveURL(/\/departments$/);
 });

@@ -2,6 +2,8 @@
 
 import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
+import { useRouter } from "next/navigation";
+import { PermissionLink } from "@/components/shared/permission-link";
 import { Building2, Pencil, Plus, Trash2, Users, RotateCcw, Archive } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BranchFilter } from "@/components/shared/branch-filter";
@@ -29,7 +31,6 @@ import { ExportDropdown } from "@/components/shared/export-dropdown";
 import type { ExportColumn } from "@/lib/export-utils";
 import { DepartmentFormDialog } from "@/components/departments/department-form-dialog";
 import { DeleteDepartmentDialog } from "@/components/departments/delete-department-dialog";
-import { DepartmentDetailDrawer } from "@/components/departments/department-detail-drawer";
 import {
   useDepartmentsList,
   useArchiveDepartment,
@@ -48,6 +49,7 @@ const EXPORT_COLUMNS: ExportColumn[] = [
 ];
 
 export default function DepartmentsPage() {
+  const router = useRouter();
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Department heads only ever see the department they head (backend-scoped);
@@ -70,8 +72,6 @@ export default function DepartmentsPage() {
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [branchId, setBranchId] = React.useState("");
-  const [drawerOpen, setDrawerOpen] = React.useState(false);
-  const [detailDepartment, setDetailDepartment] = React.useState<Department | null>(null);
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Department | null>(null);
   const [deleting, setDeleting] = React.useState<Department | null>(null);
@@ -135,8 +135,7 @@ export default function DepartmentsPage() {
   );
 
   const openDetail = (department: Department) => {
-    setDetailDepartment(department);
-    setDrawerOpen(true);
+    router.push(`/departments/${department.id}`);
   };
 
   return (
@@ -258,8 +257,8 @@ export default function DepartmentsPage() {
                 const parent = (departments ?? []).find((d) => d.id === department.parentId);
                 return (
                   <TableRow key={department.id} className="cursor-pointer">
-                    <TableCell onClick={() => openDetail(department)}>
-                      <p className="font-medium">{department.name}</p>
+                    <TableCell>
+                      <PermissionLink href={`/departments/${department.id}`} className="font-medium hover:underline">{department.name}</PermissionLink>
                       {department.description && (
                         <p className="text-xs text-muted-foreground line-clamp-1 max-w-md">
                           {department.description}
@@ -378,12 +377,6 @@ export default function DepartmentsPage() {
           </TableBody>
         </Table>
       </TableCard>
-
-      <DepartmentDetailDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        departmentId={detailDepartment?.id ?? ""}
-      />
 
       {formOpen && (
         <DepartmentFormDialog

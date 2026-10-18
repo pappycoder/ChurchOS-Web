@@ -119,3 +119,17 @@ test("leader attendance filters and exports respect the selected records", async
   const download = await pending; const csv = await fs.readFile((await download.path())!, "utf8");
   expect(csv).toContain("Alice Cell"); expect(csv).not.toContain("Visitor Cell");
 });
+
+test("leader giving appears only on the individual cell group page", async ({ page }) => {
+  for (const path of ["/dashboard", "/departments/cell-groups"]) {
+    await page.goto(path);
+    await expect(page.getByRole("heading", { name: path === "/dashboard" ? "Dashboard" : "Cell Groups", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Record Meeting Giving", exact: true })).toHaveCount(0);
+    await expect(page.getByText("My Cell Group Giving", { exact: true })).toHaveCount(0);
+    const calls = await page.evaluate(() => (window as unknown as { __cellGivingCalls: string[] }).__cellGivingCalls);
+    expect(calls.some(path => path.includes("/giving/cell-groups/"))).toBe(false);
+    if (path === "/dashboard") expect(calls.some(path => path.includes("/admin/cell-groups"))).toBe(false);
+  }
+  await page.goto(`/departments/cell-groups/${groupId}`);
+  await expect(page.getByRole("button", { name: "Record Meeting Giving", exact: true })).toBeVisible();
+});
