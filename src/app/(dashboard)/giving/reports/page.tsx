@@ -113,25 +113,7 @@ export default function GivingReportsPage() {
           { label: "Giving", href: "/giving" },
           { label: "Reports" },
         ]}
-        action={
-          <ExportDropdown
-            columns={[
-              { key: "date", label: "Date" },
-              { key: "name", label: "Name" },
-              { key: "linkedTo", label: "Linked To" },
-              { key: "category", label: "Category" },
-              { key: "amount", label: "Amount" },
-              { key: "currency", label: "Currency" },
-              { key: "method", label: "Method" },
-              { key: "receiptNumber", label: "Receipt #" },
-            ]}
-            data={exportData}
-            fetchAllRows={async () => exportData}
-            title={`Giving Report${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
-            filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
-            disabled={!rows || rows.length === 0}
-          />
-        }
+
       />
 
       {/* Date range */}
@@ -206,7 +188,23 @@ export default function GivingReportsPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* By category */}
         <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2"><ExportDropdown
+            columns={[
+              { key: "date", label: "Date" },
+              { key: "name", label: "Name" },
+              { key: "linkedTo", label: "Linked To" },
+              { key: "category", label: "Category" },
+              { key: "amount", label: "Amount" },
+              { key: "currency", label: "Currency" },
+              { key: "method", label: "Method" },
+              { key: "receiptNumber", label: "Receipt #" },
+            ]}
+            data={exportData}
+            fetchAllRows={async () => exportData}
+            title={`Giving Report${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
+            filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
+            disabled={!rows || rows.length === 0}
+          />
             <CardTitle className="text-sm font-semibold">By Category</CardTitle>
             <CardDescription>Amount per giving category in range.</CardDescription>
           </CardHeader>

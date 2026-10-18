@@ -206,25 +206,6 @@ function SermonsListContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Sermons" }]}
         action={
           <div className="flex items-center gap-2">
-            {canAny("sermons:list:read") && (
-              <ExportDropdown
-              tableId="sermons"
-                columns={[
-                  { key: "title", label: "Title" },
-                  { key: "speaker", label: "Speaker" },
-                  { key: "date", label: "Date" },
-                  { key: "series", label: "Series" },
-                  { key: "scripture", label: "Scripture" },
-                  { key: "duration", label: "Duration" },
-                  { key: "tags", label: "Tags" },
-                ]}
-                data={buildExportRows(sermons)}
-                fetchAllRows={fetchAllExportRows}
-                title="Sermons"
-                filename="sermons-export"
-                disabled={sermons.length === 0}
-              />
-            )}
             {canCreate && (
               <Button onClick={() => router.push("/sermons/new")}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -320,7 +301,25 @@ function SermonsListContent() {
         onPerPageChange={(n) => {
           setPerPage(n);
           setPage(1);
-        }}
+        }} exportAction={
+          <ExportDropdown
+              tableId="sermons"
+                columns={[
+                  { key: "title", label: "Title" },
+                  { key: "speaker", label: "Speaker" },
+                  { key: "date", label: "Date" },
+                  { key: "series", label: "Series" },
+                  { key: "scripture", label: "Scripture" },
+                  { key: "duration", label: "Duration" },
+                  { key: "tags", label: "Tags" },
+                ]}
+                data={buildExportRows(sermons)}
+                fetchAllRows={fetchAllExportRows}
+                title="Sermons"
+                filename="sermons-export"
+                disabled={sermons.length === 0}
+              />
+        }
       >
         {isLoading ? (
           <LoadingState variant="table" />

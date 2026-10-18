@@ -1,27 +1,24 @@
 "use client";
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
+import { ChurchAttendanceRoster } from "@/components/attendance/church-attendance-roster";
 
 import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
   Calendar,
-  Check,
   Loader2,
-  Search,
   UserPlus,
   Users,
-  X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -48,11 +45,6 @@ import {
   useEventAttendance,
   EVENT_TYPE_MAP,
 } from "@/hooks/use-events";
-import {
-  useMembersList,
-  useSearchMembers,
-  type Member,
-} from "@/hooks/use-members";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const walkInSchema = z.object({
@@ -71,10 +63,12 @@ type WalkInFormValues = z.infer<typeof walkInSchema>;
 
 export default function EventsCheckInPage() {
   const { can } = usePermissions();
+  const [checkingIn, setCheckingIn] = React.useState(false);
   const canCreate = can("events:checkin", "create");
 
   // Event selector.
-  const eventsQuery = useEventsList({ limit: 50, sortBy: "startDate", sortOrder: "asc" });
+  const eventsQuery = useEventsList({ limit: 50, sortBy: "startDate", sortOrder: "asc",
+  });
   const events = eventsQuery.data?.data ?? [];
   const [eventId, setEventId] = React.useState("");
 
@@ -83,62 +77,7 @@ export default function EventsCheckInPage() {
   // Mode switch.
   const [mode, setMode] = React.useState<"members" | "walkIn">("members");
 
-  // ─── Roster mode ────────────────────────────────────────
-  const [searchInput, setSearchInput] = React.useState("");
-  const [search, setSearch] = React.useState("");
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput.trim()), 400);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  const [rosterLimit, setRosterLimit] = React.useState(50);
-  const rosterQuery = useMembersList({
-    page: 1,
-    limit: rosterLimit,
-    status: "active",
-  });
-  const searchQuery = useSearchMembers(search, 50);
-
-  const searching = search.trim().length >= 2;
-  const members: Member[] = searching
-    ? (searchQuery.data?.data ?? [])
-    : (rosterQuery.data?.data ?? []);
-  const rosterTotal = searching ? members.length : (rosterQuery.data?.meta?.total ?? 0);
-  const hasMoreRoster =
-    !searching && rosterTotal > rosterLimit && !rosterQuery.isLoading;
-
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const bulkMutation = useBulkCheckIn(eventId);
-
-  const toggleMember = (memberId: string, checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(memberId);
-      else next.delete(memberId);
-      return next;
-    });
-  };
-
-  const handleBulkSubmit = async () => {
-    if (!eventId || selectedIds.size === 0) return;
-    try {
-      const result = await bulkMutation.mutateAsync({
-        memberIds: Array.from(selectedIds),
-      });
-      toast.success(`${result.checkedIn} checked in`, {
-        description:
-          result.skipped > 0
-            ? `${result.skipped} skipped — already checked in for this event.`
-            : undefined,
-      });
-      setSelectedIds(new Set());
-    } catch (error) {
-      toast.error("Bulk check-in failed", {
-        description: getToastErrorMessage(error, "Please try again."),
-      });
-    }
-  };
 
   // ─── Walk-in mode ───────────────────────────────────────
   const walkInMutation = useWalkInCheckIn(eventId);
@@ -164,10 +103,9 @@ export default function EventsCheckInPage() {
         email: values.email?.trim() || undefined,
         gender: values.gender || undefined,
       });
-      toast.success(
-        `${values.firstName} ${values.lastName} checked in`,
-        { description: "Walk-in attendance recorded." }
-      );
+      toast.success(`${values.firstName} ${values.lastName} checked in`, {
+        description: "Walk-in attendance recorded.",
+      });
       form.reset({
         firstName: "",
         lastName: "",
@@ -216,7 +154,6 @@ export default function EventsCheckInPage() {
           { label: "Events", href: "/events" },
           { label: "Check-In" },
         ]}
-        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
       />
 
       {/* Event picker */}
@@ -230,14 +167,15 @@ export default function EventsCheckInPage() {
         <CardContent>
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Event *</p>
-            <Select value={eventId} onValueChange={setEventId}>
+            <Select disabled={checkingIn} value={eventId} onValueChange={setEventId}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select an event" />
               </SelectTrigger>
               <SelectContent>
                 {events.map((e) => (
                   <SelectItem key={e.eventId} value={e.eventId}>
-                    {e.title} &mdash; {format(new Date(e.startDate), "MMM d, yyyy")}
+                    {e.title} &mdash;{" "}
+                    {format(new Date(e.startDate), "MMM d, yyyy")}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -246,8 +184,15 @@ export default function EventsCheckInPage() {
           </div>
           {selectedEvent && (
             <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-              <Badge variant="outline">{EVENT_TYPE_MAP[selectedEvent.type]}</Badge>
-              <span>{format(new Date(selectedEvent.startDate), "EEEE, MMMM d, yyyy h:mm a")}</span>
+              <Badge variant="outline">
+                {EVENT_TYPE_MAP[selectedEvent.type]}
+              </Badge>
+              <span>
+                {format(
+                  new Date(selectedEvent.startDate),
+                  "EEEE, MMMM d, yyyy h:mm a",
+                )}
+              </span>
               {selectedEvent.location && (
                 <span>&mdash; {selectedEvent.location}</span>
               )}
@@ -256,13 +201,27 @@ export default function EventsCheckInPage() {
         </CardContent>
       </Card>
 
-      <GeneralAttendancePanel requireService context={selectedEvent ? {type:"event",id:selectedEvent.eventId,name:selectedEvent.title,branchId:selectedEvent.branchId,active:!selectedEvent.archivedAt} : undefined} />
+      <GeneralAttendancePanel
+        requireService
+        context={
+          selectedEvent
+            ? {
+                type: "event",
+                id: selectedEvent.eventId,
+                name: selectedEvent.title,
+                branchId: selectedEvent.branchId,
+                active: !selectedEvent.archivedAt,
+              }
+            : undefined
+        }
+      />
 
       {/* Mode tabs */}
       <div className="flex gap-2">
         <Button
           variant={mode === "members" ? "default" : "outline"}
           size="sm"
+          disabled={checkingIn}
           onClick={() => setMode("members")}
         >
           <Users className="h-4 w-4 mr-1.5" />
@@ -271,6 +230,7 @@ export default function EventsCheckInPage() {
         <Button
           variant={mode === "walkIn" ? "default" : "outline"}
           size="sm"
+          disabled={checkingIn}
           onClick={() => setMode("walkIn")}
         >
           <UserPlus className="h-4 w-4 mr-1.5" />
@@ -288,113 +248,15 @@ export default function EventsCheckInPage() {
           </CardContent>
         </Card>
       ) : mode === "members" ? (
-        /* ─── Roster bulk check-in ─── */
-        <Card>
-          <CardHeader className="pb-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <CardTitle className="text-sm font-semibold">Roster</CardTitle>
-              <CardDescription>
-                Tick everyone present, then submit once. Duplicates are skipped
-                automatically.
-              </CardDescription>
-            </div>
-            <div className="relative w-full lg:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search members..."
-                className="pl-8"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Selection bar */}
-            {selectedIds.size > 0 && (
-              <div className="flex items-center justify-between rounded-md border bg-muted/50 px-4 py-2.5">
-                <span className="text-sm font-medium">
-                  {selectedIds.size} selected
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
-                    <X className="h-4 w-4 mr-1" />
-                    Clear
-                  </Button>
-                  <Button size="sm" onClick={handleBulkSubmit} disabled={bulkMutation.isPending}>
-                    {bulkMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                        Checking in...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 mr-1.5" />
-                        Check In {selectedIds.size}
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {rosterQuery.isLoading || (searching && searchQuery.isLoading) ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-11 w-full" />
-                ))}
-              </div>
-            ) : members.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">
-                No members match your search.
-              </p>
-            ) : (
-              <div data-export-list className="rounded-md border divide-y max-h-[52vh] overflow-y-auto">
-                {members.map((member) => {
-                  const checked = selectedIds.has(member.memberId);
-                  return (
-                    <label
-                      key={member.memberId}
-                      className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/40 ${
-                        checked ? "bg-primary/5" : ""
-                      }`}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(c) =>
-                          toggleMember(member.memberId, !!c)
-                        }
-                        aria-label={`Select ${member.firstName} ${member.lastName}`}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                          {member.firstName} {member.lastName}
-                        </p>
-                        {member.phone && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {member.phone}
-                          </p>
-                        )}
-                      </div>
-                      {checked && <Badge variant="secondary">Selected</Badge>}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            {hasMoreRoster && (
-              <div className="flex items-center justify-center pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRosterLimit((n) => n + 50)}
-                >
-                  Load more ({rosterTotal - rosterLimit} remaining)
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ChurchAttendanceRoster
+          onBusyChange={setCheckingIn}
+          key={eventId}
+          branchId={selectedEvent?.branchId}
+          onSubmit={async (memberIds) => {
+            const result = await bulkMutation.mutateAsync({ memberIds });
+            return { recorded: result.checkedIn, skipped: result.skipped };
+          }}
+        />
       ) : (
         /* ─── Walk-in check-in ─── */
         <Card>
@@ -469,7 +331,10 @@ export default function EventsCheckInPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Gender</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select gender" />
@@ -527,7 +392,9 @@ export default function EventsCheckInPage() {
       {eventId && (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Recent Check-Ins</CardTitle>
+            <CardTitle className="text-sm font-semibold">
+              Recent Check-Ins
+            </CardTitle>
             <CardDescription>
               Last {recentAttendance.length} attendance records for this event.
             </CardDescription>
@@ -555,11 +422,16 @@ export default function EventsCheckInPage() {
                         {record.memberName ?? record.visitorName ?? "Unknown"}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {format(new Date(record.checkInAt), "MMM d, yyyy h:mm a")}
+                        {format(
+                          new Date(record.checkInAt),
+                          "MMM d, yyyy h:mm a",
+                        )}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant={record.memberId ? "secondary" : "outline"}>
+                      <Badge
+                        variant={record.memberId ? "secondary" : "outline"}
+                      >
                         {record.memberId ? "Member" : "Walk-In"}
                       </Badge>
                       {record.source && (

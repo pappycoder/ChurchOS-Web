@@ -209,23 +209,6 @@ function TemplatesListContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Templates" }]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="templates"
-              columns={[
-                { key: "name", label: "Name" },
-                { key: "channel", label: "Channel" },
-                { key: "status", label: "Status" },
-                { key: "category", label: "Category" },
-                { key: "language", label: "Language" },
-                { key: "variables", label: "Variables" },
-                { key: "created", label: "Created" },
-              ]}
-              data={buildExportRows(templates)}
-              fetchAllRows={fetchAllExportRows}
-              title="Templates"
-              filename="templates-export"
-              disabled={templates.length === 0}
-            />
             {canCreate && (
               <Button onClick={openCreate}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -315,7 +298,25 @@ function TemplatesListContent() {
         onPerPageChange={(n) => {
           setPerPage(n);
           setPage(1);
-        }}
+        }} exportAction={
+          <ExportDropdown
+              tableId="templates"
+              columns={[
+                { key: "name", label: "Name" },
+                { key: "channel", label: "Channel" },
+                { key: "status", label: "Status" },
+                { key: "category", label: "Category" },
+                { key: "language", label: "Language" },
+                { key: "variables", label: "Variables" },
+                { key: "created", label: "Created" },
+              ]}
+              data={buildExportRows(templates)}
+              fetchAllRows={fetchAllExportRows}
+              title="Templates"
+              filename="templates-export"
+              disabled={templates.length === 0}
+            />
+        }
       >
         {isLoading ? (
           <LoadingState variant="table" />

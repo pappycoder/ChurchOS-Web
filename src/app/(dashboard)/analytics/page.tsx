@@ -1,6 +1,5 @@
 "use client";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -27,7 +26,6 @@ export default function AnalyticsOverviewPage() {
         ]}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <VisibleDataExport includeTables={false} label="Export visible lists" />
             <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isLoading}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh

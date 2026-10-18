@@ -218,15 +218,6 @@ export default function FamiliesPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="families"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={someSelected ? `Families (${selectedFamilies.length} selected)` : "Families"}
-              filename="families-export"
-              disabled={exportSource.length === 0}
-            />
             {canCreateFamilies && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -284,6 +275,16 @@ export default function FamiliesPage() {
               className="w-full sm:w-64"
             />
           </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="families"
+              columns={exportColumns}
+              data={exportData}
+              fetchAllRows={fetchAllExportRows}
+              title={someSelected ? `Families (${selectedFamilies.length} selected)` : "Families"}
+              filename="families-export"
+              disabled={exportSource.length === 0}
+            />
         }
       >
           {!archivedView && someSelected && canDeleteFamilies && (

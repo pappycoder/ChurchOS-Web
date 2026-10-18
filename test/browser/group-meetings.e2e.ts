@@ -18,6 +18,11 @@ test.beforeEach(async ({ context }, info) => {
       if(path.endsWith("/auth/session"))data={userId:"user-a",email:"fixture@example.test"};
       else if(path.endsWith("/profiles/me"))data={profileId:"profile-a",churchId:"church-a",branchId:"branch-a",memberId:"head-a",status:"active",firstName:"Head",lastName:"Test",role:["department_head"],isAdminHq:hq,permissions:["reports:members:read","events:calendar:read","attendance:services:read","departments:read","departments:own:read","branches:read",...(readOnly?[]:["departments:update","departments:own:update"]),...(hq&&!readOnly?["departments:create"]:[])]};
       else if(path.endsWith("/attendance-sessions")) data={data:[],meta:{total:0,page:1,limit:20,totalPages:0}};
+      else if(path.endsWith("/admin/departments/dept-a/attendance/bulk")) {
+        const body=JSON.parse(String(options?.body));
+        for(const memberId of body.memberIds) { const member=department.members.find(member=>member.memberId===memberId)!;records.push({id:`new-${memberId}`,memberId,firstName:member.firstName,lastName:member.lastName,meetingDate:body.meetingDate,status:body.status,notes:body.notes}); }
+        data={recorded:body.memberIds.length};
+      }
       else if(path.endsWith("/admin/departments/dept-a/attendance")) {
         if(options?.method==="POST"){ const body=JSON.parse(String(options.body));records.push({id:"row-c",memberId:body.memberId,firstName:"Alice",lastName:"Test",meetingDate:body.meetingDate,status:body.status,notes:body.notes});data={id:"row-c"}; }
         else data=records.filter(row=>!url.searchParams.get("meetingDate")||row.meetingDate===url.searchParams.get("meetingDate"));
@@ -45,8 +50,10 @@ test("hq head can create departments and record their department meeting attenda
   await openDepartment(page);await page.getByRole("button",{name:"Record meeting attendance",exact:true}).click();
   const dialog=page.getByRole("dialog").last();
   await dialog.getByLabel("Department meeting date",{exact:true}).fill("2026-10-18");
-  await dialog.getByLabel("Department attendee",{exact:true}).selectOption("member-a");
-  await dialog.getByRole("button",{name:"Save attendance",exact:true}).click();
+  await dialog.getByRole("checkbox",{name:"Select Alice Test",exact:true}).click();
+  await dialog.getByRole("button",{name:"Mark attendance (1)",exact:true}).click();
+  await expect(dialog.getByText("0 selected",{exact:true})).toBeVisible();
+  await dialog.getByRole("button",{name:"Cancel",exact:true}).click();
   await expect(page.getByText("Department meeting attendance (3)",{exact:true})).toBeVisible();
 });
 test("branch head cannot create departments but can record their department attendance",async({page})=>{
@@ -71,6 +78,10 @@ test("readonly department list has one export menu and keeps its data export",as
   await expect(page.getByText("Choir",{exact:true}).first()).toBeVisible();
   const main=page.locator("#main-content");
   await expect(main.getByRole("button",{name:/^Export/})).toHaveCount(1);
+  const table=main.getByRole("table");
+  const card=table.locator('xpath=ancestor::*[@data-slot="card"][1]');
+  await expect(card.getByRole("button",{name:"Export",exact:true})).toBeVisible();
+  await expect(card.getByRole("textbox")).toHaveCount(1);
   await main.getByRole("button",{name:"Export",exact:true}).click();
   const promise=page.waitForEvent("download");
   await page.getByRole("menuitem",{name:"Export as CSV",exact:true}).click();
@@ -91,19 +102,23 @@ test("readonly table without a dedicated export retains one visible-row export",
 test("readonly list export excludes hidden items and independently exported tables",async({page})=>{
   await page.goto("/events");
   const main=page.locator("#main-content");
-  // Exercise the list export boundary with visible, hidden and unrelated table data.
-  await main.evaluate(element=>{
+  // Keep this collection's data inside its own export boundary.
+  const exportControl=main.getByRole("button",{name:"Export visible lists",exact:true});
+  const root=exportControl.locator('xpath=ancestor::*[@data-collection][1]');
+  await root.evaluate(element=>{
     const collection=document.createElement("section");
     collection.innerHTML='<ul><li>Visible list item</li><li hidden>Hidden list item</li></ul><table><thead><tr><th>Name</th></tr></thead><tbody><tr><td>Separately exported table row</td></tr></tbody></table>';
     element.appendChild(collection);
   });
+  await main.evaluate(element=>{const unrelated=document.createElement("section");unrelated.setAttribute("data-collection","");unrelated.innerHTML='<ul><li>Different collection list item</li></ul>';element.appendChild(unrelated);});
   await expect(main.getByRole("button",{name:/^Export/})).toHaveCount(1);
-  await main.getByRole("button",{name:"Export visible lists",exact:true}).click();
+  await exportControl.click();
   const promise=page.waitForEvent("download");
   await page.getByRole("menuitem",{name:"Visible data as CSV",exact:true}).click();
   const download=await promise;const content=await fs.readFile((await download.path())!,"utf8");
   expect(content).toContain("Visible list item");expect(content).not.toContain("Hidden list item");
   expect(content).not.toContain("Separately exported table row");
+  expect(content).not.toContain("Different collection list item");
 });
 test("readonly report generator has one download action for the chosen format",async({page})=>{
   await page.goto("/reports");

@@ -17,6 +17,7 @@ interface TableCardProps {
   action?: React.ReactNode;
   /** Rendered above the table (search, filters). */
   toolbar?: React.ReactNode;
+  exportAction?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   itemName?: string;
@@ -39,6 +40,7 @@ export function TableCard({
   description,
   action,
   toolbar,
+  exportAction,
   children,
   className,
   itemName = "rows",
@@ -48,22 +50,32 @@ export function TableCard({
   onPageChange,
   onPerPageChange,
 }: TableCardProps) {
-  const paginated = typeof page === "number" && typeof onPageChange === "function";
+  const paginated =
+    typeof page === "number" && typeof onPageChange === "function";
 
   return (
     <Card className={className}>
-      {(title || description || action) && (
+      {(title || description || action || exportAction) && (
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             {title && <CardTitle>{title}</CardTitle>}
             {description && <CardDescription>{description}</CardDescription>}
           </div>
-          {action}
+          <div className="flex flex-wrap items-center gap-2">
+            {exportAction}
+            {action}
+          </div>
         </CardHeader>
       )}
       <CardContent className="space-y-4">
-        {toolbar && <div className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">{toolbar}</div>}
-        <div className="min-w-0 overflow-x-auto rounded-md border">{children}</div>
+        {toolbar && (
+          <div className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">
+            {toolbar}
+          </div>
+        )}
+        <div className="min-w-0 overflow-x-auto rounded-md border">
+          {children}
+        </div>
         {paginated && (
           <TablePagination
             page={page}

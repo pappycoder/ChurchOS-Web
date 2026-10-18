@@ -308,19 +308,6 @@ export default function MembersPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="members"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={
-                someSelected
-                  ? `Members (${selectedMembers.length} selected)`
-                  : "Members"
-              }
-              filename="members-export"
-              disabled={exportSource.length === 0}
-            />
             {canCreateMembers && (
               <div className="flex items-center gap-2">
                 <Button
@@ -463,6 +450,20 @@ export default function MembersPage() {
               </Button>
             </div>
           </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="members"
+              columns={exportColumns}
+              data={exportData}
+              fetchAllRows={fetchAllExportRows}
+              title={
+                someSelected
+                  ? `Members (${selectedMembers.length} selected)`
+                  : "Members"
+              }
+              filename="members-export"
+              disabled={exportSource.length === 0}
+            />
         }
       >
         {!archivedView && someSelected && canDeleteMembers && (

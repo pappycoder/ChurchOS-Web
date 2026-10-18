@@ -149,16 +149,6 @@ export default function DepartmentsPage() {
         action={
           canCreate || canExport ? (
             <div className="flex items-center gap-2">
-              {canExport && (
-                <ExportDropdown
-              tableId="departments"
-                  columns={EXPORT_COLUMNS}
-                  data={exportRows}
-                  title="Departments"
-                  filename="departments-export"
-                  disabled={exportRows.length === 0}
-                />
-              )}
               {canCreate && (
                 <Button
                   onClick={() => {
@@ -219,6 +209,15 @@ export default function DepartmentsPage() {
               />
             </div>
           </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="departments"
+                  columns={EXPORT_COLUMNS}
+                  data={exportRows}
+                  title="Departments"
+                  filename="departments-export"
+                  disabled={exportRows.length === 0}
+                />
         }
       >
         <Table exportable={false} tableId="departments">

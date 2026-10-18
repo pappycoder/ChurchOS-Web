@@ -291,15 +291,6 @@ export default function UsersPage() {
         breadcrumbs={[{ label: "Admin" }, { label: "User management" }, { label: "Users" }]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="users"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title="User Management"
-              filename="users-export"
-              disabled={users.length === 0}
-            />
             {canCreateUsers && (
               <Button onClick={() => setInviteDialogOpen(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
@@ -384,7 +375,17 @@ export default function UsersPage() {
             onPerPageChange={(n) => {
               setPerPage(n);
               setPage(1);
-            }}
+            }} exportAction={
+          <ExportDropdown
+              tableId="users"
+              columns={exportColumns}
+              data={exportData}
+              fetchAllRows={fetchAllExportRows}
+              title="User Management"
+              filename="users-export"
+              disabled={users.length === 0}
+            />
+        }
           >
             {someSelected && canUpdateUsers && (
               <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">

@@ -145,30 +145,13 @@ export default function AttendanceReportsPage() {
           { label: "Attendance", href: "/attendance" },
           { label: "Reports" },
         ]}
-        action={
-          <ExportDropdown
-            columns={[
-              { key: "date", label: "Date" },
-              { key: "time", label: "Time" },
-              { key: "name", label: "Name" },
-              { key: "type", label: "Type" },
-              { key: "service", label: "Service" },
-              { key: "category", label: "Category" },
-              { key: "source", label: "Source" },
-            ]}
-            data={exportData}
-            fetchAllRows={fetchAllExportRows}
-            title="Attendance Report"
-            filename={`attendance-report-${format(new Date(), "yyyyMMdd")}`}
-            disabled={exportData.length === 0}
-          />
-        }
+
       />
-      <div className="flex justify-end"><BranchFilter value={branchId} onChange={setBranchId} /></div>
+
 
       {/* Date range */}
       <Card>
-        <CardContent className="flex flex-wrap items-end gap-3 py-4">
+        <CardContent className="flex flex-wrap items-end gap-3 py-4"><BranchFilter value={branchId} onChange={setBranchId} />
           <div className="flex items-center gap-2">
             <CalendarRange className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Range</span>
@@ -225,7 +208,22 @@ export default function AttendanceReportsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Trend */}
         <Card>
-          <CardHeader className="pb-2">
+          <CardHeader className="pb-2"><ExportDropdown
+            columns={[
+              { key: "date", label: "Date" },
+              { key: "time", label: "Time" },
+              { key: "name", label: "Name" },
+              { key: "type", label: "Type" },
+              { key: "service", label: "Service" },
+              { key: "category", label: "Category" },
+              { key: "source", label: "Source" },
+            ]}
+            data={exportData}
+            fetchAllRows={fetchAllExportRows}
+            title="Attendance Report"
+            filename={`attendance-report-${format(new Date(), "yyyyMMdd")}`}
+            disabled={exportData.length === 0}
+          />
             <CardTitle className="text-sm font-semibold">
               Daily Trend {startDate || endDate ? "(selected range)" : "(last 30 days)"}
             </CardTitle>

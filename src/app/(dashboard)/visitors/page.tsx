@@ -280,17 +280,6 @@ export default function VisitorsPage() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Visitors" }]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="visitors"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={
-                someSelected ? `Visitors (${selectedVisitors.length} selected)` : "Visitors"
-              }
-              filename="visitors-export"
-              disabled={exportSource.length === 0}
-            />
             {canCreateVisitors && (
               <div className="flex items-center gap-2">
                 <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
@@ -406,6 +395,18 @@ export default function VisitorsPage() {
             </Button>
           </div>
           </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="visitors"
+              columns={exportColumns}
+              data={exportData}
+              fetchAllRows={fetchAllExportRows}
+              title={
+                someSelected ? `Visitors (${selectedVisitors.length} selected)` : "Visitors"
+              }
+              filename="visitors-export"
+              disabled={exportSource.length === 0}
+            />
         }
       >
           {!archivedView && someSelected && canDeleteVisitors && (

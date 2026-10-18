@@ -182,7 +182,6 @@ export default function AssetsPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown tableId="assets" columns={exportColumns} data={exportData} title="Asset Register" filename={`assets-${format(new Date(), "yyyyMMdd")}`} disabled={assets.length === 0} />
             {canCreate && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -212,7 +211,7 @@ export default function AssetsPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader><ExportDropdown tableId="assets" columns={exportColumns} data={exportData} title="Asset Register" filename={`assets-${format(new Date(), "yyyyMMdd")}`} disabled={assets.length === 0} />
           <CardTitle>All Assets</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

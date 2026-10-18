@@ -212,28 +212,6 @@ export default function GivingRecordsPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="giving-records"
-              columns={[
-                { key: "date", label: "Date" },
-                { key: "name", label: "Name" },
-                { key: "linkType", label: "Link Type" },
-                { key: "linkedTo", label: "Linked To" },
-                { key: "category", label: "Category" },
-                { key: "description", label: "Description" },
-                { key: "amount", label: "Amount" },
-                { key: "currency", label: "Currency" },
-                { key: "type", label: "Method" },
-                { key: "gateway", label: "Gateway" },
-                { key: "status", label: "Status" },
-                { key: "receiptNumber", label: "Receipt #" },
-              ]}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title="Giving Records"
-              filename="giving-records"
-              disabled={exportData.length === 0}
-            />
             {canCreate && (
               <Button onClick={() => setRecordOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -338,6 +316,29 @@ export default function GivingRecordsPage() {
             />
           </div>
         </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="giving-records"
+              columns={[
+                { key: "date", label: "Date" },
+                { key: "name", label: "Name" },
+                { key: "linkType", label: "Link Type" },
+                { key: "linkedTo", label: "Linked To" },
+                { key: "category", label: "Category" },
+                { key: "description", label: "Description" },
+                { key: "amount", label: "Amount" },
+                { key: "currency", label: "Currency" },
+                { key: "type", label: "Method" },
+                { key: "gateway", label: "Gateway" },
+                { key: "status", label: "Status" },
+                { key: "receiptNumber", label: "Receipt #" },
+              ]}
+              data={exportData}
+              fetchAllRows={fetchAllExportRows}
+              title="Giving Records"
+              filename="giving-records"
+              disabled={exportData.length === 0}
+            />
         }
       >
           {isLoading ? (

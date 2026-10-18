@@ -1,8 +1,6 @@
 "use client";
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
-
 import * as React from "react";
 import { MeetingAttendanceTable } from "@/components/departments/meeting-attendance-table";
 import { CellGroupGivingPanel } from "@/components/giving/cell-group-giving-panel";
@@ -42,7 +40,8 @@ import { CellGroupFormDialog } from "@/components/departments/cell-group-form-di
 import { DeleteCellGroupDialog } from "@/components/departments/delete-cell-group-dialog";
 import { CellGroupMemberDialog } from "@/components/departments/cell-group-member-dialog";
 import { CellGroupAttendanceDialog } from "@/components/departments/cell-group-attendance-dialog";
-import { ArchiveConfirmDialog, type ArchiveDialogKind } from "@/components/shared/archive-confirm-dialog";
+import { ArchiveConfirmDialog, type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import {
   useCellGroup,
   useCellGroupAttendance,
@@ -89,14 +88,18 @@ export default function CellGroupDetailPage({
   const canManageMembers = can("cell_groups", "create") && (!isCellLeader || isOwnGroup);
   const canUpdate = can("cell_groups", "update") && (!isCellLeader || isOwnGroup);
   const canDelete = can("cell_groups", "delete") && !isCellLeader;
-  const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(canReadDetails ? groupId : "");
-  const { data: summary } = useCellGroupAttendanceSummary(canReadDetails ? groupId : "");
-  const { data: nearestGroups } = useNearestCellGroups(canReadDetails ? group?.latitude : undefined, canReadDetails ? group?.longitude : undefined);
+  const { data: members = [], isLoading: membersLoading } = useCellGroupMembers(canReadDetails ? groupId : "",
+  );
+  const { data: summary } = useCellGroupAttendanceSummary(canReadDetails ? groupId : "",
+  );
+  const { data: nearestGroups } = useNearestCellGroups(canReadDetails ? group?.latitude : undefined, canReadDetails ? group?.longitude : undefined,
+  );
 
   const [meetingDate, setMeetingDate] = React.useState("");
-  const { data: attendance = [], isLoading: attendanceLoading, isError: attendanceError } = useCellGroupAttendance(
+  const { data: attendance = [], isLoading: attendanceLoading, isError: attendanceError,
+  } = useCellGroupAttendance(
     canReadDetails ? groupId : "",
-    meetingDate || undefined
+    meetingDate || undefined,
   );
 
   const removeMember = useRemoveCellGroupMember(groupId);
@@ -143,11 +146,17 @@ export default function CellGroupDetailPage({
   }
 
   if (!canReadDetails && group) {
-    return <div className="space-y-6">
+    return (
+      <div className="space-y-6">
       <Button asChild variant="outline"><Link href="/departments/cell-groups"><ArrowLeft className="mr-2 size-4" />Cell Groups</Link></Button>
       <div><h1 className="text-2xl font-semibold">{group.name}</h1><p className="text-sm text-muted-foreground">{group.branchName} · Group meeting giving</p></div>
-      {canAny("cell_groups:giving:read") ? <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} /> : <p className="text-muted-foreground">You do not have permission to view group giving.</p>}
-    </div>;
+      {canAny("cell_groups:giving:read") ? (
+          <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} />
+        ) : (
+          <p className="text-muted-foreground">You do not have permission to view group giving.</p>
+        )}
+    </div>
+    );
   }
 
   return (
@@ -169,7 +178,11 @@ export default function CellGroupDetailPage({
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{isLoading ? <LoadingIndicator label="Loading cell group" size="sm" /> : group?.name}</BreadcrumbPage>
+            <BreadcrumbPage>{isLoading ? (
+                <LoadingIndicator label="Loading cell group" size="sm" />
+              ) : (
+                group?.name
+              )}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -186,7 +199,9 @@ export default function CellGroupDetailPage({
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-2xl font-semibold">{group.name}</h2>
-                  {group.branchName && <Badge variant="secondary">{group.branchName}</Badge>}
+                  {group.branchName && (
+                    <Badge variant="secondary">{group.branchName}</Badge>
+                  )}
                   {group.archivedAt && (
                     <Badge variant="destructive">
                       <Archive className="mr-1 h-3 w-3" />
@@ -228,8 +243,7 @@ export default function CellGroupDetailPage({
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <VisibleDataExport includeTables={false} label="Export visible lists" />
-              {group.archivedAt ? (
+                {group.archivedAt ? (
                   <>
                     {canUpdate && (
                       <Button variant="outline" onClick={() => setArchiveAction("restore")}>
@@ -269,7 +283,9 @@ export default function CellGroupDetailPage({
             </div>
           </div>
 
-          {canAny("cell_groups:giving:read") && <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} />}
+          {canAny("cell_groups:giving:read") && (
+            <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} />
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-lg border p-4 bg-muted/50">
@@ -317,7 +333,8 @@ export default function CellGroupDetailPage({
                             {m.firstName} {m.lastName}
                           </p>
                           <p className="text-xs text-muted-foreground capitalize">
-                            {m.role.replace(/_/g, " ")} · joined {formatDate(m.joinedAt)}
+                            {m.role.replace(/_/g, " ")} · joined {" "}
+                            {formatDate(m.joinedAt)}
                           </p>
                         </div>
                         {canUpdate && (
@@ -338,10 +355,35 @@ export default function CellGroupDetailPage({
                 )}
               </section>
 
-              <GeneralAttendancePanel context={{type:"cell_group",id:groupId,name:group.name,branchId:group.branchId,active:!group.archivedAt}} canManage={!isCellLeader || isOwnGroup} />
+              <GeneralAttendancePanel
+                context={{
+                  type: "cell_group",
+                  id: groupId,
+                  name: group.name,
+                  branchId: group.branchId,
+                  active: !group.archivedAt,
+                }}
+                canManage={!isCellLeader || isOwnGroup}
+              />
 
-              <MeetingAttendanceTable title="Cell group attendance" records={attendance} loading={attendanceLoading} error={attendanceError} date={meetingDate} onDateChange={setMeetingDate}
-                action={canManageMembers ? <Button size="sm" onClick={() => setAttendanceDialogOpen(true)}>Record Attendance</Button> : undefined} />
+              <MeetingAttendanceTable
+                title="Cell group attendance"
+                records={attendance}
+                loading={attendanceLoading}
+                error={attendanceError}
+                date={meetingDate}
+                onDateChange={setMeetingDate}
+                action={
+                  canManageMembers ? (
+                    <Button
+                      size="sm"
+                      onClick={() => setAttendanceDialogOpen(true)}
+                    >
+                      Record Attendance
+                    </Button>
+                  ) : undefined
+                }
+              />
             </div>
 
             <div className="space-y-6">
@@ -353,7 +395,8 @@ export default function CellGroupDetailPage({
                 </div>
                 {group.latitude == null || group.longitude == null ? (
                   <p className="px-4 py-6 text-sm text-muted-foreground">
-                    Add latitude and longitude to this group to see its nearest neighbours.
+                    Add latitude and longitude to this group to see its nearest
+                    neighbours.
                   </p>
                 ) : !nearestGroups || nearestGroups.length === 0 ? (
                   <p className="px-4 py-6 text-sm text-muted-foreground">
@@ -368,14 +411,18 @@ export default function CellGroupDetailPage({
                           className="flex items-center justify-between gap-3 hover:text-primary"
                         >
                           <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{g.name}</p>
+                            <p className="text-sm font-medium truncate">
+                              {g.name}
+                            </p>
                             <p className="text-xs text-muted-foreground">
                               {[g.leaderFirstName, g.leaderLastName]
                                 .filter(Boolean)
                                 .join(" ") || "No leader"}
                             </p>
                           </div>
-                          <Badge variant="secondary">{g.distanceKm.toFixed(1)} km</Badge>
+                          <Badge variant="secondary">
+                            {g.distanceKm.toFixed(1)} km
+                          </Badge>
                         </Link>
                       </li>
                     ))}
@@ -384,9 +431,10 @@ export default function CellGroupDetailPage({
               </section>
 
               <div className="rounded-lg border p-4 text-sm text-muted-foreground">
-                Attendance records entered here mirror the same Member-or-Visitor check-in flow
-                as main services. Walk-in visitors can be captured inline and are saved as
-                real visitor records.
+                Attendance records entered here mirror the same
+                Member-or-Visitor check-in flow as main services. Walk-in
+                visitors can be captured inline and are saved as real visitor
+                records.
               </div>
             </div>
           </div>
@@ -420,6 +468,8 @@ export default function CellGroupDetailPage({
         onOpenChange={setAttendanceDialogOpen}
         groupId={groupId}
         groupName={group?.name ?? ""}
+        members={members}
+        loadingMembers={membersLoading}
       />
 
       <ArchiveConfirmDialog
@@ -437,7 +487,9 @@ export default function CellGroupDetailPage({
               : purgeMutation
         }
         onConfirmed={
-          archiveAction === "purge" ? () => router.push("/departments/cell-groups") : undefined
+          archiveAction === "purge"
+            ? () => router.push("/departments/cell-groups")
+            : undefined
         }
       />
     </div>

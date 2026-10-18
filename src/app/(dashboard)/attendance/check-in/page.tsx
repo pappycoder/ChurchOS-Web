@@ -2,7 +2,7 @@
 
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
+import { ChurchAttendanceRoster } from "@/components/attendance/church-attendance-roster";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -13,20 +13,16 @@ import { z } from "zod";
 import { PermissionLink as Link } from "@/components/shared/permission-link";
 import {
   AlertTriangle,
-  Check,
   ClipboardList,
   Loader2,
-  Search,
   UserPlus,
   Users,
-  X,
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -50,11 +46,6 @@ import {
   ATTENDANCE_CATEGORIES,
   type AttendanceCategory,
 } from "@/hooks/use-attendance";
-import {
-  useMembersList,
-  useSearchMembers,
-  type Member,
-} from "@/hooks/use-members";
 import { useCreateVisitor } from "@/hooks/use-visitors";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
@@ -81,6 +72,7 @@ export default function CheckInPage() {
   const router = useRouter();
   const { can } = usePermissions();
   // Route gate already requires attendance:create; keep button-level checks consistent.
+  const [checkingIn, setCheckingIn] = React.useState(false);
   const canCreate = can("attendance:checkin", "create");
 
   // Selected service + category override.
@@ -96,72 +88,12 @@ export default function CheckInPage() {
   // Mode switch.
   const [mode, setMode] = React.useState<"members" | "visitor">("members");
 
-  // ─── Roster mode ────────────────────────────────────────
-  const [searchInput, setSearchInput] = React.useState("");
-  const [search, setSearch] = React.useState("");
-
-  React.useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput.trim()), 400);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  // Roster loads progressively — "Load more" widens the server-side window.
-  const [rosterLimit, setRosterLimit] = React.useState(50);
-  const rosterQuery = useMembersList({
-    page: 1,
-    limit: rosterLimit,
-    status: "active",
-  });
-  const searchQuery = useSearchMembers(search, 50);
-
-  const searching = search.trim().length >= 2;
-  const members: Member[] = searching
-    ? (searchQuery.data?.data ?? [])
-    : (rosterQuery.data?.data ?? []);
-  const rosterTotal = searching ? members.length : (rosterQuery.data?.meta?.total ?? 0);
-  const hasMoreRoster =
-    !searching && rosterTotal > rosterLimit && !rosterQuery.isLoading;
-
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
   const bulkMutation = useRecordBulkAttendance();
-
-  const toggleMember = (memberId: string, checked: boolean) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (checked) next.add(memberId);
-      else next.delete(memberId);
-      return next;
-    });
-  };
-
-  const handleBulkSubmit = async () => {
-    if (!serviceId || selectedIds.size === 0) return;
-    try {
-      const result = await bulkMutation.mutateAsync({
-        serviceId,
-        records: Array.from(selectedIds).map((memberId) => ({ memberId })),
-        category: effectiveCategory,
-        source: "manual",
-      });
-      toast.success(`${result.recorded} checked in`, {
-        description:
-          result.skipped > 0
-            ? `${result.skipped} skipped — already checked in for this service.`
-            : undefined,
-      });
-      setSelectedIds(new Set());
-    } catch (error) {
-      toast.error("Bulk check-in failed", {
-        description: getToastErrorMessage(error, "Please try again."),
-      });
-    }
-  };
 
   // ─── Visitor mode ───────────────────────────────────────
   const createVisitorMutation = useCreateVisitor();
   const recordMutation = useRecordAttendance();
   const [visitorPending, setVisitorPending] = React.useState(false);
-
   const form = useForm<VisitorFormValues>({
     resolver: zodResolver(visitorSchema),
     defaultValues: {
@@ -173,7 +105,6 @@ export default function CheckInPage() {
       customFields: [],
     },
   });
-
   const customFieldsArray = useFieldArray({
     control: form.control,
     name: "customFields",
@@ -196,16 +127,15 @@ export default function CheckInPage() {
       // 2) Auto-record their check-in. Failure must not lose the visitor.
       try {
         await recordMutation.mutateAsync({
-          serviceId,
+        serviceId,
           visitorId: visitor.id,
-          category: effectiveCategory,
-          source: "manual",
-        });
-        toast.success(
-          `${visitor.firstName}${visitor.lastName ? ` ${visitor.lastName}` : ""} checked in`,
+        category: effectiveCategory,
+        source: "manual",
+      });
+      toast.success(`${visitor.firstName}${visitor.lastName ? ` ${visitor.lastName}` : ""} checked in`,
           {
             description: "Visitor registered and attendance recorded.",
-          }
+          },
         );
       } catch {
         toast.warning("Visitor registered, but the check-in failed.", {
@@ -261,7 +191,6 @@ export default function CheckInPage() {
           { label: "Attendance", href: "/attendance" },
           { label: "Check-In" },
         ]}
-        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
       />
 
       {/* Service picker */}
@@ -275,7 +204,7 @@ export default function CheckInPage() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Service *</p>
-            <Select value={serviceId} onValueChange={setServiceId}>
+            <Select disabled={checkingIn} value={serviceId} onValueChange={setServiceId}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
@@ -320,6 +249,7 @@ export default function CheckInPage() {
         <Button
           variant={mode === "members" ? "default" : "outline"}
           size="sm"
+          disabled={checkingIn}
           onClick={() => setMode("members")}
         >
           <Users className="h-4 w-4 mr-1.5" />
@@ -328,6 +258,7 @@ export default function CheckInPage() {
         <Button
           variant={mode === "visitor" ? "default" : "outline"}
           size="sm"
+          disabled={checkingIn}
           onClick={() => setMode("visitor")}
         >
           <UserPlus className="h-4 w-4 mr-1.5" />
@@ -345,113 +276,20 @@ export default function CheckInPage() {
           </CardContent>
         </Card>
       ) : mode === "members" ? (
-        /* ─── Roster bulk check-in ─── */
-        <Card>
-          <CardHeader className="pb-2 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <CardTitle className="text-sm font-semibold">Roster</CardTitle>
-              <CardDescription>
-                Tick everyone present, then submit once. Duplicates are skipped
-                automatically.
-              </CardDescription>
-            </div>
-            <div className="relative w-full lg:w-72">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search members..."
-                className="pl-8"
-              />
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Selection bar */}
-            {selectedIds.size > 0 && (
-              <div className="flex items-center justify-between rounded-md border bg-muted/50 px-4 py-2.5">
-                <span className="text-sm font-medium">
-                  {selectedIds.size} selected
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
-                    <X className="h-4 w-4 mr-1" />
-                    Clear
-                  </Button>
-                  <Button size="sm" onClick={handleBulkSubmit} disabled={bulkMutation.isPending}>
-                    {bulkMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                        Checking in...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 mr-1.5" />
-                        Check In {selectedIds.size}
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {rosterQuery.isLoading || (searching && searchQuery.isLoading) ? (
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} className="h-11 w-full" />
-                ))}
-              </div>
-            ) : members.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">
-                No members match your search.
-              </p>
-            ) : (
-              <div data-export-list className="rounded-md border divide-y max-h-[52vh] overflow-y-auto">
-                {members.map((member) => {
-                  const checked = selectedIds.has(member.memberId);
-                  return (
-                    <label
-                      key={member.memberId}
-                      className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/40 ${
-                        checked ? "bg-primary/5" : ""
-                      }`}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(c) =>
-                          toggleMember(member.memberId, !!c)
-                        }
-                        aria-label={`Select ${member.firstName} ${member.lastName}`}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium truncate">
-                          {member.firstName} {member.lastName}
-                        </p>
-                        {member.phone && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {member.phone}
-                          </p>
-                        )}
-                      </div>
-                      {checked && <Badge variant="secondary">Selected</Badge>}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            {hasMoreRoster && (
-              <div className="flex items-center justify-center pt-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setRosterLimit((n) => n + 50)}
-                >
-                  Load more ({rosterTotal - rosterLimit} remaining)
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ChurchAttendanceRoster
+          onBusyChange={setCheckingIn}
+          key={serviceId}
+          branchId={selectedService?.branchId}
+          onSubmit={async (ids) => {
+            const result = await bulkMutation.mutateAsync({
+              serviceId,
+              records: ids.map((memberId) => ({ memberId })),
+              category: effectiveCategory,
+              source: "manual",
+            });
+            return { recorded: result.recorded, skipped: result.skipped };
+          }}
+        />
       ) : (
         /* ─── Visitor registration + auto check-in ─── */
         <Card>
@@ -526,7 +364,10 @@ export default function CheckInPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Gender</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select gender" />
@@ -588,7 +429,10 @@ export default function CheckInPage() {
                 </div>
                 <p className="text-xs text-muted-foreground text-right">
                   They will also appear on{" "}
-                  <Link href="/visitors" className="underline hover:text-foreground">
+                  <Link
+                    href="/visitors"
+                    className="underline hover:text-foreground"
+                  >
                     the visitors list
                   </Link>{" "}
                   for follow-up.

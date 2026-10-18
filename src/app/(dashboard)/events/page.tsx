@@ -63,7 +63,6 @@ export default function EventsDashboardPage() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Events" }]}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <VisibleDataExport includeTables={false} label="Export visible lists" />
             {canCreate && (
               <Button onClick={handleCreateClick}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -88,7 +87,7 @@ export default function EventsDashboardPage() {
         {/* Calendar */}
         <div className="min-w-0">
           <Card className="p-0 overflow-hidden">
-            <CalendarView
+            <div className="flex justify-end p-3"><VisibleDataExport includeTables={false} label="Export visible lists" /></div><CalendarView
               events={listEvents}
               services={services}
               onDateClick={handleDateClick}

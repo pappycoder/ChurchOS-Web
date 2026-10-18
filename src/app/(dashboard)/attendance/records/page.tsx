@@ -163,25 +163,7 @@ export default function AttendanceRecordsPage() {
           { label: "Attendance", href: "/attendance" },
           { label: "Records" },
         ]}
-        action={
-          <ExportDropdown
-              tableId="attendance-records"
-            columns={[
-              { key: "date", label: "Date" },
-              { key: "time", label: "Time" },
-              { key: "name", label: "Name" },
-              { key: "type", label: "Type" },
-              { key: "service", label: "Service" },
-              { key: "category", label: "Category" },
-              { key: "source", label: "Source" },
-            ]}
-            data={buildExportRows(records)}
-            fetchAllRows={fetchAllExportRows}
-            title="Attendance Records"
-            filename="attendance-records"
-            disabled={records.length === 0}
-          />
-        }
+
       />
 
       <GeneralAttendancePanel readOnly />
@@ -261,6 +243,24 @@ export default function AttendanceRecordsPage() {
             />
           </div>
         </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="attendance-records"
+            columns={[
+              { key: "date", label: "Date" },
+              { key: "time", label: "Time" },
+              { key: "name", label: "Name" },
+              { key: "type", label: "Type" },
+              { key: "service", label: "Service" },
+              { key: "category", label: "Category" },
+              { key: "source", label: "Source" },
+            ]}
+            data={buildExportRows(records)}
+            fetchAllRows={fetchAllExportRows}
+            title="Attendance Records"
+            filename="attendance-records"
+            disabled={records.length === 0}
+          />
         }
       >
           {isLoading ? (

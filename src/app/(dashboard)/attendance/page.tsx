@@ -144,7 +144,7 @@ export default function AttendanceDashboardPage() {
         />
       </div>
 
-      <GeneralAttendanceSummaryCard summary={summary?.generalAttendance} />
+      <GeneralAttendanceSummaryCard summary={summary?.generalAttendance} exportable={false} />
 
       {/* Event Attendance */}
       <Card>

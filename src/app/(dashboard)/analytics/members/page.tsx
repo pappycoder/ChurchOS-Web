@@ -1,6 +1,5 @@
 "use client";
 
-import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -38,7 +37,7 @@ export default function AnalyticsMembersPage() {
         ]}
         action={
           <>
-            <VisibleDataExport includeTables={false} label="Export visible lists" />
+
             <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isLoading}>
               Refresh
             </Button>

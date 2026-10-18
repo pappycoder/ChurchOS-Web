@@ -199,7 +199,7 @@ function InboxContent() {
       <PageHeader
         title="Inbox"
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Communication" }, { label: "Inbox" }]}
-        action={<VisibleDataExport includeTables={false} label="Export visible lists" />}
+
       />
 
       <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -222,7 +222,7 @@ function InboxContent() {
             </nav>
           </aside>
 
-          <section aria-label="Message list" className={`min-w-0 flex-col lg:border-r ${mobileDetailOpen ? "hidden lg:flex" : "flex"}`}>
+          <section data-collection aria-label="Message list" className={`min-w-0 flex-col lg:border-r ${mobileDetailOpen ? "hidden lg:flex" : "flex"}`}><VisibleDataExport includeTables={false} label="Export visible lists" />
             <div className="flex items-center justify-between border-b px-5 py-5">
               <div>
                 <h3 className="font-semibold capitalize">{folder}</h3>

@@ -291,15 +291,6 @@ export default function BranchesPage() {
         breadcrumbs={[{ label: "Admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="branches"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={someSelected ? `Branches (${selectedBranches.length} selected)` : "Branches"}
-              filename="branches-export"
-              disabled={exportSource.length === 0}
-            />
             {canCreateBranches && (
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -378,7 +369,17 @@ export default function BranchesPage() {
             onPerPageChange={(n) => {
               setPerPage(n);
               setPage(1);
-            }}
+            }} exportAction={
+          <ExportDropdown
+              tableId="branches"
+              columns={exportColumns}
+              data={exportData}
+              fetchAllRows={fetchAllExportRows}
+              title={someSelected ? `Branches (${selectedBranches.length} selected)` : "Branches"}
+              filename="branches-export"
+              disabled={exportSource.length === 0}
+            />
+        }
           >
             {!archivedView && someSelected && canDeleteBranches && (
               <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">

@@ -391,3 +391,36 @@ export function useRecordDepartmentAttendance(departmentId: string) {
   return useMutation({ mutationFn: (data: { memberId?: string; visitorName?: string; meetingDate: string; status: string; notes?: string }) => api.post(`/admin/departments/${departmentId}/attendance`, data),
     onSuccess: () => client.invalidateQueries({ queryKey: ["department-attendance", departmentId] }) });
 }
+
+
+export function useRecordMeetingRoster(
+  type: "department" | "cell_group",
+  id: string,
+) {
+  const client = useQueryClient();
+  const resource = type === "department" ? "departments" : "cell-groups";
+  return useMutation({
+    mutationFn: (input: {
+      memberIds: string[];
+      meetingDate: string;
+      status: string;
+      notes?: string;
+    }) =>
+      api.post<{ recorded: number }>(
+        `/admin/${resource}/${id}/attendance/bulk`,
+        input,
+      ),
+    onSuccess: () => {
+      client.invalidateQueries({
+        queryKey: [
+          type === "department"
+            ? "department-attendance"
+            : "cell-group-attendance",
+          id,
+        ],
+      });
+      if (type === "cell_group")
+        client.invalidateQueries({ queryKey: ["cell-group-summary", id] });
+    },
+  });
+}

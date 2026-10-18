@@ -280,20 +280,17 @@ export default function FollowUpBoardPage() {
           { label: "Visitors", href: "/visitors" },
           { label: "Follow-Up" },
         ]}
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            <VisibleDataExport includeTables={false} label="Export visible lists" />
+
+      />
+
+      <section data-collection className="space-y-4 rounded-xl border p-4"><div className="flex flex-wrap items-center gap-2">
             <SearchInput
               value={searchInput}
               onChange={setSearchInput}
               placeholder="Filter by name, email, phone..."
               className="w-full sm:w-64"
             />
-          </div>
-        }
-      />
-
-      <p className="text-sm text-muted-foreground">
+          </div><VisibleDataExport includeTables={false} label="Export visible lists" />      <p className="text-sm text-muted-foreground">
         Track every visitor through the follow-up pipeline.
         {canUpdateVisitors &&
           " Drag cards by the grip handle between columns, or use each card's dropdown."}
@@ -346,7 +343,7 @@ export default function FollowUpBoardPage() {
             ) : null}
           </DragOverlay>
         </DndContext>
-      )}
+      )}</section>
     </div>
   );
 }

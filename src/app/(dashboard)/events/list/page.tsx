@@ -200,22 +200,6 @@ export default function EventsListPage() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Events" }]}
         action={
           <div className="flex items-center gap-2">
-            <ExportDropdown
-              tableId="events"
-              columns={[
-                { key: "title", label: "Title" },
-                { key: "type", label: "Type" },
-                { key: "startDate", label: "Start Date" },
-                { key: "location", label: "Location" },
-                { key: "registrations", label: "Registrations" },
-                { key: "capacity", label: "Capacity" },
-              ]}
-              data={buildExportRows(events)}
-              fetchAllRows={fetchAllExportRows}
-              title="Events"
-              filename="events-export"
-              disabled={events.length === 0}
-            />
             {canCreate && (
               <Button onClick={() => router.push("/events/new")}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -320,6 +304,23 @@ export default function EventsListPage() {
             </Button>
           </div>
           </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="events"
+              columns={[
+                { key: "title", label: "Title" },
+                { key: "type", label: "Type" },
+                { key: "startDate", label: "Start Date" },
+                { key: "location", label: "Location" },
+                { key: "registrations", label: "Registrations" },
+                { key: "capacity", label: "Capacity" },
+              ]}
+              data={buildExportRows(events)}
+              fetchAllRows={fetchAllExportRows}
+              title="Events"
+              filename="events-export"
+              disabled={events.length === 0}
+            />
         }
       >
           {isLoading ? (

@@ -347,7 +347,6 @@ function MediaLibraryContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Media", href: "/media" }, { label: "Library" }]}
         action={
           <div className="flex flex-wrap items-center gap-2">
-            <VisibleDataExport includeTables={false} label="Export visible lists" />
             {canCreate && (
               <Button onClick={() => router.push("/media/upload")}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -372,7 +371,7 @@ function MediaLibraryContent() {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+        <CardHeader className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between"><VisibleDataExport includeTables={false} label="Export visible lists" />
           <div className="flex flex-wrap items-center gap-2">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <div className="flex h-8 items-center gap-1 rounded-md border border-input bg-background p-1">

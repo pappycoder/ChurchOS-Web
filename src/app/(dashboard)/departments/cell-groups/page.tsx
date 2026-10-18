@@ -152,16 +152,6 @@ export default function CellGroupsPage() {
         action={
           canCreate || canExport ? (
             <div className="flex items-center gap-2">
-              {canExport && (
-                <ExportDropdown
-              tableId="cell-groups"
-                  columns={EXPORT_COLUMNS}
-                  data={exportRows}
-                  title="Cell Groups"
-                  filename="cell-groups-export"
-                  disabled={exportRows.length === 0}
-                />
-              )}
               {canCreate && (
                 <Button
                   onClick={() => {
@@ -227,6 +217,15 @@ export default function CellGroupsPage() {
               />
             </div>
           </div>
+        } exportAction={
+          <ExportDropdown
+              tableId="cell-groups"
+                  columns={EXPORT_COLUMNS}
+                  data={exportRows}
+                  title="Cell Groups"
+                  filename="cell-groups-export"
+                  disabled={exportRows.length === 0}
+                />
         }
       >
         <Table exportable={false} tableId="cell-groups">
