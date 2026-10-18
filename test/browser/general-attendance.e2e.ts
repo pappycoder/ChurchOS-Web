@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs/promises";
-import { DEFAULT_PERMISSION_MATRIX } from "../../../ChurchOS-Backend/prisma/seeds/shared/permissions.seed";
+import { USHER_ATTENDANCE_PERMISSIONS } from "../fixtures/usher-attendance-permissions";
 
 test.beforeEach(async ({ context }, info) => {
   await context.addCookies([
@@ -165,7 +165,7 @@ test.beforeEach(async ({ context }, info) => {
     },
     {
       usherPermissions: info.title.startsWith("usher")
-        ? DEFAULT_PERMISSION_MATRIX.usher
+        ? USHER_ATTENDANCE_PERMISSIONS
         : null,
       readOnly: info.title.startsWith("readonly"),
       createOnly: info.title.startsWith("createonly"),
