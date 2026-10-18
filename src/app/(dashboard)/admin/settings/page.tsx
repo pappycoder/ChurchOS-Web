@@ -14,14 +14,15 @@ import {
   useScrollSpy,
   type SettingsTabId,
 } from "@/components/settings/settings-nav";
-import { MessagingIntegrationsTab } from "@/components/settings/messaging-integrations-tab";
+import { IntegrationSettingsTab } from "@/components/settings/integration-settings-tab";
 import { GeneralSettingsTab } from "@/components/settings/general-settings-tab";
 import { SecuritySettingsTab } from "@/components/settings/security-settings-tab";
 import { useChurch } from "@/hooks/use-church";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export default function ChurchSettingsPage() {
-  const [activeTabId, setActiveTabId] = React.useState<SettingsTabId>("general");
+  const [activeTabId, setActiveTabId] =
+    React.useState<SettingsTabId>("general");
   const churchQuery = useChurch();
   // Editing church settings requires the church_settings:update permission.
   const { can } = usePermissions();
@@ -32,17 +33,27 @@ export default function ChurchSettingsPage() {
   const activeSection = useScrollSpy();
 
   return (
-    <Tabs value={activeTabId} onValueChange={(value) => setActiveTabId(value as SettingsTabId)} className="space-y-4">
+    <Tabs
+      value={activeTabId}
+      onValueChange={(value) => setActiveTabId(value as SettingsTabId)}
+      className="space-y-4"
+    >
       <PageHeader title="Settings" breadcrumbs={[{ label: "Settings" }]} />
 
       <SettingsTabsNav showMessaging={canReadMessaging} />
 
       {churchQuery.data && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Badge variant="secondary">{churchQuery.data.memberCount} members</Badge>
-          <Badge variant="secondary">{churchQuery.data.branchCount} branches</Badge>
+          <Badge variant="secondary">
+            {churchQuery.data.memberCount} members
+          </Badge>
+          <Badge variant="secondary">
+            {churchQuery.data.branchCount} branches
+          </Badge>
           {!canManage && (
-            <span className="text-xs">(read-only — only admins can make changes)</span>
+            <span className="text-xs">
+              (read-only — only admins can make changes)
+            </span>
           )}
         </div>
       )}
@@ -58,9 +69,17 @@ export default function ChurchSettingsPage() {
 
         <Card>
           <CardContent className="p-6">
-            <TabsContent value="general"><GeneralSettingsTab /></TabsContent>
-            <TabsContent value="security"><SecuritySettingsTab /></TabsContent>
-            {canReadMessaging && <TabsContent value="messaging"><MessagingIntegrationsTab /></TabsContent>}
+            <TabsContent value="general">
+              <GeneralSettingsTab />
+            </TabsContent>
+            <TabsContent value="security">
+              <SecuritySettingsTab />
+            </TabsContent>
+            {canReadMessaging && (
+              <TabsContent value="messaging">
+                <IntegrationSettingsTab />
+              </TabsContent>
+            )}
           </CardContent>
         </Card>
       </div>

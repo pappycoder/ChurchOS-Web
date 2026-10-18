@@ -86,10 +86,10 @@ test("pricing switches billing periods and reviews a plan without buying anythin
   });
   await trigger.click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toContainText("does not purchase a subscription");
+  await expect(dialog).toContainText("activate your workspace with secure checkout");
   await expect(
     dialog.getByRole("link", { name: "Continue to registration", exact: true }),
-  ).toHaveAttribute("href", "/register");
+  ).toHaveAttribute("href", "/register?plan=network&cycle=annual");
   await expect(dialog).toContainText("₦36,000");
   await expect(dialog).toContainText("₦432,000 billed yearly");
   await page.keyboard.press("Escape");
@@ -107,7 +107,7 @@ test("FAQs and section links work", async ({ page }) => {
     .locator("summary")
     .filter({ hasText: "Can we subscribe to these plans today?" });
   await question.click();
-  await expect(page.getByText(/not an online checkout/)).toBeVisible();
+  await expect(page.getByText(/complete secure checkout/)).toBeVisible();
   const missing = await page
     .locator('a[href^="#"]')
     .evaluateAll((anchors) =>

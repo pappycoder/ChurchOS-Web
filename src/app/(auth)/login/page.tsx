@@ -10,8 +10,6 @@ import { AUTH_EASE } from "@/lib/auth-motion";
 import { AuthFormWrapper } from "@/components/shared/auth-form-wrapper";
 import { AuthField } from "@/components/shared/auth-field";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { RecoveryCodesPanel } from "@/components/shared/recovery-codes-panel";
 import type { LoginResponse } from "@/types/auth";
 import { useCompleteLogin, useLogin, useVerifyTwoFactor } from "@/hooks/use-auth";
@@ -50,7 +48,6 @@ export default function LoginPage() {
   const verifyMutation = useVerifyTwoFactor();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [rememberMe, setRememberMe] = React.useState(false);
   const [otpStep, setOtpStep] = React.useState(false);
   const [twoFactorEmail, setTwoFactorEmail] = React.useState("");
   const [challengeToken, setChallengeToken] = React.useState<string>();
@@ -126,7 +123,7 @@ export default function LoginPage() {
       subtitle={
         recoverySession ? "Keep a secure backup so you can recover your account." : otpStep
           ? (migration ? "Verify your old email code once, then set up your authenticator." : useRecovery ? "Enter a saved recovery code." : "Enter the current code from your authenticator app.")
-          : "Please enter your details to sign in"
+          : "Your people. Your ministry. Pick up where you left off."
       }
     >
       {recoverySession?.recoveryCodes?.length ? <RecoveryCodesPanel codes={recoverySession.recoveryCodes} onDone={async () => {
@@ -275,16 +272,10 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-4 flex items-center justify-between">
-              <Label className="flex cursor-pointer items-center gap-2 font-normal">
-                <Checkbox
-                  checked={rememberMe}
-                  onCheckedChange={(c) => setRememberMe(c === true)}
-                />
-                Remember Me
-              </Label>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><ShieldCheck className="size-3.5" />Secure sign-in</span>
               <Link
                 href="/forgot-password"
-                className="text-sm font-medium text-destructive hover:underline"
+                className="text-sm font-medium text-primary hover:underline"
               >
                 Forgot Password?
               </Link>

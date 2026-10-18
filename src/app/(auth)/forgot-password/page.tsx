@@ -33,7 +33,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthFormWrapper
       heading="Forgot Password?"
-      subtitle="If you forgot your password, well, then we'll email you instructions to reset your password."
+      subtitle="A fresh start is one email away. Enter your account email and we’ll help you get back in."
     >
       {forgotPasswordMutation.isSuccess ? (
         <motion.div variants={scaleIn} initial="hidden" animate="visible" className="text-center">
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h3 className="mb-2 text-lg font-semibold text-foreground">Check your email</h3>
           <p className="mb-6 text-sm text-muted-foreground">
-            We&apos;ve sent a password reset link to <strong className="text-foreground">{email}</strong>
+            If an account exists, a reset link will arrive at <strong className="text-foreground">{email}</strong>
           </p>
           <Button asChild variant="outline" className="w-full" size="lg">
             <Link href="/login">Back to Sign In</Link>
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
               required
             />
             <Button type="submit" size="lg" className="w-full" disabled={forgotPasswordMutation.isPending} loading={forgotPasswordMutation.isPending}>
-              {forgotPasswordMutation.isPending ? "Sending..." : "Submit"}
+              {forgotPasswordMutation.isPending ? "Sending..." : "Send reset link"}
             </Button>
             <div className="text-center text-sm text-muted-foreground">
               Return to{" "}

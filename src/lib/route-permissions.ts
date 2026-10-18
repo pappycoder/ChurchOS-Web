@@ -19,6 +19,7 @@ export interface RoutePermissionRule {
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   // Shared pages require an active authenticated profile, without a module grant.
   { prefix: "/dashboard" },
+  { prefix: "/subscription", permission: "billing:read" },
   { prefix: "/docs" },
   { prefix: "/profile" },
 

@@ -449,8 +449,7 @@ export function PricingSection() {
               {plan?.name}, at your pace.
             </DialogTitle>
             <DialogDescription className={styles.dialogDescription}>
-              {plan?.description} These are proposed launch plans; creating a
-              workspace does not purchase a subscription.
+              {plan?.description} Choose your plan during registration, then activate your workspace with secure checkout. Enterprise requires an agreed quote.
             </DialogDescription>
           </DialogHeader>
           {plan && (
@@ -478,12 +477,11 @@ export function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <Link href="/register" className={styles.primaryButton}>
+              <Link href={`/register?plan=${plan.id}&cycle=${annual ? "annual" : "monthly"}`} className={styles.primaryButton}>
                 Continue to registration <ArrowRight size={17} />
               </Link>
               <p className={styles.dialogFinePrint}>
-                Provider usage fees are separate. Confirm your plan during
-                onboarding.
+                Provider usage fees are separate. Renewals are manual.
               </p>
             </>
           )}

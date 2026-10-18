@@ -1,3 +1,5 @@
+import type { BillingCycle, SubscriptionPlan } from "./billing";
+
 export interface RegisterInput {
   email: string;
   password: string;
@@ -7,6 +9,8 @@ export interface RegisterInput {
   churchName: string;
   denomination?: string;
   churchAddress?: string;
+  plan?: Exclude<SubscriptionPlan, "enterprise">;
+  billingCycle?: BillingCycle;
 }
 
 export interface LoginInput {
@@ -43,8 +47,13 @@ export interface LoginResponse {
   twoFactorEmail?: string;
   challengeToken?: string;
   recoveryCodes?: string[];
-  twoFactorMethod?: 'authenticator' | 'migration' | 'supabase-migration';
-  authenticatorSetup?: { factorId: string; qrCode: string; secret: string; uri: string };
+  twoFactorMethod?: "authenticator" | "migration" | "supabase-migration";
+  authenticatorSetup?: {
+    factorId: string;
+    qrCode: string;
+    secret: string;
+    uri: string;
+  };
   profile?: {
     profileId: string;
     churchId: string;

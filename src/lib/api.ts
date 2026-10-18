@@ -167,6 +167,7 @@ class ApiClient {
 
     // Handle error responses (both HTTP errors and 200-wrapped errors)
     if (!res.ok || (json && !json.success)) {
+      if (res.status === 402 && generation === authGeneration && typeof window !== "undefined" && window.location.pathname !== "/subscription") window.location.assign("/subscription");
       const errorBody = json as BackendErrorResponse | undefined;
       const error: AuthError = {
         message: errorBody

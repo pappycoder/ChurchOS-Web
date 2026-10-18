@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const presence = await fetch("/api/session", { headers: { "X-ChurchOS-Client": "web" }, cache: "no-store" });
         if (!presence.ok) throw new Error("Unable to check session");
         if (!(await presence.json()).hasSession) {
-          if (active && generation === sessionGeneration.current && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/offline"].includes(window.location.pathname)) router.replace("/login");
+          if (active && generation === sessionGeneration.current && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/subscription", "/offline"].includes(window.location.pathname)) router.replace("/login");
           return;
         }
         let session;
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if ((error as { statusCode?: number }).statusCode !== 401) throw error;
           const refreshed = await refreshSession();
           if (!refreshed) {
-            if (active && generation === sessionGeneration.current && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/offline"].includes(window.location.pathname)) router.replace("/login");
+            if (active && generation === sessionGeneration.current && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/subscription", "/offline"].includes(window.location.pathname)) router.replace("/login");
             return;
           }
           session = await api.get<{ userId: string; email: string }>("/auth/session", { skipAuth: true });
@@ -147,6 +147,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const destination = new URLSearchParams(window.location.search).get("returnTo");
       const profile = queryClient.getQueryData<CurrentProfile>(["current-profile"]);
       const grants = new Set(profile?.status === "active" ? profile.permissions : []);
+      if (grants.has("billing:read")) {
+        try {
+          const billing = await api.get<{active:boolean}>("/billing/subscription");
+          if (!billing.active) {
+            const returnPath = destination?.startsWith("/subscription") ? permissionReturnTo(destination, name => grants.has(name)) : "/subscription";
+            router.push(returnPath);
+            return;
+          }
+        } catch {
+          // Existing workspace access remains independently verified by the API.
+        }
+      }
       router.push(permissionReturnTo(destination, (name) => grants.has(name)));
     },
     [router, queryClient]

@@ -83,7 +83,7 @@ function ResetPasswordForm() {
           ? "Invalid or missing reset token"
           : resetPasswordMutation.isSuccess
             ? "Your password has been reset successfully"
-            : "Your new password must be different from previous used passwords."
+            : "Choose a strong password to keep your church workspace secure."
       }
     >
       <AnimatePresence mode="wait" initial={false}>
@@ -186,7 +186,7 @@ function ResetPasswordForm() {
               )}
 
               <Button type="submit" size="lg" className="w-full" disabled={resetPasswordMutation.isPending} loading={resetPasswordMutation.isPending}>
-                {resetPasswordMutation.isPending ? "Resetting..." : "Submit"}
+                {resetPasswordMutation.isPending ? "Resetting..." : "Save new password"}
               </Button>
             </div>
           </motion.form>

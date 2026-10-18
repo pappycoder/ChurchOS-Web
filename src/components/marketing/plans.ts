@@ -1,4 +1,4 @@
-/** Proposed marketing plans only. This data does not enforce subscriptions or entitlements. */
+/** Display catalog. Checkout prices come from the backend; plan quotas are not enforced here. */
 export const launchPlans = [
   {
     id: "essentials",

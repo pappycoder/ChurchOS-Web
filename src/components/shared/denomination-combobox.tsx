@@ -3,7 +3,11 @@
 import * as React from "react";
 import { Check, ChevronDown, PenLine } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -16,19 +20,20 @@ import {
 import { DENOMINATION_GROUPS } from "@/lib/denominations";
 
 interface DenominationComboboxProps {
+  id?: string;
+  className?: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
 }
 
 function toTitleCase(str: string): string {
-  return str.replace(
-    /\b\w/g,
-    (c) => c.toUpperCase()
-  );
+  return str.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function DenominationCombobox({
+  id,
+  className,
   value,
   onChange,
   placeholder = "Select denomination...",
@@ -74,19 +79,16 @@ export function DenominationCombobox({
       <PopoverTrigger asChild>
         <button
           type="button"
+          id={id}
+          aria-expanded={open}
           className={cn(
             "flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm",
             "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
-            "disabled:cursor-not-allowed disabled:opacity-50"
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            className,
           )}
-          style={{ borderColor: "#ededed" }}
         >
-          <span
-            className={cn(
-              "truncate",
-              !value && "text-gray-400"
-            )}
-          >
+          <span className={cn("truncate", !value && "text-gray-400")}>
             {value || placeholder}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -126,7 +128,7 @@ export function DenominationCombobox({
                     <Check
                       className={cn(
                         "mr-2 h-4 w-4",
-                        value === denomination ? "opacity-100" : "opacity-0"
+                        value === denomination ? "opacity-100" : "opacity-0",
                       )}
                     />
                     {denomination}
@@ -175,7 +177,6 @@ export function DenominationCombobox({
                   }}
                   placeholder="e.g. Living Spring Assembly"
                   className="flex-1 rounded-md border px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                  style={{ borderColor: "#ededed" }}
                 />
                 <button
                   type="button"
