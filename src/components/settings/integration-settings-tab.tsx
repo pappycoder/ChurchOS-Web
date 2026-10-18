@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type Channel = "email" | "whatsapp" | "sms" | "voice" | "payment";
-type Mode = "platform" | "custom" | "disabled";
+type Mode = "custom" | "disabled";
 interface Provider { id: string; label: string; channels: Channel[]; fields: { key: string; label: string; secret?: boolean; optional?: boolean; options?: string[] }[]; help: string }
 interface Account { id: string; provider: string; label: string; verification_status: string; verified_at: string | null; archived_at: string | null }
 interface Binding { channel: Channel; mode: Mode; account_id: string | null; settings: Record<string, string>; updated_at: string }
@@ -25,7 +25,7 @@ export function IntegrationSettingsTab() {
   if (query.isError) return <div role="alert">Unable to load integrations. <Button variant="outline" onClick={() => void query.refetch()}>Retry</Button></div>;
   if (!query.data) return null;
   return <div className="space-y-8">
-    <p className="text-sm text-muted-foreground">Add provider accounts, check their credentials, then choose an account separately for each service. A compatible account can be shared across services. Existing messaging accounts continue working until you change a channel.</p>
+    <p className="text-sm text-muted-foreground">Add provider accounts, check their credentials, then choose an account separately for each service. A compatible account can be shared across services. Each service stays disabled until you select and save a church-owned provider account. Platform credentials are never used for church services.</p>
     <ProviderAccounts data={query.data} canManage={can("integrations", "update")} />
     {Object.entries(LABELS).map(([channel, label]) => <ChannelSettings key={`${channel}:${query.data!.channels.find(item => item.channel === channel)?.updated_at ?? "legacy"}`} channel={channel as Channel} label={label} data={query.data!} canManage={can("integrations", "update")} />)}
   </div>;
@@ -77,7 +77,7 @@ function ProviderAccounts({ data, canManage }: { data: Settings; canManage: bool
 
 function ChannelSettings({ channel, label, data, canManage }: { channel: Channel; label: string; data: Settings; canManage: boolean }) {
   const saved = data.channels.find(item => item.channel === channel);
-  const [mode, setMode] = React.useState<Mode>(saved?.mode ?? "platform");
+  const [mode, setMode] = React.useState<Mode>(saved?.mode === "custom" ? "custom" : "disabled");
   const [accountId, setAccountId] = React.useState(saved?.account_id ?? "");
   const [busy, setBusy] = React.useState(false);
   const [notice, setNotice] = React.useState("");
@@ -99,9 +99,9 @@ function ChannelSettings({ channel, label, data, canManage }: { channel: Channel
   }
   return <section id={`channel-${channel}`} data-settings-section className="space-y-4 border-t pt-6">
     <h2 className="text-lg font-semibold">{label}</h2>
-    <p className="text-sm text-muted-foreground">{saved ? `Saved mode: ${saved.mode}.` : "Using existing configuration."} {channel === "voice" && "Live calls ring your saved staff phone first, then connect the member. Calls are limited to ten minutes."}</p>
+    <p className="text-sm text-muted-foreground">{saved ? `Saved mode: ${saved.mode}.` : "Disabled until your church selects a provider account."} {channel === "voice" && "Live calls ring your saved staff phone first, then connect the member. Calls are limited to ten minutes."}</p>
     <form onSubmit={save} className="space-y-4"><fieldset disabled={!canManage || busy} className="space-y-4">
-      <div className="space-y-2"><Label htmlFor={`${channel}-mode`}>Account source</Label><select id={`${channel}-mode`} value={mode} onChange={event => setMode(event.currentTarget.value as Mode)} className="h-10 w-full rounded-md border bg-background px-3 text-sm"><option value="platform">Existing / platform configuration</option><option value="custom">Choose provider account</option><option value="disabled">Disable this service</option></select></div>
+      <div className="space-y-2"><Label htmlFor={`${channel}-mode`}>Account source</Label><select id={`${channel}-mode`} value={mode} onChange={event => setMode(event.currentTarget.value as Mode)} className="h-10 w-full rounded-md border bg-background px-3 text-sm"><option value="custom">Choose provider account</option><option value="disabled">Disable this service</option></select></div>
       {mode === "custom" && <>
         <div className="space-y-2"><Label htmlFor={`${channel}-account`}>Provider account</Label><select id={`${channel}-account`} value={accountId} onChange={event => setAccountId(event.currentTarget.value)} required className="h-10 w-full rounded-md border bg-background px-3 text-sm"><option value="">Select an account</option>{accounts.map(account => <option key={account.id} value={account.id} disabled={!['verified', 'limited'].includes(account.verification_status)}>{account.label} ({account.provider}; {account.verification_status})</option>)}</select></div>
         {selected?.verification_status === "limited" && <p className="text-sm text-muted-foreground">Account inspection was limited. Save this service and send a controlled test to confirm that the credentials and sender work.</p>}

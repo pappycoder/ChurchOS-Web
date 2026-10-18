@@ -43,6 +43,16 @@ async function session(context: BrowserContext, grants: string[], role = "church
 }
 async function openSettings(page: import("@playwright/test").Page) { await page.goto("/admin/integrations"); }
 
+test("all external services default to disabled and cannot select platform credentials", async ({ page, context }) => {
+  await session(context, ["integrations:read", "integrations:update"]);
+  await openSettings(page);
+  for (const channel of ["email", "sms", "whatsapp", "voice", "payment"]) {
+    const mode = page.locator(`#${channel}-mode`);
+    await expect(mode).toHaveValue("disabled");
+    await expect(mode.locator('option[value="platform"]')).toHaveCount(0);
+  }
+});
+
 for (const role of ["church_admin", "super_admin"]) test(`${role} can find integrations directly without church-settings access`, async ({ page, context }) => {
   await session(context, ["integrations:read", "integrations:update"], role, false);
   await page.goto("/docs");
