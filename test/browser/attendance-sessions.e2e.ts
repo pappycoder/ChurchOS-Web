@@ -325,3 +325,36 @@ test("usher can open event creation", async ({ page }) => {
   await page.goto("/events/new");
   await expect(page.getByLabel("Title *", { exact: true })).toBeVisible();
 });
+
+test("usher can open event editing and lifecycle controls", async ({
+  page,
+}) => {
+  await page.goto("/events/context-a");
+  await expect(
+    page.getByRole("button", { name: "Archive", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Delete", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(page).toHaveURL(/\/events\/context-a\/edit$/);
+  await expect(page.getByLabel("Title *", { exact: true })).toHaveValue(
+    "Meeting A",
+  );
+  await expect(
+    page.getByRole("button", { name: "Save Changes", exact: true }),
+  ).toBeEnabled();
+});
+
+test("usher can manage ticket types and assigned tickets", async ({ page }) => {
+  await page.goto("/events/management");
+  await expect(
+    page.getByRole("tab", { name: "Ticket Types", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("tab", { name: "Assigned Tickets", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create Ticket Type", exact: true }),
+  ).toBeVisible();
+});
