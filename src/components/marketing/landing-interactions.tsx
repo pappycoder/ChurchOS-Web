@@ -366,7 +366,6 @@ export function PricingSection() {
       </div>
       <div className={styles.pricingGrid}>
         {launchPlans.map((item) => {
-          const amount = annual ? item.annual / 12 : item.monthly;
           return (
             <article
               key={item.id}
@@ -383,15 +382,23 @@ export function PricingSection() {
               <h3>{item.name}</h3>
               <p className={styles.planDescription}>{item.description}</p>
               <div className={styles.planPrice}>
-                {item.id === "enterprise" && <small>From</small>}
-                <strong>{naira(amount)}</strong>
-                <span>/ month</span>
+                {item.id === "enterprise" ? (
+                  <strong>Let’s talk</strong>
+                ) : (
+                  <>
+                    <strong>
+                      {naira(annual ? item.annual / 12 : item.monthly)}
+                    </strong>
+                    <span>/ month</span>
+                  </>
+                )}
               </div>
               <p className={styles.billingNote}>
-                {item.id === "enterprise" ? "From " : ""}
-                {annual
-                  ? `${naira(item.annual)} billed yearly`
-                  : `${naira(item.annual)} when billed yearly`}
+                {item.id === "enterprise"
+                  ? "Pricing and billing terms agreed with you"
+                  : annual
+                    ? `${naira(item.annual)} billed yearly`
+                    : `${naira(item.annual)} when billed yearly`}
               </p>
               <p className={styles.planCapacity}>{item.capacity}</p>
               <button
@@ -449,24 +456,28 @@ export function PricingSection() {
               {plan?.name}, at your pace.
             </DialogTitle>
             <DialogDescription className={styles.dialogDescription}>
-              {plan?.description} Choose your plan during registration, then activate your workspace with secure checkout. Enterprise requires an agreed quote.
+              {plan?.description}{" "}
+              {plan?.id === "enterprise"
+                ? "Pricing, billing terms and rollout scope are negotiated directly with the ChurchOS team."
+                : "Choose your plan during registration, then activate your workspace with secure checkout."}
             </DialogDescription>
           </DialogHeader>
           {plan && (
             <>
               <div className={styles.dialogPrice}>
-                <strong>
-                  {naira(
-                    annual ? plan.annual / 12 : plan.monthly,
-                  )}
-                  {plan.id === "enterprise" ? "+" : ""}
-                </strong>
-                <span>
-                  / month
-                  {annual
-                    ? ` · ${naira(plan.annual)} billed yearly`
-                    : ""}
-                </span>
+                {plan.id === "enterprise" ? (
+                  <strong>Let’s talk</strong>
+                ) : (
+                  <>
+                    <strong>
+                      {naira(annual ? plan.annual / 12 : plan.monthly)}
+                    </strong>
+                    <span>
+                      / month
+                      {annual ? ` · ${naira(plan.annual)} billed yearly` : ""}
+                    </span>
+                  </>
+                )}
               </div>
               <p className={styles.planCapacity}>{plan.capacity}</p>
               <ul className={styles.dialogFeatures}>
@@ -477,12 +488,24 @@ export function PricingSection() {
                   </li>
                 ))}
               </ul>
-              <Link href={`/register?plan=${plan.id}&cycle=${annual ? "annual" : "monthly"}`} className={styles.primaryButton}>
-                Continue to registration <ArrowRight size={17} />
-              </Link>
-              <p className={styles.dialogFinePrint}>
-                Provider usage fees are separate. Renewals are manual.
-              </p>
+              {plan.id === "enterprise" ? (
+                <p className={styles.dialogFinePrint}>
+                  Contact the ChurchOS team to discuss your needs and agree on a
+                  tailored proposal.
+                </p>
+              ) : (
+                <>
+                  <Link
+                    href={`/register?plan=${plan.id}&cycle=${annual ? "annual" : "monthly"}`}
+                    className={styles.primaryButton}
+                  >
+                    Continue to registration <ArrowRight size={17} />
+                  </Link>
+                  <p className={styles.dialogFinePrint}>
+                    Provider usage fees are separate. Renewals are manual.
+                  </p>
+                </>
+              )}
             </>
           )}
         </DialogContent>

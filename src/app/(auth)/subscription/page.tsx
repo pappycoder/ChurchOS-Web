@@ -121,7 +121,9 @@ export default function SubscriptionPage() {
     onError: (e) =>
       setMessage(e.message || "Checkout is unavailable. Please retry."),
   });
-  const selected = launchPlans.find((p) => p.id === plan)!;
+  const selected = launchPlans
+    .filter((p) => p.id !== "enterprise")
+    .find((p) => p.id === plan)!;
   const waiting = checkout.isPending || verify.isPending;
   const pending = status.data?.latestPayment;
   let content: React.ReactNode;

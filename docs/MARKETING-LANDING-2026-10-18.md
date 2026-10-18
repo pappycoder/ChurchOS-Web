@@ -2,7 +2,7 @@
 
 The public `/` route now presents ChurchOS with a warm cream, deep teal and lime visual identity, editorial typography, an interactive illustrative workspace, product features, branch/HQ information, provider integrations, proposed pricing and FAQs. Existing registration and sign-in routes remain the destinations for account actions.
 
-The page is a marketing implementation only. It does not create subscriptions, collect payments, enforce member/staff limits or change existing permissions. The plan dialog explicitly explains that registration does not buy a subscription. Prices and packages are marked as proposed launch pricing so the page does not promise an implemented billing system.
+The landing page links published plans to registration and the organization-owned subscription checkout described in AUTH-ONBOARDING-AND-BILLING-2026-10-18.md. Enterprise pricing, billing terms and rollout scope are negotiated directly with the ChurchOS team, with no advertised amount or fixed-price checkout. Member/staff limits are not enforced by this page.
 
 ## Recommended launch packages
 
@@ -11,9 +11,9 @@ The page is a marketing implementation only. It does not create subscriptions, c
 | Essentials | ₦10,000 | ₦108,000 | 50 members, one location, two staff | Directory, services/attendance, visitor follow-up, permission-based access |
 | Community | ₦20,000 | ₦216,000 | 300 members, one location, five staff | Giving/receipts, events/registrations, departments/cell groups, forms/reports, email provider |
 | Network | ₦40,000 | ₦432,000 | 1,500 members, three locations, 15 staff | Branch/HQ workspaces, SMS/WhatsApp, tickets/check-in, pastoral care, assets, administrator analytics |
-| Enterprise | From ₦80,000 | From ₦864,000 | Agreed member/location/team limits | Network rollout, HQ oversight, provider/payment integrations, scoped onboarding and support |
+| Enterprise | Negotiated | Negotiated | Agreed member/location/team limits | Network rollout, HQ oversight, provider/payment integrations, scoped onboarding and support |
 
-Every yearly plan saves 10% against twelve monthly payments. Effective monthly rates are ₦9,000, ₦18,000, ₦36,000 and from ₦72,000 respectively; full yearly totals appear beside them. Enterprise remains a starting price with final scope agreed during onboarding. Third-party usage/transaction charges are excluded. Taxes, final limits, support terms and availability require confirmation during onboarding. Validate hosting, storage and support costs before commercially committing to these proposals.
+Essentials, Community and Network yearly plans save 10% against twelve monthly payments. Effective monthly rates are ₦9,000, ₦18,000 and ₦36,000 respectively; full yearly totals appear beside them. Enterprise pricing and billing terms are negotiated, with no listed minimum or automatic yearly discount. Third-party usage/transaction charges are excluded. Taxes, final limits, support terms and availability require confirmation during onboarding. Validate hosting, storage and support costs before commercially committing to these proposals.
 
 Initial pricing research used the official [Churchplus pricing page](https://churchplus.co/pricing/) and [Planning Center pricing page](https://www.planningcenter.com/pricing). The current packages follow the user's revised ₦10,000 monthly minimum and request for modest yearly discounts. All free-plan wording has been removed; features and capacities are unchanged.
 

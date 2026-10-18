@@ -52,8 +52,6 @@ export const launchPlans = [
     id: "enterprise",
     name: "Enterprise",
     description: "A connected foundation for a wider ministry.",
-    monthly: 80000,
-    annual: 864000,
     capacity: "Member, location and team limits agreed with you",
     features: [
       "Everything in Network",

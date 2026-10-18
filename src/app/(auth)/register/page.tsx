@@ -410,8 +410,8 @@ export default function RegisterPage() {
                   ))}
                 </fieldset>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  Need Enterprise? Plans start at ₦80,000/month, with scope and
-                  pricing agreed with ChurchOS before payment.
+                  Need Enterprise? Pricing, billing terms and rollout scope are
+                  negotiated directly with the ChurchOS team.
                 </p>
               </>
             )}

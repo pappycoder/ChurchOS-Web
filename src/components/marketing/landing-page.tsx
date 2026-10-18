@@ -28,7 +28,7 @@ import styles from "./landing.module.css";
 const questions = [
   [
     "Is ChurchOS only for large churches?",
-    "Not at all. The Essentials plan starts at ₦10,000 per month, while Community and Network add room for more members, staff and locations. Enterprise is designed around the needs of a wider church network. Every plan has a yearly option with 10% savings compared with twelve monthly payments.",
+    "Not at all. The Essentials plan starts at ₦10,000 per month, while Community and Network add room for more members, staff and locations. Enterprise is designed around the needs of a wider church network. Essentials, Community and Network have yearly options with 10% savings compared with twelve monthly payments. Enterprise pricing and billing terms are negotiated with you.",
   ],
   [
     "Can each branch manage its own work?",

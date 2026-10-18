@@ -64,20 +64,39 @@ test("pricing switches billing periods and reviews a plan without buying anythin
 }) => {
   await page.goto("/#pricing");
   const plans = [
-    { name: "Essentials", monthly: "₦10,000", effective: "₦9,000", yearly: "₦108,000" },
-    { name: "Community", monthly: "₦20,000", effective: "₦18,000", yearly: "₦216,000" },
-    { name: "Network", monthly: "₦40,000", effective: "₦36,000", yearly: "₦432,000" },
-    { name: "Enterprise", monthly: "₦80,000", effective: "₦72,000", yearly: "₦864,000" },
+    {
+      name: "Essentials",
+      monthly: "₦10,000",
+      effective: "₦9,000",
+      yearly: "₦108,000",
+    },
+    {
+      name: "Community",
+      monthly: "₦20,000",
+      effective: "₦18,000",
+      yearly: "₦216,000",
+    },
+    {
+      name: "Network",
+      monthly: "₦40,000",
+      effective: "₦36,000",
+      yearly: "₦432,000",
+    },
   ];
-  const card = (name: string) => page.getByRole("article").filter({
-    has: page.getByRole("heading", { name, exact: true }),
-  });
+  const card = (name: string) =>
+    page.getByRole("article").filter({
+      has: page.getByRole("heading", { name, exact: true }),
+    });
   for (const plan of plans) {
-    await expect(card(plan.name).getByText(plan.monthly, { exact: true })).toBeVisible();
+    await expect(
+      card(plan.name).getByText(plan.monthly, { exact: true }),
+    ).toBeVisible();
   }
   await page.getByRole("button", { name: /Yearly Save 10%/ }).click();
   for (const plan of plans) {
-    await expect(card(plan.name).getByText(plan.effective, { exact: true })).toBeVisible();
+    await expect(
+      card(plan.name).getByText(plan.effective, { exact: true }),
+    ).toBeVisible();
     await expect(card(plan.name)).toContainText(`${plan.yearly} billed yearly`);
   }
   const trigger = page.getByRole("button", {
@@ -86,7 +105,9 @@ test("pricing switches billing periods and reviews a plan without buying anythin
   });
   await trigger.click();
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toContainText("activate your workspace with secure checkout");
+  await expect(dialog).toContainText(
+    "activate your workspace with secure checkout",
+  );
   await expect(
     dialog.getByRole("link", { name: "Continue to registration", exact: true }),
   ).toHaveAttribute("href", "/register?plan=network&cycle=annual");
@@ -97,7 +118,43 @@ test("pricing switches billing periods and reviews a plan without buying anythin
   await expect(trigger).toBeFocused();
   await page.getByRole("button", { name: "Monthly", exact: true }).click();
   for (const plan of plans) {
-    await expect(card(plan.name).getByText(plan.monthly, { exact: true })).toBeVisible();
+    await expect(
+      card(plan.name).getByText(plan.monthly, { exact: true }),
+    ).toBeVisible();
+  }
+});
+
+test("Enterprise has negotiated pricing without an amount or checkout in either billing period", async ({
+  page,
+}) => {
+  await page.goto("/#pricing");
+  const card = page
+    .getByRole("article")
+    .filter({
+      has: page.getByRole("heading", { name: "Enterprise", exact: true }),
+    });
+  for (const period of ["Monthly", "Yearly Save 10%"]) {
+    await page.getByRole("button", { name: period, exact: true }).click();
+    await expect(card).toContainText("Let’s talk");
+    await expect(card).toContainText(
+      "Pricing and billing terms agreed with you",
+    );
+    await expect(card).not.toContainText("₦");
+    await page
+      .getByRole("button", { name: "Explore Enterprise plan", exact: true })
+      .click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toContainText(
+      "negotiated directly with the ChurchOS team",
+    );
+    await expect(dialog).not.toContainText("₦");
+    await expect(
+      dialog.getByRole("link", {
+        name: "Continue to registration",
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await page.keyboard.press("Escape");
   }
 });
 
