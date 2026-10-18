@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import type { GeneralAttendanceSummary } from "@/hooks/use-attendance";
 import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
@@ -34,6 +35,7 @@ export interface ServiceAttendance {
 }
 
 export interface AttendanceReport {
+  generalAttendance?: GeneralAttendanceSummary;
   startDate: string;
   endDate: string;
   totalAttendance: number;
@@ -98,11 +100,14 @@ export function monthLabel(month: string): string {
 
 export function useFinancialReport(
   params: ReportQueryParams = {},
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
   return useQuery({
     queryKey: ["reports", "financial", params],
-    queryFn: ({ signal }) => api.get<FinancialReport>(`/reports/financial${buildQuery(params)}`, { signal }),
+    queryFn: ({ signal }) =>
+      api.get<FinancialReport>(`/reports/financial${buildQuery(params)}`, {
+        signal,
+      }),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled ?? true,
   });
@@ -110,11 +115,14 @@ export function useFinancialReport(
 
 export function useAttendanceReport(
   params: ReportQueryParams = {},
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
   return useQuery({
     queryKey: ["reports", "attendance", params],
-    queryFn: ({ signal }) => api.get<AttendanceReport>(`/reports/attendance${buildQuery(params)}`, { signal }),
+    queryFn: ({ signal }) =>
+      api.get<AttendanceReport>(`/reports/attendance${buildQuery(params)}`, {
+        signal,
+      }),
     staleTime: 5 * 60 * 1000,
     enabled: options.enabled ?? true,
   });
@@ -122,11 +130,14 @@ export function useAttendanceReport(
 
 export function useMemberReport(
   params: ReportQueryParams = {},
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
   return useQuery({
     queryKey: ["reports", "members", params],
-    queryFn: ({ signal }) => api.get<MemberReport>(`/reports/members${buildQuery(params)}`, { signal }),
+    queryFn: ({ signal }) =>
+      api.get<MemberReport>(`/reports/members${buildQuery(params)}`, {
+        signal,
+      }),
     staleTime: 10 * 60 * 1000,
     enabled: options.enabled ?? true,
   });

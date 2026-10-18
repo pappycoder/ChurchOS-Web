@@ -1,4 +1,5 @@
 "use client";
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
@@ -254,6 +255,8 @@ export default function EventsCheckInPage() {
           )}
         </CardContent>
       </Card>
+
+      <GeneralAttendancePanel requireService context={selectedEvent ? {type:"event",id:selectedEvent.eventId,name:selectedEvent.title,branchId:selectedEvent.branchId,active:!selectedEvent.archivedAt} : undefined} />
 
       {/* Mode tabs */}
       <div className="flex gap-2">

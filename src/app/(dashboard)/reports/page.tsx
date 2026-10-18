@@ -1,4 +1,5 @@
 "use client";
+import { GeneralAttendanceSummaryCard } from "@/components/attendance/general-attendance-summary";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -204,14 +205,24 @@ export default function ReportsGeneratorPage() {
       const r = attendance.data as AttendanceReport | undefined;
       return {
         rows: [
-          { name: "Grand Total", total: r?.totalAttendance ?? 0, services: r?.serviceCount ?? 0, average: r?.averagePerService ?? 0 },
+          { name: "Individual check-ins", total: r?.totalAttendance ?? 0, services: r?.serviceCount ?? 0, average: r?.averagePerService ?? 0 },
           ...(r?.byService ?? []).map((s) => ({ name: s.name, total: s.total, services: s.serviceCount, average: s.average })),
           ...(r?.byService?.length ? [{ name: "Monthly trend", total: undefined }] : []),
           ...(r?.monthlyTrend ?? []).map((t) => ({ name: monthLabel(t.month), total: t.total })),
+          ...(r?.generalAttendance ? [
+            {name: "General headcount: Total", total: r.generalAttendance.total},
+            {name: "General headcount: Records", total: r.generalAttendance.reportCount},
+            {name: "General headcount: Adults reported", total: r.generalAttendance.adultCount},
+            {name: "General headcount: Children reported", total: r.generalAttendance.childrenCount},
+            {name: "General headcount: Age not supplied", total: r.generalAttendance.unspecifiedAgeCount},
+            {name: "General headcount: Male reported", total: r.generalAttendance.maleCount},
+            {name: "General headcount: Female reported", total: r.generalAttendance.femaleCount},
+            {name: "General headcount: Gender not supplied", total: r.generalAttendance.unspecifiedGenderCount},
+          ] : []),
         ],
         columns: [
-          { key: "name", label: "Service / Month" },
-          { key: "total", label: "Check-ins" },
+          { key: "name", label: "Service / Month / Measure" },
+          { key: "total", label: "Count (headcounts separate)" },
           { key: "services", label: "Services" },
           { key: "average", label: "Average / Service" },
         ],
@@ -476,10 +487,11 @@ function AttendancePreview({ report }: { report: AttendanceReport | undefined })
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatsCard title="Total Attendance" value={report.totalAttendance} icon={<Users className="h-4 w-4" />} variant="primary" />
+          <StatsCard title="Individual Check-Ins" value={report.totalAttendance} icon={<Users className="h-4 w-4" />} variant="primary" />
           <StatsCard title="Services Held" value={report.serviceCount} icon={<ListOrdered className="h-4 w-4" />} />
           <StatsCard title="Average / Service" value={report.averagePerService.toLocaleString("en-NG", { maximumFractionDigits: 1 })} icon={<Users className="h-4 w-4" />} />
         </div>
+        <GeneralAttendanceSummaryCard summary={report.generalAttendance} exportable={false} />
         <BreakdownBars
           items={report.byService.map((s) => ({ name: s.name, value: s.total, count: s.serviceCount }))}
           labelSuffix={(item) => `${item.count} ${item.count === 1 ? "service" : "services"}`}

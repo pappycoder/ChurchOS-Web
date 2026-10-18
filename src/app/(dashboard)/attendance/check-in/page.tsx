@@ -1,5 +1,7 @@
 "use client";
 
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
+
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
 import * as React from "react";
@@ -45,8 +47,8 @@ import {
   useAttendanceServices,
   useRecordBulkAttendance,
   useRecordAttendance,
-  SERVICE_CATEGORIES,
-  type ServiceCategory,
+  ATTENDANCE_CATEGORIES,
+  type AttendanceCategory,
 } from "@/hooks/use-attendance";
 import {
   useMembersList,
@@ -85,11 +87,11 @@ export default function CheckInPage() {
   const servicesQuery = useAttendanceServices({ isActive: true, limit: 100 });
   const services = servicesQuery.data?.data ?? [];
   const [serviceId, setServiceId] = React.useState("");
-  const [category, setCategory] = React.useState<ServiceCategory | "">("");
+  const [category, setCategory] = React.useState<AttendanceCategory | "">("");
 
   const selectedService = services.find((s) => s.serviceId === serviceId);
-  const effectiveCategory: ServiceCategory =
-    (category || selectedService?.category || "adult") as ServiceCategory;
+  const effectiveCategory: AttendanceCategory =
+    category || (selectedService?.category === "mixed" ? "unspecified" : selectedService?.category || "adult");
 
   // Mode switch.
   const [mode, setMode] = React.useState<"members" | "visitor">("members");
@@ -291,13 +293,13 @@ export default function CheckInPage() {
             <p className="text-sm font-medium">Category</p>
             <Select
               value={effectiveCategory}
-              onValueChange={(v) => setCategory(v as ServiceCategory)}
+              onValueChange={(v) => setCategory(v as AttendanceCategory)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {SERVICE_CATEGORIES.map((c) => (
+                {ATTENDANCE_CATEGORIES.map((c) => (
                   <SelectItem key={c.value} value={c.value}>
                     {c.label}
                   </SelectItem>
@@ -310,6 +312,8 @@ export default function CheckInPage() {
           </div>
         </CardContent>
       </Card>
+
+      <GeneralAttendancePanel service={selectedService} requireService />
 
       {/* Mode tabs */}
       <div className="flex gap-2">

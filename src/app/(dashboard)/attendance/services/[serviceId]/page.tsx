@@ -1,5 +1,7 @@
 "use client";
 
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
+
 import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
@@ -221,6 +223,8 @@ export default function ServiceDetailPage({
           )}
         </CardContent>
       </Card>
+
+      <GeneralAttendancePanel service={service} />
 
       {/* Totals */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,5 +1,7 @@
 "use client";
 
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
+
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -53,7 +55,7 @@ import {
   useAttendanceRecords,
   useDeleteAttendance,
   useAttendanceServices,
-  SERVICE_CATEGORIES,
+  ATTENDANCE_CATEGORIES,
   type AttendanceRecord,
 } from "@/hooks/use-attendance";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -107,7 +109,7 @@ export default function AttendanceRecordsPage() {
         type: r.memberId ? "Member" : "Visitor",
         service: r.serviceName || "",
         category:
-          SERVICE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))
+          ATTENDANCE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))
             ?.label ?? "Adult",
         source: r.source,
       })),
@@ -182,6 +184,8 @@ export default function AttendanceRecordsPage() {
         }
       />
 
+      <GeneralAttendancePanel readOnly />
+
       <TableCard
         title="Attendance Records"
         itemName="records"
@@ -226,7 +230,7 @@ export default function AttendanceRecordsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              {SERVICE_CATEGORIES.map((c) => (
+              {ATTENDANCE_CATEGORIES.map((c) => (
                 <SelectItem key={c.value} value={c.value}>
                   {c.label}
                 </SelectItem>
@@ -304,7 +308,7 @@ export default function AttendanceRecordsPage() {
                       <TableCell>
                         <Badge variant="secondary">
                           {(
-                            SERVICE_CATEGORIES.find(
+                            ATTENDANCE_CATEGORIES.find(
                               (c) => c.value === (record.category ?? "adult")
                             )?.label ?? "Adult"
                           )}

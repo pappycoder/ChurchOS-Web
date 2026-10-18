@@ -52,7 +52,7 @@ import {
 } from "@/hooks/use-visitors";
 import {
   useAttendanceRecords,
-  SERVICE_CATEGORIES,
+  ATTENDANCE_CATEGORIES,
 } from "@/hooks/use-attendance";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -443,7 +443,7 @@ export default function VisitorDetailPage({
                   </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          {SERVICE_CATEGORIES.find(
+                          {ATTENDANCE_CATEGORIES.find(
                             (c) => c.value === (visit.category ?? "adult")
                           )?.label ?? "Adult"}
                         </Badge>

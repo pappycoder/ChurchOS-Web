@@ -1,4 +1,5 @@
 "use client";
+import { GeneralAttendanceSummaryCard } from "@/components/attendance/general-attendance-summary";
 
 import * as React from "react";
 import { PermissionLink as Link } from "@/components/shared/permission-link";
@@ -34,7 +35,7 @@ import {
   useAttendanceSummary,
   useAttendanceTrends,
   useAttendanceRecords,
-  SERVICE_CATEGORIES,
+  ATTENDANCE_CATEGORIES,
   type AttendanceRecord,
 } from "@/hooks/use-attendance";
 import { useEventsList, EVENT_TYPE_MAP } from "@/hooks/use-events";
@@ -47,7 +48,7 @@ const trendConfig = {
 
 function categoryLabel(category?: string): string {
   return (
-    SERVICE_CATEGORIES.find((c) => c.value === category)?.label ??
+    ATTENDANCE_CATEGORIES.find((c) => c.value === category)?.label ??
     category ??
     "Adult"
   );
@@ -142,6 +143,8 @@ export default function AttendanceDashboardPage() {
           icon={<Users className="h-4 w-4" />}
         />
       </div>
+
+      <GeneralAttendanceSummaryCard summary={summary?.generalAttendance} />
 
       {/* Event Attendance */}
       <Card>

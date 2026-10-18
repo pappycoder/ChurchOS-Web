@@ -1,4 +1,5 @@
 "use client";
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import { ErrorState } from "@/components/shared/error-state";
 
@@ -296,7 +297,7 @@ export default function EventDetailPage({
               <UserCheck className="h-5 w-5 text-muted-foreground" />
               {statsQuery.isLoading ? "..." : stats.attended.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Attended</p>
+            <p className="text-xs text-muted-foreground mt-1">Named Check-Ins</p>
           </CardContent>
         </Card>
         <Card>
@@ -397,6 +398,8 @@ export default function EventDetailPage({
             </Table>
           )}
       </TableCard>
+
+      <GeneralAttendancePanel context={{type:"event",id:eventId,name:event.title,branchId:event.branchId,active:!event.archivedAt}} />
 
       {/* Attendance tab */}
       <TableCard

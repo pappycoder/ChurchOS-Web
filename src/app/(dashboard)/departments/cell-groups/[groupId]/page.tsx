@@ -1,4 +1,5 @@
 "use client";
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
@@ -336,6 +337,8 @@ export default function CellGroupDetailPage({
                   </ul>
                 )}
               </section>
+
+              <GeneralAttendancePanel context={{type:"cell_group",id:groupId,name:group.name,branchId:group.branchId,active:!group.archivedAt}} canManage={!isCellLeader || isOwnGroup} />
 
               <MeetingAttendanceTable title="Cell group attendance" records={attendance} loading={attendanceLoading} error={attendanceError} date={meetingDate} onDateChange={setMeetingDate}
                 action={canManageMembers ? <Button size="sm" onClick={() => setAttendanceDialogOpen(true)}>Record Attendance</Button> : undefined} />

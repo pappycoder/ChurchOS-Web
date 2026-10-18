@@ -1,4 +1,5 @@
 "use client";
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import * as React from "react";
 import { format, parseISO } from "date-fns";
@@ -106,6 +107,7 @@ export function DepartmentDetailContent({ departmentId }: { departmentId: string
           </div>
         ) : (
           <div className="mt-6 space-y-6">
+            <GeneralAttendancePanel context={{type:"department",id:department.id,name:department.name,branchId:department.branchId,active:!department.archivedAt}} canManage={canUpdate && (!isDepartmentHead || !!isOwnDepartment)} />
             <DepartmentAttendancePanel department={department} canManage={canUpdate && (!isDepartmentHead || !!isOwnDepartment)} />
             <section>
               <p className="text-sm font-medium mb-2">Details</p>

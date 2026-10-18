@@ -22,6 +22,7 @@ test.beforeEach(async ({ context }, testInfo) => {
       let data: unknown;
       if (path === "/api/session") return new Response(JSON.stringify({ hasSession: true }));
       if (path.endsWith("/auth/session")) data = { userId: "browser-user", email: "test@example.com" };
+      else if (path.endsWith("/attendance-sessions")) data={data:[],meta:{total:0,page:1,limit:20,totalPages:0}};
       else if (path.endsWith("/profiles/me")) data = {
         profileId: "11111111-1111-4111-8111-111111111111", churchId: "22222222-2222-4222-8222-222222222222", branchId, memberId,
         status: "active", firstName: "Test", lastName: "User", role: [role], isAdminHq: hq, branch: { branchId, name: "Lekki" },

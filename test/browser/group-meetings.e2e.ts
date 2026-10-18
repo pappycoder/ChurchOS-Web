@@ -17,6 +17,7 @@ test.beforeEach(async ({ context }, info) => {
       let data: unknown=[];
       if(path.endsWith("/auth/session"))data={userId:"user-a",email:"fixture@example.test"};
       else if(path.endsWith("/profiles/me"))data={profileId:"profile-a",churchId:"church-a",branchId:"branch-a",memberId:"head-a",status:"active",firstName:"Head",lastName:"Test",role:["department_head"],isAdminHq:hq,permissions:["reports:members:read","events:calendar:read","attendance:services:read","departments:read","departments:own:read","branches:read",...(readOnly?[]:["departments:update","departments:own:update"]),...(hq&&!readOnly?["departments:create"]:[])]};
+      else if(path.endsWith("/attendance-sessions")) data={data:[],meta:{total:0,page:1,limit:20,totalPages:0}};
       else if(path.endsWith("/admin/departments/dept-a/attendance")) {
         if(options?.method==="POST"){ const body=JSON.parse(String(options.body));records.push({id:"row-c",memberId:body.memberId,firstName:"Alice",lastName:"Test",meetingDate:body.meetingDate,status:body.status,notes:body.notes});data={id:"row-c"}; }
         else data=records.filter(row=>!url.searchParams.get("meetingDate")||row.meetingDate===url.searchParams.get("meetingDate"));

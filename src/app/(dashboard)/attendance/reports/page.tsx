@@ -1,4 +1,6 @@
 "use client";
+import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
+import { GeneralAttendanceReportSummary } from "@/components/attendance/general-attendance-summary";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -30,7 +32,7 @@ import {
   useAttendanceSummary,
   useAttendanceTrends,
   useAttendanceRecords,
-  SERVICE_CATEGORIES,
+  ATTENDANCE_CATEGORIES,
   type AttendanceRecord,
 } from "@/hooks/use-attendance";
 
@@ -92,7 +94,7 @@ export default function AttendanceReportsPage() {
         type: r.memberId ? "Member" : "Visitor",
         service: r.serviceName || "",
         category:
-          SERVICE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))?.label ??
+          ATTENDANCE_CATEGORIES.find((c) => c.value === (r.category ?? "adult"))?.label ??
           "Adult",
         source: r.source,
       })),
@@ -203,6 +205,9 @@ export default function AttendanceReportsPage() {
           </p>
         </CardContent>
       </Card>
+
+      <GeneralAttendanceReportSummary filters={{startDate: startDate || undefined, endDate: endDate || undefined, branchId: branchId || undefined}} />
+      <GeneralAttendancePanel readOnly filters={{startDate: startDate || undefined, endDate: endDate || undefined, branchId: branchId || undefined}} />
 
       {/* Summary stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

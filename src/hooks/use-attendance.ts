@@ -6,11 +6,21 @@ import { api } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────
 
-export type ServiceCategory = "adult" | "children";
+export type ServiceCategory = "adult" | "children" | "mixed";
+export type AttendanceCategory = "adult" | "children" | "unspecified";
+export const ATTENDANCE_CATEGORIES: {
+  value: AttendanceCategory;
+  label: string;
+}[] = [
+  { value: "adult", label: "Adult" },
+  { value: "children", label: "Children" },
+  { value: "unspecified", label: "Unspecified" },
+];
 
 export const SERVICE_CATEGORIES: { value: ServiceCategory; label: string }[] = [
   { value: "adult", label: "Adult" },
   { value: "children", label: "Children" },
+  { value: "mixed", label: "Mixed (Adults & Children)" },
 ];
 
 /** Shape returned by GET /services (ServiceResponseDto). */
@@ -50,7 +60,7 @@ export interface AttendanceRecord {
   memberId?: string;
   visitorId?: string;
   visitorName?: string;
-  category?: ServiceCategory;
+  category?: AttendanceCategory;
   checkInAt: string;
   source: string;
   createdAt: string;
@@ -85,6 +95,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface AttendanceSummary {
+  generalAttendance?: GeneralAttendanceSummary;
   totalCheckIns: number;
   memberCheckIns: number;
   visitorCheckIns: number;
@@ -116,8 +127,9 @@ export interface CreateServiceInput {
   isActive?: boolean;
 }
 
-export interface UpdateServiceInput
-  extends Partial<Omit<CreateServiceInput, "dayOfWeek" | "startTime" | "endTime">> {
+export interface UpdateServiceInput extends Partial<
+  Omit<CreateServiceInput, "dayOfWeek" | "startTime" | "endTime">
+> {
   /** Explicit `null` clears the stored value; `undefined` leaves it unchanged. */
   dayOfWeek?: number | null;
   startTime?: string | null;
@@ -130,7 +142,7 @@ export interface RecordAttendanceInput {
   memberId?: string;
   visitorId?: string;
   visitorName?: string;
-  category?: ServiceCategory;
+  category?: AttendanceCategory;
   source?: string;
 }
 
@@ -142,7 +154,7 @@ export interface RecordBulkAttendanceInput {
     visitorId?: string;
     visitorName?: string;
   }>;
-  category?: ServiceCategory;
+  category?: AttendanceCategory;
   source?: string;
 }
 
@@ -159,7 +171,12 @@ function buildQuery(params: Record<string, unknown>): string {
   return qs ? `?${qs}` : "";
 }
 
-function invalidateAttendanceCaches(queryClient: ReturnType<typeof useQueryClient>) {
+function invalidateAttendanceCaches(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
+  queryClient.invalidateQueries({ queryKey: ["general-attendance"] });
+  queryClient.invalidateQueries({ queryKey: ["general-attendance-summary"] });
+  queryClient.invalidateQueries({ queryKey: ["reports"] });
   queryClient.invalidateQueries({ queryKey: ["attendance-records"] });
   queryClient.invalidateQueries({ queryKey: ["attendance-summary"] });
   queryClient.invalidateQueries({ queryKey: ["attendance-trends"] });
@@ -170,13 +187,16 @@ function invalidateAttendanceCaches(queryClient: ReturnType<typeof useQueryClien
 
 export function useAttendanceServices(
   params: ListServicesParams = {},
-  options: { enabled?: boolean } = {}
+  options: { enabled?: boolean } = {},
 ) {
   const { can } = usePermissions();
   return useQuery({
     queryKey: ["attendance-services", params],
     queryFn: ({ signal }) =>
-      api.get<PaginatedResponse<ChurchService>>(`/services${buildQuery({ ...params })}`, { signal }),
+      api.get<PaginatedResponse<ChurchService>>(
+        `/services${buildQuery({ ...params })}`,
+        { signal },
+      ),
     enabled: (options.enabled ?? true) && can("attendance:services", "read"),
   });
 }
@@ -184,7 +204,8 @@ export function useAttendanceServices(
 export function useService(serviceId: string) {
   return useQuery({
     queryKey: ["attendance-service", serviceId],
-    queryFn: ({ signal }) => api.get<ChurchService>(`/services/${serviceId}`, { signal }),
+    queryFn: ({ signal }) =>
+      api.get<ChurchService>(`/services/${serviceId}`, { signal }),
     enabled: !!serviceId,
   });
 }
@@ -255,7 +276,10 @@ export function useAttendanceRecords(params: ListAttendanceParams = {}) {
     enabled: can("attendance:records", "read"),
     queryKey: ["attendance-records", params],
     queryFn: ({ signal }) =>
-      api.get<PaginatedResponse<AttendanceRecord>>(`/attendance${buildQuery({ ...params })}`, { signal }),
+      api.get<PaginatedResponse<AttendanceRecord>>(
+        `/attendance${buildQuery({ ...params })}`,
+        { signal },
+      ),
   });
 }
 
@@ -288,35 +312,213 @@ export function useDeleteAttendance() {
 
 // ─── Analytics ───────────────────────────────────────────
 
-export function useAttendanceSummary(params: { startDate?: string; endDate?: string; branchId?: string } = {}) {
+export function useAttendanceSummary(
+  params: { startDate?: string; endDate?: string; branchId?: string } = {},
+) {
   const { can } = usePermissions();
   return useQuery({
     enabled: can("attendance:dashboard", "read"),
     queryKey: ["attendance-summary", params],
     queryFn: ({ signal }) =>
-      api.get<AttendanceSummary>(`/attendance/summary${buildQuery({ ...params })}`, { signal }),
+      api.get<AttendanceSummary>(
+        `/attendance/summary${buildQuery({ ...params })}`,
+        { signal },
+      ),
   });
 }
 
 export function useAttendanceTrends(
-  params: { days?: number; startDate?: string; endDate?: string; branchId?: string } = {}
+  params: {
+    days?: number;
+    startDate?: string;
+    endDate?: string;
+    branchId?: string;
+  } = {},
 ) {
   const { can } = usePermissions();
   return useQuery({
     enabled: can("attendance:reports", "read"),
     queryKey: ["attendance-trends", params],
     queryFn: ({ signal }) =>
-      api.get<AttendanceTrendPoint[]>(`/attendance/trends${buildQuery({ ...params })}`, { signal }),
+      api.get<AttendanceTrendPoint[]>(
+        `/attendance/trends${buildQuery({ ...params })}`,
+        { signal },
+      ),
   });
 }
 
 export function useServiceAttendance(serviceId: string) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["service-attendance", serviceId],
     queryFn: ({ signal }) =>
       api.get<{ data: AttendanceRecord[]; total: number }>(
-        `/attendance/by-service/${serviceId}`, { signal }
+        `/attendance/by-service/${serviceId}`,
+        { signal },
       ),
-    enabled: !!serviceId,
+    enabled: !!serviceId && can("attendance:services", "read"),
+  });
+}
+
+export interface GeneralAttendanceCounts {
+  total: number;
+  adultCount?: number | null;
+  childrenCount?: number | null;
+  maleCount?: number | null;
+  femaleCount?: number | null;
+}
+export type AttendanceContext =
+  "service" | "event" | "department" | "cell_group";
+export interface AttendanceSessionContext {
+  type: AttendanceContext;
+  id: string;
+  name: string;
+  branchId?: string;
+  active?: boolean;
+}
+export interface GeneralAttendanceRecord extends GeneralAttendanceCounts {
+  contextType?: AttendanceContext;
+  contextId?: string;
+  contextName?: string;
+  id: string;
+  serviceId?: string;
+  serviceName?: string;
+  branchId: string;
+  branchName: string;
+  attendanceDate: string;
+}
+export interface GeneralAttendanceSummary extends GeneralAttendanceCounts {
+  reportCount: number;
+  unspecifiedAgeCount: number;
+  unspecifiedGenderCount: number;
+}
+export interface GeneralAttendanceParams {
+  contextType?: AttendanceContext;
+  contextId?: string;
+  serviceId?: string;
+  branchId?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
+}
+export function attendanceSessionPermissions(
+  type: AttendanceContext = "service",
+) {
+  return type === "department"
+    ? {
+        read: "departments:read",
+        create: "departments:update",
+        update: "departments:update",
+      }
+    : type === "cell_group"
+      ? {
+          read: "cell_groups:details:read",
+          create: "cell_groups:create",
+          update: "cell_groups:update",
+        }
+      : type === "event"
+        ? {
+            read: "events:checkin:read",
+            create: "events:checkin:create",
+            update: "events:checkin:update",
+          }
+        : {
+            read: "attendance:records:read",
+            create: "attendance:checkin:create",
+            update: "attendance:records:update",
+          };
+}
+function sessionPath(params: GeneralAttendanceParams) {
+  if (!params.contextType || params.contextType === "service")
+    return "/attendance/general";
+  const prefix =
+    params.contextType === "event"
+      ? "/events"
+      : params.contextType === "department"
+        ? "/admin/departments"
+        : "/admin/cell-groups";
+  return `${prefix}/${params.contextId}/attendance-sessions`;
+}
+function sessionQuery(params: GeneralAttendanceParams) {
+  return buildQuery(
+    Object.fromEntries(
+      Object.entries(params).filter(
+        ([key]) => key !== "contextType" && key !== "contextId",
+      ),
+    ),
+  );
+}
+export function fetchGeneralAttendance(
+  params: GeneralAttendanceParams,
+  signal?: AbortSignal,
+) {
+  return api.get<PaginatedResponse<GeneralAttendanceRecord>>(
+    `${sessionPath(params)}${sessionQuery(params)}`,
+    { signal },
+  );
+}
+export function useGeneralAttendance(
+  params: GeneralAttendanceParams,
+  enabled = true,
+) {
+  const { canAny } = usePermissions();
+  return useQuery({
+    queryKey: ["general-attendance", params],
+    queryFn: ({ signal }) => fetchGeneralAttendance(params, signal),
+    enabled:
+      enabled &&
+      canAny(attendanceSessionPermissions(params.contextType).read) &&
+      (params.contextType === undefined ||
+        params.contextType === "service" ||
+        !!params.contextId),
+  });
+}
+export function useGeneralAttendanceSummary(params: GeneralAttendanceParams) {
+  const { canAny } = usePermissions();
+  return useQuery({
+    queryKey: ["general-attendance-summary", params],
+    queryFn: ({ signal }) =>
+      api.get<GeneralAttendanceSummary>(
+        `${sessionPath(params)}/summary${sessionQuery(params)}`,
+        { signal },
+      ),
+    enabled: canAny(
+      !params.contextType || params.contextType === "service"
+        ? "attendance:reports:read"
+        : attendanceSessionPermissions(params.contextType).read,
+    ),
+  });
+}
+export function useSaveGeneralAttendance() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      counts,
+      contextType,
+      contextId,
+      ...context
+    }: {
+      id?: string;
+      counts: GeneralAttendanceCounts;
+      contextType?: AttendanceContext;
+      contextId?: string;
+      serviceId?: string;
+      attendanceDate: string;
+      branchId?: string;
+    }) => {
+      const path = sessionPath({ contextType, contextId });
+      return id
+        ? api.patch<GeneralAttendanceRecord>(`${path}/${id}`, counts)
+        : api.post<GeneralAttendanceRecord>(path, { ...context, ...counts });
+    },
+    onSuccess: (_record, input) => {
+      invalidateAttendanceCaches(client);
+      if (input.contextType === "cell_group")
+        client.invalidateQueries({
+          queryKey: ["cell-group-summary", input.contextId],
+        });
+    },
   });
 }
