@@ -51,6 +51,10 @@ for (const role of ["church_admin", "super_admin"]) test(`${role} can find integ
   await link.click();
   await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Save provider account", exact: true })).toBeVisible();
+  await page.locator("header").getByRole("button", { name: "Account menu", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "Integrations", exact: true })).toBeVisible();
+  await page.getByRole("menuitem", { name: "Integrations", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/integrations$/);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
 });
@@ -68,6 +72,8 @@ test("HQ staff without integration permissions cannot open the page or fetch cre
   await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toHaveCount(0);
   await expect(page.getByRole("navigation", { name: "Workspace", exact: true }).getByRole("link", { name: "Integrations", exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Access denied", exact: true })).toBeVisible();
+  await page.locator("header").getByRole("button", { name: "Account menu", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "Integrations", exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => (window as unknown as { integrationRequests: { path: string }[] }).integrationRequests.some(row => row.path.includes("/church/integrations")))).toBe(false);
 });
 
