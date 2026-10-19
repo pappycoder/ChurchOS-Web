@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { BookOpen, ChevronsUpDown, CreditCard, LifeBuoy, LogOut, Plug, Settings, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useSupportChat } from "@/components/support/support-chat-provider";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,6 +13,7 @@ import { SidebarMenu, SidebarMenuItem, SidebarMenuButton, useSidebar } from "@/c
 export function AccountMenu({ placement = "header" }: { placement?: "header" | "sidebar" }) {
   const { data: profile } = useCurrentProfile();
   const { logout } = useAuth();
+  const { available: supportAvailable, openChat } = useSupportChat();
   const { ready, can } = usePermissions();
   const { isMobile } = useSidebar();
   const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") || "My account";
@@ -28,7 +30,7 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
       {ready && can("church_settings", "update") && <DropdownMenuItem asChild><Link href="/admin/settings"><Settings className="size-4" />Church settings</Link></DropdownMenuItem>}
       {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && can("billing", "read") && <DropdownMenuItem asChild><Link href="/subscription"><CreditCard className="size-4" />Plan & Billing</Link></DropdownMenuItem>}
       {ready && can("integrations", "read") && <DropdownMenuItem asChild><Link href="/admin/integrations"><Plug className="size-4" />Integrations</Link></DropdownMenuItem>}
-      {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && <DropdownMenuItem asChild><Link href="/support"><LifeBuoy className="size-4" />Contact support</Link></DropdownMenuItem>}
+      {ready && supportAvailable && <DropdownMenuItem onSelect={openChat}><LifeBuoy className="size-4" />Contact support</DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" onSelect={() => { void logout(); }}><LogOut className="size-4" />Sign out</DropdownMenuItem>
     </DropdownMenuContent>

@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowUpRight,
@@ -25,6 +26,15 @@ const topicIcons = {
   workspace: Settings2,
   help: CircleHelp,
 };
+
+function HelpSearchUrlSync({ restore }: { restore: (query: string, topic: HelpTopic | "all") => void }) {
+  const params = useSearchParams();
+  useEffect(() => {
+    const chosen = params.get("topic");
+    restore((params.get("q") || "").slice(0, 160), helpTopics.some(item => item.id === chosen) ? chosen as HelpTopic : "all");
+  }, [params, restore]);
+  return null;
+}
 export function HelpSearch({
   index,
   compact = false,
@@ -34,20 +44,9 @@ export function HelpSearch({
 }) {
   const [query, setQuery] = useState("");
   const [topic, setTopic] = useState<HelpTopic | "all">("all");
-  useEffect(() => {
-    const restore = () => {
-      const params = new URLSearchParams(window.location.search);
-      setQuery((params.get("q") || "").slice(0, 160));
-      const chosen = params.get("topic");
-      setTopic(
-        helpTopics.some((item) => item.id === chosen)
-          ? (chosen as HelpTopic)
-          : "all",
-      );
-    };
-    restore();
-    window.addEventListener("popstate", restore);
-    return () => window.removeEventListener("popstate", restore);
+  const restore = useCallback((nextQuery: string, nextTopic: HelpTopic | "all") => {
+    setQuery(nextQuery);
+    setTopic(nextTopic);
   }, []);
   function update(nextQuery: string, nextTopic: HelpTopic | "all") {
     setQuery(nextQuery);
@@ -66,6 +65,7 @@ export function HelpSearch({
     : matching;
   return (
     <div className="space-y-8">
+      <Suspense fallback={null}><HelpSearchUrlSync restore={restore} /></Suspense>
       <form
         role="search"
         onSubmit={(event) => event.preventDefault()}

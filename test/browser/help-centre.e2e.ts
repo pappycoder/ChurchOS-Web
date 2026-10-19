@@ -28,6 +28,7 @@ async function staffSession(
         if (!path.startsWith("/api/")) return original(input, options);
         if (path === "/api/session") return Response.json({ hasSession: true });
         let data: unknown = [];
+      if (path.endsWith("/audit") || path.endsWith("/notifications")) data = { data: [], total: 0 };
         if (path.endsWith("/auth/session"))
           data = { userId: "u", email: "help@example.test" };
         if (path.endsWith("/profiles/me"))
@@ -217,7 +218,7 @@ test("staff help suggests permitted tasks and directs staff to their administrat
   ).toHaveCount(0);
 });
 
-test("administrator can reach support from the help hub without loading chat early", async ({
+test("administrator opens chat directly from help without leaving the page", async ({
   page,
   context,
 }) => {
@@ -231,16 +232,11 @@ test("administrator can reach support from the help hub without loading chat ear
   await expect(
     page.getByRole("region", { name: "Suggested for your work" }),
   ).toContainText("Choose a plan and understand allowances");
-  await page
-    .getByRole("link", { name: "Contact support", exact: true })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "Contact support", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("link", { name: "Browse help articles" }),
-  ).toHaveAttribute("href", "/help");
   expect(widgets).toBe(0);
+  await page.getByRole("button", { name: "Contact support", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Chat could not load" })).toBeVisible();
+  await expect(page).toHaveURL(/\/docs$/);
+  expect(widgets).toBe(1);
 });
 
 test("legacy documentation anchors reach their replacement guide", async ({
@@ -370,4 +366,46 @@ test("administrator help header fits a phone with all utility controls", async (
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBe(true);
+});
+
+
+test("signed-in help articles keep dashboard navigation and clear return links", async ({ page, context }) => {
+  await staffSession(context);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/docs");
+  await expect(page.getByRole("link", { name: "Back to dashboard", exact: true })).toHaveAttribute("href", "/dashboard");
+  await expect(page.getByRole("navigation", { name: "Help workspace navigation" }).getByRole("link", { name: "ChurchOS home" })).toHaveAttribute("href", "/");
+  await page.getByRole("region", { name: "Suggested for your work" }).getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/help\//);
+  await expect(page.getByRole("button", { name: "Account menu", exact: true }).last()).toBeVisible();
+  const navigation = page.getByRole("navigation", { name: "Help return navigation" });
+  await expect(navigation.getByRole("link", { name: "Back to dashboard" })).toBeVisible();
+  await expect(navigation.getByRole("link", { name: "ChurchOS home" })).toHaveAttribute("href", "/");
+  await page.screenshot({ path: "/tmp/churchos-help-article-workspace-desktop.png" });
+  await navigation.getByRole("link", { name: "Back to dashboard" }).click();
+  await expect(page).toHaveURL(/\/dashboard$/);
+});
+
+test("topic navigation updates the public guide results without a reload", async ({ page, context }) => {
+  await publicSession(context);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/help");
+  await page.getByRole("navigation", { name: "Help topics" }).first().getByRole("link", { name: "Attendance", exact: true }).click();
+  await expect(page).toHaveURL(/topic=attendance/);
+  await expect(page.getByRole("button", { name: /Attendance Check people/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#help-results")).toContainText("Record service and meeting totals");
+  await expect(page.locator("#help-results")).not.toContainText("Import your member directory");
+  await page.getByRole("navigation", { name: "Help topics" }).first().getByRole("link", { name: "All guides" }).click();
+  await expect(page.getByRole("status")).toHaveText("20 guides");
+});
+
+for (const width of [320, 390]) test(`signed-in guide navigation fits ${width}px`, async ({ page, context }) => {
+  await staffSession(context, "church_admin");
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto("/help/plans-and-allowances");
+  await expect(page.getByRole("link", { name: "Back to dashboard", exact: true })).toBeVisible();
+  await page.locator("summary").filter({ hasText: "Browse help topics" }).click();
+  await expect(page.getByRole("link", { name: "Giving & subscriptions", exact: true }).last()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  if (width === 390) await page.screenshot({ path: "/tmp/churchos-help-article-workspace-mobile.png" });
 });

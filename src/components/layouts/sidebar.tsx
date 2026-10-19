@@ -609,7 +609,7 @@ export function Sidebar() {
   const { data: profile } = useCurrentProfile();
   React.useEffect(() => { setOpenMobile(false); }, [pathname, setOpenMobile]);
   const activeHref = navigationLeaves(groups.flatMap((group) => group.items))
-    .map((item) => item.href).filter((href): href is string => !!href && (pathname === href || pathname.startsWith(href + "/")))
+    .map((item) => item.href).filter((href): href is string => !!href && (pathname === href || pathname.startsWith(href + "/") || (href === "/docs" && (pathname === "/help" || pathname.startsWith("/help/")))))
     .sort((a, b) => b.length - a.length)[0];
   return <SidebarPrimitive collapsible="icon" variant="inset" aria-label="Main navigation">
     <SidebarHeader><SidebarMenu><SidebarMenuItem>

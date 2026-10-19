@@ -1,5 +1,7 @@
 # ChurchOS support with tawk.to
 
+Navigation follow-up: [floating chat and workspace help](HELP-AND-SUPPORT-NAVIGATION-2026-10-19.md) replaces the dedicated support screen and keeps signed-in article readers inside the dashboard frame.
+
 The administrator account menu and Plan & Billing screen link to `/support`.
 Church administrators and super administrators can open the supplied tawk.to
 widget. Other staff see a message to contact their administrator; no support SDK

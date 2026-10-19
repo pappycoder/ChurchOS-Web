@@ -22,7 +22,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/subscription", permission: "billing:read" },
   { prefix: "/docs" },
   { prefix: "/profile" },
-  // Role restriction is applied by SupportScreen; support has no paid module grant.
+  // Legacy support URL redirects to dashboard; floating chat checks active admin role.
   { prefix: "/support" },
 
   // Members

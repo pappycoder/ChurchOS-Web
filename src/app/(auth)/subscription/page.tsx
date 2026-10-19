@@ -1,4 +1,5 @@
 "use client";
+import { SupportChatButton } from "@/components/support/support-chat-button";
 import * as React from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -268,7 +269,7 @@ export default function SubscriptionPage() {
           <Button variant="outline" asChild>
             <Link href="/help/subscription-currencies-and-payments">Billing guide</Link>
           </Button>
-          <Button variant="outline" asChild><Link href="/support">Contact support</Link></Button>
+          <SupportChatButton />
           <Button variant="outline" onClick={() => void logout()}>
             Sign out
           </Button>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, LifeBuoy, MessageCircle } from "lucide-react";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { useSupportChat } from "@/components/support/support-chat-provider";
 import { usePermissions } from "@/hooks/use-permissions";
 import { suggestedHelp } from "@/lib/help/recommendations";
 import { Button } from "@/components/ui/button";
@@ -18,14 +19,12 @@ export function ContextHelpMenu() {
   const path = usePathname();
   const { data: profile } = useCurrentProfile();
   const { ready, canAny } = usePermissions();
+  const { available: supportAvailable, openChat } = useSupportChat();
   if (!ready) return null;
   const suggestions = suggestedHelp(
     path,
     (permission) => canAny(permission),
     profile?.role || [],
-  );
-  const administrator = profile?.role.some(
-    (role) => role === "church_admin" || role === "super_admin",
   );
   return (
     <DropdownMenu>
@@ -59,12 +58,10 @@ export function ContextHelpMenu() {
             Help Centre
           </Link>
         </DropdownMenuItem>
-        {administrator && (
-          <DropdownMenuItem asChild>
-            <Link href="/support">
+        {supportAvailable && (
+          <DropdownMenuItem onSelect={openChat}>
               <MessageCircle className="size-4" />
               Contact support
-            </Link>
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
+  ArrowLeft,
+  Home,
   BookOpen,
   ExternalLink,
   MessageCircle,
@@ -14,6 +16,7 @@ import { HelpSearch } from "./help-search";
 import { legacyHelpSections, suggestedHelp } from "@/lib/help/recommendations";
 import type { HelpSearchEntry } from "@/lib/help/search";
 import { Button } from "@/components/ui/button";
+import { SupportChatButton } from "@/components/support/support-chat-button";
 export function DashboardHelpHub({ index }: { index: HelpSearchEntry[] }) {
   const router = useRouter();
   const { data: profile } = useCurrentProfile();
@@ -36,7 +39,11 @@ export function DashboardHelpHub({ index }: { index: HelpSearchEntry[] }) {
     return () => window.removeEventListener("hashchange", followLegacyLink);
   }, [router]);
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-8">
+    <div className="w-full space-y-6">
+      <nav aria-label="Help workspace navigation" className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 hover:text-foreground"><ArrowLeft className="size-4" />Back to dashboard</Link>
+        <Link href="/" className="inline-flex items-center gap-2 hover:text-foreground"><Home className="size-4" />ChurchOS home</Link>
+      </nav>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="mb-2 text-xs font-semibold tracking-widest text-primary">
@@ -90,9 +97,7 @@ export function DashboardHelpHub({ index }: { index: HelpSearchEntry[] }) {
           </p>
         </div>
         {administrator && (
-          <Button asChild variant="outline">
-            <Link href="/support">Contact support</Link>
-          </Button>
+          <SupportChatButton />
         )}
       </aside>
     </div>

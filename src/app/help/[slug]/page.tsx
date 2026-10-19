@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen } from "lucide-react";
 import {
   helpArticles,
   helpArticle,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/help/catalog";
 import { helpContent } from "@/lib/help/content";
 import { Button } from "@/components/ui/button";
+import { SupportChatButton } from "@/components/support/support-chat-button";
 // Published guides are prebuilt; unknown slugs reach our helpful 404 page.
 export const dynamicParams = true;
 export function generateStaticParams() {
@@ -156,12 +157,7 @@ export default async function HelpArticlePage({ params }: Props) {
                   How to get help
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/support">
-                  Administrator support
-                  <ArrowRight className="size-4" />
-                </Link>
-              </Button>
+              <SupportChatButton />
             </div>
           </aside>
           {related.length > 0 && (

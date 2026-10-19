@@ -1,5 +1,7 @@
 # Public and in-workspace Help Centre
 
+Navigation follow-up: [floating chat and workspace help](HELP-AND-SUPPORT-NAVIGATION-2026-10-19.md) replaces the dedicated support screen and keeps signed-in article readers inside the dashboard frame.
+
 ## Delivered scope
 
 - `/help` is the public searchable Help Centre, with seven topic filters and 20
