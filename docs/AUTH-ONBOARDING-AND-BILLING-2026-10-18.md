@@ -1,3 +1,5 @@
+> Current pricing: USD $10/$20/$40 monthly and $108/$216/$432 annually, with a shared currency selector and server-locked converted payment quotes. See [Subscription currencies](../../ChurchOS-Backend/docs/SUBSCRIPTION-CURRENCIES-2026-10-19.md); this supersedes the original NGN pricing examples below.
+
 # Progressive authentication and platform subscriptions
 
 Registration now collects church details, the administrator account, a plan and a review in four animated steps. Values survive moving back; passwords and challenge secrets remain in memory only. After creating the account, sign in (and confirm email/complete MFA if required), then continue to `/subscription`. Existing authenticator enrollment, recovery codes, password recovery and the requested seeded-account picker remain available. The responsive auth shell follows the dashboard teal/cream/lime theme, with reduced-motion support and accessible progress/field labels.

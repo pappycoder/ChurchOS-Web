@@ -8,7 +8,12 @@ import { useBillingStatus } from "@/hooks/use-billing";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { launchPlans, naira } from "@/components/marketing/plans";
+import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
+import {
+  useSubscriptionPricing,
+  subscriptionMoney,
+} from "@/hooks/use-subscription-pricing";
+import { launchPlans } from "@/components/marketing/plans";
 import type {
   BillingStatus,
   BillingQuote,
@@ -29,6 +34,11 @@ const date = (value?: string | null) =>
 export default function SubscriptionPage() {
   const { isAuthenticated, isLoading, logout } = useAuth();
   const status = useBillingStatus();
+  const pricing = useSubscriptionPricing();
+  const [paymentChoice, setPaymentChoice] = React.useState<{
+    key: string;
+    currency: string;
+  } | null>(null);
   const client = useQueryClient();
   const [plan, setPlan] =
     React.useState<Exclude<SubscriptionPlan, "enterprise">>("essentials");
@@ -97,6 +107,18 @@ export default function SubscriptionPage() {
     }
   }, [reference, status.canPay, verifyPayment]);
   const pending = data?.latestPayment;
+  const availableCurrencies = data?.gatewayCurrencies?.[gateway] ?? ["NGN"];
+  const choiceKey = `${pricing.currency}:${gateway}`;
+  const paymentCurrency =
+    pending?.currency ||
+    (paymentChoice?.key === choiceKey &&
+    availableCurrencies.includes(paymentChoice.currency)
+      ? paymentChoice.currency
+      : availableCurrencies.includes(pricing.currency)
+        ? pricing.currency
+        : availableCurrencies.includes("USD")
+          ? "USD"
+          : availableCurrencies[0] || "USD");
   const downgrade = !!(
     data?.active &&
     data.subscription &&
@@ -106,16 +128,25 @@ export default function SubscriptionPage() {
   const quote = useQuery({
     queryKey: [
       "billing-quote",
+      status.churchId,
+      paymentCurrency,
       plan,
       cycle,
       gateway,
       data?.subscription?.paid_until,
     ],
     queryFn: () =>
-      api.post<BillingQuote>("/billing/quote", { plan, cycle, gateway }),
+      api.post<BillingQuote>("/billing/quote", {
+        plan,
+        cycle,
+        gateway,
+        currency: paymentCurrency,
+      }),
     enabled:
       status.allowed &&
       !!data &&
+      !!data.gateways.length &&
+      !!availableCurrencies.length &&
       !downgrade &&
       !pending &&
       !(samePlan && data.active) &&
@@ -123,6 +154,16 @@ export default function SubscriptionPage() {
     retry: false,
     staleTime: 30000,
   });
+  const refreshQuote = quote.refetch;
+  const quoteExpiresAt = quote.data?.expiresAt;
+  React.useEffect(() => {
+    if (!quoteExpiresAt || pending) return;
+    const timer = setTimeout(
+      () => void refreshQuote(),
+      Math.max(1, Date.parse(quoteExpiresAt) - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [quoteExpiresAt, pending, refreshQuote]);
   const checkout = useMutation({
     mutationFn: () =>
       api.post<{ authorizationUrl: string; reference: string }>(
@@ -131,6 +172,8 @@ export default function SubscriptionPage() {
           plan: pending?.plan || plan,
           cycle: pending?.cycle || cycle,
           gateway: pending?.gateway || gateway,
+          currency: paymentCurrency,
+          ...(!pending ? { quoteId: quote.data?.quoteId } : {}),
         },
       ),
     onSuccess: (result) => {
@@ -222,10 +265,15 @@ export default function SubscriptionPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" asChild><Link href="/support">Help & Support</Link></Button>
-          <Button variant="outline" onClick={() => void logout()}>Sign out</Button>
+          <Button variant="outline" asChild>
+            <Link href="/support">Help & Support</Link>
+          </Button>
+          <Button variant="outline" onClick={() => void logout()}>
+            Sign out
+          </Button>
         </div>
       </header>
+      <SubscriptionCurrencySwitcher />
       {status.isPending && <p role="status">Loading subscription…</p>}
       {status.isError && (
         <div role="alert" className="rounded-xl border p-4">
@@ -358,7 +406,6 @@ export default function SubscriptionPage() {
               </h2>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {launchPlans.map((item) => {
-                  const server = data.catalog?.find((p) => p.id === item.id);
                   return (
                     <Card
                       key={item.id}
@@ -369,15 +416,9 @@ export default function SubscriptionPage() {
                       </CardHeader>
                       <CardContent className="space-y-3">
                         <p className="text-xl font-semibold">
-                          {server
-                            ? naira(
-                                cycle === "annual"
-                                  ? server.annual
-                                  : server.monthly,
-                              )
-                            : item.id === "enterprise"
-                              ? "Negotiated"
-                              : "Loading price…"}
+                          {item.id === "enterprise"
+                            ? "Negotiated"
+                            : pricing.price(item.id, cycle)}
                         </p>
                         <p className="text-sm">{item.capacity}</p>
                         <ul className="space-y-1 text-xs text-muted-foreground">
@@ -441,6 +482,39 @@ export default function SubscriptionPage() {
                       </select>
                     </label>
                   )}
+                  {!downgrade && (
+                    <label className="block text-sm">
+                      Payment currency
+                      <select
+                        aria-label="Payment currency"
+                        className="mt-1 block w-full rounded-md border bg-background p-3"
+                        value={paymentCurrency}
+                        disabled={!!pending}
+                        onChange={(event) =>
+                          setPaymentChoice({
+                            key: choiceKey,
+                            currency: event.target.value,
+                          })
+                        }
+                      >
+                        {(pending
+                          ? [pending.currency || "NGN"]
+                          : availableCurrencies
+                        ).map((currency) => (
+                          <option key={currency} value={currency}>
+                            {currency}
+                          </option>
+                        ))}
+                      </select>
+                      {paymentCurrency !== pricing.currency && (
+                        <span className="mt-2 block text-xs text-muted-foreground">
+                          Prices are displayed in {pricing.currency}. This
+                          provider will charge {paymentCurrency}; review the
+                          exact amount before continuing.
+                        </span>
+                      )}
+                    </label>
+                  )}
                 </div>
                 <div className="space-y-3">
                   {downgrade ? (
@@ -475,18 +549,48 @@ export default function SubscriptionPage() {
                       </h3>
                       {pending ? (
                         <p>
-                          Amount due: <strong>{naira(pending.amount)}</strong>
+                          Amount due:{" "}
+                          <strong>
+                            {subscriptionMoney(
+                              pending.amount,
+                              pending.currency || "NGN",
+                            )}
+                          </strong>
                         </p>
-                      ) : quote.data ? (
+                      ) : quote.data && !quote.isError ? (
                         <>
                           <p className="text-2xl font-semibold">
-                            {naira(quote.data.amount)} due
+                            {subscriptionMoney(
+                              quote.data.amount,
+                              quote.data.currency || paymentCurrency,
+                            )}{" "}
+                            due
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {quote.data.intent === "upgrade"
                               ? "Prorated upgrade for the remaining paid period. Your renewal deadline stays the same."
                               : "Full subscription period. No automatic renewal charges."}{" "}
                             Renew by {date(quote.data.renewBy)}.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Price locked until{" "}
+                            {new Date(
+                              quote.data.expiresAt,
+                            ).toLocaleTimeString()}
+                            .{" "}
+                            {quote.data.currency !== "USD" && (
+                              <>
+                                <a
+                                  href="https://www.exchangerate-api.com"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="underline"
+                                >
+                                  Rates by ExchangeRate-API
+                                </a>
+                                . Converted total rounded up.
+                              </>
+                            )}
                           </p>
                         </>
                       ) : samePlan && data.active ? (
@@ -498,6 +602,13 @@ export default function SubscriptionPage() {
                       ) : quote.isError ? (
                         <p role="alert" className="text-sm text-destructive">
                           {quote.error.message}
+                          <button
+                            type="button"
+                            className="ml-2 underline"
+                            onClick={() => void quote.refetch()}
+                          >
+                            Refresh quote
+                          </button>
                         </p>
                       ) : (
                         <p role="status">Calculating your payment…</p>
@@ -506,7 +617,11 @@ export default function SubscriptionPage() {
                         disabled={
                           !status.canPay ||
                           checkout.isPending ||
-                          (!pending && !quote.data) ||
+                          (!pending &&
+                            (!quote.data?.quoteId ||
+                              quote.isFetching ||
+                              Date.parse(quote.data.expiresAt) <=
+                                Date.now())) ||
                           !data.gateways.length
                         }
                         onClick={() => checkout.mutate()}
@@ -566,7 +681,10 @@ export default function SubscriptionPage() {
                           </td>
                           <td className="p-2 capitalize">{payment.plan}</td>
                           <td className="p-2 whitespace-nowrap">
-                            {naira(payment.amount)}
+                            {subscriptionMoney(
+                              payment.amount,
+                              payment.currency || "NGN",
+                            )}
                           </td>
                           <td className="p-2 capitalize">
                             {payment.application_status === "review"

@@ -26,7 +26,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { launchPlans, naira, type LaunchPlan } from "./plans";
+import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
+import { useSubscriptionPricing } from "@/hooks/use-subscription-pricing";
+import { launchPlans, type LaunchPlan } from "./plans";
 import styles from "./landing.module.css";
 
 export function MarketingNavigation() {
@@ -322,6 +324,7 @@ export function ProductPreview() {
 }
 
 export function PricingSection() {
+  const pricing = useSubscriptionPricing();
   const [annual, setAnnual] = React.useState(false);
   const [plan, setPlan] = React.useState<LaunchPlan | null>(null);
   const planTrigger = React.useRef<HTMLButtonElement | null>(null);
@@ -364,6 +367,9 @@ export function PricingSection() {
           Yearly <span>Save 10%</span>
         </button>
       </div>
+      <div className="mb-6">
+        <SubscriptionCurrencySwitcher />
+      </div>
       <div className={styles.pricingGrid}>
         {launchPlans.map((item) => {
           return (
@@ -387,9 +393,9 @@ export function PricingSection() {
                 ) : (
                   <>
                     <strong>
-                      {naira(annual ? item.annual / 12 : item.monthly)}
+                      {pricing.price(item.id, annual ? "annual" : "monthly")}
                     </strong>
-                    <span>/ month</span>
+                    <span>/ {annual ? "year" : "month"}</span>
                   </>
                 )}
               </div>
@@ -397,8 +403,8 @@ export function PricingSection() {
                 {item.id === "enterprise"
                   ? "Pricing and billing terms agreed with you"
                   : annual
-                    ? `${naira(item.annual)} billed yearly`
-                    : `${naira(item.annual)} when billed yearly`}
+                    ? `${pricing.price(item.id, "annual")} billed yearly`
+                    : `${pricing.price(item.id, "annual")} when billed yearly`}
               </p>
               <p className={styles.planCapacity}>{item.capacity}</p>
               <button
@@ -470,12 +476,9 @@ export function PricingSection() {
                 ) : (
                   <>
                     <strong>
-                      {naira(annual ? plan.annual / 12 : plan.monthly)}
+                      {pricing.price(plan.id, annual ? "annual" : "monthly")}
                     </strong>
-                    <span>
-                      / month
-                      {annual ? ` · ${naira(plan.annual)} billed yearly` : ""}
-                    </span>
+                    <span>/ {annual ? "year" : "month"}</span>
                   </>
                 )}
               </div>
@@ -496,7 +499,7 @@ export function PricingSection() {
               ) : (
                 <>
                   <Link
-                    href={`/register?plan=${plan.id}&cycle=${annual ? "annual" : "monthly"}`}
+                    href={`/register?plan=${plan.id}&cycle=${annual ? "annual" : "monthly"}&currency=${pricing.currency}`}
                     className={styles.primaryButton}
                   >
                     Continue to registration <ArrowRight size={17} />

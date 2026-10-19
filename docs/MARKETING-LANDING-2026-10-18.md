@@ -1,3 +1,5 @@
+> Current pricing: USD $10/$20/$40 monthly and $108/$216/$432 annually, with a shared currency selector and server-locked converted payment quotes. See [Subscription currencies](../../ChurchOS-Backend/docs/SUBSCRIPTION-CURRENCIES-2026-10-19.md); this supersedes the original NGN pricing examples below.
+
 # Public ChurchOS landing page
 
 The public `/` route now presents ChurchOS with a warm cream, deep teal and lime visual identity, editorial typography, an interactive illustrative workspace, product features, branch/HQ information, provider integrations, proposed pricing and FAQs. Existing registration and sign-in routes remain the destinations for account actions.

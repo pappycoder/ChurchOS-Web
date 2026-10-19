@@ -21,22 +21,22 @@ async function fixture(
         {
           id: "essentials",
           name: "Essentials",
-          monthly: 10000,
-          annual: 108000,
+          monthly: 10,
+          annual: 108,
           limits: { members: 100, staff: 2, locations: 1 },
         },
         {
           id: "community",
           name: "Community",
-          monthly: 20000,
-          annual: 216000,
+          monthly: 20,
+          annual: 216,
           limits: { members: 300, staff: 5, locations: 1 },
         },
         {
           id: "network",
           name: "Network",
-          monthly: 40000,
-          annual: 432000,
+          monthly: 40,
+          annual: 432,
           limits: { members: 1500, staff: 15, locations: 3 },
         },
       ];
@@ -71,6 +71,9 @@ async function fixture(
             data = {
               intent: "upgrade",
               amount: 5000,
+              currency: "NGN",
+              quoteId: "COSQ_" + "b".repeat(32),
+              expiresAt: new Date(Date.now() + 900000).toISOString(),
               effectiveAt: new Date().toISOString(),
               renewBy: "2027-01-19T00:00:00Z",
               credit: 5000,
@@ -101,6 +104,7 @@ async function fixture(
               },
               features: [],
               gateways: ["paystack"],
+              gatewayCurrencies: { paystack: ["NGN"], flutterwave: ["NGN"] },
               latestPayment: null,
               payments: [],
             };
@@ -134,7 +138,7 @@ test("church administrator sees allowances and reviews an upgrade before trusted
   await page
     .getByRole("button", { name: "Choose Community", exact: true })
     .click();
-  await expect(page.getByText("₦5,000 due", { exact: true })).toBeVisible();
+  await expect(page.getByText("NGN 5,000 due", { exact: true })).toBeVisible();
   await page
     .getByRole("button", { name: "Continue to payment", exact: true })
     .click();

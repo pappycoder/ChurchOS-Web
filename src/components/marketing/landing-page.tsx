@@ -1,3 +1,4 @@
+import { SubscriptionStartingPrice } from "@/components/billing/subscription-currency";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -28,7 +29,7 @@ import styles from "./landing.module.css";
 const questions = [
   [
     "Is ChurchOS only for large churches?",
-    "Not at all. The Essentials plan starts at ₦10,000 per month, while Community and Network add room for more members, staff and locations. Enterprise is designed around the needs of a wider church network. Essentials, Community and Network have yearly options with 10% savings compared with twelve monthly payments. Enterprise pricing and billing terms are negotiated with you.",
+    "Not at all. The Essentials plan starts at $10 USD per month, with local currency options, while Community and Network add room for more members, staff and locations. Enterprise is designed around the needs of a wider church network. Essentials, Community and Network have yearly options with 10% savings compared with twelve monthly payments. Enterprise pricing and billing terms are negotiated with you.",
   ],
   [
     "Can each branch manage its own work?",
@@ -85,7 +86,7 @@ export function LandingPage() {
             </div>
             <div className={styles.heroPromise}>
               <span>
-                <Check size={14} /> Plans from ₦10,000 / month
+                <Check size={14} /> <SubscriptionStartingPrice />
               </span>
               <span>
                 <Check size={14} /> Built with Nigerian churches in mind

@@ -1,4 +1,9 @@
 "use client";
+import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
+import {
+  selectSubscriptionCurrency,
+  useSubscriptionPricing,
+} from "@/hooks/use-subscription-pricing";
 import * as React from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
@@ -20,7 +25,7 @@ import { AuthField } from "@/components/shared/auth-field";
 import { Button } from "@/components/ui/button";
 import { DenominationCombobox } from "@/components/shared/denomination-combobox";
 import { useRegister } from "@/hooks/use-auth";
-import { launchPlans, naira } from "@/components/marketing/plans";
+import { launchPlans } from "@/components/marketing/plans";
 import { cn } from "@/lib/utils";
 import { AUTH_EASE } from "@/lib/auth-motion";
 const steps = ["Your church", "Your account", "Your plan", "Review"];
@@ -38,6 +43,7 @@ const subtitles = [
 ];
 const plans = launchPlans.filter((p) => p.id !== "enterprise");
 export default function RegisterPage() {
+  const pricing = useSubscriptionPricing();
   const register = useRegister();
   const [step, setStep] = React.useState(0);
   const [direction, setDirection] = React.useState(1);
@@ -62,6 +68,8 @@ export default function RegisterPage() {
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const selected = params.get("plan");
+    if (params.get("currency"))
+      selectSubscriptionCurrency(params.get("currency")!);
     if (
       selected === "essentials" ||
       selected === "community" ||
@@ -353,6 +361,7 @@ export default function RegisterPage() {
             )}
             {step === 2 && (
               <>
+                <SubscriptionCurrencySwitcher />
                 <fieldset className="flex rounded-xl border bg-card p-1">
                   <legend className="sr-only">Billing period</legend>
                   {(["monthly", "annual"] as const).map((c) => (
@@ -396,7 +405,7 @@ export default function RegisterPage() {
                         <span className="flex items-center justify-between gap-2 text-sm">
                           <strong className="font-semibold">{p.name}</strong>
                           <span className="whitespace-nowrap font-semibold">
-                            {naira(cycle === "annual" ? p.annual : p.monthly)}
+                            {pricing.price(p.id, cycle)}
                             <span className="font-normal text-muted-foreground">
                               /{cycle === "annual" ? "yr" : "mo"}
                             </span>
@@ -417,6 +426,7 @@ export default function RegisterPage() {
             )}
             {step === 3 && (
               <>
+                <SubscriptionCurrencySwitcher />
                 <div className="overflow-hidden rounded-2xl border bg-card/60">
                   <div className="flex items-center justify-between border-b p-4">
                     <span className="text-xs text-muted-foreground">
@@ -458,12 +468,10 @@ export default function RegisterPage() {
                   </div>
                   <div className="flex items-end justify-between bg-accent/40 p-4">
                     <span className="text-xs text-muted-foreground">
-                      Due at checkout
+                      Plan price · confirmed at checkout
                     </span>
                     <strong className="text-2xl tracking-tight">
-                      {naira(
-                        cycle === "annual" ? selected.annual : selected.monthly,
-                      )}
+                      {pricing.price(selected.id, cycle)}
                     </strong>
                   </div>
                 </div>

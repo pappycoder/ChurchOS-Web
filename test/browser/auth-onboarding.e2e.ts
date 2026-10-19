@@ -53,7 +53,7 @@ test("registration validates each step, preserves edits, submits plan and clears
     page.getByRole("button", { name: "Yearly · save 10%", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await expect(page.getByText("₦432,000", { exact: true })).toBeVisible();
+  await expect(page.getByText("USD 432", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Edit church", exact: true }).click();
   await expect(page.getByLabel("Church Name", { exact: true })).toHaveValue(
     "Grace Community Church",
@@ -179,6 +179,7 @@ async function billingSession(
                   plan: "essentials",
                   cycle: "monthly",
                   amount: 10000,
+                  currency: "NGN",
                 }
               : null,
         });
@@ -197,6 +198,11 @@ async function billingSession(
             permissions: options.grants ?? ["billing:read", "billing:update"],
           };
         else if (path.endsWith("/billing/subscription")) data = status();
+        else if (path.endsWith("/billing/quote")) data = {
+          quoteId: 'COSQ_' + 'b'.repeat(32), currency: body.currency,
+          amount: ({ essentials: 10, community: 20, network: 40 }[body.plan as 'essentials' | 'community' | 'network'] || 10) * (body.cycle === 'annual' ? 10.8 : 1) * 1000,
+          expiresAt: new Date(Date.now() + 900000).toISOString(), intent: 'renewal', renewBy: '2027-01-18T00:00:00Z',
+        };
         else if (path.endsWith("/billing/verify")) {
           active = true;
           data = status();
@@ -223,10 +229,10 @@ test("gateway return is verified server-side before showing activation", async (
   await billingSession(context);
   await page.goto(`/subscription?reference=${reference}&status=success`);
   await expect(
-    page.getByRole("heading", { name: "You’re all set.", exact: true }),
+    page.getByText("Payment verified. Your subscription is active.", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Open your workspace", exact: true }),
+    page.getByRole("link", { name: "Back to workspace", exact: true }),
   ).toHaveAttribute("href", "/dashboard");
   const calls = await page.evaluate(
     () =>
@@ -244,9 +250,9 @@ test("checkout shows a recoverable error without losing the account", async ({
 }) => {
   await billingSession(context);
   await page.goto("/subscription");
-  await page.getByLabel("Subscription plan").selectOption("network");
+  await page.getByRole("button", { name: "Choose Network", exact: true }).click();
   await page.getByLabel("Billing period").selectOption("annual");
-  await expect(page.getByText("₦432,000", { exact: true })).toBeVisible();
+  await expect(page.getByText("USD 432", { exact: true })).toBeVisible();
   await page
     .getByRole("button", { name: "Continue to payment", exact: true })
     .click();
@@ -268,7 +274,7 @@ test("pending checkout can be checked after returning without a callback", async
     .getByRole("button", { name: "I’ve paid — check payment", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "You’re all set.", exact: true }),
+    page.getByText("Payment verified. Your subscription is active.", { exact: true }),
   ).toBeVisible();
 });
 test("unconfigured platform gateway never offers payment", async ({
@@ -277,10 +283,10 @@ test("unconfigured platform gateway never offers payment", async ({
 }) => {
   await billingSession(context, { gateways: [] });
   await page.goto("/subscription");
-  await expect(page.getByText(/checkout is being configured/)).toBeVisible();
+  await expect(page.getByText(/Checkout is being configured/)).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Continue to payment", exact: true }),
-  ).toHaveCount(0);
+  ).toBeDisabled();
 });
 test("non-billing roles cannot initialize checkout", async ({
   page,
@@ -289,7 +295,7 @@ test("non-billing roles cannot initialize checkout", async ({
   await billingSession(context, { grants: [] });
   await page.goto("/subscription");
   await expect(
-    page.getByRole("alert").filter({ hasText: "church administrator manages" }),
+    page.getByText(/Your church administrator manages the ChurchOS subscription/),
   ).toContainText("church administrator manages");
   await expect(
     page.getByRole("button", { name: "Continue to payment", exact: true }),

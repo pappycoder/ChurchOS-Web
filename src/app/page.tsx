@@ -4,7 +4,7 @@ import { LandingPage } from "@/components/marketing/landing-page";
 export const metadata: Metadata = {
   title: { absolute: "ChurchOS — A little less admin. A lot more ministry." },
   description:
-    "Bring people, attendance, giving and every branch together with ChurchOS. Explore church management plans from ₦10,000 monthly, with savings on every yearly plan.",
+    "Bring people, attendance, giving and every branch together with ChurchOS. Explore church management plans from $10 USD monthly, with savings on every yearly plan.",
   alternates: { canonical: "/" },
   openGraph: {
     title: "ChurchOS — Make room for more ministry",

@@ -4,6 +4,8 @@ export type SubscriptionPlan =
 export type BillingCycle = "monthly" | "annual";
 export type SubscriptionGateway = "paystack" | "flutterwave";
 export interface BillingStatus {
+  baseCurrency: "USD";
+  gatewayCurrencies: Record<SubscriptionGateway, string[]>;
   catalog: PlanCatalogEntry[];
   limits: PlanLimits;
   features: string[];
@@ -13,6 +15,7 @@ export interface BillingStatus {
     plan: SubscriptionPlan;
     cycle: BillingCycle;
     amount: number;
+    currency: string;
     status: string;
     intent: string;
     application_status: string;
@@ -33,6 +36,7 @@ export interface BillingStatus {
     plan: SubscriptionPlan;
     cycle: BillingCycle;
     amount: number;
+    currency: string;
   } | null;
 }
 export interface PlanLimits {
@@ -48,6 +52,12 @@ export interface PlanCatalogEntry {
   limits: PlanLimits;
 }
 export interface BillingQuote {
+  quoteId: string;
+  currency: string;
+  expiresAt: string;
+  exchangeRate: number;
+  rateUpdatedAt: string | null;
+  usdAmount: number;
   intent: "renewal" | "upgrade";
   amount: number;
   effectiveAt: string;

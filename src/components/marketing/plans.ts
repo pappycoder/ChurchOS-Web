@@ -4,8 +4,8 @@ export const launchPlans = [
     id: "essentials",
     name: "Essentials",
     description: "A small beginning. A strong foundation.",
-    monthly: 10000,
-    annual: 108000,
+    monthly: 10,
+    annual: 108,
     capacity: "100 members · 1 location · 2 staff accounts",
     features: [
       "Member and visitor directory",
@@ -18,8 +18,8 @@ export const launchPlans = [
     id: "community",
     name: "Community",
     description: "Everything your church needs to find its rhythm.",
-    monthly: 20000,
-    annual: 216000,
+    monthly: 20,
+    annual: 216,
     capacity: "300 members · 1 location · 5 staff accounts",
     features: [
       "Everything in Essentials",
@@ -34,8 +34,8 @@ export const launchPlans = [
     id: "network",
     name: "Network",
     description: "Bring more people, teams and places together.",
-    monthly: 40000,
-    annual: 432000,
+    monthly: 40,
+    annual: 432,
     capacity: "1,500 members · 3 locations · 15 staff accounts",
     featured: true,
     features: [
@@ -64,10 +64,3 @@ export const launchPlans = [
   },
 ] as const;
 export type LaunchPlan = (typeof launchPlans)[number];
-export function naira(amount: number): string {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}

@@ -25,6 +25,7 @@ export function useBillingStatus() {
   }, [allowed, client]);
   return {
     allowed,
+    churchId: profile?.churchId,
     accessReady: ready,
     canPay: allowed && can("billing", "update"),
     ...useQuery({

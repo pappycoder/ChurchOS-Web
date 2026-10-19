@@ -15,6 +15,7 @@ test.beforeEach(async ({ page }) => {
       },
     }),
   );
+  await page.route("**/api/backend/pricing/subscriptions?currency=USD", route => route.fulfill({ json: { success: true, data: { currency: 'USD', rateUpdatedAt: null, plans: [{ id: 'essentials', monthly: 10, annual: 108 }, { id: 'community', monthly: 20, annual: 216 }, { id: 'network', monthly: 40, annual: 432 }] } } }));
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
 
@@ -38,7 +39,7 @@ test("landing page remains public after the unauthenticated session check", asyn
     page.getByRole("link", { name: "Bring your church together", exact: true }),
   ).toHaveAttribute("href", "/register");
   await expect(page).toHaveTitle(/ChurchOS.*ministry/);
-  expect(requests).toEqual([]);
+  expect(requests.every(url => new URL(url).pathname === "/api/backend/pricing/subscriptions")).toBe(true);
 });
 
 test("product preview supports selection and keyboard navigation", async ({
@@ -66,21 +67,21 @@ test("pricing switches billing periods and reviews a plan without buying anythin
   const plans = [
     {
       name: "Essentials",
-      monthly: "₦10,000",
-      effective: "₦9,000",
-      yearly: "₦108,000",
+      monthly: "USD 10",
+      effective: "USD 108",
+      yearly: "USD 108",
     },
     {
       name: "Community",
-      monthly: "₦20,000",
-      effective: "₦18,000",
-      yearly: "₦216,000",
+      monthly: "USD 20",
+      effective: "USD 216",
+      yearly: "USD 216",
     },
     {
       name: "Network",
-      monthly: "₦40,000",
-      effective: "₦36,000",
-      yearly: "₦432,000",
+      monthly: "USD 40",
+      effective: "USD 432",
+      yearly: "USD 432",
     },
   ];
   const card = (name: string) =>
@@ -110,9 +111,9 @@ test("pricing switches billing periods and reviews a plan without buying anythin
   );
   await expect(
     dialog.getByRole("link", { name: "Continue to registration", exact: true }),
-  ).toHaveAttribute("href", "/register?plan=network&cycle=annual");
-  await expect(dialog).toContainText("₦36,000");
-  await expect(dialog).toContainText("₦432,000 billed yearly");
+  ).toHaveAttribute("href", "/register?plan=network&cycle=annual&currency=USD");
+  await expect(dialog).toContainText("USD 432");
+  await expect(dialog).toContainText("/ year");
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(trigger).toBeFocused();
