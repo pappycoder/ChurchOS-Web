@@ -480,7 +480,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: BookOpen,
       },
       { title: "Contact support", href: "/support", icon: Mail },
-      { title: "Create support ticket", href: SUPPORT_TICKET_PATH, icon: Mail },
+      { title: "Support ticket", href: SUPPORT_TICKET_PATH, icon: Mail },
     ],
   },
 ];

@@ -8,7 +8,7 @@ export function SupportTicketButton() {
     <Button asChild variant="outline">
       <Link href={SUPPORT_TICKET_PATH}>
         <Mail className="size-4" />
-        Create support ticket
+        Support ticket
       </Link>
     </Button>
   );

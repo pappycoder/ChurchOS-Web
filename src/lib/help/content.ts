@@ -578,7 +578,7 @@ export const helpContent: Record<HelpSlug, HelpSection[]> = {
       id: "support-tickets",
       title: "Create a support ticket or start a new chat",
       paragraphs: [
-        "Choose Create support ticket in the sidebar, account/help menu or billing screen to open the ticket portal inside your dashboard. Select Submit Ticket and enter your name, email, subject and description. Submit one ticket per issue. Tawk creates the ticket in the ChurchOS Support inbox, and our team replies by email. You can also email tickets@churchos.p.tawk.email.",
+        "Choose Support ticket in the sidebar, account/help menu or billing screen to open the ticket portal inside your dashboard. Select Submit Ticket and enter your name, email, subject and description. Submit one ticket per issue. Tawk creates the ticket in the ChurchOS Support inbox, and our team replies by email. You can also email tickets@churchos.p.tawk.email.",
         "To start another chat session as the same person, open the widget menu, choose End this chat session, then start a new chat. Your previous conversation history may remain visible. For separate issues requiring follow-up, use separate support tickets and reply to an existing ticket email to continue that issue.",
       ],
     },

@@ -100,7 +100,7 @@ for (const role of ["usher", "secretary", "branch_pastor", "church_admin", "supe
       page.getByRole("menuitem", { name: "Contact support", exact: true }),
     ).toHaveAttribute("href", "/support");
     await expect(
-      page.getByRole("menuitem", { name: "Create support ticket", exact: true }),
+      page.getByRole("menuitem", { name: "Support ticket", exact: true }),
     ).toHaveAttribute("href", "/support/ticket");
     if (!admin) expect(widgets).toBe(0);
   });
@@ -337,7 +337,7 @@ test("ticket portal embeds in the dashboard and retains administrator chat", asy
     "href",
     "/support",
   );
-  await nav.getByRole("link", { name: "Create support ticket", exact: true }).click();
+  await nav.getByRole("link", { name: "Support ticket", exact: true }).click();
   await expect(page).toHaveURL(/\/support\/ticket$/);
   await expect(nav).toBeVisible();
   await expect(
@@ -361,7 +361,7 @@ test("staff retain ticket fallback when the hosted portal cannot load", async ({
   await context.route("https://churchos.tawk.help/", (route) => route.abort());
   await page.goto("/support/ticket");
   await expect(
-    page.getByRole("heading", { name: "Create support ticket", exact: true }),
+    page.getByRole("heading", { name: "Support ticket", exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Open ticket portal in new tab" })).toHaveAttribute(
     "target",
@@ -385,7 +385,7 @@ test("public visitors can reach the hosted ticket form without authenticated cha
   await expect(page.getByRole("link", { name: "Sign in to chat", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to home", exact: true })).toBeVisible();
   await expect(
-    page.getByRole("link", { name: "Create support ticket", exact: true }),
+    page.getByRole("link", { name: "Support ticket", exact: true }),
   ).toHaveAttribute("href", "https://churchos.tawk.help/");
   await expect(page.getByRole("link", { name: "tickets@churchos.p.tawk.email" })).toHaveAttribute(
     "href",

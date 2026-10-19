@@ -12,6 +12,7 @@ import { OfflineEntry } from "@/components/offline/offline-entry";
 
 export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isSupportTicket = pathname === "/support/ticket";
   return (
     <SidebarProvider>
       <a
@@ -29,8 +30,12 @@ export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
           tabIndex={-1}
           className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-6 lg:px-8"
         >
-          <OfflineEntry />
-          <BillingNotice />
+          {!isSupportTicket && (
+            <>
+              <OfflineEntry />
+              <BillingNotice />
+            </>
+          )}
           <PlanLimitDialog />
           <TableColumnsProvider key={pathname}>
             <PermissionRouteGate>{children}</PermissionRouteGate>

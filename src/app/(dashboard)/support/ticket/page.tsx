@@ -26,7 +26,7 @@ export default function SupportTicketPage() {
         </Button>
       </div>
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Create support ticket</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Support ticket</h1>
         <p className="text-sm text-muted-foreground">
           Choose Submit Ticket in the portal below. Our team replies by email; reply to that email
           to continue the same ticket.
@@ -35,7 +35,7 @@ export default function SupportTicketPage() {
       <iframe
         src={SUPPORT_PORTAL_URL}
         title="ChurchOS Tawk ticket portal"
-        className="h-[75svh] min-h-[600px] w-full rounded-xl border bg-white"
+        className="h-[90svh] min-h-[720px] w-full rounded-xl border bg-white"
         referrerPolicy="no-referrer"
       />
       <p className="text-sm text-muted-foreground">

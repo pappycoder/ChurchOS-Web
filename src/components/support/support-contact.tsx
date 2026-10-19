@@ -22,7 +22,7 @@ function TicketFormLink({ signedIn }: { signedIn: boolean }) {
     >
       <h2 id="ticket-title" className="flex items-center gap-2 text-xl font-semibold">
         <Mail className="size-5 text-primary" />
-        Create a support ticket
+        Support ticket
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
         Choose Submit Ticket in the ticket portal. Enter your name, a reply email, subject and
@@ -31,7 +31,7 @@ function TicketFormLink({ signedIn }: { signedIn: boolean }) {
       <div className="mt-5">
         <Button asChild>
           <Link href={signedIn ? SUPPORT_TICKET_PATH : SUPPORT_PORTAL_URL}>
-            Create support ticket
+            Support ticket
             <ArrowRight className="size-4" />
           </Link>
         </Button>

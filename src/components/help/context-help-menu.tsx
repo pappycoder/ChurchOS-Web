@@ -66,7 +66,7 @@ export function ContextHelpMenu() {
               Live chat
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Create support ticket</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Support ticket</Link></DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

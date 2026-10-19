@@ -33,7 +33,7 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
       {ready && can("integrations", "read") && <DropdownMenuItem asChild><Link href="/admin/integrations"><Plug className="size-4" />Integrations</Link></DropdownMenuItem>}
       {ready && <DropdownMenuItem asChild><Link href="/support"><Mail className="size-4" />Contact support</Link></DropdownMenuItem>}
       {ready && supportAvailable && <DropdownMenuItem onSelect={openChat}><LifeBuoy className="size-4" />Live chat</DropdownMenuItem>}
-      {ready && <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Create support ticket</Link></DropdownMenuItem>}
+      {ready && <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Support ticket</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" onSelect={() => { void logout(); }}><LogOut className="size-4" />Sign out</DropdownMenuItem>
     </DropdownMenuContent>
