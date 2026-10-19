@@ -540,6 +540,7 @@ export default function FormDetailPage() {
             </div>
           ) : (
             <SubmissionsTable
+            key={form.id}
               form={form}
               submissions={submissions}
               canReview={canReview}

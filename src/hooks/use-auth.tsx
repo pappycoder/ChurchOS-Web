@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { isPublicHelpPath } from "@/lib/help/paths";
+import { isPublicContentPath } from "@/lib/public-content-path";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/lib/toast";
@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (opts?.showToast) {
         toast.error(opts.message || "Your session has expired. Please sign in again.");
       }
-      if (!isPublicHelpPath(window.location.pathname)) router.replace("/login");
+      if (!isPublicContentPath(window.location.pathname)) router.replace("/login");
       // Latched: prevents duplicate toasts/redirects from stale in-flight 401s
       // firing after a session ends. Reset on the next successful sign-in.
     },
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const presence = await fetch("/api/session", { headers: { "X-ChurchOS-Client": "web" }, cache: "no-store" });
         if (!presence.ok) throw new Error("Unable to check session");
         if (!(await presence.json()).hasSession) {
-          if (active && generation === sessionGeneration.current && !isPublicHelpPath(window.location.pathname) && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/subscription", "/offline"].includes(window.location.pathname)) router.replace("/login");
+          if (active && generation === sessionGeneration.current && !isPublicContentPath(window.location.pathname) && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/subscription", "/offline"].includes(window.location.pathname)) router.replace("/login");
           return;
         }
         let session;
@@ -101,14 +101,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if ((error as { statusCode?: number }).statusCode !== 401) throw error;
           const refreshed = await refreshSession();
           if (!refreshed) {
-            if (active && generation === sessionGeneration.current && !isPublicHelpPath(window.location.pathname) && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/subscription", "/offline"].includes(window.location.pathname)) router.replace("/login");
+            if (active && generation === sessionGeneration.current && !isPublicContentPath(window.location.pathname) && !["/", "/login", "/register", "/forgot-password", "/reset-password", "/subscription", "/offline"].includes(window.location.pathname)) router.replace("/login");
             return;
           }
           session = await api.get<{ userId: string; email: string }>("/auth/session", { skipAuth: true });
         }
         if (active && generation === sessionGeneration.current) { setUser(session); setTokenState("server-session"); }
       } catch (error) {
-        if (active && generation === sessionGeneration.current && !isPublicHelpPath(window.location.pathname) && (error as { statusCode?: number }).statusCode !== 401) {
+        if (active && generation === sessionGeneration.current && !isPublicContentPath(window.location.pathname) && (error as { statusCode?: number }).statusCode !== 401) {
           toast.error("Unable to restore your session. Check your connection and reload.");
         }
       } finally { if (active && generation === sessionGeneration.current) setIsLoading(false); }

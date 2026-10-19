@@ -236,6 +236,7 @@ export default function SubmissionsPage() {
           </div>
         ) : submissionsLoading ? (
           <SubmissionsTable
+            key={selectedForm.id}
             form={selectedForm}
             submissions={[]}
             loading
@@ -254,6 +255,7 @@ export default function SubmissionsPage() {
           </div>
         ) : (
           <SubmissionsTable
+            key={selectedForm.id}
             form={selectedForm}
             submissions={submissions}
             canReview={canUpdate}

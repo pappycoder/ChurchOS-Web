@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
+import { getToastErrorMessage } from "@/lib/toast";
 
 // ─── Types ───────────────────────────────────────────────
 
@@ -210,19 +211,18 @@ export function useFormSubmissions(formId: string | undefined, params: ListSubmi
     queryKey: ["form-submissions", formId, params],
     queryFn: ({ signal }) =>
       api.get<PaginatedResponse<FormSubmission>>(
-        `/forms/${formId}/submissions${buildQuery(params)}`, { signal },
+        `/forms/${formId}/submissions${buildQuery(params)}`,
+        { signal },
       ),
     enabled: !!formId && can("forms:submissions", "read"),
   });
 }
 
-export function useFormSubmission(
-  formId: string | undefined,
-  submissionId: string | undefined,
-) {
+export function useFormSubmission(formId: string | undefined, submissionId: string | undefined) {
   return useQuery({
     queryKey: ["form-submission", formId, submissionId],
-    queryFn: ({ signal }) => api.get<FormSubmission>(`/forms/${formId}/submissions/${submissionId}`, { signal }),
+    queryFn: ({ signal }) =>
+      api.get<FormSubmission>(`/forms/${formId}/submissions/${submissionId}`, { signal }),
     enabled: !!formId && !!submissionId,
   });
 }
@@ -300,11 +300,7 @@ export function useSubmitFormPublic(publicToken: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateSubmissionInput) =>
-      api.post<FormSubmission>(
-        `/forms/public/${publicToken}/submit`,
-        input,
-        { skipAuth: true },
-      ),
+      api.post<FormSubmission>(`/forms/public/${publicToken}/submit`, input, { skipAuth: true }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["form-submissions"] });
     },
@@ -336,11 +332,7 @@ export function useUpdateSubmissionStatus(formId: string) {
     }: {
       submissionId: string;
       input: UpdateSubmissionStatusInput;
-    }) =>
-      api.patch<FormSubmission>(
-        `/forms/${formId}/submissions/${submissionId}/status`,
-        input,
-      ),
+    }) => api.patch<FormSubmission>(`/forms/${formId}/submissions/${submissionId}/status`, input),
     onSuccess: () => invalidateFormCaches(qc),
   });
 }
@@ -354,4 +346,49 @@ export function makeFieldKey(label: string): string {
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
   return slug || `field_${Date.now()}`;
+}
+
+/** Review selected pending responses through the existing permission-checked endpoint. */
+export function useBulkReviewSubmissions(formId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      ids,
+      status,
+      rejectionReason,
+    }: {
+      ids: string[];
+      status: "approved" | "rejected";
+      rejectionReason?: string;
+    }) => {
+      const unique = [...new Set(ids)];
+      if (!formId || !unique.length || unique.length > 100)
+        throw new Error("Select between 1 and 100 responses.");
+      if (status === "rejected" && !rejectionReason?.trim())
+        throw new Error("A rejection reason is required.");
+      const succeeded: string[] = [];
+      const failed: { id: string; message: string }[] = [];
+      for (let start = 0; start < unique.length; start += 3) {
+        const batch = unique.slice(start, start + 3);
+        const results = await Promise.allSettled(
+          batch.map((id) =>
+            api.patch(`/forms/${formId}/submissions/${id}/status`, {
+              status,
+              ...(status === "rejected" ? { rejectionReason: rejectionReason!.trim() } : {}),
+            }),
+          ),
+        );
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled") succeeded.push(batch[index]);
+          else
+            failed.push({
+              id: batch[index],
+              message: getToastErrorMessage(result.reason, "This response could not be updated."),
+            });
+        });
+      }
+      return { succeeded, failed };
+    },
+    onSuccess: () => invalidateFormCaches(qc),
+  });
 }

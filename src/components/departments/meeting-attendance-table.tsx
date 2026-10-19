@@ -27,7 +27,7 @@ export function MeetingAttendanceTable({ records, loading, error, date, onDateCh
       <Label className="grid gap-2">Status<select aria-label={`${title} status`} className="h-10 rounded-md border bg-background px-3" value={status} onChange={event => setStatus(event.target.value)}><option value="">All statuses</option>{["present", "late", "absent", "excused"].map(value => <option key={value} value={value}>{value}</option>)}</select></Label>
       <Button variant="ghost" onClick={() => { onDateChange(""); setSearch(""); setStatus(""); }}>Clear filters</Button>
     </div>
-    {error ? <p role="alert">Unable to load attendance records.</p> : <Table exportable={false} aria-label={title}><TableHeader><TableRow><TableHead>Attendee</TableHead><TableHead>Type</TableHead><TableHead>Meeting date</TableHead><TableHead>Status</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
+    {error ? <p role="alert">Unable to load attendance records.</p> : <Table selectable exportable={false} aria-label={title}><TableHeader><TableRow><TableHead>Attendee</TableHead><TableHead>Type</TableHead><TableHead>Meeting date</TableHead><TableHead>Status</TableHead><TableHead>Notes</TableHead></TableRow></TableHeader>
       <TableBody>{loading ? <TableRow><TableCell colSpan={5}>Loading attendance…</TableCell></TableRow> : rows.length ? rows.map(row => <TableRow key={row.id}><TableCell>{row.attendee}</TableCell><TableCell>{row.type}</TableCell><TableCell>{row.date}</TableCell><TableCell>{row.status}</TableCell><TableCell>{row.notes}</TableCell></TableRow>) : <TableRow><TableCell colSpan={5}>No attendance records match the filters.</TableCell></TableRow>}</TableBody>
     </Table>}
   </section>;

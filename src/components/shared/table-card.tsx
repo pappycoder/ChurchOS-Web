@@ -1,13 +1,8 @@
 "use client";
 
+import { TableExportScope } from "@/contexts/table-export-scope";
 import * as React from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TablePagination } from "@/components/shared/table-pagination";
 
 interface TableCardProps {
@@ -50,8 +45,7 @@ export function TableCard({
   onPageChange,
   onPerPageChange,
 }: TableCardProps) {
-  const paginated =
-    typeof page === "number" && typeof onPageChange === "function";
+  const paginated = typeof page === "number" && typeof onPageChange === "function";
 
   return (
     <Card className={className}>
@@ -68,13 +62,11 @@ export function TableCard({
         </CardHeader>
       )}
       <CardContent className="space-y-4">
-        {toolbar && (
-          <div className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">
-            {toolbar}
-          </div>
-        )}
+        {toolbar && <div className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">{toolbar}</div>}
         <div className="min-w-0 overflow-x-auto rounded-md border">
-          {children}
+          <TableExportScope.Provider value={Boolean(exportAction)}>
+            {children}
+          </TableExportScope.Provider>
         </div>
         {paginated && (
           <TablePagination

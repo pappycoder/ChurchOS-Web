@@ -300,7 +300,7 @@ export function GeneralAttendancePanel({
           ) : (
             <>
               <div className="overflow-x-auto">
-                <Table
+                <Table selectable
                   aria-label="General attendance"
                   className="w-full text-sm"
                 >

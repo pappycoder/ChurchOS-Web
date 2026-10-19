@@ -4,6 +4,10 @@ async function fixture(
   role = "church_admin",
   plan = "essentials",
 ) {
+  // Keep billing checks independent of the external support widget/network.
+  await context.route("https://embed.tawk.to/**", (route) =>
+    route.fulfill({ contentType: "application/javascript", body: "" }),
+  );
   await context.addCookies([
     {
       name: "churchos_token",

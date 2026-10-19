@@ -311,7 +311,7 @@ export default function AssetsPage() {
             <ErrorState title="Failed to load assets." />
           ) : (
             <div className="rounded-md border overflow-x-auto">
-              <Table exportable={false} tableId="assets">
+              <Table selectable exportable={false} tableId="assets">
                 <TableHeader>
                   <TableRow>
                     <TableHead exportKeys={["name", "tag", "serial"]}>Asset</TableHead>

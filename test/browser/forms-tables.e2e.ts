@@ -1,11 +1,16 @@
 import { expect, test, type BrowserContext } from "@playwright/test";
 
-async function session(context: BrowserContext, review = true, readSubmissions = true) {
+async function session(
+  context: BrowserContext,
+  review = true,
+  readSubmissions = true,
+  failSecondOnce = false,
+) {
   await context.addCookies([
     { name: "churchos_token", value: "forms-tables", url: "http://127.0.0.1:3107" },
   ]);
   await context.addInitScript(
-    ({ review, readSubmissions }) => {
+    ({ review, readSubmissions, failSecondOnce }) => {
       const native = window.fetch.bind(window);
       const date = "2026-10-19T10:00:00Z";
       const forms = [
@@ -33,6 +38,7 @@ async function session(context: BrowserContext, review = true, readSubmissions =
           fields: [
             { key: "equipment", label: "Equipment name", type: "text", required: true },
             { key: "quantity", label: "Quantity", type: "number" },
+            { key: "amount", label: "Amount", type: "text" },
           ],
         },
       ].map((form) => ({
@@ -70,10 +76,11 @@ async function session(context: BrowserContext, review = true, readSubmissions =
         {
           id: "33333333-3333-4333-8333-333333333333",
           formId: "form-b",
-          data: { equipment: "Keyboard", quantity: 0 },
+          data: { equipment: "Keyboard", quantity: 0, amount: "₦12,345.67" },
         },
       ].map((item) => ({ ...item, status: "pending", attachments: [], createdAt: date }));
-      Object.assign(window, { formRequests: [] as string[] });
+      Object.assign(window, { formRequests: [] as string[], formPatchBodies: [] as unknown[] });
+      let secondFailed = false;
       window.fetch = async (input, options) => {
         const path = new URL(input instanceof Request ? input.url : String(input), location.origin)
           .pathname;
@@ -82,6 +89,29 @@ async function session(context: BrowserContext, review = true, readSubmissions =
           `${options?.method || "GET"} ${path}`,
         );
         if (path === "/api/session") return Response.json({ hasSession: true });
+        if (options?.method === "PATCH" && path.endsWith("/status")) {
+          const body = JSON.parse(String(options.body));
+          const id = path.split("/").at(-2);
+          (window as unknown as { formPatchBodies: unknown[] }).formPatchBodies.push({
+            id,
+            ...body,
+          });
+          if (failSecondOnce && id?.startsWith("22222222") && !secondFailed) {
+            secondFailed = true;
+            return Response.json(
+              { success: false, error: { message: "Temporary review error" } },
+              { status: 503 },
+            );
+          }
+          const response = responses.find((row) => row.id === id);
+          if (!response || response.status !== "pending")
+            return Response.json(
+              { success: false, error: { message: "Only pending responses can be reviewed" } },
+              { status: 400 },
+            );
+          response.status = body.status;
+          return Response.json({ success: true, data: response });
+        }
         let data: unknown = {
           data: [],
           total: 0,
@@ -101,6 +131,7 @@ async function session(context: BrowserContext, review = true, readSubmissions =
             permissions: [
               "forms:list:read",
               "members:all:read",
+              "assets:list:read",
               ...(readSubmissions ? ["forms:submissions:read"] : []),
               ...(review ? ["forms:submissions:update", "forms:list:update"] : []),
             ],
@@ -123,6 +154,23 @@ async function session(context: BrowserContext, review = true, readSubmissions =
             ],
             meta: { total: 1, page: 1, limit: 15, totalPages: 1 },
           };
+        else if (path.endsWith("/assets"))
+          data = {
+            data: ["Keyboard", "Microphone"].map((name, index) => ({
+              id: `asset-${index}`,
+              churchId: "church-a",
+              name,
+              assetTag: `ASSET-${index}`,
+              condition: "good",
+              status: "active",
+              currentValue: 100,
+              createdAt: date,
+              updatedAt: date,
+            })),
+            meta: { total: 2, page: 1, limit: 15, totalPages: 1 },
+          };
+        else if (path.endsWith("/assets/stats"))
+          data = { count: 2, totalPurchasePrice: 200, totalCurrentValue: 200 };
         else if (path.endsWith("/forms"))
           data = { data: forms, meta: { total: 2, page: 1, limit: 15, totalPages: 1 } };
         else {
@@ -137,7 +185,7 @@ async function session(context: BrowserContext, review = true, readSubmissions =
         return Response.json({ success: true, data });
       };
     },
-    { review, readSubmissions },
+    { review, readSubmissions, failSecondOnce },
   );
 }
 
@@ -336,4 +384,212 @@ test("fill view identifies the opened form and labels its questions", async ({ p
   await expect(page.getByText("2 required", { exact: true })).toBeVisible();
   await page.getByLabel("Full name", { exact: false }).fill("Grace Adeyemi");
   await expect(page.getByLabel("Full name", { exact: false })).toHaveValue("Grace Adeyemi");
+});
+
+test("pinned separator appears only after horizontal scrolling and clears at the origin", async ({
+  page,
+  context,
+}) => {
+  await session(context);
+  await page.setViewportSize({ width: 1000, height: 900 });
+  await page.goto("/forms/form-a");
+  const table = page.getByRole("table", { name: "Volunteer application submissions" });
+  const divider = table.locator('thead [data-pinned-column="1"]');
+  const scroll = table.locator("..");
+  await expect(divider).toBeVisible();
+  await expect
+    .poll(() => divider.evaluate((element) => getComputedStyle(element).boxShadow))
+    .toBe("none");
+  await scroll.evaluate((element) => {
+    element.scrollLeft = 300;
+  });
+  await expect
+    .poll(() => divider.evaluate((element) => getComputedStyle(element).boxShadow))
+    .not.toBe("none");
+  await scroll.evaluate((element) => {
+    element.scrollLeft = 0;
+  });
+  await expect
+    .poll(() => divider.evaluate((element) => getComputedStyle(element).boxShadow))
+    .toBe("none");
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.getByRole("button", { name: "Column actions", exact: true }).click();
+  await page.getByRole("button", { name: "Select all columns", exact: true }).click();
+  await page.getByRole("button", { name: "Hide selected", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect
+    .poll(() => scroll.evaluate((element) => element.scrollWidth <= element.clientWidth + 1))
+    .toBe(true);
+  await expect
+    .poll(() => divider.evaluate((element) => getComputedStyle(element).boxShadow))
+    .toBe("none");
+});
+
+test("row and column compaction preserve numeric/currency widths and full headers", async ({
+  page,
+  context,
+}) => {
+  await session(context);
+  await page.goto("/forms/form-b");
+  const table = page.getByRole("table", { name: "Equipment request submissions" });
+  const quantity = table.getByRole("columnheader", { name: "Quantity", exact: true });
+  const amount = table.getByRole("columnheader", { name: "Amount", exact: true });
+  await expect(quantity).toHaveAttribute("data-value-type", "numeric");
+  await expect(amount).toHaveAttribute("data-value-type", "numeric");
+  const initial = await quantity.evaluate((element) => ({
+    width: element.getBoundingClientRect().width,
+    height: element.getBoundingClientRect().height,
+    font: getComputedStyle(element).fontSize,
+  }));
+  const moneyWidth = (await amount.boundingBox())!.width;
+  const firstRow = table.locator("tbody tr").first();
+  const rowHeight = (await firstRow.boundingBox())!.height;
+  await page.getByRole("button", { name: "Table view", exact: true }).click();
+  await page.getByRole("button", { name: "Compact rows", exact: true }).click();
+  await page.getByRole("button", { name: "Compact columns", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(table).toHaveAttribute("data-compact-rows", "true");
+  await expect.poll(async () => (await firstRow.boundingBox())!.height).toBeLessThan(rowHeight);
+  await expect
+    .poll(async () => Math.abs((await quantity.boundingBox())!.width - initial.width))
+    .toBeLessThan(2);
+  await expect
+    .poll(async () => Math.abs((await amount.boundingBox())!.width - moneyWidth))
+    .toBeLessThan(2);
+  expect(await quantity.evaluate((element) => getComputedStyle(element).fontSize)).toBe(
+    initial.font,
+  );
+  expect((await quantity.boundingBox())!.height).toBe(initial.height);
+  await expect(table.getByRole("cell", { name: "₦12,345.67", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Table view", exact: true }).click();
+  await page.getByRole("button", { name: "Comfortable rows", exact: true }).click();
+  await page.getByRole("button", { name: "Expand columns", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(table).toHaveAttribute("data-compact-rows", "false");
+  await expect(table).toHaveAttribute("data-compact-columns", "false");
+});
+
+test("multiple columns can be compacted, hidden, shown and expanded together", async ({
+  page,
+  context,
+}) => {
+  await session(context);
+  await page.goto("/forms/form-a");
+  const table = page.getByRole("table", { name: "Volunteer application submissions" });
+  await page.getByRole("button", { name: "Column actions", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Select column Preferred teams", exact: true }).check();
+  await page.getByRole("checkbox", { name: "Select column Experience", exact: true }).check();
+  await page.getByRole("button", { name: "Compact selected", exact: true }).click();
+  await expect(
+    table.getByRole("columnheader", { name: "Experience", exact: true }),
+  ).toHaveAttribute("data-column-size", "compact");
+  await expect(
+    table.getByRole("columnheader", { name: "Preferred teams", exact: true }),
+  ).toHaveAttribute("data-column-size", "compact");
+  const text = table.getByRole("cell", {
+    name: "I have served on the welcome team for three years.",
+    exact: true,
+  });
+  await expect
+    .poll(() =>
+      text
+        .locator('[data-slot="table-cell-content"] > span')
+        .evaluate((element) => element.scrollWidth > element.clientWidth),
+    )
+    .toBe(true);
+  await page.getByRole("button", { name: "Hide selected", exact: true }).click();
+  await expect(table.getByRole("columnheader", { name: "Experience", exact: true })).toBeHidden();
+  await expect(
+    table.getByRole("columnheader", { name: "Preferred teams", exact: true }),
+  ).toBeHidden();
+  await page.getByRole("button", { name: "Show selected", exact: true }).click();
+  await page.getByRole("button", { name: "Expand selected", exact: true }).click();
+  await expect(
+    table.getByRole("columnheader", { name: "Experience", exact: true }),
+  ).toHaveAttribute("data-column-size", "expanded");
+});
+
+test("bulk review retains only failed responses for a focused retry", async ({ page, context }) => {
+  await session(context, true, true, true);
+  await page.goto("/forms/form-a");
+  await page.getByRole("checkbox", { name: "Select all submissions on this page" }).check();
+  await page.getByRole("button", { name: "Approve selected", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm approval", exact: true }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "remain selected for retry" }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("checkbox", { name: `Select submission ${responseId}`, exact: true }),
+  ).not.toBeChecked();
+  const secondId = "22222222-2222-4222-8222-222222222222";
+  await expect(
+    page.getByRole("checkbox", { name: `Select submission ${secondId}`, exact: true }),
+  ).toBeChecked();
+  await page.getByRole("button", { name: "Approve selected", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm approval", exact: true }).click();
+  await expect(
+    page.getByRole("checkbox", { name: `Select submission ${secondId}`, exact: true }),
+  ).not.toBeChecked();
+  const calls = await page.evaluate(
+    () => (window as unknown as { formPatchBodies: { id: string }[] }).formPatchBodies,
+  );
+  expect(calls.filter((call) => call.id === responseId)).toHaveLength(1);
+  expect(calls.filter((call) => call.id === secondId)).toHaveLength(2);
+});
+
+test("bulk rejection requires a reason and sends it only to selected responses", async ({
+  page,
+  context,
+}) => {
+  await session(context);
+  await page.goto("/forms/form-a");
+  await page
+    .getByRole("checkbox", { name: `Select submission ${responseId}`, exact: true })
+    .check();
+  await page.getByRole("button", { name: "Reject selected", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Confirm rejection", exact: true })).toBeDisabled();
+  await page
+    .getByLabel("Rejection reason", { exact: true })
+    .fill("Please complete the missing details.");
+  await page.getByRole("button", { name: "Confirm rejection", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const calls = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          formPatchBodies: { id: string; status: string; rejectionReason: string }[];
+        }
+      ).formPatchBodies,
+  );
+  expect(calls).toEqual([
+    { id: responseId, status: "rejected", rejectionReason: "Please complete the missing details." },
+  ]);
+});
+
+test("read-only selections can export but cannot bulk-review", async ({ page, context }) => {
+  await session(context, false);
+  await page.goto("/forms/form-a");
+  await page.getByRole("checkbox", { name: "Select all submissions on this page" }).check();
+  await expect(
+    page.getByRole("button", { name: "Export selected rows", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Approve selected", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Reject selected", exact: true })).toHaveCount(0);
+});
+
+test("selected-row export excludes other records in an export-enabled collection", async ({
+  page,
+  context,
+}) => {
+  await session(context, false);
+  await page.goto("/assets");
+  await page.getByRole("checkbox", { name: "Select row asset-0", exact: true }).check();
+  await page.getByRole("button", { name: "Export selected rows", exact: true }).click();
+  const download = page.waitForEvent("download");
+  await page.getByRole("menuitem", { name: "Export as CSV", exact: true }).click();
+  const file = await download;
+  const { readFile } = await import("node:fs/promises");
+  const bytes = await readFile((await file.path())!);
+  expect(bytes.toString()).toContain("Keyboard");
+  expect(bytes.toString()).not.toContain("Microphone");
 });
