@@ -299,6 +299,7 @@ export default function FormsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Form reference</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Fields</TableHead>
                 <TableHead>Responses</TableHead>
@@ -312,6 +313,7 @@ export default function FormsPage() {
                   <TableCell>
                     <Skeleton className="h-4 w-40" />
                   </TableCell>
+                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-16" />
                   </TableCell>
@@ -357,6 +359,7 @@ export default function FormsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Form reference</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Fields</TableHead>
                 <TableHead>Responses</TableHead>
@@ -381,6 +384,7 @@ export default function FormsPage() {
                       )}
                     </div>
                   </TableCell>
+                  <TableCell className="font-mono text-xs" title={form.id}>{form.id}</TableCell>
                   <TableCell>
                     <Badge variant="outline" className={FORM_STATUS_TEXT[form.status]}>
                       {FORM_STATUS_LABELS[form.status]}

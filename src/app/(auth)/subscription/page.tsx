@@ -1,4 +1,5 @@
 "use client";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { SupportChatButton } from "@/components/support/support-chat-button";
 import * as React from "react";
 import Link from "next/link";
@@ -665,41 +666,37 @@ export default function SubscriptionPage() {
                 </p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="p-2">Date</th>
-                        <th className="p-2">Plan</th>
-                        <th className="p-2">Amount</th>
-                        <th className="p-2">Status</th>
-                        <th className="p-2">Reference</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table className="w-full text-left text-sm">
+                    <TableHeader>
+                      <TableRow className="border-b">
+                        <TableHead className="p-2">Reference</TableHead>
+                        <TableHead className="p-2">Plan</TableHead>
+                        <TableHead className="p-2">Date</TableHead>
+                        <TableHead className="p-2">Amount</TableHead>
+                        <TableHead className="p-2">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {data.payments.map((payment) => (
-                        <tr key={payment.reference} className="border-b">
-                          <td className="p-2 whitespace-nowrap">
-                            {date(payment.created_at)}
-                          </td>
-                          <td className="p-2 capitalize">{payment.plan}</td>
-                          <td className="p-2 whitespace-nowrap">
+                        <TableRow key={payment.reference} className="border-b">
+                          <TableCell className="p-2 font-mono text-xs" title={payment.reference}>{payment.reference}</TableCell>
+                          <TableCell className="p-2 capitalize">{payment.plan}</TableCell>
+                          <TableCell className="p-2 whitespace-nowrap">{date(payment.created_at)}</TableCell>
+                          <TableCell className="p-2 whitespace-nowrap">
                             {subscriptionMoney(
                               payment.amount,
                               payment.currency || "NGN",
                             )}
-                          </td>
-                          <td className="p-2 capitalize">
+                          </TableCell>
+                          <TableCell className="p-2 capitalize">
                             {payment.application_status === "review"
                               ? "Received — contact support"
                               : payment.status}
-                          </td>
-                          <td className="p-2 font-mono text-xs">
-                            {payment.reference}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </CardContent>

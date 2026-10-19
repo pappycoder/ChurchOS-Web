@@ -1,9 +1,8 @@
 "use client";
+import { SubmissionsTable } from "@/components/forms/submissions-table";
 
 import * as React from "react";
-import { format } from "date-fns";
 import { getToastErrorMessage, toast } from "@/lib/toast";
-import { useRouter } from "next/navigation";
 import { ClipboardList, Inbox, ShieldX } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
@@ -12,24 +11,13 @@ import {
   useUpdateSubmissionStatus,
   type FormSubmission,
   type SubmissionStatus,
-  SUBMISSION_STATUS_LABELS,
-  SUBMISSION_STATUS_TEXT,
 } from "@/hooks/use-forms";
 import { PageHeader } from "@/components/shared/page-header";
 import { TableCard } from "@/components/shared/table-card";
 import { SubmissionDetailDialog } from "@/components/forms/submission-detail-dialog";
 import { SubmissionStatusDialog } from "@/components/forms/submission-status-dialog";
 import { SearchInput } from "@/components/shared/search-input";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Select,
   SelectContent,
@@ -42,7 +30,6 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
 export default function SubmissionsPage() {
-  const router = useRouter();
   const { can } = usePermissions();
   const canUpdate = can("forms:submissions", "update");
   const canRead = can("forms:submissions", "read");
@@ -54,18 +41,25 @@ export default function SubmissionsPage() {
   const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
-  const [selectedSubmission, setSelectedSubmission] = React.useState<FormSubmission | undefined>(undefined);
-  const [reviewSubmission, setReviewSubmission] = React.useState<FormSubmission | undefined>(undefined);
+  const [selectedSubmission, setSelectedSubmission] = React.useState<FormSubmission | undefined>(
+    undefined,
+  );
+  const [reviewSubmission, setReviewSubmission] = React.useState<FormSubmission | undefined>(
+    undefined,
+  );
 
   const { data: formsData, isLoading: formsLoading } = useFormsList({
     limit: 200,
     search: search || undefined,
     branchId: branchId || undefined,
   });
-  const forms = React.useMemo(() => (formsData?.data ?? []).filter((f) => !f.archivedAt), [formsData]);
+  const forms = React.useMemo(
+    () => (formsData?.data ?? []).filter((f) => !f.archivedAt),
+    [formsData],
+  );
   const selectedForm = React.useMemo(
     () => forms.find((f) => f.id === selectedFormId),
-    [forms, selectedFormId]
+    [forms, selectedFormId],
   );
 
   React.useEffect(() => {
@@ -82,12 +76,12 @@ export default function SubmissionsPage() {
       limit: perPage,
       status: statusFilter,
     }),
-    [page, perPage, statusFilter]
+    [page, perPage, statusFilter],
   );
 
   const { data: submissionsData, isLoading: submissionsLoading } = useFormSubmissions(
     selectedFormId || undefined,
-    queryParams
+    queryParams,
   );
   const submissions = React.useMemo(() => submissionsData?.data ?? [], [submissionsData]);
   const submissionsMeta = submissionsData?.meta;
@@ -107,7 +101,7 @@ export default function SubmissionsPage() {
           toast.error("Failed to update submission", {
             description: getToastErrorMessage(err, "Please try again."),
           }),
-      }
+      },
     );
   };
 
@@ -146,7 +140,11 @@ export default function SubmissionsPage() {
 
       <TableCard
         title="Form Submissions"
-        description={selectedForm ? `Responses for ${selectedForm.title}` : "Select a form to view its submissions"}
+        description={
+          selectedForm
+            ? `Responses for ${selectedForm.title}`
+            : "Select a form to view its submissions"
+        }
         itemName="submissions"
         page={page}
         perPage={perPage}
@@ -158,11 +156,20 @@ export default function SubmissionsPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setSelectedFormId(""); setPage(1); }} />
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
+                setSelectedFormId("");
+                setPage(1);
+              }}
+            />
             <Select
               value={selectedFormId}
               onValueChange={(v) => {
                 setSelectedFormId(v);
+                setSelectedSubmission(undefined);
+                setReviewSubmission(undefined);
                 setPage(1);
               }}
             >
@@ -194,7 +201,11 @@ export default function SubmissionsPage() {
                 <SelectItem value="rejected">Rejected</SelectItem>
               </SelectContent>
             </Select>
-            <SearchInput placeholder="Search forms..." value={searchInput} onChange={setSearchInput} />
+            <SearchInput
+              placeholder="Search forms..."
+              value={searchInput}
+              onChange={setSearchInput}
+            />
           </div>
         }
       >
@@ -207,7 +218,11 @@ export default function SubmissionsPage() {
             <EmptyState
               icon={<ClipboardList className="h-8 w-8" />}
               title="No forms found"
-              description={search ? "No forms match your search." : "Create a form to start collecting submissions."}
+              description={
+                search
+                  ? "No forms match your search."
+                  : "Create a form to start collecting submissions."
+              }
               action={search ? undefined : { label: "Add Form", href: "/forms/new" }}
             />
           </div>
@@ -220,26 +235,15 @@ export default function SubmissionsPage() {
             />
           </div>
         ) : submissionsLoading ? (
-          <Table exportable>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Status</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Submitted</TableHead>
-                {canUpdate && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                  {canUpdate && <TableCell><Skeleton className="ml-auto h-4 w-20" /></TableCell>}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SubmissionsTable
+            form={selectedForm}
+            submissions={[]}
+            loading
+            canReview={canUpdate}
+            onOpen={setSelectedSubmission}
+            onApprove={(submission) => quickReview(submission, "approved")}
+            onReject={setReviewSubmission}
+          />
         ) : submissions.length === 0 ? (
           <div className="px-4 py-12">
             <EmptyState
@@ -249,76 +253,15 @@ export default function SubmissionsPage() {
             />
           </div>
         ) : (
-          <Table exportable>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Status</TableHead>
-                <TableHead>Source</TableHead>
-                <TableHead>Submitted</TableHead>
-                {canUpdate && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {submissions.map((s) => (
-                <TableRow
-                  key={s.id}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedSubmission(s)}
-                >
-                  <TableCell>
-                    <Badge variant="outline" className={SUBMISSION_STATUS_TEXT[s.status]}>
-                      {SUBMISSION_STATUS_LABELS[s.status]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="link"
-                        className="h-auto p-0 text-sm text-primary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          router.push(`/forms/${selectedForm.id}`);
-                        }}
-                      >
-                        {selectedForm.title}
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>{format(new Date(s.createdAt), "MMM d, yyyy h:mm a")}</TableCell>
-                  {canUpdate && (
-                    <TableCell className="text-right">
-                      {s.status === "pending" && (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="xs"
-                            className="text-emerald-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              quickReview(s, "approved");
-                            }}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="xs"
-                            className="text-red-600"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              quickReview(s, "rejected");
-                            }}
-                          >
-                            Reject
-                          </Button>
-                        </div>
-                      )}
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <SubmissionsTable
+            form={selectedForm}
+            submissions={submissions}
+            canReview={canUpdate}
+            busy={statusMutation.isPending}
+            onOpen={setSelectedSubmission}
+            onApprove={(submission) => quickReview(submission, "approved")}
+            onReject={setReviewSubmission}
+          />
         )}
       </TableCard>
 

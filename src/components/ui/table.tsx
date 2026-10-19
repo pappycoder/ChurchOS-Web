@@ -7,6 +7,7 @@ import { ColumnSelector } from "@/components/shared/column-selector"
 import { useTableColumns, type TableColumn } from "@/contexts/table-columns-context"
 
 import { cn } from "@/lib/utils"
+import { useTableLayout } from "@/hooks/use-table-layout"
 
 const TableVisibility = React.createContext<{ columns: TableColumn[]; hidden: string[] } | null>(null)
 const CellVisibility = React.createContext<{ hidden: boolean; colSpan?: number } | null>(null)
@@ -35,17 +36,20 @@ function headerColumns(children: React.ReactNode): TableColumn[] {
   })
   visit(header.props.children)
   const occurrences = new Map<string, number>()
+  let identifyingColumns = 0
   return heads.map((head, index) => {
     const label = head.props.columnLabel ?? textOf(head.props.children)
+    const identifier = !!label && !/^(actions?|options?|manage)$/i.test(label) && identifyingColumns++ < 2
     const occurrence = occurrences.get(label) ?? 0
     occurrences.set(label, occurrence + 1)
     return { id: label ? `${label}:${occurrence}` : `selection:${index}`, label,
-      hideable: head.props.hideable ?? !!label, exportKeys: head.props.exportKeys }
+      hideable: identifier ? false : head.props.hideable ?? !!label, exportKeys: head.props.exportKeys }
   })
 }
 
 function Table({ className, children, tableId, exportable = false, ...props }: React.ComponentProps<"table"> & { tableId?: string; /** Opt in only for important record collections without a dedicated Export menu. */ exportable?: boolean }) {
   const exportRoot = React.useRef<HTMLDivElement>(null)
+  useTableLayout(exportRoot)
   const generatedId = React.useId()
   const state = useTableColumns(tableId ?? generatedId, headerColumns(children))
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import * as React from "react";
 import { format } from "date-fns";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -299,33 +300,33 @@ export function GeneralAttendancePanel({
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table
+                <Table
                   aria-label="General attendance"
                   className="w-full text-sm"
                 >
-                  <thead>
-                    <tr>
+                  <TableHeader>
+                    <TableRow>
                       {columns.map((c) => (
-                        <th className="p-2 text-left" key={c.key}>
+                        <TableHead className="p-2 text-left" key={c.key}>
                           {c.label}
-                        </th>
+                        </TableHead>
                       ))}
-                      {canUpdate && <th className="p-2 text-left">Actions</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
+                      {canUpdate && <TableHead className="p-2 text-left">Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {rows.map((row) => (
-                      <tr key={row.id} className="border-t">
+                      <TableRow key={row.id} className="border-t">
                         {columns.map((c) => (
-                          <td className="p-2" key={c.key}>
+                          <TableCell className="p-2" key={c.key}>
                             {String(
                               row[c.key as keyof GeneralAttendanceRecord] ??
                                 "—",
                             )}
-                          </td>
+                          </TableCell>
                         ))}
                         {canUpdate && (
-                          <td className="p-2">
+                          <TableCell className="p-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -333,22 +334,22 @@ export function GeneralAttendancePanel({
                             >
                               Edit headcount
                             </Button>
-                          </td>
+                          </TableCell>
                         )}
-                      </tr>
+                      </TableRow>
                     ))}
                     {!rows.length && (
-                      <tr>
-                        <td
+                      <TableRow>
+                        <TableCell
                           className="p-4"
                           colSpan={columns.length + (canUpdate ? 1 : 0)}
                         >
                           No general attendance recorded for this period.
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
               <div className="flex items-center justify-end gap-3">
                 <span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -29,11 +29,8 @@ function initialData(fields: FormField[]): Record<string, unknown> {
   return data;
 }
 
-export function FormFieldsRenderer({
-  fields,
-  disabled,
-  onChange,
-}: FormFieldsRendererProps) {
+export function FormFieldsRenderer({ fields, disabled, onChange }: FormFieldsRendererProps) {
+  const fieldId = useId();
   const [data, setData] = useState<Record<string, unknown>>(() => initialData(fields));
 
   useEffect(() => {
@@ -57,13 +54,18 @@ export function FormFieldsRenderer({
 
       {fields.map((field) => (
         <div key={field.key} className="space-y-1.5">
-          <Label className="text-sm">
+          <Label
+            id={`${fieldId}-${field.key}-label`}
+            htmlFor={field.type === "checkbox" ? undefined : `${fieldId}-${field.key}`}
+            className="text-sm"
+          >
             {field.label}
             {field.required && <span className="ml-1 text-destructive">*</span>}
           </Label>
 
           {field.type === "textarea" && (
             <Textarea
+              id={`${fieldId}-${field.key}`}
               value={String(data[field.key] ?? "")}
               onChange={(e) => update(field.key, e.target.value)}
               disabled={disabled}
@@ -72,6 +74,7 @@ export function FormFieldsRenderer({
 
           {field.type === "number" && (
             <Input
+              id={`${fieldId}-${field.key}`}
               type="number"
               value={String(data[field.key] ?? "")}
               onChange={(e) => update(field.key, e.target.value)}
@@ -81,6 +84,7 @@ export function FormFieldsRenderer({
 
           {field.type === "date" && (
             <Input
+              id={`${fieldId}-${field.key}`}
               type="date"
               value={String(data[field.key] ?? "")}
               onChange={(e) => update(field.key, e.target.value)}
@@ -94,7 +98,7 @@ export function FormFieldsRenderer({
               onValueChange={(value) => update(field.key, value)}
               disabled={disabled}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id={`${fieldId}-${field.key}`} className="w-full">
                 <SelectValue placeholder="Select an option" />
               </SelectTrigger>
               <SelectContent>
@@ -108,9 +112,15 @@ export function FormFieldsRenderer({
           )}
 
           {field.type === "checkbox" && (
-            <div className="grid gap-2">
+            <div
+              className="grid gap-2"
+              role="group"
+              aria-labelledby={`${fieldId}-${field.key}-label`}
+            >
               {(field.options ?? []).map((opt) => {
-                const selected = Array.isArray(data[field.key]) ? data[field.key] as string[] : [];
+                const selected = Array.isArray(data[field.key])
+                  ? (data[field.key] as string[])
+                  : [];
                 return (
                   <label key={opt} className="flex items-center gap-2 text-sm">
                     <Checkbox
@@ -132,6 +142,7 @@ export function FormFieldsRenderer({
 
           {(field.type === "text" || field.type === "email" || field.type === "phone") && (
             <Input
+              id={`${fieldId}-${field.key}`}
               type={field.type === "email" ? "email" : field.type === "phone" ? "tel" : "text"}
               value={String(data[field.key] ?? "")}
               onChange={(e) => update(field.key, e.target.value)}

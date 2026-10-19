@@ -86,3 +86,29 @@
     --app-toast-right: var(--mobile-offset-right, 16px);
   }
 }
+
+/* Record identifiers stay anchored while the remaining columns scroll. */
+[data-slot="table-container"] { container-type: inline-size; }
+[data-slot="table"] { border-collapse: separate; border-spacing: 0; }
+[data-slot="table"] :is(th, td) { border-bottom: 1px solid var(--border); }
+[data-slot="table"] tbody tr:last-child td { border-bottom: 0; }
+[data-slot="table"] [data-pinned-column] {
+  position: sticky;
+  inset-inline-start: var(--pinned-start, 0px);
+  z-index: 2;
+  max-width: min(16rem, 34cqw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: var(--card);
+}
+[data-slot="table"] thead [data-pinned-column] { z-index: 3; background: var(--muted); }
+[data-slot="table"] [data-pinned-column="1"] { border-inline-end: 1px solid var(--border); box-shadow: 4px 0 8px -6px var(--foreground); }
+[data-slot="table"] tbody tr:hover [data-pinned-column],
+[data-slot="table"] tbody tr:focus-within [data-pinned-column] { background: color-mix(in oklch, var(--muted) 60%, var(--card)); }
+[data-slot="table"] tbody tr[data-state="selected"] [data-pinned-column] { background: var(--muted); }
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  [data-slot="table"] tbody [data-row-actions] > *,
+  [data-slot="table"] tbody [data-size^="icon"] { opacity: 0; transition: opacity 150ms ease; }
+  [data-slot="table"] tbody tr:is(:hover, :focus-within, :has([data-state="open"])) [data-row-actions] > *,
+  [data-slot="table"] tbody tr:is(:hover, :focus-within, :has([data-state="open"])) [data-size^="icon"] { opacity: 1; }
+}

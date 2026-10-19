@@ -25,7 +25,7 @@ export function TableColumnsProvider({ children }: { children: React.ReactNode }
   const register = React.useCallback((id: string, columns: TableColumn[]) => {
     setTables((previous) => {
       if (JSON.stringify(previous[id]?.columns) === JSON.stringify(columns)) return previous;
-      return { ...previous, [id]: { columns, hidden: previous[id]?.hidden ?? [] } };
+      return { ...previous, [id]: { columns, hidden: (previous[id]?.hidden ?? []).filter((key) => columns.some((column) => column.id === key && column.hideable)) } };
     });
   }, []);
   const setHidden = React.useCallback((id: string, hidden: string[]) => {

@@ -58,7 +58,11 @@ export default function FillFormPage() {
       });
       setSubmitted(true);
     } catch (err) {
-      if (err instanceof Error && "statusCode" in err && (err as { statusCode?: number }).statusCode === 409) {
+      if (
+        err instanceof Error &&
+        "statusCode" in err &&
+        (err as { statusCode?: number }).statusCode === 409
+      ) {
         setAlreadySubmitted(true);
       } else {
         const message = getToastErrorMessage(err, "Unable to submit. Please try again.");
@@ -150,7 +154,11 @@ export default function FillFormPage() {
           <p className="text-sm text-muted-foreground">
             This form is not accepting new submissions.
           </p>
-          <Button variant="outline" className="mt-2" onClick={() => router.push(`/forms/${formId}`)}>
+          <Button
+            variant="outline"
+            className="mt-2"
+            onClick={() => router.push(`/forms/${formId}`)}
+          >
             View form details
           </Button>
         </div>
@@ -174,7 +182,11 @@ export default function FillFormPage() {
               ? "A response for this form has already been recorded for your account."
               : "Your response has been submitted successfully."}
           </p>
-          <Button variant="outline" className="mt-2" onClick={() => router.push(`/forms/${formId}`)}>
+          <Button
+            variant="outline"
+            className="mt-2"
+            onClick={() => router.push(`/forms/${formId}`)}
+          >
             View form details
           </Button>
         </div>
@@ -185,9 +197,20 @@ export default function FillFormPage() {
   return (
     <div>
       {header}
-      <div className="space-y-6">
-        <div>
+      <div className="space-y-6 rounded-2xl border bg-card p-5 sm:p-8">
+        <div className="rounded-xl border bg-accent/40 p-5">
           <h1 className="text-2xl font-semibold">{form.title}</h1>
+          <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full border bg-background px-3 py-1">
+              {form.fields.length} questions
+            </span>
+            <span className="rounded-full border bg-background px-3 py-1">
+              {form.fields.filter((field) => field.required).length} required
+            </span>
+            <span className="rounded-full border bg-background px-3 py-1">
+              {form.isPublic ? "Public form" : "Workspace form"}
+            </span>
+          </div>
           {form.description && (
             <p className="mt-1 text-sm text-muted-foreground">{form.description}</p>
           )}
@@ -199,10 +222,7 @@ export default function FillFormPage() {
           disabled={submitMutation.isPending}
         />
 
-        <SubmissionAttachments
-          onChange={setAssetIds}
-          disabled={submitMutation.isPending}
-        />
+        <SubmissionAttachments onChange={setAssetIds} disabled={submitMutation.isPending} />
 
         {failMsg && (
           <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
@@ -213,7 +233,7 @@ export default function FillFormPage() {
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5" />
-          Submitted as a member of your church.
+          Your response is linked to your signed-in church account.
         </p>
 
         <Button type="button" onClick={handleSubmit} disabled={submitMutation.isPending}>
