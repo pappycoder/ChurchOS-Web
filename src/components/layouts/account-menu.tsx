@@ -1,7 +1,6 @@
 "use client";
 import Link from "next/link";
 import { BookOpen, ChevronsUpDown, CreditCard, LifeBuoy, LogOut, Mail, Plug, Settings, User } from "lucide-react";
-import { SUPPORT_TICKET_PATH } from "@/lib/support";
 import { useAuth } from "@/hooks/use-auth";
 import { useSupportChat } from "@/components/support/support-chat-provider";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -33,7 +32,6 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
       {ready && can("integrations", "read") && <DropdownMenuItem asChild><Link href="/admin/integrations"><Plug className="size-4" />Integrations</Link></DropdownMenuItem>}
       {ready && <DropdownMenuItem asChild><Link href="/support"><Mail className="size-4" />Contact support</Link></DropdownMenuItem>}
       {ready && supportAvailable && <DropdownMenuItem onSelect={openChat}><LifeBuoy className="size-4" />Live chat</DropdownMenuItem>}
-      {ready && <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Support ticket</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" onSelect={() => { void logout(); }}><LogOut className="size-4" />Sign out</DropdownMenuItem>
     </DropdownMenuContent>

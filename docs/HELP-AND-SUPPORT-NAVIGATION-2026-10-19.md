@@ -6,7 +6,7 @@ Every active signed-in workspace user automatically loads the owner-supplied taw
 
 The app verifies the session and active profile before loading the SDK. All staff roles are eligible; inactive profiles and anonymous visitors do not load it. No ChurchOS token, profile, church details or verified identity is sent to Tawk. A failed automatic load offers a retry and a direct-chat fallback. Navigation across workspace/help screens preserves the widget; sign-out, session expiry, identity/church changes and leaving the workspace close/disconnect it. Delayed loads cannot reopen the widget after teardown. The old `/support` URL redirects to `/help/contact-support` for bookmarks.
 
-Current ticket/branding rollout: [all-user support and Tawk-hosted tickets](TAWK-BRANDING-AND-TICKETS-2026-10-19.md), including the prepared Tawk brand kit and remote settings that still need applying.
+Current chat-only support/branding: [administrator in-app chat and branding](TAWK-BRANDING-AND-TICKETS-2026-10-19.md), including the prepared Tawk brand kit and remote settings that still need applying.
 
 ## Help navigation and layout
 

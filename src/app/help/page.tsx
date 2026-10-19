@@ -29,7 +29,7 @@ export default function HelpPage() {
         <div className="max-w-xl">
           <h2 className="text-xl font-semibold">Still need a hand?</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            Every user can submit a support ticket. Church administrators can also use live chat.
+            Church administrators can contact ChurchOS Support through the in-app live chat.
             Your church administrator still manages roles and church settings.
           </p>
         </div>

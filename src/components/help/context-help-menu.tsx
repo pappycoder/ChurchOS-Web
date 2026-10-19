@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, LifeBuoy, Mail, MessageCircle } from "lucide-react";
-import { SUPPORT_TICKET_PATH } from "@/lib/support";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useSupportChat } from "@/components/support/support-chat-provider";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -66,7 +65,6 @@ export function ContextHelpMenu() {
               Live chat
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Support ticket</Link></DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

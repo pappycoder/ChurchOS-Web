@@ -25,9 +25,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/help" },
   { prefix: "/help/contact-support" },
   { prefix: "/profile" },
-  // Contact and ticket pages share the workspace and are open to active users.
+  // Contact support shares the workspace; live chat is restricted to administrators.
   { prefix: "/support" },
-  { prefix: "/support/ticket" },
 
   // Members
   { prefix: "/members/import", permission: "members:import:create" },

@@ -1,6 +1,5 @@
 "use client";
 
-import { SUPPORT_TICKET_PATH } from "@/lib/support";
 import { featureForPath } from "@/lib/plan-features";
 import { filterPermissionNavigation } from "@/lib/permission-navigation";
 
@@ -480,7 +479,6 @@ const navItems: { section: string; items: NavItem[] }[] = [
         icon: BookOpen,
       },
       { title: "Contact support", href: "/support", icon: Mail },
-      { title: "Support ticket", href: SUPPORT_TICKET_PATH, icon: Mail },
     ],
   },
 ];

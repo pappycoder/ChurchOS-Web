@@ -11,7 +11,6 @@ import {
 import { helpContent } from "@/lib/help/content";
 import { Button } from "@/components/ui/button";
 import { SupportChatButton } from "@/components/support/support-chat-button";
-import { SupportTicketButton } from "@/components/support/support-ticket-button";
 // Published guides are prebuilt; unknown slugs reach our helpful 404 page.
 export const dynamicParams = true;
 export function generateStaticParams() {
@@ -148,7 +147,7 @@ export default async function HelpArticlePage({ params }: Props) {
           <aside className="mt-12 rounded-xl border bg-card p-6">
             <h2 className="text-lg font-semibold">Still need help?</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Every user can contact ChurchOS Support for product help. For
+              Church administrators can chat with ChurchOS Support for product help. For
               role assignments or church settings, start with your church administrator.
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
@@ -158,7 +157,6 @@ export default async function HelpArticlePage({ params }: Props) {
                 </Link>
               </Button>
               <SupportChatButton />
-              <SupportTicketButton />
             </div>
           </aside>
           {related.length > 0 && (
