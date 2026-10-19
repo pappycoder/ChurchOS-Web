@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useSupportChat } from "./support-chat-provider";
 
 export function SupportChatButton({
-  children = "Contact support",
+  children = "Live chat",
 }: {
   children?: React.ReactNode;
 }) {

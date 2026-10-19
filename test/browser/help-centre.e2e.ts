@@ -174,7 +174,7 @@ test("dashboard help menu links to a separate Help Centre for staff", async ({ p
   await page.goto("/dashboard");
   await page.getByRole("button", { name: "Help for this page" }).click();
   await expect(page.getByRole("menuitem", { name: "Check people in for a service" })).toBeVisible();
-  await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toBeVisible();
+  await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toHaveCount(0);
   await expect(page.getByRole("menuitem", { name: "Help Centre", exact: true })).toHaveAttribute(
     "href",
     "/help",
@@ -200,11 +200,11 @@ test("administrator opens support from a standalone guide without navigation", a
     await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
   });
   await page.goto("/help/get-help-and-report-a-problem");
-  await expect(page.getByRole("button", { name: "Contact support", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Live chat", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
   expect(widgets).toBe(1);
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
-  await page.getByRole("button", { name: "Contact support", exact: true }).click();
+  await page.getByRole("button", { name: "Live chat", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
   await expect(page).toHaveURL(/\/help\/get-help-and-report-a-problem$/);
   expect(widgets).toBe(1);

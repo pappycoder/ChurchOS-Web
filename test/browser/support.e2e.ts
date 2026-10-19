@@ -79,22 +79,30 @@ test("native Tawk bubble loads automatically without expanding and closes on ses
   expect(requests).toBe(1);
 });
 
-for (const role of ["usher", "secretary", "branch_pastor", "super_admin"]) {
-  test(`${role} can use chat and ticket support without a billing grant`, async ({
-    page,
-    context,
-  }) => {
+for (const role of ["usher", "secretary", "branch_pastor", "church_admin", "super_admin"]) {
+  test(`${role} has tickets with administrator-only chat`, async ({ page, context }) => {
     await fixture(context, role);
+    let widgets = 0;
+    await context.route("https://embed.tawk.to/**", (route) => {
+      widgets++;
+      return route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
+    });
     await page.goto("/dashboard");
-    await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+    const admin = role === "church_admin" || role === "super_admin";
+    if (admin) await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+    else await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toHaveCount(0);
     await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
-    await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toBeVisible();
+    if (admin)
+      await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toBeVisible();
+    else
+      await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toHaveCount(0);
+    await expect(
+      page.getByRole("menuitem", { name: "Contact support", exact: true }),
+    ).toHaveAttribute("href", "/support");
     await expect(
       page.getByRole("menuitem", { name: "Create support ticket", exact: true }),
-    ).toHaveAttribute("href", "https://churchos.tawk.help/");
-    await expect(page.getByRole("menuitem", { name: "Plan & Billing", exact: true })).toHaveCount(
-      0,
-    );
+    ).toHaveAttribute("href", "/support/ticket");
+    if (!admin) expect(widgets).toBe(0);
   });
 }
 
@@ -107,7 +115,7 @@ test("inactive profiles do not load the chat widget", async ({ page, context }) 
   });
   await page.goto("/help/contact-support");
   await expect(
-    page.getByText("Chat requires an active workspace account.", { exact: false }),
+    page.getByText("Live chat is available to active church administrators.", { exact: false }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toHaveCount(0);
   expect(widgets).toBe(0);
@@ -213,10 +221,12 @@ test("an already-loaded widget reconnects after leaving the workspace", async ({
   expect(requests).toBe(1);
 });
 
-test("legacy support URL opens the standalone contact page", async ({ page, context }) => {
+test("contact support has its own dashboard destination", async ({ page, context }) => {
   await fixture(context);
   await page.goto("/support");
-  await expect(page).toHaveURL(/\/help\/contact-support$/);
+  await expect(page).toHaveURL(/\/support$/);
+  await expect(page.getByRole("navigation", { name: "Workspace", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Contact ChurchOS Support" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
 });
 
@@ -306,26 +316,59 @@ for (const active of [true, false]) {
   });
 }
 
-test("ticket navigation opens the Tawk support site without expanding live chat", async ({
+test("ticket portal embeds in the dashboard and retains administrator chat", async ({
+  page,
+  context,
+}) => {
+  await fixture(context);
+  await context.route("https://churchos.tawk.help/", (route) =>
+    route.fulfill({
+      contentType: "text/html",
+      body: "<h1>ChurchOS Help Center</h1><button>Submit Ticket</button>",
+    }),
+  );
+  await page.goto("/dashboard");
+  const nav = page.getByRole("navigation", { name: "Workspace", exact: true });
+  await expect(nav.getByRole("link", { name: "Help Centre", exact: true })).toHaveAttribute(
+    "href",
+    "/help",
+  );
+  await expect(nav.getByRole("link", { name: "Contact support", exact: true })).toHaveAttribute(
+    "href",
+    "/support",
+  );
+  await nav.getByRole("link", { name: "Create support ticket", exact: true }).click();
+  await expect(page).toHaveURL(/\/support\/ticket$/);
+  await expect(nav).toBeVisible();
+  await expect(
+    page
+      .frameLocator('iframe[title="ChurchOS Tawk ticket portal"]')
+      .getByRole("button", { name: "Submit Ticket" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Open Tawk.to chat" }).click();
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open ticket portal in new tab" })).toHaveAttribute(
+    "href",
+    "https://churchos.tawk.help/",
+  );
+});
+
+test("staff retain ticket fallback when the hosted portal cannot load", async ({
   page,
   context,
 }) => {
   await fixture(context, "usher");
-  let ticketVisits = 0;
-  await context.route("https://churchos.tawk.help/", async (route) => {
-    ticketVisits++;
-    await route.fulfill({
-      contentType: "text/html",
-      body: "<h1>ChurchOS Help Center</h1><button>Submit Ticket</button>",
-    });
-  });
-  await page.goto("/dashboard");
-  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
-  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
-  await page.getByRole("link", { name: "Create support ticket", exact: true }).click();
-  await expect(page).toHaveURL("https://churchos.tawk.help/");
-  await expect(page.getByRole("button", { name: "Submit Ticket" })).toBeVisible();
-  expect(ticketVisits).toBe(1);
+  await context.route("https://churchos.tawk.help/", (route) => route.abort());
+  await page.goto("/support/ticket");
+  await expect(
+    page.getByRole("heading", { name: "Create support ticket", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open ticket portal in new tab" })).toHaveAttribute(
+    "target",
+    "_blank",
+  );
+  await expect(page.getByRole("link", { name: "tickets@churchos.p.tawk.email" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toHaveCount(0);
 });
 
 test("public visitors can reach the hosted ticket form without authenticated chat", async ({
@@ -359,9 +402,12 @@ for (const width of [320, 390])
   }) => {
     await fixture(context, "usher");
     await page.setViewportSize({ width, height: 844 });
-    await page.goto("/help/contact-support#ticket");
+    await context.route("https://churchos.tawk.help/", (route) =>
+      route.fulfill({ contentType: "text/html", body: "<h1>Submit Ticket</h1>" }),
+    );
+    await page.goto("/support/ticket");
     await expect(
-      page.getByRole("link", { name: "Create support ticket", exact: true }),
+      page.getByRole("link", { name: "Open ticket portal in new tab", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "tickets@churchos.p.tawk.email" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(

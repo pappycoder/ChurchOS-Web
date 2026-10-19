@@ -31,8 +31,9 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
       {ready && can("church_settings", "update") && <DropdownMenuItem asChild><Link href="/admin/settings"><Settings className="size-4" />Church settings</Link></DropdownMenuItem>}
       {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && can("billing", "read") && <DropdownMenuItem asChild><Link href="/subscription"><CreditCard className="size-4" />Plan & Billing</Link></DropdownMenuItem>}
       {ready && can("integrations", "read") && <DropdownMenuItem asChild><Link href="/admin/integrations"><Plug className="size-4" />Integrations</Link></DropdownMenuItem>}
+      {ready && <DropdownMenuItem asChild><Link href="/support"><Mail className="size-4" />Contact support</Link></DropdownMenuItem>}
       {ready && supportAvailable && <DropdownMenuItem onSelect={openChat}><LifeBuoy className="size-4" />Live chat</DropdownMenuItem>}
-      {ready && <DropdownMenuItem asChild><a href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Create support ticket</a></DropdownMenuItem>}
+      {ready && <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Create support ticket</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" onSelect={() => { void logout(); }}><LogOut className="size-4" />Sign out</DropdownMenuItem>
     </DropdownMenuContent>

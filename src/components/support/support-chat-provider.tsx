@@ -22,7 +22,7 @@ export function useSupportChat() {
   return useContext(SupportChatContext);
 }
 
-/** Automatically mount Tawk's native widget for every verified active workspace user. */
+/** Automatically mount Tawk's native widget for verified active church administrators. */
 export function SupportChatProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
@@ -38,7 +38,8 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
   const available =
     isAuthenticated &&
     workspace &&
-    profile?.status === "active";
+    profile?.status === "active" &&
+    profile.role.some((role) => role === "church_admin" || role === "super_admin");
   const scope = available ? `${profile.churchId}:${profile.profileId}` : "";
   const active = useRef("");
   const request = useRef(0);

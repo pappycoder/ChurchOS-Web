@@ -25,8 +25,9 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/help" },
   { prefix: "/help/contact-support" },
   { prefix: "/profile" },
-  // Legacy support URL redirects to the standalone contact page; support is open to active users.
+  // Contact and ticket pages share the workspace and are open to active users.
   { prefix: "/support" },
+  { prefix: "/support/ticket" },
 
   // Members
   { prefix: "/members/import", permission: "members:import:create" },

@@ -6,9 +6,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSupportChat } from "./support-chat-provider";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { Button } from "@/components/ui/button";
-import { SUPPORT_NAME, SUPPORT_TICKET_EMAIL, SUPPORT_TICKET_PATH } from "@/lib/support";
+import {
+  SUPPORT_NAME,
+  SUPPORT_TICKET_EMAIL,
+  SUPPORT_TICKET_PATH,
+  SUPPORT_PORTAL_URL,
+} from "@/lib/support";
 
-function TicketFormLink() {
+function TicketFormLink({ signedIn }: { signedIn: boolean }) {
   return (
     <section
       id="ticket"
@@ -20,15 +25,15 @@ function TicketFormLink() {
         Create a support ticket
       </h2>
       <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-        Open our support site and choose Submit Ticket. Enter your name, a reply email, subject and
+        Choose Submit Ticket in the ticket portal. Enter your name, a reply email, subject and
         description. Use a separate ticket for each issue.
       </p>
       <div className="mt-5">
         <Button asChild>
-          <a href={SUPPORT_TICKET_PATH}>
+          <Link href={signedIn ? SUPPORT_TICKET_PATH : SUPPORT_PORTAL_URL}>
             Create support ticket
             <ArrowRight className="size-4" />
-          </a>
+          </Link>
         </Button>
       </div>
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -68,7 +73,7 @@ export function SupportContact() {
       <section aria-labelledby="chat-title" className="rounded-2xl border bg-accent/30 p-5 sm:p-7">
         <h2 id="chat-title" className="flex items-center gap-2 text-xl font-semibold">
           <MessageCircle className="size-5 text-primary" />
-          Chat with ChurchOS
+          Administrator live chat
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
           Use the floating chat bubble for a quick question. If the team is offline, leave a message
@@ -89,7 +94,8 @@ export function SupportContact() {
             </Button>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Chat requires an active workspace account. You can still create a ticket below.
+              Live chat is available to active church administrators. Every user can create a
+              support ticket.
             </p>
           )}
         </div>
@@ -99,7 +105,7 @@ export function SupportContact() {
           tickets.
         </p>
       </section>
-      <TicketFormLink />
+      <TicketFormLink signedIn={isAuthenticated} />
       <aside className="rounded-xl border p-5 text-sm leading-relaxed text-muted-foreground">
         Your church administrator manages role assignments, location access and church settings.
         ChurchOS Support can help investigate product issues; contacting support does not change
