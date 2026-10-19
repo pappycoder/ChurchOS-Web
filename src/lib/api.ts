@@ -174,9 +174,11 @@ class ApiClient {
           ? getErrorMessage(res.status, errorBody)
           : `Request failed (${res.status}). Please try again.`,
         statusCode: res.status,
+        code: errorBody?.error.code,
         retryAfterSeconds: Number(res.headers.get("retry-after")) || undefined,
         details: errorBody?.error.details,
       };
+      if (typeof window !== "undefined" && generation === authGeneration && ["PLAN_LIMIT_REACHED","PLAN_FEATURE_REQUIRED"].includes(error.code || "")) window.dispatchEvent(new CustomEvent("churchos:plan-limit",{detail:error}));
       throw error;
     }
 
@@ -184,6 +186,7 @@ class ApiClient {
 
     // Unwrap the data envelope: { success: true, data: T, meta: ... } → T
     const successBody = json as BackendSuccessResponse<T>;
+    if (method !== "GET" && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("churchos:usage-changed"));
     return successBody.data;
   }
 

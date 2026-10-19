@@ -12,6 +12,7 @@
  * shown. The backend guards remain the real enforcement layer.
  */
 
+import { featureForPermission } from "@/lib/plan-features";
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getPermissionSet } from "@/lib/permission-set";
@@ -32,8 +33,11 @@ function usePermissionsState(): PermissionsState {
   const { data: profile, isLoading, isError } = useCurrentProfile();
 
   const permissions = React.useMemo(
-    () => getPermissionSet(profile?.permissions),
-    [profile?.permissions]
+    () => getPermissionSet(profile?.permissions?.filter(permission => {
+      const feature = featureForPermission(permission);
+      return !feature || profile?.planFeatures === undefined || profile.planFeatures.includes(feature) || /:(read|view|delete)$/.test(permission);
+    })),
+    [profile?.permissions,profile?.planFeatures]
   );
   return { ready: !isLoading && !isError && !!profile && profile.status === "active", permissions };
 }

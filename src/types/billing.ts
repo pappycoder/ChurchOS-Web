@@ -4,10 +4,26 @@ export type SubscriptionPlan =
 export type BillingCycle = "monthly" | "annual";
 export type SubscriptionGateway = "paystack" | "flutterwave";
 export interface BillingStatus {
+  catalog: PlanCatalogEntry[];
+  limits: PlanLimits;
+  features: string[];
+  usage: PlanLimits & { pendingInvitations: number };
+  payments: {
+    reference: string;
+    plan: SubscriptionPlan;
+    cycle: BillingCycle;
+    amount: number;
+    status: string;
+    intent: string;
+    application_status: string;
+    created_at: string;
+  }[];
   subscription: {
     plan: SubscriptionPlan;
     cycle: BillingCycle;
     paid_until: string | null;
+    scheduled_plan?: SubscriptionPlan | null;
+    scheduled_cycle?: BillingCycle | null;
   } | null;
   active: boolean;
   gateways: SubscriptionGateway[];
@@ -18,4 +34,23 @@ export interface BillingStatus {
     cycle: BillingCycle;
     amount: number;
   } | null;
+}
+export interface PlanLimits {
+  members: number;
+  staff: number;
+  locations: number;
+}
+export interface PlanCatalogEntry {
+  id: Exclude<SubscriptionPlan, "enterprise">;
+  name: string;
+  monthly: number;
+  annual: number;
+  limits: PlanLimits;
+}
+export interface BillingQuote {
+  intent: "renewal" | "upgrade";
+  amount: number;
+  effectiveAt: string;
+  renewBy: string;
+  credit: number;
 }

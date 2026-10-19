@@ -6,6 +6,7 @@
  * Unmapped routes are denied; loading shows a skeleton.
  */
 
+import { PlanFeatureGate } from "@/components/billing/plan-feature-gate";
 import * as React from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { authorizationScopeKey, resetAuthorizationQueries } from "@/lib/authorization-cache";
@@ -72,5 +73,5 @@ export function PermissionRouteGate({ children }: { children: React.ReactNode })
     );
   }
 
-  return <>{children}</>;
+  return <PlanFeatureGate>{children}</PlanFeatureGate>;
 }

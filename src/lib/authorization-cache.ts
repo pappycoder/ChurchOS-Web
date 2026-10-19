@@ -7,12 +7,13 @@ interface AuthorizationProfile {
   memberId?: string;
   isAdminHq: boolean;
   permissions?: readonly string[];
+  planFeatures?: readonly string[];
 }
 
 export function authorizationScopeKey(profile?: AuthorizationProfile): string | null {
   if (!profile) return null;
   return JSON.stringify([profile.profileId, profile.churchId, profile.branchId, profile.memberId,
-    profile.isAdminHq, [...(profile.permissions ?? [])].sort()]);
+    profile.isAdminHq, [...(profile.permissions ?? [])].sort(), [...(profile.planFeatures ?? [])].sort()]);
 }
 
 /** Stop old-scope requests before clearing cached workspace data. */

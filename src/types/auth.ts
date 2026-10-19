@@ -78,6 +78,7 @@ export interface AuthUser {
 }
 
 export interface AuthError {
+  code?: string;
   retryAfterSeconds?: number;
   details?: unknown;
   message: string;

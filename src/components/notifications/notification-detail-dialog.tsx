@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { useEffect } from "react";
 import { toast } from "@/lib/toast";
 import {
@@ -21,9 +23,15 @@ import {
 } from "@/hooks/use-notifications";
 
 interface NotificationDetailDialogProps {
-  notification:
-    | { id: string; type: NotificationType; title: string; body: string; createdAt: string; readAt?: string }
-    | null;
+  notification: {
+    id: string;
+    type: NotificationType;
+    title: string;
+    body: string;
+    createdAt: string;
+    readAt?: string;
+    data?: Record<string, unknown>;
+  } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDeleted?: () => void;
@@ -35,6 +43,10 @@ export function NotificationDetailDialog({
   onOpenChange,
   onDeleted,
 }: NotificationDetailDialogProps) {
+  const { data: profile } = useCurrentProfile();
+  const billingAdmin = profile?.role.some(
+    (role) => role === "church_admin" || role === "super_admin",
+  );
   const markAsRead = useMarkAsRead();
   const deleteNotification = useDeleteNotification();
 
@@ -66,7 +78,9 @@ export function NotificationDetailDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-1">
-            <Badge variant="secondary">{NOTIFICATION_TYPE_LABELS[notification.type] ?? notification.type}</Badge>
+            <Badge variant="secondary">
+              {NOTIFICATION_TYPE_LABELS[notification.type] ?? notification.type}
+            </Badge>
             <span className="text-xs text-muted-foreground">
               {formatRelativeTime(notification.createdAt)}
             </span>
@@ -77,12 +91,20 @@ export function NotificationDetailDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">
+          {billingAdmin && notification.data?.url === "/subscription" && (
+            <Button asChild>
+              <Link href="/subscription" onClick={() => onOpenChange(false)}>
+                Plan & Billing
+              </Link>
+            </Button>
+          )}
           <Button
             variant="outline"
             disabled={deleteNotification.isPending}
             onClick={handleDelete}
             className="text-destructive hover:text-destructive"
-           loading={deleteNotification.isPending}>
+            loading={deleteNotification.isPending}
+          >
             Delete
           </Button>
           <Button variant="default" onClick={() => onOpenChange(false)}>

@@ -25,7 +25,7 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild><Link href="/profile"><User className="size-4" />Profile</Link></DropdownMenuItem>
       {ready && can("church_settings", "update") && <DropdownMenuItem asChild><Link href="/admin/settings"><Settings className="size-4" />Church settings</Link></DropdownMenuItem>}
-      {ready && can("billing", "read") && <DropdownMenuItem asChild><Link href="/subscription"><CreditCard className="size-4" />Subscription</Link></DropdownMenuItem>}
+      {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && can("billing", "read") && <DropdownMenuItem asChild><Link href="/subscription"><CreditCard className="size-4" />Plan & Billing</Link></DropdownMenuItem>}
       {ready && can("integrations", "read") && <DropdownMenuItem asChild><Link href="/admin/integrations"><Plug className="size-4" />Integrations</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" onSelect={() => { void logout(); }}><LogOut className="size-4" />Sign out</DropdownMenuItem>

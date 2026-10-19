@@ -18,6 +18,7 @@ export interface CurrentProfile {
   role: string[];
   /** Flat permission names (resource:action) granted across all roles */
   permissions?: string[];
+  planFeatures?: string[];
   firstName: string;
   lastName: string;
   email?: string;

@@ -1,4 +1,4 @@
-/** Display catalog. Checkout prices come from the backend; plan quotas are not enforced here. */
+/** Display copy. The backend catalog owns checkout prices and enforces subscription entitlements. */
 export const launchPlans = [
   {
     id: "essentials",

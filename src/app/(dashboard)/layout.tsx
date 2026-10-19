@@ -1,4 +1,6 @@
 "use client";
+import { PlanLimitDialog } from "@/components/billing/plan-limit-dialog";
+import { BillingNotice } from "@/components/billing/billing-notice";
 import { usePathname } from "next/navigation";
 import { TableColumnsProvider } from "@/contexts/table-columns-context";
 import { Sidebar } from "@/components/layouts/sidebar";
@@ -16,7 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <SidebarInset className="min-w-0">
       <Header />
       <main id="main-content" tabIndex={-1} className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-6 lg:px-8">
-        <OfflineEntry />
+        <OfflineEntry /><BillingNotice /><PlanLimitDialog />
         <TableColumnsProvider key={pathname}><PermissionRouteGate>{children}</PermissionRouteGate></TableColumnsProvider>
       </main>
     </SidebarInset>
