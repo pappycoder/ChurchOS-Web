@@ -474,7 +474,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
     section: "SUPPORT",
     items: [
       {
-        title: "Help & Documentation",
+        title: "Help Centre",
         href: "/docs",
         icon: BookOpen,
       },

@@ -522,6 +522,7 @@ export function LandingPage() {
             <a href="#product">The platform</a>
             <a href="#pricing">Pricing</a>
             <a href="#questions">FAQs</a>
+            <Link href="/help">Help Centre</Link>
             <Link href="/login">
               Sign in <ArrowUpRight size={13} />
             </Link>

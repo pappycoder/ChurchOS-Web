@@ -39,3 +39,5 @@ API reference: https://developer.tawk.to/jsapi/
 - Existing unit suite: 14 files / 311 tests passed.
 - Four mocked browser checks passed: lazy admin access and teardown, staff
   exclusion, blocked-script recovery, and sign-out while loading.
+
+The later [Help Centre rollout](HELP-CENTRE-2026-10-19.md) adds a public, application-owned article library at `/help` and labels the support screen Contact support. The tawk.to-hosted knowledge base remains separate and is not required.

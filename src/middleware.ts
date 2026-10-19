@@ -13,6 +13,7 @@ export function middleware(request: NextRequest) {
 
   const protectedPaths = [
     "/dashboard",
+    "/docs",
     "/members",
     "/attendance",
     "/giving",

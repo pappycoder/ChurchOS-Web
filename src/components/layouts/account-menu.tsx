@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ChevronsUpDown, CreditCard, LifeBuoy, LogOut, Plug, Settings, User } from "lucide-react";
+import { BookOpen, ChevronsUpDown, CreditCard, LifeBuoy, LogOut, Plug, Settings, User } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -23,11 +23,12 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
     <DropdownMenuContent className="w-64" side={placement === "sidebar" && !isMobile ? "right" : "bottom"} align="end" sideOffset={8}>
       <DropdownMenuLabel className="flex items-center gap-2 font-normal">{avatar}{summary}</DropdownMenuLabel>
       <DropdownMenuSeparator />
+      {ready && <DropdownMenuItem asChild><Link href="/docs"><BookOpen className="size-4" />Help Centre</Link></DropdownMenuItem>}
       <DropdownMenuItem asChild><Link href="/profile"><User className="size-4" />Profile</Link></DropdownMenuItem>
       {ready && can("church_settings", "update") && <DropdownMenuItem asChild><Link href="/admin/settings"><Settings className="size-4" />Church settings</Link></DropdownMenuItem>}
       {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && can("billing", "read") && <DropdownMenuItem asChild><Link href="/subscription"><CreditCard className="size-4" />Plan & Billing</Link></DropdownMenuItem>}
       {ready && can("integrations", "read") && <DropdownMenuItem asChild><Link href="/admin/integrations"><Plug className="size-4" />Integrations</Link></DropdownMenuItem>}
-      {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && <DropdownMenuItem asChild><Link href="/support"><LifeBuoy className="size-4" />Help & Support</Link></DropdownMenuItem>}
+      {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && <DropdownMenuItem asChild><Link href="/support"><LifeBuoy className="size-4" />Contact support</Link></DropdownMenuItem>}
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" onSelect={() => { void logout(); }}><LogOut className="size-4" />Sign out</DropdownMenuItem>
     </DropdownMenuContent>

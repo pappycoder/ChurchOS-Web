@@ -13,6 +13,7 @@ import { NotificationBell } from "@/components/notifications/notification-bell";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useEmailUnread } from "@/hooks/use-email";
 import { useVisibleNavigation, navigationLeaves } from "./sidebar";
+import { ContextHelpMenu } from "@/components/help/context-help-menu";
 import { AccountMenu } from "./account-menu";
 
 export function Header() {
@@ -35,7 +36,7 @@ export function Header() {
       <Search className="size-4" /><span className="hidden sm:inline">Search navigation...</span><kbd className="ms-auto hidden rounded border px-1.5 font-mono text-[10px] sm:inline-flex">Ctrl K</kbd>
     </Button>
     <div className="ms-auto flex items-center gap-1 sm:gap-2">
-      <OfflineHeaderButton />
+      <ContextHelpMenu /><OfflineHeaderButton />
       {canViewInbox && <Button variant="ghost" size="icon" asChild tooltip="Inbox"><Link href="/communication/inbox" className="relative"><Mail className="size-4" />{(unread?.count ?? 0) > 0 && <span className="absolute end-0 top-0 rounded-full bg-destructive px-1 text-[10px] text-white">{unread!.count > 99 ? "99+" : unread!.count}</span>}</Link></Button>}
       <NotificationBell compact /><ColorModeToggle /><AccountMenu />
     </div>

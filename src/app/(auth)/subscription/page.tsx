@@ -266,8 +266,9 @@ export default function SubscriptionPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
-            <Link href="/support">Help & Support</Link>
+            <Link href="/help/subscription-currencies-and-payments">Billing guide</Link>
           </Button>
+          <Button variant="outline" asChild><Link href="/support">Contact support</Link></Button>
           <Button variant="outline" onClick={() => void logout()}>
             Sign out
           </Button>

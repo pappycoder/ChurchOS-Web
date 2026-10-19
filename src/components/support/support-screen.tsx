@@ -38,9 +38,10 @@ export function SupportScreen() {
   if (!allowed) return <p role="status">Please contact your church administrator for support.</p>;
   return <div className="mx-auto w-full max-w-4xl space-y-6">
     <header>
-      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Help & Support</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Contact support</h1>
       <p className="mt-2 text-muted-foreground">Get help from the ChurchOS team with your church workspace.</p>
     </header>
+    <div className="rounded-xl border bg-accent/30 p-5"><h2 className="font-semibold">Find a guide first</h2><p className="mt-2 text-sm text-muted-foreground">Search our public Help Centre for setup, subscriptions and troubleshooting.</p><Button asChild variant="link" className="mt-2 px-0"><Link href="/help">Browse help articles</Link></Button></div>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><MessageCircle className="size-5" />Contact ChurchOS support</CardTitle>

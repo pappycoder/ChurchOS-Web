@@ -16,6 +16,8 @@ export default function robots(): MetadataRoute.Robots {
           "/reset-password",
           // Internal shell never intended for crawling
           "/offline",
+          "/docs",
+          "/support",
         ],
       },
     ],

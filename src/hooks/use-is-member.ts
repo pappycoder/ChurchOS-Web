@@ -1,20 +1,13 @@
 "use client";
 
 /**
- * @file Identifies member-facing access from the current permission set.
+ * @file Identifies ticket presentation from the current permission set.
  *
- * The dedicated members:own:read permission marks member-facing presentation
- * for documentation presentation. Broader member-directory grants take
- * precedence; operational surfaces check their own action permissions.
+ * Documentation is now public and has no member-role presentation branch.
+ * Ticket surfaces continue to check their own action permissions.
  */
 
 import { usePermissions } from "@/hooks/use-permissions";
-
-export function useIsMember(): { isMember: boolean } {
-  const { canAny } = usePermissions();
-  const isMember = canAny("members:own:read") && !canAny("members:all:read");
-  return { isMember };
-}
 
 /**
  * Whether the viewer is treated like a member for the tickets surface.

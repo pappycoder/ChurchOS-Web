@@ -38,7 +38,7 @@ test("admin chat is lazy, uses the supplied widget and closes on session end", a
     await route.fulfill({ contentType: "application/javascript", body: mockWidget });
   });
   await page.goto("/support");
-  await expect(page.getByRole("heading", { name: "Help & Support" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Contact support" })).toBeVisible();
   expect(requests).toBe(0);
   await page.getByRole("button", { name: "Chat with support", exact: true }).click();
   await expect.poll(() => page.evaluate(() => JSON.stringify((window as unknown as { chatCalls: unknown[] }).chatCalls))).toContain('"maximize"');
@@ -56,7 +56,7 @@ test("staff cannot load the widget or see the support menu", async ({ page, cont
   await expect(page.getByText("Please contact your church administrator for support.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
-  await expect(page.getByRole("menuitem", { name: "Help & Support" })).toHaveCount(0);
+  await expect(page.getByRole("menuitem", { name: "Contact support" })).toHaveCount(0);
   expect(requests).toBe(0);
 });
 

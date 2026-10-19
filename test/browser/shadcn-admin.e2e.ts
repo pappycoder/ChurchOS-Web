@@ -97,7 +97,7 @@ for (const width of [375, 768]) test(`navigation and charts fit a ${width}px vie
     await page.keyboard.press("Escape");
     await expect(drawer).toHaveCount(0);
     await page.locator("header").getByRole("button", { name: "Toggle Sidebar", exact: true }).click();
-    await page.getByRole("dialog").getByRole("link", { name: "Help & Documentation" }).click();
+    await page.getByRole("dialog").getByRole("link", { name: "Help Centre" }).click();
     await expect(page).toHaveURL(/\/docs$/);
     await expect(page.getByRole("dialog")).toHaveCount(0);
     expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
