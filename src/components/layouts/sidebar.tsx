@@ -478,6 +478,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/help",
         icon: BookOpen,
       },
+      { title: "Contact support", href: "/help/contact-support", icon: Mail },
     ],
   },
 ];

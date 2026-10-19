@@ -7,12 +7,12 @@ test.beforeEach(async ({ context }) => {
   );
 });
 
-async function fixture(context: BrowserContext, role = "church_admin") {
+async function fixture(context: BrowserContext, role = "church_admin", status = "active") {
   await context.addCookies([
     { name: "churchos_token", value: "support-fixture", url: "http://127.0.0.1:3107" },
   ]);
   await context.addInitScript(
-    ({ role }) => {
+    ({ role, status }) => {
       const native = window.fetch.bind(window);
       window.fetch = async (input, options) => {
         const path = new URL(input instanceof Request ? input.url : String(input), location.origin)
@@ -29,7 +29,7 @@ async function fixture(context: BrowserContext, role = "church_admin") {
             profileId: "p",
             churchId: "c",
             role: [role],
-            status: "active",
+            status,
             firstName: "Grace",
             lastName: "Admin",
             permissions: [],
@@ -38,7 +38,7 @@ async function fixture(context: BrowserContext, role = "church_admin") {
         return Response.json({ success: true, data });
       };
     },
-    { role },
+    { role, status },
   );
 }
 
@@ -79,20 +79,40 @@ test("native Tawk bubble loads automatically without expanding and closes on ses
   expect(requests).toBe(1);
 });
 
-test("staff cannot load the widget or see the support menu", async ({ page, context }) => {
-  await fixture(context, "usher");
-  let requests = 0;
+for (const role of ["usher", "secretary", "branch_pastor", "super_admin"]) {
+  test(`${role} can use chat and ticket support without a billing grant`, async ({
+    page,
+    context,
+  }) => {
+    await fixture(context, role);
+    await page.goto("/dashboard");
+    await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+    await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
+    await expect(
+      page.getByRole("menuitem", { name: "Contact support", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("menuitem", { name: "Create support ticket", exact: true }),
+    ).toHaveAttribute("href", "/help/contact-support#ticket");
+    await expect(page.getByRole("menuitem", { name: "Plan & Billing", exact: true })).toHaveCount(
+      0,
+    );
+  });
+}
+
+test("inactive profiles do not load the chat widget", async ({ page, context }) => {
+  await fixture(context, "usher", "disabled");
+  let widgets = 0;
   await page.route("https://embed.tawk.to/**", async (route) => {
-    requests++;
+    widgets++;
     await route.abort();
   });
-  await page.goto("/dashboard");
-  await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toHaveCount(0);
+  await page.goto("/help/contact-support");
+  await expect(
+    page.getByText("Chat requires an active workspace account.", { exact: false }),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
-  await expect(page.getByRole("menuitem", { name: "Contact support" })).toHaveCount(0);
-  expect(requests).toBe(0);
+  expect(widgets).toBe(0);
 });
 
 test("a blocked automatic widget gives a working retry and an external fallback", async ({
@@ -195,13 +215,10 @@ test("an already-loaded widget reconnects after leaving the workspace", async ({
   expect(requests).toBe(1);
 });
 
-test("legacy support URL returns to the dashboard with a floating chat control", async ({
-  page,
-  context,
-}) => {
+test("legacy support URL opens the standalone contact page", async ({ page, context }) => {
   await fixture(context);
   await page.goto("/support");
-  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page).toHaveURL(/\/help\/contact-support$/);
   await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
 });
 
@@ -290,3 +307,95 @@ for (const active of [true, false]) {
     ).toBeVisible();
   });
 }
+
+test("every active user can prepare a ticket email without sending a message or creating fake history", async ({
+  page,
+  context,
+}) => {
+  await fixture(context, "usher");
+  const supportPosts: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && /support|ticket|email/.test(request.url()))
+      supportPosts.push(request.url());
+  });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: async (text: string) => {
+          Object.assign(window, { copiedSupportTicket: text });
+        },
+      },
+    });
+  });
+  await page.goto("/help/contact-support#ticket");
+  await page.getByLabel("Subject", { exact: true }).fill("Attendance & totals");
+  await page
+    .getByLabel("What happened?", { exact: true })
+    .fill("The attendance total did not update after saving the service.");
+  await page.getByRole("button", { name: "Prepare ticket email" }).click();
+  await expect(page.getByRole("heading", { name: "Your email draft is ready" })).toBeVisible();
+  const link = page.getByRole("link", { name: "Open email draft", exact: true });
+  const uri = new URL((await link.getAttribute("href"))!);
+  expect(uri.pathname).toBe("tickets@churchos.p.tawk.email");
+  expect(uri.searchParams.get("subject")).toBe("[ChurchOS Support] Attendance & totals");
+  expect(uri.searchParams.get("body")).toContain("The attendance total did not update");
+  await expect(page.getByLabel("Email details")).not.toHaveValue(
+    /support-fixture|churchId|profileId/,
+  );
+  await expect(
+    page.getByText("Preparing a draft here does not send or submit a ticket.", { exact: false }),
+  ).toBeVisible();
+  expect(supportPosts).toEqual([]);
+  await page.getByRole("button", { name: "Copy ticket details" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Ticket details copied" })).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { copiedSupportTicket: string }).copiedSupportTicket,
+    ),
+  ).toContain("tickets@churchos.p.tawk.email");
+  await page.getByRole("button", { name: "Edit ticket" }).click();
+  await expect(page.getByLabel("Subject", { exact: true })).toHaveValue("Attendance & totals");
+  await page.evaluate(() => window.dispatchEvent(new Event("churchos-session-ended")));
+  await expect(page.getByLabel("Subject", { exact: true })).toHaveValue("");
+});
+
+test("public visitors can prepare ticket emails without loading authenticated chat", async ({
+  page,
+  context,
+}) => {
+  await context.route("**/api/session", (route) => route.fulfill({ json: { hasSession: false } }));
+  let widgets = 0;
+  await page.route("https://embed.tawk.to/**", async (route) => {
+    widgets++;
+    await route.abort();
+  });
+  await page.goto("/help/contact-support");
+  await expect(page.getByRole("link", { name: "Sign in to chat", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to home", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Create a support ticket", exact: true }),
+  ).toBeVisible();
+  expect(widgets).toBe(0);
+});
+
+for (const width of [320, 390])
+  test(`ticket preparation fits ${width}px and retains the email fallback`, async ({
+    page,
+    context,
+  }) => {
+    await fixture(context, "usher");
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/help/contact-support#ticket");
+    await page.getByLabel("Subject", { exact: true }).fill("Help with my account");
+    await page
+      .getByLabel("What happened?", { exact: true })
+      .fill("I cannot access the member directory after my role changed.");
+    await page.getByRole("button", { name: "Prepare ticket email" }).click();
+    await expect(page.getByRole("button", { name: "Copy ticket details" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    if (width === 390)
+      await page.screenshot({ path: "/tmp/churchos-support-ticket-mobile.png", fullPage: true });
+  });

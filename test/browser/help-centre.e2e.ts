@@ -174,7 +174,7 @@ test("dashboard help menu links to a separate Help Centre for staff", async ({ p
   await page.goto("/dashboard");
   await page.getByRole("button", { name: "Help for this page" }).click();
   await expect(page.getByRole("menuitem", { name: "Check people in for a service" })).toBeVisible();
-  await expect(page.getByRole("menuitem", { name: "Contact support" })).toHaveCount(0);
+  await expect(page.getByRole("menuitem", { name: "Contact support", exact: true })).toBeVisible();
   await expect(page.getByRole("menuitem", { name: "Help Centre", exact: true })).toHaveAttribute(
     "href",
     "/help",

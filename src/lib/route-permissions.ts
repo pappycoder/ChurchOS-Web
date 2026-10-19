@@ -23,8 +23,9 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/docs" },
   // Public Help Centre is also a workspace navigation destination.
   { prefix: "/help" },
+  { prefix: "/help/contact-support" },
   { prefix: "/profile" },
-  // Legacy support URL redirects to dashboard; floating chat checks active admin role.
+  // Legacy support URL redirects to the standalone contact page; support is open to active users.
   { prefix: "/support" },
 
   // Members

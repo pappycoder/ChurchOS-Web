@@ -354,9 +354,9 @@ export const helpArticles = [
     slug: "get-help-and-report-a-problem",
     title: "Get help and report a problem",
     summary:
-      "Find a guide, contact your administrator or send a clear support request.",
+      "Find a guide, start a new chat or create an email support ticket with ChurchOS.",
     topic: "troubleshooting",
-    keywords: ["help", "support", "bug", "contact", "tawk", "documentation"],
+    keywords: ["help", "support", "bug", "contact", "tawk", "documentation", "ticket", "tickets", "email", "new conversation"],
     minutes: 2,
   },
 ] as const satisfies readonly HelpSummary[];

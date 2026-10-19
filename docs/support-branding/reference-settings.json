@@ -1,0 +1,26 @@
+{
+  "purpose": "Reference settings for manual entry in the Tawk dashboard; not an importable provider configuration",
+  "propertyId": "6ad5c1c809d49434c8f515a2",
+  "widgetId": "1k59fptu4",
+  "name": "ChurchOS Support",
+  "ticketEmail": "tickets@churchos.p.tawk.email",
+  "colors": {
+    "header": "#173D3E",
+    "headerText": "#FFFFFF",
+    "agentMessage": "#F1F5E9",
+    "agentText": "#183B40",
+    "visitorMessage": "#173D3E",
+    "visitorText": "#FFFFFF"
+  },
+  "onlineWelcome": "Welcome to ChurchOS Support. How can we help you today?",
+  "awayMessage": "We may take a little longer to reply. Leave your question and email so we can follow up.",
+  "offlineMessage": "We are currently offline. Leave your name, email and message, or create a support ticket. We will reply by email.",
+  "ticketPath": "/help/contact-support#ticket",
+  "helpPath": "/help",
+  "preChatFields": [
+    "Name",
+    "Email"
+  ],
+  "nativeWidget": true,
+  "remoteSettingsApplied": false
+}

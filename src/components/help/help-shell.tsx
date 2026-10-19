@@ -8,6 +8,7 @@ import { BrandLogo } from "@/components/shared/brand-logo";
 import { ColorModeToggle } from "@/components/shared/color-mode-toggle";
 import { Button } from "@/components/ui/button";
 import { helpArticles, helpTopics } from "@/lib/help/catalog";
+import { SUPPORT_CONTACT_PATH } from "@/lib/support";
 
 function TopicNavigation() {
   const path = usePathname();
@@ -97,6 +98,7 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
           </Link>
           <div className="flex flex-wrap items-center gap-2">
             <ColorModeToggle />
+            <Button asChild size="sm" variant="ghost"><Link href={SUPPORT_CONTACT_PATH}>Support</Link></Button>
             <Button asChild size="sm" variant="outline">
               <Link href={isAuthenticated ? "/dashboard" : "/"}>
                 <ArrowLeft className="size-4" />
@@ -122,6 +124,7 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
             </Link>
             <Link href="/help">All guides</Link>
             <Link href="/help/get-help-and-report-a-problem">Get help</Link>
+            <Link href={SUPPORT_CONTACT_PATH}>Contact support</Link>
           </nav>
         </div>
       </footer>

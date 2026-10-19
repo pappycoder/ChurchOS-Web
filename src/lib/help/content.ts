@@ -570,8 +570,16 @@ export const helpContent: Record<HelpSlug, HelpSection[]> = {
       title: "Contact the right person",
       bullets: [
         "Staff: ask your church administrator about roles, location access, plan availability or church-owned provider settings.",
-        "Church administrators: use the floating tawk.to chat bubble or Contact support in the account/help menu to reach the ChurchOS team without leaving your work. The chat bubble loads automatically when you open your workspace.",
+        "Every active signed-in user can use the floating chat bubble or Contact support in the account/help menu to reach ChurchOS Support. You do not need an administrator role or a higher subscription plan.",
         "If the support team is offline, use the available chat form to leave a message and reply email. Response availability depends on the team’s working hours.",
+      ],
+    },
+    {
+      id: "support-tickets",
+      title: "Create a support ticket or start a new chat",
+      paragraphs: [
+        "Open the contact page from the Support link or Create support ticket in the account/help menu. Prepare one email per issue and send it to tickets@churchos.p.tawk.email. Preparing or copying the draft does not send it; you must send it from your email app. Tawk creates the ticket when the email arrives, and support replies by email.",
+        "To start another chat session as the same person, open the widget menu, choose End this chat session, then start a new chat. Your previous conversation history may remain visible. For separate issues requiring follow-up, use separate email tickets and reply to an existing ticket email to continue that issue.",
       ],
     },
     {
