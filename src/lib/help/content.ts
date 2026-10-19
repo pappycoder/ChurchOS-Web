@@ -563,6 +563,7 @@ export const helpContent: Record<HelpSlug, HelpSection[]> = {
       paragraphs: [
         "These guides are public and can be shared without sharing church records or signing in. Search by the task you are trying to complete, such as importing members, checking in attendees or renewing a subscription.",
         "Inside the workspace, the Help Centre and the page’s help menu suggest relevant guides. A guide explains a feature; reading it does not grant permission to use that feature.",
+        "Active staff can open Ask ChurchOS in the workspace header for product guidance, navigation links and explanations of their verified access. Answers include references. The assistant cannot read church records or perform actions; do not enter personal records, passwords or secrets. Administrator-only live chat remains the channel for human ChurchOS Support.",
       ],
     },
     {

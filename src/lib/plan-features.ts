@@ -8,6 +8,7 @@ export function featureForPath(path: string): string | undefined {
   if (/^\/reports(?:\/|$)/.test(path)) return "reports";
   if (/^\/events(?:\/|$)/.test(path)) return "events";
   if (/^\/giving(?:\/|$)/.test(path)) return "giving";
+  return undefined;
 }
 export function featureForPermission(permission: string): string | undefined {
   const [resource] = permission.split(":");
@@ -16,4 +17,5 @@ export function featureForPermission(permission: string): string | undefined {
   if (["departments", "cell_groups"].includes(resource)) return "groups";
   if (["giving", "events", "forms", "reports", "analytics"].includes(resource))
     return resource;
+  return undefined;
 }

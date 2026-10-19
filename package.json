@@ -9,6 +9,8 @@
     "test": "vitest run",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "assistant:sync": "node scripts/sync-assistant-knowledge.mjs",
+    "assistant:check": "node scripts/sync-assistant-knowledge.mjs --check",
     "og:generate": "node scripts/generate-social-images.mjs",
     "audit:ui": "node scripts/audit-ui-contracts.mjs",
     "audit:live-roles": "node scripts/audit-live-role-access.mjs",
