@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, BookOpen, Home, LayoutDashboard } from "lucide-react";
+import { ArrowLeft, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { WorkspaceFrame } from "@/components/layouts/workspace-frame";
 import { BrandLogo } from "@/components/shared/brand-logo";
 import { ColorModeToggle } from "@/components/shared/color-mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -58,41 +57,12 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const content = (
     <div className="space-y-6">
-      <nav
-        aria-label="Help return navigation"
-        className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 text-sm"
-      >
-        <Link
-          href={isAuthenticated ? "/dashboard" : "/"}
-          className="inline-flex items-center gap-2 font-medium hover:text-primary"
-        >
-          <ArrowLeft className="size-4" />
-          {isAuthenticated ? "Back to dashboard" : "Back to ChurchOS"}
-        </Link>
-        <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-          {isAuthenticated && (
-            <Link href="/docs" className="hover:text-foreground">
-              Workspace help
-            </Link>
-          )}
-          <Link href="/" className="inline-flex items-center gap-2 hover:text-foreground">
-            <Home className="size-4" />
-            ChurchOS home
-          </Link>
-        </div>
-      </nav>
-      <div
-        className={`grid min-w-0 items-start gap-8 ${isAuthenticated ? "2xl:grid-cols-[190px_minmax(0,1fr)]" : "lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12"}`}
-      >
-        <aside
-          className={`${isAuthenticated ? "hidden 2xl:block" : "hidden lg:block"} sticky top-24 rounded-xl border bg-card p-5`}
-        >
+      <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12">
+        <aside className="sticky top-24 hidden rounded-xl border bg-card p-5 lg:block">
           <TopicNavigation />
         </aside>
         <div className="min-w-0 space-y-6">
-          <details
-            className={`rounded-xl border bg-card p-4 ${isAuthenticated ? "2xl:hidden" : "lg:hidden"}`}
-          >
+          <details className="rounded-xl border bg-card p-4 lg:hidden">
             <summary className="cursor-pointer text-sm font-medium">Browse help topics</summary>
             <div className="mt-5">
               <TopicNavigation />
@@ -105,7 +75,6 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
   );
 
   // Public articles remain server-rendered and readable before session restoration or without JS.
-  if (isAuthenticated) return <WorkspaceFrame publicContent>{content}</WorkspaceFrame>;
   return (
     <div className="min-h-svh bg-background text-foreground">
       <a
@@ -119,7 +88,7 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
           aria-label="Help Centre navigation"
           className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
         >
-          <Link href="/" className="flex items-center gap-2" aria-label="ChurchOS home">
+          <Link href="/help" className="flex items-center gap-2" aria-label="ChurchOS Help Centre">
             <BrandLogo variant="mark" emblemClassName="!size-8" />
             <span className="font-semibold">
               ChurchOS{" "}
@@ -129,9 +98,9 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
           <div className="flex flex-wrap items-center gap-2">
             <ColorModeToggle />
             <Button asChild size="sm" variant="outline">
-              <Link href="/dashboard">
-                <LayoutDashboard className="size-4" />
-                Open workspace
+              <Link href={isAuthenticated ? "/dashboard" : "/"}>
+                <ArrowLeft className="size-4" />
+                {isAuthenticated ? "Back to dashboard" : "Back to home"}
               </Link>
             </Button>
           </div>
@@ -148,7 +117,9 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:px-6 lg:px-8">
           <p>Practical help for the people behind your church.</p>
           <nav aria-label="Help footer" className="flex flex-wrap gap-5">
-            <Link href="/">ChurchOS home</Link>
+            <Link href={isAuthenticated ? "/dashboard" : "/"}>
+              {isAuthenticated ? "Dashboard" : "ChurchOS home"}
+            </Link>
             <Link href="/help">All guides</Link>
             <Link href="/help/get-help-and-report-a-problem">Get help</Link>
           </nav>

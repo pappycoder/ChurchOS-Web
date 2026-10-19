@@ -53,7 +53,7 @@ export function ContextHelpMenu() {
         ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/docs">
+          <Link href="/help">
             <BookOpen className="size-4" />
             Help Centre
           </Link>

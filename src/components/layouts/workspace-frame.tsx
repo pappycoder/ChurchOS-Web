@@ -10,13 +10,7 @@ import { TopProgressBar } from "@/components/layouts/top-progress-bar";
 import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
 import { OfflineEntry } from "@/components/offline/offline-entry";
 
-export function WorkspaceFrame({
-  children,
-  publicContent = false,
-}: {
-  children: React.ReactNode;
-  publicContent?: boolean;
-}) {
+export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
     <SidebarProvider>
@@ -39,7 +33,7 @@ export function WorkspaceFrame({
           <BillingNotice />
           <PlanLimitDialog />
           <TableColumnsProvider key={pathname}>
-            {publicContent ? children : <PermissionRouteGate>{children}</PermissionRouteGate>}
+            <PermissionRouteGate>{children}</PermissionRouteGate>
           </TableColumnsProvider>
         </main>
       </SidebarInset>

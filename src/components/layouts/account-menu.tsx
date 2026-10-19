@@ -25,7 +25,7 @@ export function AccountMenu({ placement = "header" }: { placement?: "header" | "
     <DropdownMenuContent className="w-64" side={placement === "sidebar" && !isMobile ? "right" : "bottom"} align="end" sideOffset={8}>
       <DropdownMenuLabel className="flex items-center gap-2 font-normal">{avatar}{summary}</DropdownMenuLabel>
       <DropdownMenuSeparator />
-      {ready && <DropdownMenuItem asChild><Link href="/docs"><BookOpen className="size-4" />Help Centre</Link></DropdownMenuItem>}
+      {ready && <DropdownMenuItem asChild><Link href="/help"><BookOpen className="size-4" />Help Centre</Link></DropdownMenuItem>}
       <DropdownMenuItem asChild><Link href="/profile"><User className="size-4" />Profile</Link></DropdownMenuItem>
       {ready && can("church_settings", "update") && <DropdownMenuItem asChild><Link href="/admin/settings"><Settings className="size-4" />Church settings</Link></DropdownMenuItem>}
       {ready && profile?.role.some(role => role === "church_admin" || role === "super_admin") && can("billing", "read") && <DropdownMenuItem asChild><Link href="/subscription"><CreditCard className="size-4" />Plan & Billing</Link></DropdownMenuItem>}
