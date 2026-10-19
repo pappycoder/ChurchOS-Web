@@ -22,6 +22,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/subscription", permission: "billing:read" },
   { prefix: "/docs" },
   { prefix: "/profile" },
+  // Role restriction is applied by SupportScreen; support has no paid module grant.
+  { prefix: "/support" },
 
   // Members
   { prefix: "/members/import", permission: "members:import:create" },

@@ -22,6 +22,7 @@ export function middleware(request: NextRequest) {
     "/pastoral",
     "/admin",
     "/profile",
+    "/support",
     "/communication",
     "/appointments",
     "/debug",

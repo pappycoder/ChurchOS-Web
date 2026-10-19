@@ -221,9 +221,10 @@ export default function SubscriptionPage() {
             Your church subscription, allowances and payments.
           </p>
         </div>
-        <Button variant="outline" onClick={() => void logout()}>
-          Sign out
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild><Link href="/support">Help & Support</Link></Button>
+          <Button variant="outline" onClick={() => void logout()}>Sign out</Button>
+        </div>
       </header>
       {status.isPending && <p role="status">Loading subscription…</p>}
       {status.isError && (
