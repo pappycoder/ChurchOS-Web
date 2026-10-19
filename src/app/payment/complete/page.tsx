@@ -1,3 +1,5 @@
+import { PRIVATE_ROBOTS } from "@/lib/seo";
+export const metadata = { title: "Payment confirmation", robots: PRIVATE_ROBOTS };
 import Link from "next/link";
 export default function PaymentCompletePage() {
   return <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-5 px-6 py-12">

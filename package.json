@@ -9,6 +9,7 @@
     "test": "vitest run",
     "lint": "eslint",
     "test:e2e": "playwright test",
+    "og:generate": "node scripts/generate-social-images.mjs",
     "audit:ui": "node scripts/audit-ui-contracts.mjs",
     "audit:live-roles": "node scripts/audit-live-role-access.mjs",
     "console": "bash scripts/console.sh",

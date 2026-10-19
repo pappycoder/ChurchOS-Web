@@ -1,27 +1,27 @@
-import type { Metadata } from "next";
 import { LandingPage } from "@/components/marketing/landing-page";
+import { JsonLd } from "@/components/shared/json-ld";
+import { publicPageMetadata } from "@/lib/seo";
+import { absoluteUrl, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: { absolute: "ChurchOS — A little less admin. A lot more ministry." },
-  description:
-    "Bring people, attendance, giving and every branch together with ChurchOS. Explore church management plans from $10 USD monthly, with savings on every yearly plan.",
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "ChurchOS — Make room for more ministry",
-    description:
-      "One thoughtful platform for people, services, giving and every branch. Explore affordable launch plans for your church.",
-    url: "/",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "ChurchOS church management platform",
-      },
-    ],
-  },
-};
+export const metadata = publicPageMetadata({
+  title: SITE_TITLE, description: SITE_DESCRIPTION, path: "/",
+});
 
 export default function Home() {
-  return <LandingPage />;
+  return <>
+    <JsonLd data={{
+      "@context": "https://schema.org",
+      "@graph": [
+        { "@type": "Organization", "@id": absoluteUrl("/#organization"), name: SITE_NAME,
+          url: absoluteUrl("/"), logo: absoluteUrl("/icons/icon-512x512.png") },
+        { "@type": "WebSite", "@id": absoluteUrl("/#website"), name: SITE_NAME,
+          url: absoluteUrl("/"), inLanguage: "en", publisher: { "@id": absoluteUrl("/#organization") } },
+        { "@type": "SoftwareApplication", name: SITE_NAME, url: absoluteUrl("/"),
+          applicationCategory: "BusinessApplication", operatingSystem: "Web",
+          description: SITE_DESCRIPTION, image: absoluteUrl("/og.png"),
+          publisher: { "@id": absoluteUrl("/#organization") } },
+      ],
+    }} />
+    <LandingPage />
+  </>;
 }

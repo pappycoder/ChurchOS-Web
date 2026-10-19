@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/seo";
+import { absoluteUrl, SITE_NAME } from "@/lib/site";
+import { JsonLd } from "@/components/shared/json-ld";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen } from "lucide-react";
@@ -24,17 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: "Guide not found",
       robots: { index: false, follow: false },
     };
-  return {
-    title: article.title,
-    description: article.summary,
-    alternates: { canonical: `/help/${article.slug}` },
-    openGraph: {
-      title: `${article.title} | ChurchOS Help Centre`,
-      description: article.summary,
-      type: "article",
-      modifiedTime: HELP_REVIEWED_AT,
-    },
-  };
+  return publicPageMetadata({
+    title: `${article.title} | ChurchOS Help Centre`,
+    description: article.summary, path: `/help/${article.slug}`,
+    image: `/og/help/${article.slug}.png`, article: true, modifiedTime: HELP_REVIEWED_AT,
+  });
 }
 export default async function HelpArticlePage({ params }: Props) {
   const article = helpArticle((await params).slug);
@@ -48,6 +45,23 @@ export default async function HelpArticlePage({ params }: Props) {
     .slice(0, 3);
   return (
     <>
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@graph": [
+          { "@type": "TechArticle", "@id": absoluteUrl(`/help/${article.slug}#article`),
+            headline: article.title, description: article.summary,
+            url: absoluteUrl(`/help/${article.slug}`), mainEntityOfPage: absoluteUrl(`/help/${article.slug}`),
+            image: absoluteUrl(`/og/help/${article.slug}.png`), dateModified: HELP_REVIEWED_AT,
+            inLanguage: "en", articleSection: topic.title,
+            author: { "@type": "Organization", name: SITE_NAME, url: absoluteUrl("/") },
+            publisher: { "@type": "Organization", name: SITE_NAME,
+              logo: { "@type": "ImageObject", url: absoluteUrl("/icons/icon-512x512.png") } } },
+          { "@type": "BreadcrumbList", itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Help Centre", item: absoluteUrl("/help") },
+            { "@type": "ListItem", position: 2, name: article.title, item: absoluteUrl(`/help/${article.slug}`) },
+          ] },
+        ],
+      }} />
       <nav
         aria-label="Breadcrumb"
         className="mb-8 flex flex-wrap items-center gap-2 text-sm text-muted-foreground"

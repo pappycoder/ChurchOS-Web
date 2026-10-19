@@ -1,17 +1,26 @@
-import type { Metadata } from "next";
+import { publicPageMetadata } from "@/lib/seo";
+import { absoluteUrl } from "@/lib/site";
+import { JsonLd } from "@/components/shared/json-ld";
+import { helpArticles } from "@/lib/help/catalog";
 import Link from "next/link";
 import { HelpSearch } from "@/components/help/help-search";
 import { helpSearchIndex } from "@/lib/help/content";
 import { Button } from "@/components/ui/button";
-export const metadata: Metadata = {
-  title: "Help Centre",
-  description:
-    "Practical ChurchOS guides for onboarding, members, attendance, subscriptions and troubleshooting. Open to everyone.",
-  alternates: { canonical: "/help" },
-};
+export const metadata = publicPageMetadata({
+  title: "Help Centre", path: "/help", image: "/og/help.png",
+  description: "Practical ChurchOS guides for onboarding, members, attendance, subscriptions and troubleshooting. Open to everyone.",
+});
 export default function HelpPage() {
   return (
     <div className="space-y-10">
+      <JsonLd data={{
+        "@context": "https://schema.org", "@type": "CollectionPage",
+        name: "ChurchOS Help Centre", url: absoluteUrl("/help"), inLanguage: "en",
+        mainEntity: { "@type": "ItemList", itemListElement: helpArticles.map((article, index) => ({
+          "@type": "ListItem", position: index + 1, name: article.title,
+          url: absoluteUrl(`/help/${article.slug}`),
+        })) },
+      }} />
       <header className="max-w-3xl space-y-4">
         <p className="text-xs font-semibold tracking-[0.16em] text-primary">
           CHURCHOS HELP CENTRE

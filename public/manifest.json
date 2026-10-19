@@ -1,14 +1,14 @@
 {
   "name": "ChurchOS - Church Management Platform",
   "short_name": "ChurchOS",
-  "description": "Church Management & Digital Ministry Platform for Nigerian churches",
+  "description": "Church management for your people, attendance, giving and branches.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#2563EB",
+  "background_color": "#fafbf7",
+  "theme_color": "#183b40",
   "categories": ["productivity", "lifestyle"],
   "icons": [
     {

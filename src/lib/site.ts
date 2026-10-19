@@ -1,16 +1,18 @@
 export const SITE_NAME = "ChurchOS";
 export const SITE_DESCRIPTION =
-  "Church Management & Digital Ministry Platform for Nigerian churches";
+  "Bring your church’s people, attendance, giving and branches together. ChurchOS makes room for more ministry, with plans from $10 USD per month.";
+export const SITE_TITLE = "ChurchOS — A little less admin. A lot more ministry.";
+export const BRAND_COLOR = "#183b40";
 
 export function getSiteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(
-    /\/$/,
-    "",
-  );
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const url = new URL(configured || (production ? `https://${production}` : "https://church-os-web.vercel.app"));
+  if (!["https:", "http:"].includes(url.protocol) || url.username || url.password)
+    throw new Error("NEXT_PUBLIC_SITE_URL must be an HTTP(S) public origin.");
+  return url.origin;
 }
 
 export function absoluteUrl(path: string): string {
-  const base = getSiteUrl();
-  if (path.startsWith("http")) return path;
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+  return new URL(path, `${getSiteUrl()}/`).toString();
 }

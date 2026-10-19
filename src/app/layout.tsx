@@ -8,7 +8,9 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { Providers } from "@/components/providers/providers";
 import { SonnerProvider } from "@/components/providers/sonner-provider";
-import { SITE_DESCRIPTION, SITE_NAME, absoluteUrl } from "@/lib/site";
+import { BRAND_COLOR, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, absoluteUrl } from "@/lib/site";
+
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 
 const inter = localFont({
   src: "../assets/fonts/inter-variable.ttf",
@@ -20,7 +22,7 @@ const inter = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(absoluteUrl("/")),
   title: {
-    default: `${SITE_NAME} - Church Management Platform`,
+    default: SITE_TITLE,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -52,43 +54,22 @@ export const metadata: Metadata = {
   other: {
     "mobile-web-app-capable": "yes",
   },
-  alternates: {
-    canonical: "/",
-  },
-  openGraph: {
-    type: "website",
-    siteName: SITE_NAME,
-    title: `${SITE_NAME} - Church Management Platform`,
-    description: SITE_DESCRIPTION,
-    url: "/",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: `${SITE_NAME} - Church Management Platform`,
-      },
-    ],
-    locale: "en_NG",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${SITE_NAME} - Church Management Platform`,
-    description: SITE_DESCRIPTION,
-    images: ["/og.png"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
+  applicationName: SITE_NAME,
+  category: "Church management software",
+  referrer: "strict-origin-when-cross-origin",
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  robots: PRIVATE_ROBOTS,
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f172a",
+  themeColor: BRAND_COLOR,
   width: "device-width",
   initialScale: 1,
 };
@@ -104,22 +85,6 @@ export default function RootLayout({
       className={cn(inter.variable, "h-full antialiased")}
       suppressHydrationWarning
     >
-      <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: SITE_NAME,
-              url: absoluteUrl("/"),
-              description: SITE_DESCRIPTION,
-              logo: absoluteUrl("/icons/icon-512x512.png"),
-              sameAs: [],
-            }),
-          }}
-        />
-      </head>
       <body
         className="min-h-full flex flex-col bg-background text-foreground"
         style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
