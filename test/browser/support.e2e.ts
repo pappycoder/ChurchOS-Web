@@ -1,4 +1,11 @@
 import { test, expect, type BrowserContext } from "@playwright/test";
+import { mockTawkWidget } from "../fixtures/tawk-widget";
+
+test.beforeEach(async ({ context }) => {
+  await context.route("https://embed.tawk.to/**", (route) =>
+    route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }),
+  );
+});
 
 async function fixture(context: BrowserContext, role = "church_admin") {
   await context.addCookies([
@@ -35,39 +42,7 @@ async function fixture(context: BrowserContext, role = "church_admin") {
   );
 }
 
-// Model a real asynchronous connection: maximize before ready does not display chat.
-const mockWidget = `
-window.chatCalls = [];
-const api = window.Tawk_API;
-let ready = false;
-let timer;
-const panel = document.createElement('section');
-panel.setAttribute('role', 'dialog');
-panel.setAttribute('aria-label', 'ChurchOS support chat');
-panel.textContent = 'Leave a message for ChurchOS support';
-panel.hidden = true;
-panel.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:100;width:280px;height:220px;background:white;color:black;padding:20px;border:1px solid black';
-document.body.appendChild(panel);
-const record = (name, args = []) => window.chatCalls.push({ name, args });
-const connect = () => {
-  ready = true;
-  api.onStatusChange?.('offline');
-  api.onLoad?.();
-};
-api.start = (options) => { record('start', [options]); ready = false; timer = setTimeout(connect, 100); };
-api.hideWidget = () => { record('hideWidget'); panel.hidden = true; };
-api.showWidget = () => { record('showWidget'); };
-api.maximize = () => { record('maximize'); if (ready) panel.hidden = false; };
-api.endChat = () => record('endChat');
-api.shutdown = () => { record('shutdown'); ready = false; clearTimeout(timer); panel.hidden = true; };
-// Anonymous opening must never depend on the authenticated-user logout callback.
-api.logout = () => { record('logout'); };
-api.onBeforeLoad?.();
-if (api.autoStart !== false) timer = setTimeout(connect, 100);
-else api.onLoad?.();
-`;
-
-test("admin chat is lazy, uses the supplied widget and closes on session end", async ({
+test("native Tawk bubble loads automatically without expanding and closes on session end", async ({
   page,
   context,
 }) => {
@@ -76,12 +51,15 @@ test("admin chat is lazy, uses the supplied widget and closes on session end", a
   await page.route("https://embed.tawk.to/**", async (route) => {
     requests++;
     expect(route.request().url()).toBe("https://embed.tawk.to/6ad5c1c809d49434c8f515a2/1k59fptu4");
-    await route.fulfill({ contentType: "application/javascript", body: mockWidget });
+    await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
   });
   await page.goto("/dashboard");
   await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
-  expect(requests).toBe(0);
-  await page.getByRole("button", { name: "Chat with support", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+  expect(requests).toBe(1);
+  await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
+  await page.getByRole("button", { name: "Open Tawk.to chat" }).click();
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
   await expect(page).toHaveURL(/\/dashboard$/);
   expect(
@@ -111,22 +89,34 @@ test("staff cannot load the widget or see the support menu", async ({ page, cont
   await page.goto("/dashboard");
   await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toHaveCount(0);
   await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
   await expect(page.getByRole("menuitem", { name: "Contact support" })).toHaveCount(0);
   expect(requests).toBe(0);
 });
 
-test("blocked widget gives a retry and an external fallback", async ({ page, context }) => {
+test("a blocked automatic widget gives a working retry and an external fallback", async ({
+  page,
+  context,
+}) => {
   await fixture(context);
-  await page.route("https://embed.tawk.to/**", (route) => route.abort());
+  let requests = 0;
+  await page.route("https://embed.tawk.to/**", async (route) => {
+    requests++;
+    if (requests === 1) await route.abort();
+    else await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
+  });
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Chat with support", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Chat could not load" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Open support in a new tab" })).toHaveAttribute(
     "href",
     "https://tawk.to/chat/6ad5c1c809d49434c8f515a2/1k59fptu4",
   );
+  await page.getByRole("button", { name: "Retry support chat" }).click();
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
+  expect(requests).toBe(2);
 });
 
 test("a widget that finishes loading after logout cannot open chat", async ({ page, context }) => {
@@ -137,10 +127,11 @@ test("a widget that finishes loading after logout cannot open chat", async ({ pa
   });
   await page.route("https://embed.tawk.to/**", async (route) => {
     await delayed;
-    await route.fulfill({ contentType: "application/javascript", body: mockWidget });
+    await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
   });
-  await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Chat with support", exact: true }).click();
+  const loading = page.waitForRequest("https://embed.tawk.to/**");
+  await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+  await loading;
   await page.evaluate(() => window.dispatchEvent(new Event("churchos-session-ended")));
   release();
   await expect
@@ -151,6 +142,7 @@ test("a widget that finishes loading after logout cannot open chat", async ({ pa
   );
   expect(calls).not.toContain("showWidget");
   expect(calls).not.toContain("maximize");
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeHidden();
 });
 
 test("chat opens on the current page and remains visible when help opens separately", async ({
@@ -161,10 +153,10 @@ test("chat opens on the current page and remains visible when help opens separat
   let requests = 0;
   await page.route("https://embed.tawk.to/**", async (route) => {
     requests++;
-    await route.fulfill({ contentType: "application/javascript", body: mockWidget });
+    await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
   });
   await page.goto("/dashboard");
-  await page.getByRole("button", { name: "Chat with support", exact: true }).click();
+  await page.getByRole("button", { name: "Open Tawk.to chat" }).click();
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
   await expect(page).toHaveURL(/\/dashboard$/);
   await page
@@ -186,17 +178,19 @@ test("an already-loaded widget reconnects after leaving the workspace", async ({
   let requests = 0;
   await page.route("https://embed.tawk.to/**", async (route) => {
     requests++;
-    await route.fulfill({ contentType: "application/javascript", body: mockWidget });
+    await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
   });
   await page.goto("/subscription");
-  await page.getByRole("button", { name: "Chat with support", exact: true }).click();
+  await page.getByRole("button", { name: "Open Tawk.to chat" }).click();
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
   await page.getByRole("link", { name: "ChurchOS home", exact: true }).click();
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
   await page.getByRole("link", { name: "Help Centre", exact: true }).click();
   await expect(page).toHaveURL(/\/help$/);
-  await page.getByRole("button", { name: "Chat with support", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
+  await page.getByRole("button", { name: "Open Tawk.to chat" }).click();
   await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
   expect(requests).toBe(1);
 });
@@ -208,7 +202,7 @@ test("legacy support URL returns to the dashboard with a floating chat control",
   await fixture(context);
   await page.goto("/support");
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole("button", { name: "Chat with support", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
 });
 
 for (const path of ["/login", "/register?plan=network"]) {

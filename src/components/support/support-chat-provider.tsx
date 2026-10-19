@@ -3,11 +3,16 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ExternalLink, MessageCircle, X } from "lucide-react";
+import { ExternalLink, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { fetchCurrentProfile } from "@/hooks/use-profile";
 import { Button } from "@/components/ui/button";
-import { closeSupportChat, openSupportChat, TAWK_CHAT_URL } from "@/lib/tawk";
+import {
+  closeSupportChat,
+  initializeSupportWidget,
+  openSupportChat,
+  TAWK_CHAT_URL,
+} from "@/lib/tawk";
 import { isPublicHelpPath } from "@/lib/help/paths";
 import { matchRoutePermission } from "@/lib/route-permissions";
 
@@ -17,7 +22,7 @@ export function useSupportChat() {
   return useContext(SupportChatContext);
 }
 
-/** One chat session across workspace navigation; no SDK until an admin clicks. */
+/** Automatically mount Tawk's native widget for verified active administrators. */
 export function SupportChatProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
@@ -36,20 +41,25 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
   const scope = available ? `${profile.churchId}:${profile.profileId}` : "";
   const active = useRef("");
   const request = useRef(0);
-  const [state, setState] = useState<"idle" | "opening" | "connected">("idle");
   const [error, setError] = useState("");
   const [ended, setEnded] = useState(false);
 
   useEffect(() => {
     active.current = scope;
     setEnded(false);
-    setState("idle");
     setError("");
+    const current = ++request.current;
+    if (scope) {
+      void initializeSupportWidget().catch((err: unknown) => {
+        if (current === request.current && active.current === scope) {
+          setError(err instanceof Error ? err.message : "Support chat is unavailable.");
+        }
+      });
+    }
     const stop = () => {
       active.current = "";
       setEnded(true);
       request.current++;
-      setState("idle");
       setError("");
       closeSupportChat();
     };
@@ -61,17 +71,14 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
   }, [scope]);
 
   async function openChat() {
-    if (!available || active.current !== scope || state === "opening") return;
+    if (!available || active.current !== scope) return;
     const current = ++request.current;
-    setState("opening");
     setError("");
     try {
       await openSupportChat();
-      if (current === request.current && active.current === scope) setState("connected");
     } catch (err) {
       if (current !== request.current || active.current !== scope) return;
       setError(err instanceof Error ? err.message : "Chat is unavailable. Please try again.");
-      setState("idle");
     }
   }
 
@@ -85,47 +92,37 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
       }}
     >
       {children}
-      {available && !ended && (
+      {available && !ended && error && (
         <div className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-40 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-3 sm:right-6">
-          {error && (
-            <div className="w-80 max-w-full rounded-xl border bg-card p-4 shadow-lg">
-              <div className="flex items-start gap-2">
-                <p role="alert" className="flex-1 text-sm">
-                  {error}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 shrink-0"
-                  aria-label="Dismiss support error"
-                  onClick={() => setError("")}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-              <a
-                href={TAWK_CHAT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                referrerPolicy="no-referrer"
-                className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4"
+          <div className="w-80 max-w-full rounded-xl border bg-card p-4 shadow-lg">
+            <div className="flex items-start gap-2">
+              <p role="alert" className="flex-1 text-sm">
+                {error}
+              </p>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 shrink-0"
+                aria-label="Dismiss support error"
+                onClick={() => setError("")}
               >
-                Open support in a new tab
-                <ExternalLink className="size-4" />
-              </a>
+                <X className="size-4" />
+              </Button>
             </div>
-          )}
-          {state !== "connected" && (
-            <Button
-              className="h-12 rounded-full px-5 shadow-lg"
-              onClick={() => void openChat()}
-              disabled={state === "opening"}
-              aria-label="Chat with support"
-            >
-              <MessageCircle className="size-5" />
-              {state === "opening" ? "Connecting…" : "Chat with support"}
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => void openChat()}>
+              Retry support chat
             </Button>
-          )}
+            <a
+              href={TAWK_CHAT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              referrerPolicy="no-referrer"
+              className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Open support in a new tab
+              <ExternalLink className="size-4" />
+            </a>
+          </div>
         </div>
       )}
     </SupportChatContext.Provider>

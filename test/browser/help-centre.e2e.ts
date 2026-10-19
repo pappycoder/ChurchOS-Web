@@ -1,4 +1,11 @@
+import { mockTawkWidget } from "../fixtures/tawk-widget";
 import { test, expect, type BrowserContext } from "@playwright/test";
+
+test.beforeEach(async ({ context }) => {
+  await context.route("https://embed.tawk.to/**", (route) =>
+    route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }),
+  );
+});
 
 async function publicSession(context: BrowserContext) {
   await context.route("**/api/session", (route) => route.fulfill({ json: { hasSession: false } }));
@@ -190,13 +197,15 @@ test("administrator opens support from a standalone guide without navigation", a
   let widgets = 0;
   await page.route("https://embed.tawk.to/**", async (route) => {
     widgets++;
-    await route.abort();
+    await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget });
   });
   await page.goto("/help/get-help-and-report-a-problem");
   await expect(page.getByRole("button", { name: "Contact support", exact: true })).toBeVisible();
-  expect(widgets).toBe(0);
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+  expect(widgets).toBe(1);
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
   await page.getByRole("button", { name: "Contact support", exact: true }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "Chat could not load" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeVisible();
   await expect(page).toHaveURL(/\/help\/get-help-and-report-a-problem$/);
   expect(widgets).toBe(1);
 });

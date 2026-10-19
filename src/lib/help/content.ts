@@ -570,7 +570,7 @@ export const helpContent: Record<HelpSlug, HelpSection[]> = {
       title: "Contact the right person",
       bullets: [
         "Staff: ask your church administrator about roles, location access, plan availability or church-owned provider settings.",
-        "Church administrators: use the floating Chat with support button or Contact support in the account/help menu to reach the ChurchOS team through tawk.to without leaving your work.",
+        "Church administrators: use the floating tawk.to chat bubble or Contact support in the account/help menu to reach the ChurchOS team without leaving your work. The chat bubble loads automatically when you open your workspace.",
         "If the support team is offline, use the available chat form to leave a message and reply email. Response availability depends on the team’s working hours.",
       ],
     },

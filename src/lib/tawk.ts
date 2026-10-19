@@ -36,8 +36,7 @@ function loadTawk(): Promise<TawkApi> {
   if (loading) return loading;
   loading = new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    // Loading is already opt-in. Let the embed establish its normal connection
-    // before onLoad, rather than starting and logging out a half-ready widget.
+    // Use the supplied embed's normal startup and native floating launcher.
     const api: TawkApi = { autoStart: true };
     window.Tawk_API = api;
     window.Tawk_LoadStart = new Date();
@@ -90,13 +89,13 @@ function loadTawk(): Promise<TawkApi> {
   return loading;
 }
 
-/** Lazy anonymous chat: ChurchOS tokens, profile and church data are never sent. */
-export async function openSupportChat(): Promise<void> {
+/** Anonymous native widget: ChurchOS tokens, profile and church data are never sent. */
+async function showSupportWidget(expand: boolean): Promise<void> {
   const request = ++generation;
   wanted = true;
   const api = await loadTawk();
   if (request !== generation) return;
-  if (!api.showWidget || !api.maximize)
+  if (!api.showWidget || (expand && !api.maximize))
     throw new Error("Chat is unavailable. Please try the support link.");
   if (!connected) {
     if (!api.start) throw new Error("Chat is unavailable. Please try the support link.");
@@ -123,7 +122,17 @@ export async function openSupportChat(): Promise<void> {
   }
   if (request !== generation) return;
   api.showWidget();
-  api.maximize();
+  if (expand) api.maximize?.();
+}
+
+/** Mount Tawk's own floating bubble without opening the conversation window. */
+export function initializeSupportWidget(): Promise<void> {
+  return showSupportWidget(false);
+}
+
+/** Existing menu and billing links can still open the same native widget. */
+export function openSupportChat(): Promise<void> {
+  return showSupportWidget(true);
 }
 
 /** Invalidate pending opens immediately, including SDKs that finish after sign-out. */

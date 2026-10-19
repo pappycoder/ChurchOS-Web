@@ -1,3 +1,4 @@
+import { mockTawkWidget } from "../fixtures/tawk-widget";
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
 const reference = "COSUB_" + "a".repeat(32);
 async function publicSession(context: BrowserContext) {
@@ -25,7 +26,8 @@ async function accountStep(page: Page) {
     .fill("LongUniquePassword!27");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
 }
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, context }) => {
+  await context.route("https://embed.tawk.to/**", route => route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }));
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
 test("registration validates each step, preserves edits, submits plan and clears password", async ({
