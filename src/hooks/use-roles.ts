@@ -46,7 +46,6 @@ export const ROLE_ORDER = [
   "usher",
   "department_head",
   "cell_leader",
-  "member",
 ] as const;
 
 /** Permissions church_admin must always retain (mirrors backend REQUIRED_ADMIN_PERMISSIONS). */
@@ -110,14 +109,14 @@ export function resolveRoleLabel(
 }
 
 /**
- * All roles that can be assigned in pickers and filters: the 8 seeded roles
+ * All roles that can be assigned in pickers and filters: the 9 seeded staff roles
  * plus every church-owned custom role, each with its display label.
  */
 export function useAssignableRoles(): { value: string; label: string }[] {
   const { data } = useRolesSummary();
   return React.useMemo(() => {
     const custom = (data?.roles ?? [])
-      .filter((r) => r.isChurchOwned)
+      .filter((r) => r.isChurchOwned && r.roleName !== "member")
       .map((r) => ({ value: r.roleName, label: r.label || getRoleLabel(r.roleName) }));
     const seen = new Set<string>(VALID_ROLES.map((r) => r.value));
     return [...VALID_ROLES, ...custom.filter((c) => !seen.has(c.value))];

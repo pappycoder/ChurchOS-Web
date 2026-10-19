@@ -68,7 +68,7 @@ function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
 
 function IdentityCard({ profile }: { profile: CurrentProfile }) {
   const labels = useRoleLabelMap();
-  const roles = profile.role?.length ? profile.role : ["member"];
+  const roles = profile.role?.length ? profile.role : ["No role assigned"];
   const isActive = profile.status === "active";
 
   return (

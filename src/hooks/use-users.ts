@@ -129,7 +129,6 @@ export const VALID_ROLES = [
   { value: "usher", label: "Usher" },
   { value: "department_head", label: "Department Head" },
   { value: "cell_leader", label: "Cell Group Leader" },
-  { value: "member", label: "Member" },
 ] as const;
 
 export function getRoleLabel(role: string): string {
@@ -137,7 +136,7 @@ export function getRoleLabel(role: string): string {
 }
 
 export function getRoleLabels(roles: string[]): string {
-  if (!roles || roles.length === 0) return "Member";
+  if (!roles || roles.length === 0) return "No role assigned";
   return roles.map(getRoleLabel).join(", ");
 }
 

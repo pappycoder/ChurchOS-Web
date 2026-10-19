@@ -83,7 +83,7 @@ export function MyDashboard() {
   }
 
   const p = profile.data;
-  const roles = p.role?.length ? p.role : ["member"];
+  const roles = p.role?.length ? p.role : ["No role assigned"];
   const firstName = p.firstName || "there";
 
   return (

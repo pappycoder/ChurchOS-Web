@@ -168,7 +168,7 @@ export function UserNameCell({ user }: { user: UserProfile }) {
 
 export function UserRoleCell({ roles }: { roles: string[] }) {
   const labels = useRoleLabelMap();
-  const roleList = roles?.length ? roles : ["member"];
+  const roleList = roles?.length ? roles : ["No role assigned"];
   return (
     <div className="flex flex-wrap gap-1">
       {roleList.map((role) => (

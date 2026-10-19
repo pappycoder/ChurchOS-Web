@@ -16,7 +16,6 @@ const roles = [
   "usher",
   "department_head",
   "cell_leader",
-  "member",
   "custom_admin",
 ];
 for (const role of roles)

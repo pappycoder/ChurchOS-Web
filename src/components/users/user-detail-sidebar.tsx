@@ -77,7 +77,7 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
             <div>
               <p className="text-sm text-muted-foreground">Roles</p>
               <div className="flex flex-wrap gap-1.5 mt-1">
-                {(user.role?.length ? user.role : ["member"]).map((role) => (
+                {(user.role?.length ? user.role : ["No role assigned"]).map((role) => (
                   <RoleBadge key={role} role={role} labels={labels} />
                 ))}
               </div>
