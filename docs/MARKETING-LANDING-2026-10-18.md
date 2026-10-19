@@ -8,14 +8,14 @@ The landing page links published plans to registration and the organization-owne
 
 | Plan | Monthly | Yearly | Proposed capacity | Additional features |
 | --- | ---: | ---: | --- | --- |
-| Essentials | ₦10,000 | ₦108,000 | 50 members, one location, two staff | Directory, services/attendance, visitor follow-up, permission-based access |
+| Essentials | ₦10,000 | ₦108,000 | 100 members, one location, two staff | Directory, services/attendance, visitor follow-up, permission-based access |
 | Community | ₦20,000 | ₦216,000 | 300 members, one location, five staff | Giving/receipts, events/registrations, departments/cell groups, forms/reports, email provider |
 | Network | ₦40,000 | ₦432,000 | 1,500 members, three locations, 15 staff | Branch/HQ workspaces, SMS/WhatsApp, tickets/check-in, pastoral care, assets, administrator analytics |
 | Enterprise | Negotiated | Negotiated | Agreed member/location/team limits | Network rollout, HQ oversight, provider/payment integrations, scoped onboarding and support |
 
 Essentials, Community and Network yearly plans save 10% against twelve monthly payments. Effective monthly rates are ₦9,000, ₦18,000 and ₦36,000 respectively; full yearly totals appear beside them. Enterprise pricing and billing terms are negotiated, with no listed minimum or automatic yearly discount. Third-party usage/transaction charges are excluded. Taxes, final limits, support terms and availability require confirmation during onboarding. Validate hosting, storage and support costs before commercially committing to these proposals.
 
-Initial pricing research used the official [Churchplus pricing page](https://churchplus.co/pricing/) and [Planning Center pricing page](https://www.planningcenter.com/pricing). The current packages follow the user's revised ₦10,000 monthly minimum and request for modest yearly discounts. All free-plan wording has been removed; features and capacities are unchanged.
+Initial pricing research used the official [Churchplus pricing page](https://churchplus.co/pricing/) and [Planning Center pricing page](https://www.planningcenter.com/pricing). The current packages follow the user's revised ₦10,000 monthly minimum and request for modest yearly discounts. All free-plan wording has been removed. On 2026-10-19, the user increased Essentials from 50 to 100 members while retaining its prices, one location and two staff accounts. Backend entitlement enforcement is planned in `../../ChurchOS-Backend/docs/SUBSCRIPTION-ENTITLEMENTS-PLAN-2026-10-19.md` and is not implemented by this display change.
 
 ## Implementation boundaries
 

@@ -6,7 +6,7 @@ export const launchPlans = [
     description: "A small beginning. A strong foundation.",
     monthly: 10000,
     annual: 108000,
-    capacity: "50 members · 1 location · 2 staff accounts",
+    capacity: "100 members · 1 location · 2 staff accounts",
     features: [
       "Member and visitor directory",
       "Services and attendance",
