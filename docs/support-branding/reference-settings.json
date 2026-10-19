@@ -15,7 +15,7 @@
   "onlineWelcome": "Welcome to ChurchOS Support. How can we help you today?",
   "awayMessage": "We may take a little longer to reply. Leave your question and email so we can follow up.",
   "offlineMessage": "We are currently offline. Leave your name, email and message, or create a support ticket. We will reply by email.",
-  "ticketPath": "/help/contact-support#ticket",
+  "ticketPath": "https://churchos.tawk.help/",
   "helpPath": "/help",
   "preChatFields": [
     "Name",

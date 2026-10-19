@@ -62,10 +62,10 @@ export function ContextHelpMenu() {
         {supportAvailable && (
           <DropdownMenuItem onSelect={openChat}>
               <MessageCircle className="size-4" />
-              Contact support
+              Live chat
           </DropdownMenuItem>
         )}
-        <DropdownMenuItem asChild><Link href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Create support ticket</Link></DropdownMenuItem>
+        <DropdownMenuItem asChild><a href={SUPPORT_TICKET_PATH}><Mail className="size-4" />Create support ticket</a></DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

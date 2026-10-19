@@ -88,12 +88,10 @@ for (const role of ["usher", "secretary", "branch_pastor", "super_admin"]) {
     await page.goto("/dashboard");
     await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
     await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
-    await expect(
-      page.getByRole("menuitem", { name: "Contact support", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toBeVisible();
     await expect(
       page.getByRole("menuitem", { name: "Create support ticket", exact: true }),
-    ).toHaveAttribute("href", "/help/contact-support#ticket");
+    ).toHaveAttribute("href", "https://churchos.tawk.help/");
     await expect(page.getByRole("menuitem", { name: "Plan & Billing", exact: true })).toHaveCount(
       0,
     );
@@ -308,59 +306,29 @@ for (const active of [true, false]) {
   });
 }
 
-test("every active user can prepare a ticket email without sending a message or creating fake history", async ({
+test("ticket navigation opens the Tawk support site without expanding live chat", async ({
   page,
   context,
 }) => {
   await fixture(context, "usher");
-  const supportPosts: string[] = [];
-  page.on("request", (request) => {
-    if (request.method() === "POST" && /support|ticket|email/.test(request.url()))
-      supportPosts.push(request.url());
-  });
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "clipboard", {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          Object.assign(window, { copiedSupportTicket: text });
-        },
-      },
+  let ticketVisits = 0;
+  await context.route("https://churchos.tawk.help/", async (route) => {
+    ticketVisits++;
+    await route.fulfill({
+      contentType: "text/html",
+      body: "<h1>ChurchOS Help Center</h1><button>Submit Ticket</button>",
     });
   });
-  await page.goto("/help/contact-support#ticket");
-  await page.getByLabel("Subject", { exact: true }).fill("Attendance & totals");
-  await page
-    .getByLabel("What happened?", { exact: true })
-    .fill("The attendance total did not update after saving the service.");
-  await page.getByRole("button", { name: "Prepare ticket email" }).click();
-  await expect(page.getByRole("heading", { name: "Your email draft is ready" })).toBeVisible();
-  const link = page.getByRole("link", { name: "Open email draft", exact: true });
-  const uri = new URL((await link.getAttribute("href"))!);
-  expect(uri.pathname).toBe("tickets@churchos.p.tawk.email");
-  expect(uri.searchParams.get("subject")).toBe("[ChurchOS Support] Attendance & totals");
-  expect(uri.searchParams.get("body")).toContain("The attendance total did not update");
-  await expect(page.getByLabel("Email details")).not.toHaveValue(
-    /support-fixture|churchId|profileId/,
-  );
-  await expect(
-    page.getByText("Preparing a draft here does not send or submit a ticket.", { exact: false }),
-  ).toBeVisible();
-  expect(supportPosts).toEqual([]);
-  await page.getByRole("button", { name: "Copy ticket details" }).click();
-  await expect(page.getByRole("status").filter({ hasText: "Ticket details copied" })).toBeVisible();
-  expect(
-    await page.evaluate(
-      () => (window as unknown as { copiedSupportTicket: string }).copiedSupportTicket,
-    ),
-  ).toContain("tickets@churchos.p.tawk.email");
-  await page.getByRole("button", { name: "Edit ticket" }).click();
-  await expect(page.getByLabel("Subject", { exact: true })).toHaveValue("Attendance & totals");
-  await page.evaluate(() => window.dispatchEvent(new Event("churchos-session-ended")));
-  await expect(page.getByLabel("Subject", { exact: true })).toHaveValue("");
+  await page.goto("/dashboard");
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "ChurchOS support chat" })).toBeHidden();
+  await page.getByRole("link", { name: "Create support ticket", exact: true }).click();
+  await expect(page).toHaveURL("https://churchos.tawk.help/");
+  await expect(page.getByRole("button", { name: "Submit Ticket" })).toBeVisible();
+  expect(ticketVisits).toBe(1);
 });
 
-test("public visitors can prepare ticket emails without loading authenticated chat", async ({
+test("public visitors can reach the hosted ticket form without authenticated chat", async ({
   page,
   context,
 }) => {
@@ -374,28 +342,29 @@ test("public visitors can prepare ticket emails without loading authenticated ch
   await expect(page.getByRole("link", { name: "Sign in to chat", exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to home", exact: true })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Create a support ticket", exact: true }),
-  ).toBeVisible();
+    page.getByRole("link", { name: "Create support ticket", exact: true }),
+  ).toHaveAttribute("href", "https://churchos.tawk.help/");
+  await expect(page.getByRole("link", { name: "tickets@churchos.p.tawk.email" })).toHaveAttribute(
+    "href",
+    "mailto:tickets@churchos.p.tawk.email",
+  );
+  await expect(page.getByRole("button", { name: "Prepare ticket email" })).toHaveCount(0);
   expect(widgets).toBe(0);
 });
 
 for (const width of [320, 390])
-  test(`ticket preparation fits ${width}px and retains the email fallback`, async ({
+  test(`hosted ticket handoff fits ${width}px and retains email fallback`, async ({
     page,
     context,
   }) => {
     await fixture(context, "usher");
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/help/contact-support#ticket");
-    await page.getByLabel("Subject", { exact: true }).fill("Help with my account");
-    await page
-      .getByLabel("What happened?", { exact: true })
-      .fill("I cannot access the member directory after my role changed.");
-    await page.getByRole("button", { name: "Prepare ticket email" }).click();
-    await expect(page.getByRole("button", { name: "Copy ticket details" })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Create support ticket", exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "tickets@churchos.p.tawk.email" })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
-    if (width === 390)
-      await page.screenshot({ path: "/tmp/churchos-support-ticket-mobile.png", fullPage: true });
   });

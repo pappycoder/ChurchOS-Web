@@ -570,7 +570,7 @@ export const helpContent: Record<HelpSlug, HelpSection[]> = {
       title: "Contact the right person",
       bullets: [
         "Staff: ask your church administrator about roles, location access, plan availability or church-owned provider settings.",
-        "Every active signed-in user can use the floating chat bubble or Contact support in the account/help menu to reach ChurchOS Support. You do not need an administrator role or a higher subscription plan.",
+        "Every active signed-in user can use the floating chat bubble or Live chat in the account/help menu to reach ChurchOS Support. You do not need an administrator role or a higher subscription plan.",
         "If the support team is offline, use the available chat form to leave a message and reply email. Response availability depends on the team’s working hours.",
       ],
     },
@@ -578,8 +578,8 @@ export const helpContent: Record<HelpSlug, HelpSection[]> = {
       id: "support-tickets",
       title: "Create a support ticket or start a new chat",
       paragraphs: [
-        "Open the contact page from the Support link or Create support ticket in the account/help menu. Prepare one email per issue and send it to tickets@churchos.p.tawk.email. Preparing or copying the draft does not send it; you must send it from your email app. Tawk creates the ticket when the email arrives, and support replies by email.",
-        "To start another chat session as the same person, open the widget menu, choose End this chat session, then start a new chat. Your previous conversation history may remain visible. For separate issues requiring follow-up, use separate email tickets and reply to an existing ticket email to continue that issue.",
+        "Choose Create support ticket in the sidebar, account/help menu or billing screen to open churchos.tawk.help. Select Submit Ticket and enter your name, email, subject and description. Submit one ticket per issue. Tawk creates the ticket in the ChurchOS Support inbox, and our team replies by email. You can also email tickets@churchos.p.tawk.email.",
+        "To start another chat session as the same person, open the widget menu, choose End this chat session, then start a new chat. Your previous conversation history may remain visible. For separate issues requiring follow-up, use separate support tickets and reply to an existing ticket email to continue that issue.",
       ],
     },
     {

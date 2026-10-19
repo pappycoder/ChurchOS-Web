@@ -4,11 +4,13 @@
 
 - Every active signed-in user gets the native Tawk floating chat on workspace, billing and help pages, independent of role or subscription feature grants. Inactive profiles and anonymous visitors do not load authenticated chat.
 - `/help/contact-support` is the standalone, ChurchOS-branded contact page. Header, footer, sidebar, account menu, contextual help, articles and billing link to it or its ticket form. The legacy `/support` URL redirects there. Help keeps its own layout and session-aware dashboard/home return link.
-- Ticket email destination: `tickets@churchos.p.tawk.email` (provided by the owner). Users enter a topic, subject and description, review a draft, then open their email app or copy the email details into webmail. They must send the email to create the Tawk ticket. The app never claims a draft was submitted, invents a ticket number or shows a fabricated ticket history.
-- New issues use separate emails. Replies to an existing Tawk ticket email continue that thread. Screenshots can be attached in the user's email app. The native chat menu can end the current chat session before starting another session; previous history can remain visible.
-- Only user-entered ticket fields are included in drafts. No automatic profile, church/member records, tokens, query strings or diagnostic URLs are attached. Drafts are kept in component memory, reset on account change/sign-out and are not stored in browser storage. Chat remains anonymously identified by Tawk browser storage, without verified ChurchOS account identity.
+- **Create support ticket** in the sidebar, account menu, contextual help, billing and contact page opens the owner-provided https://churchos.tawk.help/ in the same tab. Choose **Submit Ticket** there. The hosted page was read without submitting a message; its ticket form is enabled. Tawk currently opens this form through its navigation action, rather than exposing a direct form link. The application does not invent a URL parameter or embed the external page.
+- The old local email-draft form has been removed. Email to `tickets@churchos.p.tawk.email` remains a secondary option. Live chat is labelled separately in account/help menus and still uses the native floating widget.
+- Requesters submit name, email, subject and description directly to Tawk. No app identity, tokens or church records are appended to the link. Replies arrive by email; replying to the ticket email continues the same thread. New issues should use separate tickets.
+- **Support team workflow:** sign into https://dashboard.tawk.to/, select ChurchOS, then **Inbox → Tickets**. Open a ticket to reply; use the assignee control for an agent/department and status dropdown for **Open**, **Pending** or **Closed**. Tawk owns ticket storage, threading, notifications and status. Ordinary ChurchOS church administrators do not receive access to this global agent inbox through their ChurchOS role.
+- There is no in-app ticket history or status mirror. A synchronized portal would require separate, approved Tawk REST API access and supported endpoint documentation. No parallel ChurchOS ticket database was created.
 
-Tawk documents that messages sent to a property's Ticket Forwarding Email become tickets, with replies managed in its Inbox: [ticketing setup](https://help.tawk.to/article/how-to-set-up-ticketing-in-tawkto). This integration uses that email route; it does not require or invent a public ticket-creation API. No outgoing test email or support chat message was sent during implementation.
+Official references: [hosted ticket form setup](https://help.tawk.to/article/customizing-the-submit-ticket-feature-in-your-knowledge-base), [replying, assignment and status](https://help.tawk.to/article/how-to-respond-to-a-ticket). No outgoing email, chat message or ticket was sent during implementation.
 
 ## Apply branding in the Tawk dashboard
 
@@ -37,7 +39,7 @@ Tawk's cross-origin widget owns its logo, colours and welcome text. These settin
 | Online welcome | Welcome to ChurchOS Support. How can we help you today? |
 | Away message | We may take a little longer to reply. Leave your question and email so we can follow up. |
 | Offline message | We are currently offline. Leave your name, email and message, or create a support ticket. We will reply by email. |
-| Ticket link | Your deployed app's `/help/contact-support#ticket` URL |
+| Ticket link | `https://churchos.tawk.help/` (choose Submit Ticket) |
 | Help link | Your deployed app's `/help` URL |
 
 5. Require **Name** and **Email** on the pre-chat/offline form if you want reliable email follow-up. Enable the built-in chat card/menu so users can end a session and start another. An agent can optionally send a Ticket Form shortcut inside a chat; configure that in **Administration → Settings → Shortcuts**.
@@ -48,4 +50,4 @@ Official references: [appearance](https://help.tawk.to/article/changing-the-appe
 
 ## Validation and rollout
 
-Validation passed: production build, TypeScript, lint, 327 unit tests and 55 browser checks. Tests intercept the SDK and inspect ticket mailto/copy content; they do not send real messages or prove inbox delivery. Confirm one real end-to-end email and chat on the deployed origin after saving the provider settings. No new database table, migration, backend endpoint, email provider credential or paid service is needed for the email-draft workflow. An in-app submit/status/history portal or verified account-linked chat would require additional provider integration; they are not simulated here.
+Validation passed: frontend production build, TypeScript, scoped lint, 319 unit tests and 38 support/help browser checks. Browser fixtures intercept both the widget and hosted ticket destination; they verify separate navigation, public access and mobile sizing without sending real messages. They do not certify provider delivery. After deployment, submit a real ticket, reply from Tawk Inbox, reply to that email, and confirm the same thread updates; set Pending and Closed in Tawk. Remote branding remains a dashboard configuration step. No database migration, backend endpoint or new secret is required.
