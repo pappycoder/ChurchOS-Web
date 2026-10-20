@@ -3,6 +3,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 import { SupportChatButton } from "@/components/support/support-chat-button";
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, CreditCard, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,6 +11,7 @@ import { useBillingStatus } from "@/hooks/use-billing";
 import { api } from "@/lib/api";
 import { subscriptionCheckoutUrl } from "@/lib/subscription-checkout";
 import { paymentOutcome } from "@/lib/payment-confirmation";
+import { publishPaymentHint, subscribePaymentHints } from "@/lib/payment-sync";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
@@ -36,6 +38,7 @@ const date = (value?: string | null) =>
       })
     : "Not activated";
 export default function SubscriptionPage() {
+  const router = useRouter();
   const { isAuthenticated, isLoading, logout } = useAuth();
   const status = useBillingStatus();
   const pricing = useSubscriptionPricing();
@@ -55,6 +58,7 @@ export default function SubscriptionPage() {
   const checkoutWindow = React.useRef<Window | null>(null);
   const preparingWindow = React.useRef(false);
   const confirmed = React.useRef("");
+  const paymentWindow = React.useRef(false);
   const data = status.data;
   const refresh = async () => {
     await Promise.all([
@@ -64,11 +68,14 @@ export default function SubscriptionPage() {
   };
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    try {
+      paymentWindow.current = params.get("payment_window") === "1" || sessionStorage.getItem("churchos:subscription-payment-window") === "1";
+    } catch { paymentWindow.current = params.get("payment_window") === "1"; }
     const ref = params.get("reference") || params.get("tx_ref") || "";
     if (/^COSUB_[a-f0-9]{32}$/.test(ref)) setReference(ref);
     if (params.get("status") === "cancelled")
       setMessage("Payment was cancelled. Your current plan is unchanged.");
-    window.history.replaceState(null, "", window.location.pathname);
+    window.history.replaceState(null, "", window.location.pathname + (paymentWindow.current ? "?payment_window=1" : ""));
   }, []);
   React.useEffect(() => {
     if (!data || initialized.current) return;
@@ -112,6 +119,14 @@ export default function SubscriptionPage() {
     refetchOnReconnect: true,
   });
   const outcome = paymentOutcome(verification.data, trackedReference);
+  const refetchVerification = verification.refetch;
+  React.useEffect(() => {
+    if (!status.canPay || !status.churchId || !trackedReference) return;
+    return subscribePaymentHints(hint => {
+      if (hint.churchId === status.churchId && hint.reference === trackedReference && confirmed.current !== trackedReference)
+        void refetchVerification({ cancelRefetch: false });
+    });
+  }, [status.canPay, status.churchId, trackedReference, refetchVerification]);
   const waitingForPayment = !!trackedReference && outcome !== "applied" && outcome !== "review";
   React.useEffect(() => {
     if (!verification.data) return;
@@ -119,15 +134,20 @@ export default function SubscriptionPage() {
     if (outcome !== "applied" || confirmed.current === trackedReference) return;
     confirmed.current = trackedReference;
     setMessage("");
-    void client.invalidateQueries({ queryKey: ["current-profile"] });
-    void client.invalidateQueries({ queryKey: ["notifications"] });
-    // The no-opener checkout closes itself after returning and verifying.
-    // Browsers forbid the parent from closing/navigating its external page.
+    if (status.churchId) publishPaymentHint({ churchId: status.churchId, reference: trackedReference });
     try {
       sessionStorage.removeItem(storageKey);
-      if (sessionStorage.getItem("churchos:subscription-payment-window") === "1") window.close();
-    } catch { /* A confirmed payment remains visible if the browser cannot close. */ }
-  }, [verification.data, client, status.churchId, outcome, trackedReference, storageKey]);
+    } catch { /* Optional reload recovery. */ }
+    if (paymentWindow.current) {
+      window.close();
+      return;
+    }
+    // The receiving tab never trusts the hint as proof: this branch is reached
+    // only after its own authenticated server verification returns applied.
+    void client.invalidateQueries({ queryKey: ["current-profile"] });
+    void client.invalidateQueries({ queryKey: ["notifications"] });
+    router.replace("/dashboard");
+  }, [verification.data, client, status.churchId, outcome, trackedReference, storageKey, router]);
   const availableCurrencies = data?.gatewayCurrencies?.[gateway] ?? ["NGN"];
   const choiceKey = `${pricing.currency}:${gateway}`;
   const paymentCurrency =
