@@ -174,12 +174,12 @@ async function billingSession(
             cycle,
             paid_until: active ? "2027-01-18T00:00:00Z" : null,
           },
-          gateways: options.gateways ?? ["paystack", "flutterwave"],
+          gateways: options.gateways ?? ["flutterwave"],
           latestPayment:
             options.pending && !active
               ? {
                   reference,
-                  gateway: "paystack",
+                  gateway: "flutterwave",
                   plan: "essentials",
                   cycle: "monthly",
                   amount: 10000,
@@ -190,7 +190,8 @@ async function billingSession(
         if (path.endsWith("/auth/register")) {
           plan = body.plan;
           cycle = body.billingCycle;
-          data = { userId: "u", churchId: "c", email: "grace@example.org" };
+          authenticated = true;
+          data = { sessionEstablished: true, userId: "u", churchId: "c", email: "grace@example.org" };
         } else if (path.endsWith("/auth/login")) {
           authenticated = true;
           data = { sessionEstablished: true, userId: "u", email: "grace@example.org" };
@@ -239,9 +240,9 @@ test("registration signs in and opens the selected subscription for Flutterwave 
   await billingSession(context, {
     registration: true,
     gateways: ["flutterwave"],
-    checkoutUrl: "https://checkout.flutterwave.com/v3/hosted/pay/test-subscription",
+    checkoutUrl: "https://checkout-v2.dev-flutterwave.com/v3/hosted/pay/test-subscription",
   });
-  await page.route("https://checkout.flutterwave.com/**", (route) => route.fulfill({
+  await page.route("https://checkout-v2.dev-flutterwave.com/**", (route) => route.fulfill({
     contentType: "text/html", body: "<h1>Secure Flutterwave checkout</h1>",
   }));
   await page.goto("/register?plan=network&cycle=annual");
@@ -254,12 +255,14 @@ test("registration signs in and opens the selected subscription for Flutterwave 
   await expect(page.getByLabel("Payment provider")).toHaveValue("flutterwave");
   await expect(page.getByRole("button", { name: "Continue to payment", exact: true })).toBeEnabled();
   const calls = await page.evaluate(() => (window as unknown as { billingCalls: { path: string; body: Record<string, unknown> }[] }).billingCalls);
+  expect(calls.filter(c => c.path.endsWith("/auth/login"))).toHaveLength(0);
+  await expect(page.getByLabel("Payment provider").getByRole("option")).toHaveCount(1);
   expect(calls.filter(c => c.path.endsWith("/billing/quote")).at(-1)?.body).toMatchObject({
     plan: "network", cycle: "annual", gateway: "flutterwave", currency: "NGN",
   });
   expect(await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).not.toContain("LongUniquePassword");
   await page.getByRole("button", { name: "Continue to payment", exact: true }).click();
-  await expect(page).toHaveURL("https://checkout.flutterwave.com/v3/hosted/pay/test-subscription");
+  await expect(page).toHaveURL("https://checkout-v2.dev-flutterwave.com/v3/hosted/pay/test-subscription");
 });
 
 test("an unpaid administrator can reopen subscription checkout after a reload", async ({ page, context }) => {

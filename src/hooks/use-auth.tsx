@@ -201,6 +201,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.post<RegisterResponse>("/auth/register", input, {
       skipAuth: true,
     });
+    if (res.sessionEstablished) {
+      try {
+        await finalizeLogin(res, "/subscription");
+      } catch {
+        // The proxy already saved the signup session; recover it on the payment page.
+        router.replace("/subscription");
+      }
+      return res;
+    }
     // Establish the same verified, cookie-backed session as a normal sign-in.
     // Once registration succeeds, a login failure must never invite a second
     // registration attempt for an account that already exists.

@@ -81,10 +81,9 @@ async function fixture(
           data = {
             catalog: basePlans,
             gatewayCurrencies: {
-              paystack: usdEnabled ? ["NGN", "USD"] : ["NGN"],
-              flutterwave: ["NGN"],
+              flutterwave: usdEnabled ? ["NGN", "USD"] : ["NGN"],
             },
-            gateways: ["paystack"],
+            gateways: ["flutterwave"],
             active: false,
             subscription: {
               plan: "essentials",
@@ -130,7 +129,7 @@ async function fixture(
           ).captureCurrencyCheckout(body);
           data = {
             reference: "COSUB_" + "a".repeat(32),
-            authorizationUrl: "https://checkout.paystack.com/currency-fixture",
+            authorizationUrl: "https://checkout.flutterwave.com/currency-fixture",
           };
         }
         return Response.json({ success: true, data });
@@ -196,7 +195,7 @@ test("checkout submits the reviewed currency and quote; historical NGN stays NGN
   context,
 }) => {
   const state = await fixture(context, true);
-  await context.route("https://checkout.paystack.com/**", (route) =>
+  await context.route("https://checkout.flutterwave.com/**", (route) =>
     route.fulfill({ body: "Mock checkout" }),
   );
   await page.goto("/subscription");
@@ -214,7 +213,7 @@ test("checkout submits the reviewed currency and quote; historical NGN stays NGN
     .getByRole("button", { name: "Continue to payment", exact: true })
     .click();
   await expect(page).toHaveURL(
-    "https://checkout.paystack.com/currency-fixture",
+    "https://checkout.flutterwave.com/currency-fixture",
   );
   expect(state.checkouts).toEqual([
     expect.objectContaining({
@@ -239,11 +238,11 @@ test("an NGN-only merchant clearly quotes NGN while displaying USD", async ({
   ).toHaveValue("NGN");
   await expect(page.getByText("NGN 15,002 due", { exact: true })).toBeVisible();
   await expect(page.getByText(/This provider will charge NGN/)).toBeVisible();
-  await context.route("https://checkout.paystack.com/**", (route) =>
+  await context.route("https://checkout.flutterwave.com/**", (route) =>
     route.fulfill({ body: "Mock checkout" }),
   );
   const captured = page.waitForURL(
-    "https://checkout.paystack.com/currency-fixture",
+    "https://checkout.flutterwave.com/currency-fixture",
   );
   await page
     .getByRole("button", { name: "Continue to payment", exact: true })

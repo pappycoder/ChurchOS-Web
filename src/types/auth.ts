@@ -28,6 +28,8 @@ export interface ResetPasswordInput {
 }
 
 export interface RegisterResponse {
+  sessionEstablished?: boolean;
+  requiresEmailConfirmation?: boolean;
   userId: string;
   email: string;
   profileId: string;

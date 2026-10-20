@@ -12,7 +12,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Context = { params: Promise<{ path: string[] }> };
-const sessionEndpoints = new Set(["auth/login", "auth/login/2fa", "auth/refresh"]);
+const sessionEndpoints = new Set(["auth/register", "auth/login", "auth/login/2fa", "auth/refresh"]);
 
 async function proxy(request: NextRequest, context: Context) {
   if (!trustedBrowserRequest(request)) {

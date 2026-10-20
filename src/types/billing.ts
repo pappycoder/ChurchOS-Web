@@ -5,7 +5,7 @@ export type BillingCycle = "monthly" | "annual";
 export type SubscriptionGateway = "paystack" | "flutterwave";
 export interface BillingStatus {
   baseCurrency: "USD";
-  gatewayCurrencies: Record<SubscriptionGateway, string[]>;
+  gatewayCurrencies: Partial<Record<SubscriptionGateway, string[]>>;
   catalog: PlanCatalogEntry[];
   limits: PlanLimits;
   features: string[];

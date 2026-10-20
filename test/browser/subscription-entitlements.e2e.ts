@@ -84,7 +84,7 @@ async function fixture(
             };
           else if (path.endsWith("/checkout"))
             data = {
-              authorizationUrl: "https://checkout.paystack.com/fixture",
+              authorizationUrl: "https://checkout.flutterwave.com/fixture",
               reference: "COSUB_" + "a".repeat(32),
             };
           else {
@@ -107,8 +107,8 @@ async function fixture(
                 pendingInvitations: 0,
               },
               features: [],
-              gateways: ["paystack"],
-              gatewayCurrencies: { paystack: ["NGN"], flutterwave: ["NGN"] },
+              gateways: ["flutterwave"],
+              gatewayCurrencies: { flutterwave: ["NGN"] },
               latestPayment: null,
               payments: [],
             };
@@ -127,7 +127,7 @@ test("church administrator sees allowances and reviews an upgrade before trusted
   context,
 }) => {
   await fixture(context);
-  await context.route("https://checkout.paystack.com/**", (r) =>
+  await context.route("https://checkout.flutterwave.com/**", (r) =>
     r.fulfill({ body: "Mock secure checkout" }),
   );
   await page.goto("/subscription");
@@ -146,7 +146,7 @@ test("church administrator sees allowances and reviews an upgrade before trusted
   await page
     .getByRole("button", { name: "Continue to payment", exact: true })
     .click();
-  await expect(page).toHaveURL("https://checkout.paystack.com/fixture");
+  await expect(page).toHaveURL("https://checkout.flutterwave.com/fixture");
 });
 test("ordinary staff cannot see billing screens and do not request billing data", async ({
   page,

@@ -8,6 +8,7 @@ import { ArrowLeft, CreditCard, CheckCircle2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useBillingStatus } from "@/hooks/use-billing";
 import { api } from "@/lib/api";
+import { subscriptionCheckoutUrl } from "@/lib/subscription-checkout";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
@@ -45,7 +46,7 @@ export default function SubscriptionPage() {
   const [plan, setPlan] =
     React.useState<Exclude<SubscriptionPlan, "enterprise">>("essentials");
   const [cycle, setCycle] = React.useState<BillingCycle>("monthly");
-  const [gateway, setGateway] = React.useState<SubscriptionGateway>("paystack");
+  const gateway: SubscriptionGateway = "flutterwave";
   const [message, setMessage] = React.useState("");
   const [reference, setReference] = React.useState("");
   const [manage, setManage] = React.useState(false);
@@ -82,7 +83,6 @@ export default function SubscriptionPage() {
     setCycle(
       data.subscription?.scheduled_cycle || selection?.cycle || "monthly",
     );
-    setGateway(data.latestPayment?.gateway || data.gateways[0] || "paystack");
   }, [data]);
   const verify = useMutation({
     mutationFn: (ref: string) =>
@@ -179,18 +179,8 @@ export default function SubscriptionPage() {
         },
       ),
     onSuccess: (result) => {
-      const url = new URL(result.authorizationUrl);
-      if (
-        url.protocol !== "https:" ||
-        url.username ||
-        url.password ||
-        url.port ||
-        ![
-          "checkout.paystack.com",
-          "checkout.flutterwave.com",
-          "ravemodal.flutterwave.com",
-        ].includes(url.hostname)
-      ) {
+      const url = subscriptionCheckoutUrl(result.authorizationUrl);
+      if (!url) {
         setMessage("Unable to open a trusted payment page. Contact ChurchOS.");
         return;
       }
@@ -471,17 +461,10 @@ export default function SubscriptionPage() {
                       <select
                         aria-label="Payment provider"
                         className="mt-1 block w-full rounded-md border bg-background p-3"
-                        value={pending?.gateway || gateway}
-                        disabled={!!pending}
-                        onChange={(e) =>
-                          setGateway(e.target.value as SubscriptionGateway)
-                        }
+                        value={gateway}
+                        disabled
                       >
-                        {data.gateways.map((g) => (
-                          <option key={g} value={g}>
-                            {g}
-                          </option>
-                        ))}
+                        <option value="flutterwave">Flutterwave</option>
                       </select>
                     </label>
                   )}

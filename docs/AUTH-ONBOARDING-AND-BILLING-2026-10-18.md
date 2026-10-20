@@ -2,11 +2,14 @@
 
 # Progressive authentication and platform subscriptions
 
-Registration collects church details, the administrator account, a plan and a review in four animated steps. Values survive moving back; passwords and challenge secrets remain in memory only. After creating the account, the browser signs in through the normal verified login endpoint and automatically opens `/subscription` to review the selected plan, billing period and payment quote. The existing session proxy establishes HttpOnly cookies. Clicking Continue to payment opens the configured provider's secure checkout.
+> New subscriptions use Flutterwave only. The signup session now continues directly
+> to payment review. See [October 20 fix](../../ChurchOS-Backend/docs/FLUTTERWAVE-SUBSCRIPTION-CHECKOUT-2026-10-20.md).
+
+Registration collects church details, the administrator account, a plan and a review in four animated steps. Values survive moving back; passwords and challenge secrets remain in memory only. After creating the account, the web proxy saves the approved signup session as HttpOnly cookies and the browser automatically opens `/subscription` without a second login request to review the selected plan, billing period and payment quote. The existing session proxy establishes HttpOnly cookies. Clicking Continue to payment opens the configured provider's secure checkout.
 
 If email confirmation, MFA or a login outage prevents automatic sign-in, registration remains successful and navigates to `/login?returnTo=%2Fsubscription&registered=1`, with an account-created notice. It does not invite duplicate registration or store the password. Unpaid administrators return to Plan & Billing after signing in and can reopen `/subscription` later or resume an existing pending checkout. The account-menu Plan & Billing link remains available to authorized administrators. Existing authenticator enrollment, recovery codes and password recovery remain available.
 
-Platform subscription checkout uses the backend's `FLUTTERWAVE_SECRET_KEY`, separate from a church-owned Flutterwave account under Settings → Integrations. Redis must be available to save the server-owned payment quote even though display currency conversion can tolerate an unavailable cache. With Docker running, start the local dependency with `docker compose up -d redis` from `ChurchOS-Backend`. Restart the backend after changing its environment. No real account registration or payment is performed by the browser regression fixtures.
+New platform subscription checkout supports Flutterwave only, using the backend's `FLUTTERWAVE_SECRET_KEY`, separate from a church-owned Flutterwave account under Settings → Integrations. Redis must be available to save the server-owned payment quote even though display currency conversion can tolerate an unavailable cache. With Docker running, start the local dependency with `docker compose up -d redis` from `ChurchOS-Backend`. Restart the backend after changing its environment. No real account registration or payment is performed by the browser regression fixtures.
 
 October 20 validation: production build, TypeScript and targeted lint passed.
 All 29 onboarding, currency and entitlement browser checks passed with mocked
