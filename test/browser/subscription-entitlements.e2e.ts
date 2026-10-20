@@ -143,10 +143,10 @@ test("church administrator sees allowances and reviews an upgrade before trusted
     .getByRole("button", { name: "Choose Community", exact: true })
     .click();
   await expect(page.getByText("NGN 5,000 due", { exact: true })).toBeVisible();
-  await page
-    .getByRole("button", { name: "Continue to payment", exact: true })
-    .click();
-  await expect(page).toHaveURL("https://checkout.flutterwave.com/fixture");
+  const popupPromise = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Continue to payment", exact: true }).click();
+  await expect(await popupPromise).toHaveURL("https://checkout.flutterwave.com/fixture");
+  await expect(page).toHaveURL(/\/subscription$/);
 });
 test("ordinary staff cannot see billing screens and do not request billing data", async ({
   page,

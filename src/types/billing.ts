@@ -4,6 +4,7 @@ export type SubscriptionPlan =
 export type BillingCycle = "monthly" | "annual";
 export type SubscriptionGateway = "paystack" | "flutterwave";
 export interface BillingStatus {
+  verification?: { reference: string; status: string; application_status: string } | null;
   baseCurrency: "USD";
   gatewayCurrencies: Partial<Record<SubscriptionGateway, string[]>>;
   catalog: PlanCatalogEntry[];

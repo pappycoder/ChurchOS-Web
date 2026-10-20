@@ -186,7 +186,7 @@ class ApiClient {
 
     // Unwrap the data envelope: { success: true, data: T, meta: ... } → T
     const successBody = json as BackendSuccessResponse<T>;
-    if (method !== "GET" && path !== "/assistant/message" && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("churchos:usage-changed"));
+    if (method !== "GET" && !["/assistant/message", "/billing/quote", "/billing/verify"].includes(path) && typeof window !== "undefined") window.dispatchEvent(new CustomEvent("churchos:usage-changed"));
     return successBody.data;
   }
 

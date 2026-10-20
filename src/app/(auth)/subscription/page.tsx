@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useBillingStatus } from "@/hooks/use-billing";
 import { api } from "@/lib/api";
 import { subscriptionCheckoutUrl } from "@/lib/subscription-checkout";
+import { paymentOutcome } from "@/lib/payment-confirmation";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
@@ -51,7 +52,9 @@ export default function SubscriptionPage() {
   const [reference, setReference] = React.useState("");
   const [manage, setManage] = React.useState(false);
   const initialized = React.useRef(false);
-  const verified = React.useRef("");
+  const checkoutWindow = React.useRef<Window | null>(null);
+  const preparingWindow = React.useRef(false);
+  const confirmed = React.useRef("");
   const data = status.data;
   const refresh = async () => {
     await Promise.all([
@@ -84,31 +87,47 @@ export default function SubscriptionPage() {
       data.subscription?.scheduled_cycle || selection?.cycle || "monthly",
     );
   }, [data]);
-  const verify = useMutation({
-    mutationFn: (ref: string) =>
-      api.post<BillingStatus>("/billing/verify", { reference: ref }),
-    onSuccess: async (result) => {
-      setMessage(
-        result.payments?.some(
-          (p) => p.reference === reference && p.application_status === "review",
-        )
-          ? "Your payment was received and requires a ChurchOS review. Contact support with your payment reference."
-          : result.active
-            ? "Payment verified. Your subscription is active."
-            : "Payment is not confirmed yet. If you paid, wait a moment and check again.",
-      );
-      await refresh();
-    },
-    onError: (e) => setMessage(e.message),
-  });
-  const verifyPayment = verify.mutate;
-  React.useEffect(() => {
-    if (reference && status.canPay && verified.current !== reference) {
-      verified.current = reference;
-      verifyPayment(reference);
-    }
-  }, [reference, status.canPay, verifyPayment]);
   const pending = data?.latestPayment;
+  const trackedReference = reference || pending?.reference || "";
+  const storageKey = status.churchId ? `churchos:subscription-payment:${status.churchId}` : "";
+  React.useEffect(() => {
+    if (!storageKey || reference) return;
+    try {
+      const saved = pending?.reference || sessionStorage.getItem(storageKey) || "";
+      if (/^COSUB_[a-f0-9]{32}$/.test(saved)) setReference(current => current || saved);
+    } catch { /* Server pending-payment recovery still works without storage. */ }
+  }, [storageKey, reference, pending?.reference]);
+  React.useEffect(() => {
+    if (!storageKey || !trackedReference) return;
+    try { sessionStorage.setItem(storageKey, trackedReference); } catch { /* Optional reload recovery. */ }
+  }, [storageKey, trackedReference]);
+  const verification = useQuery({
+    queryKey: ["billing-verification", status.churchId, trackedReference],
+    queryFn: () => api.post<BillingStatus>("/billing/verify", { reference: trackedReference }),
+    enabled: status.canPay && !!trackedReference,
+    retry: false,
+    refetchInterval: query => ["applied", "review"].includes(paymentOutcome(query.state.data, trackedReference)) ? false : query.state.error ? 15000 : 5000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+  });
+  const outcome = paymentOutcome(verification.data, trackedReference);
+  const waitingForPayment = !!trackedReference && outcome !== "applied" && outcome !== "review";
+  React.useEffect(() => {
+    if (!verification.data) return;
+    client.setQueryData(["platform-subscription", status.churchId], verification.data);
+    if (outcome !== "applied" || confirmed.current === trackedReference) return;
+    confirmed.current = trackedReference;
+    setMessage("");
+    void client.invalidateQueries({ queryKey: ["current-profile"] });
+    void client.invalidateQueries({ queryKey: ["notifications"] });
+    // The no-opener checkout closes itself after returning and verifying.
+    // Browsers forbid the parent from closing/navigating its external page.
+    try {
+      sessionStorage.removeItem(storageKey);
+      if (sessionStorage.getItem("churchos:subscription-payment-window") === "1") window.close();
+    } catch { /* A confirmed payment remains visible if the browser cannot close. */ }
+  }, [verification.data, client, status.churchId, outcome, trackedReference, storageKey]);
   const availableCurrencies = data?.gatewayCurrencies?.[gateway] ?? ["NGN"];
   const choiceKey = `${pricing.currency}:${gateway}`;
   const paymentCurrency =
@@ -181,13 +200,43 @@ export default function SubscriptionPage() {
     onSuccess: (result) => {
       const url = subscriptionCheckoutUrl(result.authorizationUrl);
       if (!url) {
+        if (preparingWindow.current) checkoutWindow.current?.close();
+        preparingWindow.current = false;
         setMessage("Unable to open a trusted payment page. Contact ChurchOS.");
         return;
       }
-      window.location.assign(url.href);
+      setReference(result.reference);
+      setMessage("");
+      if (checkoutWindow.current && !checkoutWindow.current.closed) {
+        if (preparingWindow.current) checkoutWindow.current.location.href = url.href;
+      }
+      else setMessage("The payment window was closed. Reopen checkout to continue; we’ll still check for a completed payment.");
+      preparingWindow.current = false;
     },
-    onError: (e) => setMessage(e.message),
+    onError: (e) => {
+      if (preparingWindow.current) checkoutWindow.current?.close();
+      preparingWindow.current = false;
+      setMessage(e.message);
+    },
   });
+  function openCheckout() {
+    if (!checkoutWindow.current || checkoutWindow.current.closed || !pending) {
+      const popup = window.open("about:blank", "_blank", "popup,width=540,height=760");
+      if (!popup) { setMessage("Allow pop-ups for ChurchOS, then continue to payment again."); return; }
+      popup.opener = null;
+      popup.document.title = "Opening Flutterwave checkout";
+      popup.document.body.textContent = "Preparing your secure Flutterwave checkout…";
+      try { popup.sessionStorage.setItem("churchos:subscription-payment-window", "1"); } catch { /* Optional auto-close on return. */ }
+      checkoutWindow.current = popup;
+      preparingWindow.current = true;
+    }
+    checkoutWindow.current.focus();
+    checkout.mutate();
+  }
+  function checkPayment(ref: string) {
+    if (ref === trackedReference) void verification.refetch();
+    else setReference(ref);
+  }
   const schedule = useMutation({
     mutationFn: (cancel: boolean) =>
       api.post<BillingStatus>(
@@ -242,13 +291,13 @@ export default function SubscriptionPage() {
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-8">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Link
+          {data?.active && (!trackedReference || outcome === "applied") && <Link
             href="/dashboard"
             className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground"
           >
             <ArrowLeft className="size-4" />
             Back to workspace
-          </Link>
+          </Link>}
           <h1 className="text-3xl font-semibold tracking-tight">
             Plan & Billing
           </h1>
@@ -272,6 +321,22 @@ export default function SubscriptionPage() {
         <div role="alert" className="rounded-xl border p-4">
           <p>{status.error.message}</p>
           <Button onClick={() => void status.refetch()}>Try again</Button>
+        </div>
+      )}
+      {trackedReference && (
+        <div role={outcome === "review" ? "alert" : "status"} className="space-y-2 rounded-xl border bg-muted/40 p-4">
+          <p className="font-medium">
+            {outcome === "applied" ? "Payment verified. Your subscription is active."
+              : outcome === "review" ? "Your payment was received and requires a ChurchOS review. Contact support with your payment reference."
+              : "Waiting for Flutterwave to confirm your payment."}
+          </p>
+          {waitingForPayment && <p className="text-sm text-muted-foreground">
+            Complete payment in the separate Flutterwave window. Keep this page open;
+            we’ll update it automatically when payment is verified.
+            {verification.isError && " Connection interrupted. We’ll retry automatically when connected."}
+            {outcome === "failed" && " The latest attempt was unsuccessful. You can retry checkout; we’ll keep checking for a later confirmation."}
+          </p>}
+          <p className="break-all font-mono text-xs">{trackedReference}</p>
         </div>
       )}
       {message && (
@@ -610,12 +675,13 @@ export default function SubscriptionPage() {
                                 Date.now())) ||
                           !data.gateways.length
                         }
-                        onClick={() => checkout.mutate()}
+                        onClick={openCheckout}
                       >
                         {pending
                           ? "Resume secure checkout"
                           : "Continue to payment"}
                       </Button>
+                      <p className="text-xs text-muted-foreground">Flutterwave opens in a separate window. ChurchOS waits here for verified payment.</p>
                       {!data.gateways.length && (
                         <p className="text-sm">
                           Checkout is being configured. Contact ChurchOS.
@@ -626,9 +692,9 @@ export default function SubscriptionPage() {
                   {(reference || pending) && (
                     <Button
                       variant="outline"
-                      disabled={!status.canPay || verify.isPending}
+                      disabled={!status.canPay || verification.isFetching}
                       onClick={() =>
-                        verify.mutate(reference || pending!.reference)
+                        checkPayment(reference || pending!.reference)
                       }
                     >
                       I’ve paid — check payment
@@ -675,6 +741,11 @@ export default function SubscriptionPage() {
                             {payment.application_status === "review"
                               ? "Received — contact support"
                               : payment.status}
+                            {status.canPay && ["pending", "failed"].includes(payment.status) && (
+                              <button type="button" className="ml-2 underline" onClick={() => checkPayment(payment.reference)}>
+                                Check payment
+                              </button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

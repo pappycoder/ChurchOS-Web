@@ -121,6 +121,7 @@ async function fixture(
             renewBy: "2027-01-19T00:00:00Z",
             exchangeRate: rate(body.currency),
           };
+        else if (path.endsWith("/billing/verify")) return Response.json({ success: false, error: { message: "Payment pending" } }, { status: 503 });
         else if (path.endsWith("/billing/checkout")) {
           await (
             window as unknown as {
@@ -209,12 +210,11 @@ test("checkout submits the reviewed currency and quote; historical NGN stays NGN
   ).toHaveValue("NGN");
   await expect(page.getByText("NGN 15,002 due", { exact: true })).toBeVisible();
   await expect(page.getByText("NGN 10,000", { exact: true })).toBeVisible();
-  await page
-    .getByRole("button", { name: "Continue to payment", exact: true })
-    .click();
-  await expect(page).toHaveURL(
-    "https://checkout.flutterwave.com/currency-fixture",
-  );
+  const popupPromise = page.waitForEvent("popup");
+  await page.getByRole("button", { name: "Continue to payment", exact: true }).click();
+  const popup = await popupPromise;
+  await expect(popup).toHaveURL("https://checkout.flutterwave.com/currency-fixture");
+  await expect(page).toHaveURL(/\/subscription$/);
   expect(state.checkouts).toEqual([
     expect.objectContaining({
       currency: "NGN",
@@ -241,13 +241,11 @@ test("an NGN-only merchant clearly quotes NGN while displaying USD", async ({
   await context.route("https://checkout.flutterwave.com/**", (route) =>
     route.fulfill({ body: "Mock checkout" }),
   );
-  const captured = page.waitForURL(
-    "https://checkout.flutterwave.com/currency-fixture",
-  );
+  const captured = page.waitForEvent("popup");
   await page
     .getByRole("button", { name: "Continue to payment", exact: true })
     .click();
-  await captured;
+  await expect(await captured).toHaveURL("https://checkout.flutterwave.com/currency-fixture");
   expect(state.checkouts[0]).toMatchObject({
     currency: "NGN",
     quoteId: "COSQ_" + "b".repeat(32),
