@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, X } from "lucide-react";
@@ -11,12 +11,13 @@ import {
   closeSupportChat,
   initializeSupportWidget,
   openSupportChat,
+  setSupportWidgetSuppressed,
   TAWK_CHAT_URL,
 } from "@/lib/tawk";
 import { isPublicHelpPath } from "@/lib/help/paths";
 import { matchRoutePermission } from "@/lib/route-permissions";
 
-const SupportChatContext = createContext({ openChat: () => {}, available: false });
+const SupportChatContext = createContext({ openChat: () => {}, available: false, setChatSuppressed: (value: boolean) => { void value; } });
 
 export function useSupportChat() {
   return useContext(SupportChatContext);
@@ -45,6 +46,11 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
   const request = useRef(0);
   const [error, setError] = useState("");
   const [ended, setEnded] = useState(false);
+  const [suppressed, setSuppressed] = useState(false);
+  const setChatSuppressed = useCallback((value: boolean) => {
+    setSuppressed(value);
+    setSupportWidgetSuppressed(value);
+  }, []);
 
   useEffect(() => {
     active.current = scope;
@@ -91,10 +97,11 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
           void openChat();
         },
         available: available && !ended,
+        setChatSuppressed,
       }}
     >
       {children}
-      {available && !ended && error && (
+      {available && !ended && !suppressed && error && (
         <div className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-4 z-40 flex max-w-[calc(100vw-2rem)] flex-col items-end gap-3 sm:right-6">
           <div className="w-80 max-w-full rounded-xl border bg-card p-4 shadow-lg">
             <div className="flex items-start gap-2">

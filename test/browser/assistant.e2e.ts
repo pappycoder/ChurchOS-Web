@@ -1,4 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { mockTawkWidget } from "../fixtures/tawk-widget";
 
 async function fixture(context: BrowserContext, mode = "guides", status = "active", role = "custom_reader") {
   await context.addCookies([{ name: "churchos_token", value: "assistant-fixture", url: "http://127.0.0.1:3107" }]);
@@ -150,4 +151,45 @@ test("administrator header reflows its extra controls on a 320px screen", async 
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole("button", { name: "Ask ChurchOS", exact: true }).click();
   await expect(page.getByRole("dialog", { name: "Ask ChurchOS" })).toBeInViewport({ ratio: 1 });
+});
+
+test("Tawk hides while Ask ChurchOS is open and returns without ending the conversation", async ({ page, context }) => {
+  await fixture(context, "guides", "active", "church_admin");
+  await page.route("https://embed.tawk.to/**", route => route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }));
+  await page.goto("/dashboard");
+  const bubble = page.getByRole("button", { name: "Open Tawk.to chat" });
+  await expect(bubble).toBeVisible();
+  const before = await page.evaluate(() => (window as unknown as { chatCalls: { name: string }[] }).chatCalls.filter(call => /^(endChat|logout|shutdown)$/.test(call.name)).length);
+  await page.getByRole("button", { name: "Ask ChurchOS", exact: true }).click();
+  await expect(bubble).toBeHidden();
+  await expect(page.getByRole("dialog", { name: "Ask ChurchOS" })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { chatCalls: { name: string }[] }).chatCalls.filter(call => /^(endChat|logout|shutdown)$/.test(call.name)).length)).toBe(before);
+  await page.getByRole("dialog", { name: "Ask ChurchOS" }).getByRole("button", { name: "Close", exact: true }).click();
+  await expect(bubble).toBeVisible();
+});
+
+test("Tawk finishing initialization inside an open AI drawer stays hidden until closing", async ({ page, context }) => {
+  await fixture(context, "guides", "active", "church_admin");
+  let release: (() => void) | undefined;
+  const hold = new Promise<void>(resolve => { release = resolve; });
+  await page.route("https://embed.tawk.to/**", async route => { await hold; await route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }); });
+  await page.goto("/dashboard");
+  await page.getByRole("button", { name: "Ask ChurchOS", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "What would you like to understand?" })).toBeVisible();
+  release?.();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { chatCalls?: { name: string }[] }).chatCalls?.filter(call => call.name === "hideWidget").length ?? 0)).toBeGreaterThanOrEqual(3);
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+});
+
+test("closing the AI drawer cannot restore support after the session ended", async ({ page, context }) => {
+  await fixture(context, "guides", "active", "church_admin");
+  await page.route("https://embed.tawk.to/**", route => route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }));
+  await page.goto("/dashboard");
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
+  await page.getByRole("button", { name: "Ask ChurchOS", exact: true }).click();
+  await page.evaluate(() => window.dispatchEvent(new Event("churchos-session-ended")));
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeHidden();
 });

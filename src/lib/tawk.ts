@@ -25,7 +25,17 @@ let loading: Promise<TawkApi> | undefined;
 let generation = 0;
 let connected = false;
 let wanted = false;
+let suppressed = false;
 let resume: (() => void) | undefined;
+
+/** Temporarily hide the widget without ending the support conversation or disconnecting. */
+export function setSupportWidgetSuppressed(value: boolean): void {
+  if (suppressed === value) return;
+  suppressed = value;
+  const api = window.Tawk_API;
+  if (value) api?.hideWidget?.();
+  else if (wanted && connected) api?.showWidget?.();
+}
 
 function stopWidget(api: TawkApi) {
   api.hideWidget?.();
@@ -56,6 +66,7 @@ function loadTawk(): Promise<TawkApi> {
         api.autoStart = false;
         stopWidget(api);
       }
+      if (suppressed) api.hideWidget?.();
     };
     api.onStatusChange = () => {
       if (!wanted) {
@@ -66,6 +77,7 @@ function loadTawk(): Promise<TawkApi> {
       // Offline is also ready: the provider's leave-a-message form can open.
       connected = true;
       resume?.();
+      if (suppressed) api.hideWidget?.();
     };
     api.onLoad = () => {
       clearTimeout(timer);
@@ -77,6 +89,7 @@ function loadTawk(): Promise<TawkApi> {
         connected = true;
         resume?.();
       }
+      if (suppressed) readyApi.hideWidget?.();
       resolve(readyApi);
     };
     script.async = true;
@@ -117,10 +130,11 @@ async function showSupportWidget(expand: boolean): Promise<void> {
         reject(new Error("Chat could not connect. Please try the support link."));
       }, 15000);
       resume = ready;
-      api.start!({ showWidget: true });
+      api.start!({ showWidget: !suppressed });
     });
   }
   if (request !== generation) return;
+  if (suppressed) { api.hideWidget?.(); return; }
   api.showWidget();
   if (expand) api.maximize?.();
 }

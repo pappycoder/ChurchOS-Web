@@ -11,6 +11,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useSupportChat } from "@/components/support/support-chat-provider";
 import { authorizationScopeKey } from "@/lib/authorization-cache";
 import { checkRule, matchRoutePermission } from "@/lib/route-permissions";
 import { featureForPath } from "@/lib/plan-features";
@@ -52,6 +53,12 @@ function AssistantPanel({ profile }: { profile: CurrentProfile }) {
   const pathname = usePathname();
   const page = matchRoutePermission(pathname)?.prefix ?? "/dashboard";
   const { canAny } = usePermissions();
+  const { setChatSuppressed } = useSupportChat();
+
+  useEffect(() => {
+    setChatSuppressed(open);
+    return () => setChatSuppressed(false);
+  }, [open, setChatSuppressed]);
 
   useEffect(() => () => { active.current?.abort(); }, []);
   useEffect(() => {
