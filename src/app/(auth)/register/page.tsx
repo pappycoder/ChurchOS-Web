@@ -39,7 +39,7 @@ const subtitles = [
   "Let’s start with the community you’re bringing together.",
   "Create the administrator account for your church workspace.",
   "A simple monthly plan or a little more value with yearly billing.",
-  "Check your details, then sign in to continue to secure payment.",
+  "Check your details, then continue to secure subscription payment.",
 ];
 const plans = launchPlans.filter((p) => p.id !== "enterprise");
 export default function RegisterPage() {
@@ -143,21 +143,20 @@ export default function RegisterPage() {
     return (
       <AuthFormWrapper
         heading="Your church has a home."
-        subtitle="Your account is ready. One more step brings your workspace to life."
+        subtitle="Your account is ready. Opening your subscription checkout…"
       >
         <div className="space-y-5 rounded-2xl border bg-card/70 p-6">
           <CheckCircle2 className="size-10 text-primary" />
           <p className="text-sm leading-relaxed">
-            Sign in as <strong>{details.email}</strong> to continue to your{" "}
-            {selected.name} subscription. If email confirmation is enabled,
-            confirm your email first.
+            Continuing to your {selected.name} subscription as{" "}
+            <strong>{details.email}</strong>.
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">
             No payment has been taken. Your workspace activates after payment is
             verified.
           </p>
           <Button asChild size="lg" className="w-full rounded-xl">
-            <Link href="/login?returnTo=%2Fsubscription">
+            <Link href="/subscription">
               Continue to secure checkout <ArrowRight className="size-4" />
             </Link>
           </Button>

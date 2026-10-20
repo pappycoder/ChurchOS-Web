@@ -39,6 +39,10 @@ const DEV_ACCOUNTS = [
 ];
 
 export default function LoginPage() {
+  const [registered, setRegistered] = React.useState(false);
+  React.useEffect(() => {
+    setRegistered(new URLSearchParams(window.location.search).get("registered") === "1");
+  }, []);
   const completeLogin = useCompleteLogin();
   const [recoverySession, setRecoverySession] = React.useState<LoginResponse>();
   const [useRecovery, setUseRecovery] = React.useState(false);
@@ -124,6 +128,12 @@ export default function LoginPage() {
           : "Your people. Your ministry. Pick up where you left off."
       }
     >
+      {registered && !otpStep && !recoverySession && (
+        <p role="status" className="mb-5 rounded-lg border bg-muted/40 p-4 text-sm">
+          Your account has been created. Sign in to continue to subscription
+          payment. If your email needs confirmation, confirm it first.
+        </p>
+      )}
       {recoverySession?.recoveryCodes?.length ? <RecoveryCodesPanel codes={recoverySession.recoveryCodes} onDone={async () => {
         await completeLogin(recoverySession).catch(error => toast.error(error?.message ?? "Unable to finish sign-in"));
       }} /> : <AnimatePresence mode="wait" initial={false}>

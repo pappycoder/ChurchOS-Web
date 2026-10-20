@@ -30,11 +30,15 @@ test.beforeEach(async ({ page, context }) => {
   await context.route("https://embed.tawk.to/**", route => route.fulfill({ contentType: "application/javascript", body: mockTawkWidget }));
   await page.emulateMedia({ reducedMotion: "reduce" });
 });
-test("registration validates each step, preserves edits, submits plan and clears password", async ({
+test("registration preserves edits and redirects to sign-in when email confirmation is required", async ({
   page,
   context,
 }) => {
   await publicSession(context);
+  await page.route("**/api/backend/auth/login", (r) => r.fulfill({
+    status: 401,
+    json: { success: false, error: { message: "Email not confirmed" } },
+  }));
   let payload: Record<string, unknown> | undefined;
   await page.route("**/api/backend/auth/register", (r) => {
     payload = r.request().postDataJSON();
@@ -72,9 +76,8 @@ test("registration validates each step, preserves edits, submits plan and clears
   await page
     .getByRole("button", { name: "Create account & continue", exact: true })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "Your church has a home.", exact: true }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/login\?returnTo=%2Fsubscription&registered=1$/);
+  await expect(page.getByRole("status")).toContainText("Your account has been created");
   expect(payload).toMatchObject({
     churchName: "Grace Church Updated",
     plan: "network",
@@ -82,12 +85,6 @@ test("registration validates each step, preserves edits, submits plan and clears
     email: "grace@example.org",
   });
   expect(payload).not.toHaveProperty("amount");
-  await expect(
-    page.getByRole("link", {
-      name: "Continue to secure checkout",
-      exact: true,
-    }),
-  ).toHaveAttribute("href", "/login?returnTo=%2Fsubscription");
   expect(
     await page.evaluate(() =>
       JSON.stringify({ ...localStorage, ...sessionStorage }),
@@ -146,12 +143,17 @@ async function billingSession(
     grants?: string[];
     gateways?: string[];
     pending?: boolean;
+    registration?: boolean;
+    checkoutUrl?: string;
   } = {},
 ) {
   await context.addInitScript(
     ({ reference, options }) => {
       const original = window.fetch;
       let active = options.active ?? false;
+      let authenticated = !options.registration;
+      let plan = "essentials";
+      let cycle = "monthly";
       const calls: { path: string; body: unknown }[] = [];
       Object.assign(window, { billingCalls: calls });
       window.fetch = async (input, init) => {
@@ -161,15 +163,15 @@ async function billingSession(
         ).pathname;
         if (!path.startsWith("/api/")) return original(input, init);
         if (path === "/api/session")
-          return new Response(JSON.stringify({ hasSession: true }));
+          return new Response(JSON.stringify({ hasSession: authenticated }));
         const body = init?.body ? JSON.parse(String(init.body)) : undefined;
         calls.push({ path, body });
         let data: unknown = {};
         const status = () => ({
           active,
           subscription: {
-            plan: "essentials",
-            cycle: "monthly",
+            plan,
+            cycle,
             paid_until: active ? "2027-01-18T00:00:00Z" : null,
           },
           gateways: options.gateways ?? ["paystack", "flutterwave"],
@@ -185,7 +187,14 @@ async function billingSession(
                 }
               : null,
         });
-        if (path.endsWith("/auth/session"))
+        if (path.endsWith("/auth/register")) {
+          plan = body.plan;
+          cycle = body.billingCycle;
+          data = { userId: "u", churchId: "c", email: "grace@example.org" };
+        } else if (path.endsWith("/auth/login")) {
+          authenticated = true;
+          data = { sessionEstablished: true, userId: "u", email: "grace@example.org" };
+        } else if (path.endsWith("/auth/session"))
           data = { userId: "u", email: "admin@example.org" };
         else if (path.endsWith("/profiles/me"))
           data = {
@@ -208,7 +217,9 @@ async function billingSession(
         else if (path.endsWith("/billing/verify")) {
           active = true;
           data = status();
-        } else if (path.endsWith("/billing/checkout"))
+        } else if (path.endsWith("/billing/checkout") && options.checkoutUrl)
+          data = { authorizationUrl: options.checkoutUrl, reference };
+        else if (path.endsWith("/billing/checkout"))
           return new Response(
             JSON.stringify({
               success: false,
@@ -224,6 +235,53 @@ async function billingSession(
     { reference, options },
   );
 }
+test("registration signs in and opens the selected subscription for Flutterwave payment", async ({ page, context }) => {
+  await billingSession(context, {
+    registration: true,
+    gateways: ["flutterwave"],
+    checkoutUrl: "https://checkout.flutterwave.com/v3/hosted/pay/test-subscription",
+  });
+  await page.route("https://checkout.flutterwave.com/**", (route) => route.fulfill({
+    contentType: "text/html", body: "<h1>Secure Flutterwave checkout</h1>",
+  }));
+  await page.goto("/register?plan=network&cycle=annual");
+  await churchStep(page);
+  await accountStep(page);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Create account & continue", exact: true }).click();
+  await expect(page).toHaveURL(/\/subscription$/);
+  await expect(page.getByLabel("Billing period")).toHaveValue("annual");
+  await expect(page.getByLabel("Payment provider")).toHaveValue("flutterwave");
+  await expect(page.getByRole("button", { name: "Continue to payment", exact: true })).toBeEnabled();
+  const calls = await page.evaluate(() => (window as unknown as { billingCalls: { path: string; body: Record<string, unknown> }[] }).billingCalls);
+  expect(calls.filter(c => c.path.endsWith("/billing/quote")).at(-1)?.body).toMatchObject({
+    plan: "network", cycle: "annual", gateway: "flutterwave", currency: "NGN",
+  });
+  expect(await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).not.toContain("LongUniquePassword");
+  await page.getByRole("button", { name: "Continue to payment", exact: true }).click();
+  await expect(page).toHaveURL("https://checkout.flutterwave.com/v3/hosted/pay/test-subscription");
+});
+
+test("an unpaid administrator can reopen subscription checkout after a reload", async ({ page, context }) => {
+  await billingSession(context, { gateways: ["flutterwave"] });
+  await page.goto("/subscription");
+  await expect(page.getByRole("button", { name: "Continue to payment", exact: true })).toBeEnabled();
+  await page.reload();
+  await expect(page.getByLabel("Payment provider")).toHaveValue("flutterwave");
+  await expect(page.getByRole("button", { name: "Continue to payment", exact: true })).toBeEnabled();
+});
+
+test("an existing unpaid administrator is returned to billing after signing in", async ({ page, context }) => {
+  await billingSession(context, { registration: true, gateways: ["flutterwave"] });
+  await page.goto("/login");
+  await page.getByLabel("Email Address", { exact: true }).fill("grace@example.org");
+  await page.getByLabel("Password", { exact: true }).fill("LongUniquePassword!27");
+  await page.getByRole("button", { name: "Sign In", exact: true }).click();
+  await expect(page).toHaveURL(/\/subscription$/);
+  await expect(page.getByLabel("Payment provider")).toHaveValue("flutterwave");
+  await expect(page.getByRole("button", { name: "Continue to payment", exact: true })).toBeEnabled();
+});
+
 test("gateway return is verified server-side before showing activation", async ({
   page,
   context,

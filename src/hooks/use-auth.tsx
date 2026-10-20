@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [clearRefreshTimer, router]);
 
   const finalizeLogin = React.useCallback(
-    async (res: LoginResponse) => {
+    async (res: LoginResponse, registrationDestination?: "/subscription") => {
       if (!res.sessionEstablished) return;
       sessionGeneration.current++;
       advanceSessionGeneration();
@@ -132,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: res.email ?? "",
         profile: res.profile,
       });
-      toast.success("Welcome back!", {
+      toast.success(registrationDestination ? "Your account is ready" : "Welcome back!", {
         description: `Signed in as ${res.email ?? ""}`,
       });
       // Prime the session cache (profile + permissions) before navigating so
@@ -144,6 +144,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } catch {
         // Non-fatal: the dashboard will fetch on mount if priming fails.
+      }
+      // Registration already selected a plan. Its payment screen performs its
+      // own permission checks even if profile priming was temporarily unavailable.
+      if (registrationDestination) {
+        router.replace(registrationDestination);
+        return;
       }
       const destination = new URLSearchParams(window.location.search).get("returnTo");
       const profile = queryClient.getQueryData<CurrentProfile>(["current-profile"]);
@@ -195,8 +201,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.post<RegisterResponse>("/auth/register", input, {
       skipAuth: true,
     });
+    // Establish the same verified, cookie-backed session as a normal sign-in.
+    // Once registration succeeds, a login failure must never invite a second
+    // registration attempt for an account that already exists.
+    try {
+      const session = await api.post<LoginResponse>("/auth/login", {
+        email: input.email,
+        password: input.password,
+      }, { skipAuth: true });
+      if (session.sessionEstablished && !session.requiresTwoFactor) {
+        await finalizeLogin(session, "/subscription");
+        return res;
+      }
+    } catch {
+      // Email confirmation, a login outage or MFA can be completed at sign-in.
+    }
+    router.replace("/login?returnTo=%2Fsubscription&registered=1");
     return res;
-  }, []);
+  }, [finalizeLogin, router]);
 
   const logout = React.useCallback(async () => {
     try {
