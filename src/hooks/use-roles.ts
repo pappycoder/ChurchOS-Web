@@ -37,9 +37,8 @@ export interface RolesSummaryResponse {
 export const PERMISSION_ACTIONS = ["create", "read", "update", "delete", "view"] as const;
 
 export const ROLE_ORDER = [
-  "super_admin",
-  "senior_pastor",
   "church_admin",
+  "senior_pastor",
   "branch_pastor",
   "secretary",
   "treasurer",
@@ -67,7 +66,7 @@ export function getResourceLabel(resource: string): string {
 }
 
 export function sortRolesByOrder<T extends { roleName: string }>(roles: T[]): T[] {
-  return [...roles].sort((a, b) => {
+  return roles.filter((role) => !["super_admin", "member"].includes(role.roleName)).sort((a, b) => {
     const ai = ROLE_ORDER.indexOf(a.roleName as (typeof ROLE_ORDER)[number]);
     const bi = ROLE_ORDER.indexOf(b.roleName as (typeof ROLE_ORDER)[number]);
     return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
@@ -109,14 +108,14 @@ export function resolveRoleLabel(
 }
 
 /**
- * All roles that can be assigned in pickers and filters: the 9 seeded staff roles
+ * All roles that can be assigned in pickers and filters: the 8 seeded church staff roles
  * plus every church-owned custom role, each with its display label.
  */
 export function useAssignableRoles(): { value: string; label: string }[] {
   const { data } = useRolesSummary();
   return React.useMemo(() => {
     const custom = (data?.roles ?? [])
-      .filter((r) => r.isChurchOwned && r.roleName !== "member")
+      .filter((r) => r.isChurchOwned && !["member", "super_admin"].includes(r.roleName))
       .map((r) => ({ value: r.roleName, label: r.label || getRoleLabel(r.roleName) }));
     const seen = new Set<string>(VALID_ROLES.map((r) => r.value));
     return [...VALID_ROLES, ...custom.filter((c) => !seen.has(c.value))];

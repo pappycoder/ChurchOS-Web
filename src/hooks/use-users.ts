@@ -120,9 +120,8 @@ interface BranchListResponse {
 }
 
 export const VALID_ROLES = [
-  { value: "super_admin", label: "Super Admin" },
-  { value: "senior_pastor", label: "Senior Pastor" },
   { value: "church_admin", label: "Church Admin" },
+  { value: "senior_pastor", label: "Senior Pastor" },
   { value: "branch_pastor", label: "Branch Pastor" },
   { value: "secretary", label: "Secretary" },
   { value: "treasurer", label: "Treasurer" },
@@ -132,6 +131,7 @@ export const VALID_ROLES = [
 ] as const;
 
 export function getRoleLabel(role: string): string {
+  if (role === "super_admin") return "Super Admin";
   return VALID_ROLES.find((r) => r.value === role)?.label ?? role;
 }
 

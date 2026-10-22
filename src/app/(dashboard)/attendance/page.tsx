@@ -78,6 +78,7 @@ function RecordRow({ record }: { record: AttendanceRecord }) {
 
 export default function AttendanceDashboardPage() {
   const { can } = usePermissions();
+  const canReadEvents = can("events:list", "read");
   const canCreate = can("attendance:checkin", "create");
   const [branchId, setBranchId] = React.useState("");
 
@@ -90,7 +91,10 @@ export default function AttendanceDashboardPage() {
   const monthQuery = useAttendanceSummary({ startDate: monthStart, branchId: branchId || undefined });
   const trendsQuery = useAttendanceTrends({ days: 30, branchId: branchId || undefined });
   const recentQuery = useAttendanceRecords({ limit: 8, branchId: branchId || undefined });
-  const eventsQuery = useEventsList({ limit: 5, sortBy: "startDate", sortOrder: "desc" });
+  const eventsQuery = useEventsList(
+    { limit: 5, sortBy: "startDate", sortOrder: "desc", branchId: branchId || undefined },
+    { enabled: canReadEvents },
+  );
 
   const summary = summaryQuery.data;
 
@@ -146,8 +150,8 @@ export default function AttendanceDashboardPage() {
 
       <GeneralAttendanceSummaryCard summary={summary?.generalAttendance} exportable={false} />
 
-      {/* Event Attendance */}
-      <Card>
+      {/* Event attendance requires the independent events entitlement. */}
+      {canReadEvents && <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -197,7 +201,7 @@ export default function AttendanceDashboardPage() {
             ))
           )}
         </CardContent>
-      </Card>
+      </Card>}
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Trend chart */}
