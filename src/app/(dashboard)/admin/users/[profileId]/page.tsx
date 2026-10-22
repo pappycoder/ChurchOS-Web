@@ -93,7 +93,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
               </div>
             </div>
           </div>
-          <div className="lg:col-span-2">
+          <div className="min-w-0 lg:col-span-2">
             <div className="border rounded-lg p-6">
               <Skeleton className="h-8 w-48 mb-4" />
               <LoadingState variant="table" />
@@ -105,7 +105,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
           <div className="lg:col-span-1">
             <UserDetailSidebar user={user} />
           </div>
-          <div className="lg:col-span-2">
+          <div className="min-w-0 lg:col-span-2">
             <UserDetailContent user={user} />
           </div>
         </div>

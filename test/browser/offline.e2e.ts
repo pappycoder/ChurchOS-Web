@@ -7,9 +7,11 @@ const passphrase = "correct horse battery staple";
 
 test.beforeEach(async ({ context }, testInfo) => {
   const member = testInfo.title.startsWith("member accounts");
+  const hq = testInfo.title.startsWith("HQ");
+  const singleBranch = testInfo.title.includes("single branch");
   // Deterministic API fixture: no real account or application database is contacted.
   await context.addInitScript(
-    ({ profileId, churchId, branchId, member }) => {
+    ({ profileId, churchId, branchId, member, hq, singleBranch }) => {
       const original = window.fetch.bind(window);
       Object.defineProperty(window, "__offlineNativeFetch", {
         value: original,
@@ -18,10 +20,8 @@ test.beforeEach(async ({ context }, testInfo) => {
       const requests: string[] = [];
       Object.defineProperty(window, "__offlineApiCalls", { value: requests });
       window.fetch = async (input, options) => {
-        const path = new URL(
-          input instanceof Request ? input.url : String(input),
-          location.origin,
-        ).pathname;
+        const requestUrl = new URL(input instanceof Request ? input.url : String(input), location.origin);
+        const path = requestUrl.pathname;
         if (!path.startsWith("/api/")) return original(input, options);
         requests.push(path);
         if (!navigator.onLine) throw new TypeError("Offline");
@@ -39,7 +39,8 @@ test.beforeEach(async ({ context }, testInfo) => {
             firstName: "Test",
             lastName: "Secretary",
             role: [member ? "member" : "secretary"],
-            isAdminHq: false,
+            isAdminHq: hq,
+            planFeatures: member ? ["events"] : ["giving", "reports"],
             permissions: member
               ? [
                   "events:view",
@@ -50,12 +51,16 @@ test.beforeEach(async ({ context }, testInfo) => {
               : ["offline:read"],
             branch: { branchId, name: "Lekki" },
           };
+        else if (path.endsWith("/branches")) data = { data: [
+          { branchId, name: "Lekki" },
+          ...(!singleBranch ? [{ branchId: "44444444-4444-4444-8444-444444444444", name: "Ikeja" }] : []),
+        ], total: singleBranch ? 1 : 2 };
         else if (path.endsWith("/offline/snapshot"))
           data = {
             profileId,
             churchId,
-            branchId,
-            branchName: "Lekki",
+            branchId: requestUrl.searchParams.get("branchId") || branchId,
+            branchName: requestUrl.searchParams.get("branchId") === branchId ? "Lekki" : "Ikeja",
             permissions: [
               "offline:read",
               "members:all:read",
@@ -106,7 +111,7 @@ test.beforeEach(async ({ context }, testInfo) => {
         });
       };
     },
-    { profileId, churchId, branchId, member },
+    { profileId, churchId, branchId, member, hq, singleBranch },
   );
 });
 
@@ -340,4 +345,32 @@ test("staff offline shortcut remains visible on mobile", async ({
       .locator("header")
       .getByRole("link", { name: "Offline workspace", exact: true }),
   ).toBeVisible();
+});
+
+
+test("HQ single branch is preselected and can be prepared", async ({ page }) => {
+  await page.goto("/offline");
+  await expect(page.getByRole("button", { name: "Enable on this device" })).toBeDisabled();
+  await page.getByRole("button", { name: "Load available branches" }).click();
+  const branch = page.getByLabel("Branch", { exact: true });
+  await expect(branch).toBeEnabled();
+  await expect(branch).toHaveValue(branchId);
+  await branch.selectOption(branchId);
+  await page.getByLabel("Offline passphrase").fill(passphrase);
+  await page.getByRole("button", { name: "Enable on this device" }).click();
+  await expect(page.getByRole("button", { name: "Add member" })).toBeVisible();
+  await expect(page.getByText("Lekki", { exact: true })).toBeVisible();
+});
+
+test("HQ can select another branch and preserve selection when reloading options", async ({ page }) => {
+  await page.goto("/offline");
+  await page.getByRole("button", { name: "Load available branches" }).click();
+  const branch = page.getByLabel("Branch", { exact: true });
+  await expect(branch).toBeEnabled();
+  await branch.selectOption("44444444-4444-4444-8444-444444444444");
+  await page.getByRole("button", { name: "Load available branches" }).click();
+  await expect(branch).toHaveValue("44444444-4444-4444-8444-444444444444");
+  await page.getByLabel("Offline passphrase").fill(passphrase);
+  await page.getByRole("button", { name: "Enable on this device" }).click();
+  await expect(page.getByText("Ikeja", { exact: true })).toBeVisible();
 });

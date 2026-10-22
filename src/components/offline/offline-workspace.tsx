@@ -69,6 +69,7 @@ export function OfflineWorkspace() {
   const [passphrase, setPassphrase] = useState("");
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
   const [branchId, setBranchId] = useState("");
+  const [branchLocked, setBranchLocked] = useState(false);
   const [tab, setTab] = useState<PersonEntity | "form" | "queue">("member");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -184,17 +185,18 @@ export function OfflineWorkspace() {
           { id: profile.branchId, name: profile.branch?.name ?? "Your branch" },
         ]);
         setBranchId(profile.branchId);
+        setBranchLocked(true);
         return;
       }
       const response = await api.get<{
         data: { branchId: string; name: string }[];
       }>("/branches?limit=100");
-      setBranches(
-        response.data.map((branch) => ({
-          id: branch.branchId,
-          name: branch.name,
-        })),
-      );
+      const available = response.data.map(branch => ({ id: branch.branchId, name: branch.name }));
+      setBranches(available);
+      setBranchLocked(false);
+      setBranchId(current => available.some(branch => branch.id === current)
+        ? current : available.length === 1 ? available[0].id : "");
+      if (!available.length) throw new Error("No active branches are available to prepare for offline access.");
     });
   const enable = () =>
     action(async () => {
@@ -454,7 +456,7 @@ export function OfflineWorkspace() {
                         className="h-11 w-full rounded-xl border bg-background px-3"
                         value={branchId}
                         onChange={(event) => setBranchId(event.target.value)}
-                        disabled={branches.length === 1}
+                        disabled={branchLocked || busy || !online}
                       >
                         <option value="">Choose a branch</option>
                         {branches.map((branch) => (
@@ -463,6 +465,7 @@ export function OfflineWorkspace() {
                           </option>
                         ))}
                       </select>
+                      {branchLocked && <p className="text-xs text-muted-foreground">Offline access is limited to your assigned branch.</p>}
                     </div>
                   )}
                 </>
@@ -483,7 +486,7 @@ export function OfflineWorkspace() {
               </div>
               <Button
                 className="w-full"
-                disabled={busy || exists === undefined || (!exists && !online)}
+                disabled={busy || exists === undefined || (!exists && (!online || !branchId))}
                 onClick={exists ? unlock : enable}
               >
                 {exists ? "Unlock workspace" : "Enable on this device"}

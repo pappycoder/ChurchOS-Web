@@ -303,60 +303,47 @@ function PermissionMatrix({
 }) {
   const roleLabels = useRoleLabelMap();
   return (
-    <div className="text-sm">
-      <div className="flex items-center border-b pb-1 mb-1">
-        <span className="flex-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Resource
-        </span>
-        {actions.map((action) => (
-          <span
-            key={action}
-            className="w-14 text-center text-[11px] font-medium text-muted-foreground capitalize"
-          >
-            {action}
-          </span>
-        ))}
-      </div>
-      {rows.map(([resource, perms]) => (
-        <div
-          key={resource}
-          className="flex items-center py-0.5 px-1 -mx-1 rounded hover:bg-muted/40"
-        >
-          <span className="flex-1 truncate capitalize">
-            {resource.replace(/_/g, " ")}
-          </span>
-          {actions.map((action) => {
-            const perm = perms.get(action);
-            if (!perm) {
-              return (
-                <span key={action} className="w-14 flex justify-center">
-                  <Minus className="h-3.5 w-3.5 text-muted-foreground/30" />
-                </span>
-              );
-            }
-            return (
-              <Tooltip key={action}>
-                <TooltipTrigger asChild>
-                  <span className="w-14 flex justify-center cursor-default">
-                    <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-medium">
-                    {resource.replace(/_/g, " ")}: {action}
-                  </p>
-                  {perm.grantedBy?.length > 0 && (
-                    <p className="text-muted-foreground">
-                      Granted by{" "}
-                      {perm.grantedBy.map((r) => resolveRoleLabel(r, roleLabels)).join(", ")}
-                    </p>
-                  )}
-                </TooltipContent>
-              </Tooltip>
-            );
-          })}
-        </div>
-      ))}
+    <div className="relative min-w-0 overflow-x-auto rounded-md border" role="region" aria-label="Effective permissions" tabIndex={0}>
+      <table className="w-full text-sm" style={{ minWidth: `${12 + actions.length * 3.5}rem` }}>
+        <caption className="sr-only">Resources and the actions this user is allowed to perform</caption>
+        <thead>
+          <tr className="border-b">
+            <th scope="col" className="sticky left-0 z-10 min-w-48 bg-card px-3 py-3 text-left text-xs font-medium text-muted-foreground">Resource</th>
+            {actions.map(action => (
+              <th key={action} scope="col" className="min-w-14 px-2 py-3 text-center text-xs font-medium capitalize text-muted-foreground">{action}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([resource, perms]) => (
+            <tr key={resource} className="border-b last:border-0">
+              <th scope="row" className="sticky left-0 z-10 min-w-48 bg-card px-3 py-2 text-left font-medium capitalize whitespace-nowrap">
+                {resource.replace(/_/g, " ")}
+              </th>
+              {actions.map(action => {
+                const perm = perms.get(action);
+                return <td key={action} className="min-w-14 px-2 py-2 text-center">
+                  {!perm ? <span className="flex justify-center">
+                    <Minus aria-hidden="true" className="h-3.5 w-3.5 text-muted-foreground/30" />
+                    <span className="sr-only">Not granted</span>
+                  </span> : <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={0} className="flex justify-center cursor-default">
+                        <Check aria-hidden="true" className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="sr-only">Granted</span>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-medium">{resource.replace(/_/g, " ")}: {action}</p>
+                      {perm.grantedBy?.length > 0 && <p>Granted by {perm.grantedBy.map(r => resolveRoleLabel(r, roleLabels)).join(", ")}</p>}
+                    </TooltipContent>
+                  </Tooltip>}
+                </td>;
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -459,9 +446,6 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
 
   const isSuperAdmin = (user.role ?? []).includes("super_admin");
   const grantedCount = user.effectivePermissions?.length ?? 0;
-  const half = Math.ceil(permissionMatrix.length / 2);
-  const leftRows = permissionMatrix.slice(0, half);
-  const rightRows = permissionMatrix.slice(half);
 
   return (
     <div className="space-y-4">
@@ -569,12 +553,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
               No explicit permissions resolved for the assigned roles.
             </p>
           ) : (
-            <div className="grid gap-x-10 gap-y-4 lg:grid-cols-2">
-              <PermissionMatrix rows={leftRows} actions={permissionActions} />
-              {rightRows.length > 0 && (
-                <PermissionMatrix rows={rightRows} actions={permissionActions} />
-              )}
-            </div>
+            <PermissionMatrix rows={permissionMatrix} actions={permissionActions} />
           )}
         </CardContent>
       </Card>
