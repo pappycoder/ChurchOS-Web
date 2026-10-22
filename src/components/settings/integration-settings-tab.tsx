@@ -27,7 +27,7 @@ export function IntegrationSettingsTab() {
   return <div className="space-y-8">
     <p className="text-sm text-muted-foreground">Add provider accounts, check their credentials, then choose an account separately for each service. A compatible account can be shared across services. Each service stays disabled until you select and save a church-owned provider account. Platform credentials are never used for church services.</p>
     <ProviderAccounts data={query.data} canManage={can("integrations", "update")} />
-    {Object.entries(LABELS).map(([channel, label]) => <ChannelSettings key={`${channel}:${query.data!.channels.find(item => item.channel === channel)?.updated_at ?? "legacy"}`} channel={channel as Channel} label={label} data={query.data!} canManage={can("integrations", "update")} />)}
+    {Object.entries(LABELS).filter(([channel]) => query.data!.channels.some(item => item.channel === channel)).map(([channel, label]) => <ChannelSettings key={`${channel}:${query.data!.channels.find(item => item.channel === channel)?.updated_at ?? "legacy"}`} channel={channel as Channel} label={label} data={query.data!} canManage={can("integrations", "update")} />)}
   </div>;
 }
 

@@ -77,6 +77,7 @@ type NewEventFormValues = z.infer<typeof newEventSchema>;
 export default function CreateEventPage() {
   const { can } = usePermissions();
   const canCreate = can("events", "create");
+  const canManageTickets = can("events:tickets", "create");
 
   const router = useRouter();
   const createMutation = useCreateEvent();
@@ -292,10 +293,10 @@ export default function CreateEventPage() {
                       <div>
                         <Label className="font-medium">Free Event</Label>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Toggle off to set a ticket price.
+                          {canManageTickets ? "Toggle off to set a ticket price." : "Paid events require Network or above and ticket management access."}
                         </p>
                       </div>
-                      <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      <Switch disabled={!canManageTickets} checked={!!field.value} onCheckedChange={field.onChange} />
                     </div>
                     <FormMessage />
                   </FormItem>

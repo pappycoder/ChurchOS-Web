@@ -3,18 +3,15 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { featureForPath } from "@/lib/plan-features";
+import { featureForPath, FEATURE_MINIMUM_PLAN } from "@/lib/plan-features";
 import { Button } from "@/components/ui/button";
 export function PlanFeatureGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: profile } = useCurrentProfile();
-  const [historical, setHistorical] = React.useState("");
   const feature = featureForPath(pathname);
   if (
     !feature ||
-    profile?.planFeatures === undefined ||
-    profile.planFeatures.includes(feature) ||
-    historical === pathname
+    profile?.planFeatures?.includes(feature)
   )
     return <>{children}</>;
   const admin = profile?.role.some(
@@ -26,6 +23,9 @@ export function PlanFeatureGate({ children }: { children: React.ReactNode }) {
         This feature is available on a different plan
       </h1>
       <p className="text-muted-foreground">
+        Available on {FEATURE_MINIMUM_PLAN[feature] === "community" ? "Community" : "Network"} and higher plans.
+      </p>
+      <p className="text-muted-foreground">
         {admin
           ? "Compare plans to enable this feature for your church. Existing records are retained."
           : "Contact your church administrator to enable this feature."}
@@ -36,11 +36,7 @@ export function PlanFeatureGate({ children }: { children: React.ReactNode }) {
             <Link href="/subscription">View plans</Link>
           </Button>
         )}
-        {!["analytics", "reports"].includes(feature) && (
-          <Button variant="outline" onClick={() => setHistorical(pathname)}>
-            View historical records
-          </Button>
-        )}
+
       </div>
     </section>
   );

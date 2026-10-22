@@ -1,6 +1,6 @@
 "use client";
 
-import { featureForPath } from "@/lib/plan-features";
+import { planAllowsPath } from "@/lib/plan-features";
 import { filterPermissionNavigation } from "@/lib/permission-navigation";
 
 import * as React from "react";
@@ -555,7 +555,7 @@ export function useVisibleNavigation() {
   const { ready, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   return React.useMemo(() => !ready || !profile ? [] : navItems.map((group) => ({
-    ...group, items: filterPermissionNavigation(group.items, canAny).filter(item => { const feature = featureForPath(item.href || ""); return !feature || profile.planFeatures === undefined || profile.planFeatures.includes(feature); }),
+    ...group, items: filterPermissionNavigation(group.items, canAny, path => planAllowsPath(profile.planFeatures, path)),
   })).filter((group) => group.items.length > 0), [ready, canAny, profile]);
 }
 

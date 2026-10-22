@@ -1,5 +1,7 @@
 "use client";
 
+import { usePermissions } from "@/hooks/use-permissions";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
@@ -192,10 +194,11 @@ export function useRestoreArchiveMember() {
 }
 
 export function useMemberGivingHistory(memberId: string) {
+  const { canAny } = usePermissions();
   return useQuery({
     queryKey: ["member-giving", memberId],
     queryFn: ({ signal }) => api.get<{ data: MemberGivingRecord[] }>(`/members/${memberId}/giving`, { signal }),
-    enabled: !!memberId,
+    enabled: !!memberId && canAny("giving:records:read"),
   });
 }
 

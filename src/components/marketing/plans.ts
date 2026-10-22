@@ -28,6 +28,7 @@ export const launchPlans = [
       "Departments and cell groups",
       "Forms and essential reports",
       "Connect your email provider",
+      "Sermon and media library",
     ],
   },
   {
@@ -41,7 +42,8 @@ export const launchPlans = [
     features: [
       "Everything in Community",
       "Branch and HQ workspaces",
-      "SMS and WhatsApp integrations",
+      "SMS, WhatsApp and live calls",
+      "Outbound webhook integrations",
       "Event tickets and check-in",
       "Pastoral care and appointments",
       "Asset register and maintenance",

@@ -79,7 +79,7 @@ function AssistantPanel({ profile }: { profile: CurrentProfile }) {
     const rule = matchRoutePermission(path);
     if (!rule || rule.prefix !== path || !checkRule(rule, canAny)) return false;
     const feature = featureForPath(path) ?? (/^\/departments(?:\/|$)/.test(path) ? "groups" : undefined);
-    return !feature || profile.planFeatures === undefined || profile.planFeatures.includes(feature);
+    return !feature || profile.planFeatures?.includes(feature) === true;
   }
   async function send(text = question) {
     const cleaned = text.trim();

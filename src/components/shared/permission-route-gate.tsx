@@ -63,6 +63,7 @@ export function PermissionRouteGate({ children }: { children: React.ReactNode })
 
   if (!allowed) {
     return (
+      <PlanFeatureGate>
       <div className="flex flex-col items-center justify-center py-24">
         <EmptyState
           icon={<ShieldAlert className="h-12 w-12" />}
@@ -70,6 +71,7 @@ export function PermissionRouteGate({ children }: { children: React.ReactNode })
           description="You don't have permission to view this page. Contact your church admin if you believe this is a mistake."
         />
       </div>
+      </PlanFeatureGate>
     );
   }
 

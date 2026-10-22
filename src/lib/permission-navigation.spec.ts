@@ -45,3 +45,9 @@ describe("compound navigation requirements", () => {
     expect(filterPermissionNavigation(entries, () => false)).toEqual([]);
   });
 });
+
+it('recursively filters higher-plan leaves while preserving permitted sibling pages', () => {
+  const menus = [{ href:'/events', children:[{href:'/events/registrations'},{href:'/events/management'}] }, {href:'/departments',children:[{href:'/departments/cell-groups'}]}];
+  const result = filterPermissionNavigation(menus, () => true, path => !['/events/management','/departments/cell-groups'].includes(path));
+  expect(result).toEqual([{href:'/events',children:[{href:'/events/registrations'}]}]);
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { toast } from "@/lib/toast";
 import {
   Dialog,
@@ -67,7 +68,7 @@ function toFormValues(template?: Template | null): TemplateFormValues {
   return {
     name: template?.name ?? "",
     content: template?.content ?? "",
-    channel: template?.channel ?? "whatsapp",
+    channel: template?.channel ?? "email",
     language: template?.language ?? "",
     category: template?.category ?? "",
     variables: template?.variables?.join(", ") ?? "",
@@ -80,6 +81,7 @@ export function TemplateFormDialog({
   onOpenChange,
   template,
 }: TemplateFormDialogProps) {
+  const { data: profile } = useCurrentProfile();
   const isEdit = !!template;
   const createMutation = useCreateTemplate();
   const updateMutation = useUpdateTemplate(template?.templateId ?? "");
@@ -172,7 +174,7 @@ export function TemplateFormDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {TEMPLATE_CHANNELS.map((ch) => (
+                      {TEMPLATE_CHANNELS.filter(ch => profile?.planFeatures?.includes(ch)).map((ch) => (
                         <SelectItem key={ch} value={ch}>
                           {TEMPLATE_CHANNEL_LABELS[ch]}
                         </SelectItem>

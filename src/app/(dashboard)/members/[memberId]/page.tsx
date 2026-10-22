@@ -91,7 +91,7 @@ export default function MemberDetailPage({
 }) {
   const { memberId } = React.use(params);
   const router = useRouter();
-  const { can } = usePermissions();
+  const { can, canAny } = usePermissions();
   const canUpdateMembers = can("members:all", "update");
   const canDeleteMembers = can("members:all", "delete");
 
@@ -342,7 +342,7 @@ export default function MemberDetailPage({
       )}
 
       {/* Giving history */}
-      <TableCard
+      {canAny("giving:records:read") && <TableCard
         title={
           <span className="flex items-center gap-2">
             <HandCoins className="h-4 w-4" />
@@ -395,7 +395,7 @@ export default function MemberDetailPage({
             </TableBody>
           </Table>
         )}
-      </TableCard>
+      </TableCard>}
 
       {/* Attendance history */}
       <TableCard

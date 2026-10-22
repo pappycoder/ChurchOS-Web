@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft, Loader2, Megaphone } from "lucide-react";
@@ -54,12 +55,13 @@ const broadcastSchema = z.object({
 type BroadcastFormValues = z.infer<typeof broadcastSchema>;
 
 export default function NewBroadcastPage() {
+  const { data: profile } = useCurrentProfile();
   const router = useRouter();
   const { can } = usePermissions();
   const canCreate = can("broadcasts", "create");
   const createMutation = useCreateBroadcast();
 
-  const [channel, setChannel] = React.useState<BroadcastChannel>("whatsapp");
+  const [channel, setChannel] = React.useState<BroadcastChannel>("email");
   const templatesQuery = useTemplatesList({ status: "published", limit: 200 });
   const branchesQuery = useBranchesList({ limit: 200 });
 
@@ -72,7 +74,7 @@ export default function NewBroadcastPage() {
     resolver: zodResolver(broadcastSchema),
     defaultValues: {
       name: "",
-      channel: "whatsapp",
+      channel: "email",
       templateId: "",
       memberStatus: "",
       branchId: "",
@@ -199,7 +201,7 @@ export default function NewBroadcastPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {BROADCAST_CHANNELS.map((ch) => (
+                        {BROADCAST_CHANNELS.filter(ch => profile?.planFeatures?.includes(ch)).map((ch) => (
                           <SelectItem key={ch} value={ch}>
                             {BROADCAST_CHANNEL_LABELS[ch]}
                           </SelectItem>

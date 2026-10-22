@@ -13,3 +13,13 @@ describe("Subscription feature mapping", () => {
     expect(featureForPermission("billing:update")).toBeUndefined();
   });
 });
+
+describe('Tier-specific page boundaries', () => {
+  it.each([
+    ['/departments', 'groups'], ['/departments/cell-groups', 'groups'],
+    ['/events/management', 'tickets'], ['/events/check-in', 'tickets'], ['/events/id/tiers', 'tickets'],
+    ['/events/registrations', 'events'], ['/admin/integrations', 'email'],
+    ['/communication/broadcasts', 'email'], ['/communication/templates', 'email'],
+    ['/sermons', 'media'], ['/media/upload', 'media'], ['/admin/settings/webhooks', 'webhooks'],
+  ])('maps %s to %s', (path, feature) => expect(featureForPath(path)).toBe(feature));
+});
