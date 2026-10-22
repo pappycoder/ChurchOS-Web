@@ -12,8 +12,8 @@ async function fixture(context: BrowserContext, features: string[] | undefined, 
       requests.push(path);
       if(path==='/api/session')return new Response(JSON.stringify({hasSession:true}));
       const profile={ profileId:'p',userId:'u',churchId:'c',role:[role],status:'active',firstName:'Plan',lastName:'Test',isAdminHq:true,planFeatures:features,
-        permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','reports:view','reports:financial:read'] };
-      const data=path.endsWith('/profiles/me')?profile:path.endsWith('/church/roles')?{roles:['super_admin','senior_pastor','church_admin'].map(roleName=>({roleName,permissions:[],description:null,isCustomized:false}))}:path.endsWith('/church/roles/all')?[]:path.endsWith('/attendance/summary')?{totalCheckIns:42,memberCheckIns:30,visitorCheckIns:12,bySource:{},byCategory:{},byGender:{}}:path.endsWith('/attendance/trends')?[]:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
+        permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','attendance:services:create','attendance:services:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','giving:reports:read','reports:view','reports:financial:read','reports:attendance:read','reports:members:read'] };
+      const data=path.endsWith('/profiles/me')?profile:path.endsWith('/reports/financial')?{startDate:'2026-10-01',endDate:'2026-10-22',grandTotal:25000,transactionCount:2,averageAmount:12500,byCategory:[],monthlyTrend:[]}:path.endsWith('/church/roles')?{roles:['super_admin','senior_pastor','church_admin'].map(roleName=>({roleName,permissions:[],description:null,isCustomized:false}))}:path.endsWith('/church/roles/all')?[]:path.endsWith('/attendance/summary')?{totalCheckIns:42,memberCheckIns:30,visitorCheckIns:12,bySource:{},byCategory:{},byGender:{}}:path.endsWith('/attendance/trends')?[]:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
       return new Response(JSON.stringify({success:true,data}),{headers:{'Content-Type':'application/json'}});
     };
   },{features,role});
@@ -98,4 +98,52 @@ test('church roles and invitation options put Church Admin first and hide Super 
   await expect(page.getByRole('option').first()).toHaveText('Church Admin');
   await expect(page.getByRole('option', {name:'Super Admin',exact:true})).toHaveCount(0);
   await expect(page.getByRole('option', {name:'Senior Pastor',exact:true})).toBeVisible();
+});
+
+test('Essentials can open giving reports and generate financial reports without other report blocks', async ({page,context}) => {
+  await fixture(context, ['giving'], 'church_admin');
+  await page.goto('/giving/reports');
+  await expect(page.getByRole('heading', {name:'Reports',exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toHaveCount(0);
+  await page.goto('/reports');
+  await expect(page.getByText('Financial summary', {exact:true}).first()).toBeVisible();
+  await expect(page.getByRole('checkbox')).toHaveCount(1);
+  const requests = await page.evaluate(() => (window as unknown as {planRequests:string[]}).planRequests);
+  expect(requests.some(path => path.endsWith('/reports/financial'))).toBe(true);
+  expect(requests.some(path => /\/reports\/(attendance|members)$/.test(path))).toBe(false);
+  await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toHaveCount(0);
+});
+
+test('service creation and editing round-trip local clock times', async ({page,context}) => {
+  await fixture(context, ['giving'], 'church_admin');
+  await context.addInitScript(() => {
+    const previous = window.fetch.bind(window);
+    let saved: Record<string, unknown> | undefined;
+    window.fetch = async (input, options) => {
+      const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+      if (!path.startsWith('/api/') || !/\/services(?:\/clock-service)?$/.test(path)) return previous(input, options);
+      const method = options?.method ?? 'GET';
+      if (method === 'POST' || method === 'PATCH') {
+        saved = { serviceId:'clock-service',churchId:'c',name:'Sunday Service',category:'mixed',isActive:true,createdAt:'2026-10-22',updatedAt:'2026-10-22',...saved,...JSON.parse(String(options?.body ?? '{}')) };
+      }
+      const data = method === 'GET' ? { data:saved?[saved]:[],meta:{page:1,limit:15,total:saved?1:0,totalPages:1} } : saved;
+      return new Response(JSON.stringify({success:true,data}), {headers:{'Content-Type':'application/json'}});
+    };
+  });
+  await page.goto('/attendance/services');
+  await page.getByRole('button',{name:'Add Service',exact:true}).click();
+  await page.getByLabel('Name *',{exact:true}).fill('Sunday Service');
+  await page.getByLabel('Start Time',{exact:true}).fill('09:00');
+  await page.getByLabel('End Time',{exact:true}).fill('11:00');
+  await page.getByRole('button',{name:'Create Service',exact:true}).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('cell',{name:'09:00–11:00',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'More actions',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Edit',exact:true}).click();
+  await expect(page.getByLabel('Start Time',{exact:true})).toHaveValue('09:00');
+  await expect(page.getByLabel('End Time',{exact:true})).toHaveValue('11:00');
+  await page.getByLabel('Start Time',{exact:true}).fill('23:30');
+  await page.getByLabel('End Time',{exact:true}).fill('00:00');
+  await page.getByRole('button',{name:'Save Changes',exact:true}).click();
+  await expect(page.getByRole('cell',{name:'23:30–00:00',exact:true})).toBeVisible();
 });

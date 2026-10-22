@@ -11,7 +11,7 @@ export const launchPlans = [
       "Member and visitor directory",
       "Services and attendance",
       "Cash, bank and online giving",
-      "Giving categories, receipts and basic totals",
+      "Giving categories, receipts and giving reports",
       "Visitor follow-up",
       "Permission-based access",
     ],

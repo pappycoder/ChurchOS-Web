@@ -173,7 +173,7 @@ export default function ServiceDetailPage({
                   ]
                 : "Any day"}
               {service.startTime && service.endTime
-                ? ` · ${service.startTime.slice(11, 16)}–${service.endTime.slice(11, 16)}`
+                ? ` · ${service.startTime}–${service.endTime}`
                 : ""}
             </span>
             {latest && (

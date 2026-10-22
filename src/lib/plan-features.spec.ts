@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { featureForPath, featureForPermission } from "./plan-features";
+import { featureForPath, featureForPermission, planAllowsPath, planAllowsPermission } from "./plan-features";
 describe("Subscription feature mapping", () => {
   it("maps paid routes while leaving directory and account access available", () => {
     expect(featureForPath("/forms")).toBe("forms");
@@ -22,4 +22,11 @@ describe('Tier-specific page boundaries', () => {
     ['/communication/broadcasts', 'email'], ['/communication/templates', 'email'],
     ['/sermons', 'media'], ['/media/upload', 'media'], ['/admin/settings/webhooks', 'webhooks'],
   ])('maps %s to %s', (path, feature) => expect(featureForPath(path)).toBe(feature));
+});
+
+it('includes giving and financial reports in Essentials while other reports require Community', () => {
+  for (const path of ['/giving/reports', '/reports', '/reports/financial']) expect(planAllowsPath(['giving'], path)).toBe(true);
+  for (const permission of ['giving:reports:read', 'reports:view', 'reports:financial:read']) expect(planAllowsPermission(['giving'], permission)).toBe(true);
+  for (const permission of ['reports:attendance:read', 'reports:members:read']) expect(planAllowsPermission(['giving'], permission)).toBe(false);
+  expect(planAllowsPath(['giving'], '/analytics/giving')).toBe(false);
 });

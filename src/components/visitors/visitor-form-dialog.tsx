@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { useUsers } from "@/hooks/use-users";
 import {
   useCreateVisitor,
   useUpdateVisitor,
@@ -38,6 +39,7 @@ import {
 } from "@/hooks/use-visitors";
 
 const visitorSchema = z.object({
+  assignedToId: z.string().optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   gender: z.string().optional(),
@@ -50,6 +52,7 @@ type VisitorFormValues = z.infer<typeof visitorSchema>;
 
 function toFormValues(visitor?: Visitor | null): VisitorFormValues {
   return {
+    assignedToId: visitor?.assignedToId ?? "",
     firstName: visitor?.firstName ?? "",
     lastName: visitor?.lastName ?? "",
     gender: visitor?.gender ?? "",
@@ -72,6 +75,10 @@ export function VisitorFormDialog({
   onSaved?: (saved: Visitor) => void;
 }) {
   const isEdit = !!visitor;
+  const usersQuery = useUsers({ limit: 100, status: "active" });
+  const assignees = usersQuery.data?.data ?? [];
+  const currentAssigneeMissing = visitor?.assignedToId &&
+    !assignees.some((user) => user.profileId === visitor.assignedToId);
   const createMutation = useCreateVisitor();
   const updateMutation = useUpdateVisitor(visitor?.id ?? "");
   const [pending, setPending] = React.useState(false);
@@ -90,7 +97,9 @@ export function VisitorFormDialog({
   const onSubmit = async (values: VisitorFormValues) => {
     setPending(true);
     try {
+      const assignmentChanged = (values.assignedToId ?? "") !== (visitor?.assignedToId ?? "");
       const payload = {
+        assignedToId: assignmentChanged ? values.assignedToId || "" : undefined,
         firstName: values.firstName.trim(),
         lastName: values.lastName?.trim() || undefined,
         gender: values.gender || undefined,
@@ -121,7 +130,7 @@ export function VisitorFormDialog({
           <DialogTitle>{isEdit ? "Edit Visitor" : "Register Visitor"}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update the visitor's contact details."
+              ? "Update the visitor's contact details and follow-up assignee."
               : "Add a new visitor so your team can follow up."}
           </DialogDescription>
         </DialogHeader>
@@ -223,6 +232,44 @@ export function VisitorFormDialog({
                 )}
               />
             )}
+
+            <FormField
+              control={form.control}
+              name="assignedToId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned To</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "none" ? "" : value)}
+                    value={field.value || "none"}
+                    disabled={pending || usersQuery.isLoading}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select team member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Unassigned</SelectItem>
+                      {currentAssigneeMissing && (
+                        <SelectItem value={visitor.assignedToId!}>
+                          {visitor.assignedToName || "Current assignee"}
+                        </SelectItem>
+                      )}
+                      {assignees.map((user) => (
+                        <SelectItem key={user.profileId} value={user.profileId}>
+                          {user.firstName} {user.lastName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {usersQuery.isError && (
+                    <p className="text-sm text-destructive">Unable to load team members. Please try again.</p>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="pt-2">
               <Button

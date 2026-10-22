@@ -385,7 +385,7 @@ export default function VisitorDetailPage({
             <DataRow
               icon={<User className="h-4 w-4" />}
               label="Assigned To"
-              value={assignee ? `${assignee.firstName} ${assignee.lastName}` : undefined}
+              value={display.assignedToName || (assignee ? `${assignee.firstName} ${assignee.lastName}` : undefined)}
             />
           </CardContent>
         </Card>

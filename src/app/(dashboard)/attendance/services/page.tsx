@@ -19,7 +19,6 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
@@ -121,11 +120,9 @@ function toFormValues(service?: ChurchService | null): ServiceFormValues {
       service?.dayOfWeek !== undefined && service?.dayOfWeek !== null
         ? String(service.dayOfWeek)
         : "",
-    // datetime-local values are "HH:mm" strings on the wire
-    startTime: service?.startTime
-      ? format(parseISO(service.startTime), "HH:mm")
-      : "",
-    endTime: service?.endTime ? format(parseISO(service.endTime), "HH:mm") : "",
+    // Recurring schedules use local HH:mm clock values.
+    startTime: service?.startTime ?? "",
+    endTime: service?.endTime ?? "",
     isActive: service?.isActive ?? true,
   };
 }
@@ -365,7 +362,7 @@ export default function AttendanceServicesPage() {
                       <span className="flex items-center gap-1.5">
                         <Clock className="h-3.5 w-3.5" />
                         {service.startTime && service.endTime
-                          ? `${format(parseISO(service.startTime), "HH:mm")}–${format(parseISO(service.endTime), "HH:mm")}`
+                          ? `${service.startTime}–${service.endTime}`
                           : "-"}
                       </span>
                     </TableCell>
