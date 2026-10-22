@@ -17,7 +17,6 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
-import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   Dialog,
   DialogContent,
@@ -77,7 +76,7 @@ import {
 } from "@/components/shared/archive-confirm-dialog";
 
 const categorySchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().trim().min(1, "Name is required"),
   description: z.string().optional(),
   isActive: z.boolean(),
   isRecurring: z.boolean(),
@@ -94,7 +93,6 @@ export default function GivingCategoriesPage() {
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
-  const [branchId, setBranchId] = React.useState("");
   const [archivedFilter, setArchivedFilter] =
     React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
@@ -108,9 +106,8 @@ export default function GivingCategoriesPage() {
       page,
       limit: perPage,
       archived: archivedView ? true : undefined,
-      branchId: branchId || undefined,
     }),
-    [page, perPage, archivedView, branchId],
+    [page, perPage, archivedView],
   );
 
   const { data, isLoading, error } = useGivingCategories(queryParams);
@@ -162,12 +159,12 @@ export default function GivingCategoriesPage() {
         await updateMutation.mutateAsync({ categoryId: editing.categoryId, input: payload });
         toast.success("Category updated");
       } else {
-        await createMutation.mutateAsync({ ...payload, branchId: branchId || undefined });
+        await createMutation.mutateAsync(payload);
         toast.success("Category created");
       }
       setDialogOpen(false);
     } catch (error) {
-      // Backend enforces per-church name uniqueness and admin-only roles.
+      // Backend enforces church-wide name uniqueness and permissions.
       toast.error(
         editing ? "Failed to update category" : "Failed to create category",
         {
@@ -197,6 +194,7 @@ export default function GivingCategoriesPage() {
       <div>
         <PageHeader
           title="Categories"
+        description="Giving categories are shared across all branches in your church. Each name must be unique."
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Giving", href: "/giving" },
@@ -212,6 +210,7 @@ export default function GivingCategoriesPage() {
     <div className="space-y-4">
       <PageHeader
         title="Categories"
+        description="Giving categories are shared across all branches in your church. Each name must be unique."
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Giving", href: "/giving" },
@@ -245,7 +244,6 @@ export default function GivingCategoriesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
               onChange={setArchivedFilter}
