@@ -11,7 +11,7 @@ export function ChurchAttendanceRoster({
   ...props
 }: Pick<
   React.ComponentProps<typeof MemberAttendanceRoster>,
-  "onSubmit" | "disabled" | "onBusyChange"
+  "onSubmit" | "disabled" | "onBusyChange" | "controls"
 > & { branchId?: string }) {
   const [search, setSearch] = React.useState("");
   const [query, setQuery] = React.useState("");

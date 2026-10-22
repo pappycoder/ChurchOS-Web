@@ -5,6 +5,7 @@ import { GeneralAttendancePanel } from "@/components/attendance/general-attendan
 import { ChurchAttendanceRoster } from "@/components/attendance/church-attendance-roster";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -73,6 +74,7 @@ export default function CheckInPage() {
   const { can } = usePermissions();
   // Route gate already requires attendance:create; keep button-level checks consistent.
   const [checkingIn, setCheckingIn] = React.useState(false);
+  const [attendanceDate, setAttendanceDate] = React.useState(() => format(new Date(), "yyyy-MM-dd"));
   const canCreate = can("attendance:checkin", "create");
 
   // Selected service + category override.
@@ -278,10 +280,27 @@ export default function CheckInPage() {
       ) : mode === "members" ? (
         <ChurchAttendanceRoster
           onBusyChange={setCheckingIn}
-          key={serviceId}
+          key={`${serviceId}:${attendanceDate}`}
+          disabled={!attendanceDate}
+          controls={
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Attendance Date</span>
+              <Input
+                type="date"
+                aria-label="Attendance Date"
+                value={attendanceDate}
+                onChange={(event) => setAttendanceDate(event.target.value)}
+                disabled={checkingIn}
+                required
+                className="w-full sm:w-52"
+              />
+              <span className="block text-xs text-muted-foreground">Attendance will be recorded for this date.</span>
+            </label>
+          }
           branchId={selectedService?.branchId}
           onSubmit={async (ids) => {
             const result = await bulkMutation.mutateAsync({
+              attendanceDate,
               serviceId,
               records: ids.map((memberId) => ({ memberId })),
               category: effectiveCategory,

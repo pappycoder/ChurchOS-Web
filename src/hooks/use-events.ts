@@ -118,6 +118,7 @@ export interface CreateEventInput {
 export type UpdateEventInput = Partial<CreateEventInput>;
 
 export interface BulkCheckInInput {
+  attendanceDate?: string;
   memberIds: string[];
 }
 
@@ -162,11 +163,12 @@ export function useEventsList(
   params: ListEventsParams = {},
   options: { enabled?: boolean } = {}
 ) {
+  const { can } = usePermissions();
   return useQuery({
     queryKey: ["events-list", params],
     queryFn: ({ signal }) =>
       api.get<EventsListResponse>(`/events${buildQuery({ ...params })}`, { signal }),
-    enabled: options.enabled ?? true,
+    enabled: (options.enabled ?? true) && can("events:list", "read"),
   });
 }
 

@@ -4,6 +4,7 @@ import { GeneralAttendancePanel } from "@/components/attendance/general-attendan
 import { ChurchAttendanceRoster } from "@/components/attendance/church-attendance-roster";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
@@ -12,7 +13,6 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -64,6 +64,7 @@ type WalkInFormValues = z.infer<typeof walkInSchema>;
 export default function EventsCheckInPage() {
   const { can } = usePermissions();
   const [checkingIn, setCheckingIn] = React.useState(false);
+  const [attendanceDate, setAttendanceDate] = React.useState(() => format(new Date(), "yyyy-MM-dd"));
   const canCreate = can("events:checkin", "create");
 
   // Event selector.
@@ -250,10 +251,26 @@ export default function EventsCheckInPage() {
       ) : mode === "members" ? (
         <ChurchAttendanceRoster
           onBusyChange={setCheckingIn}
-          key={eventId}
+          key={`${eventId}:${attendanceDate}`}
+          disabled={!attendanceDate}
+          controls={
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Attendance Date</span>
+              <Input
+                type="date"
+                aria-label="Attendance Date"
+                value={attendanceDate}
+                onChange={(event) => setAttendanceDate(event.target.value)}
+                disabled={checkingIn}
+                required
+                className="w-full sm:w-52"
+              />
+              <span className="block text-xs text-muted-foreground">Attendance will be recorded for this date.</span>
+            </label>
+          }
           branchId={selectedEvent?.branchId}
           onSubmit={async (memberIds) => {
-            const result = await bulkMutation.mutateAsync({ memberIds });
+            const result = await bulkMutation.mutateAsync({ memberIds, attendanceDate });
             return { recorded: result.checkedIn, skipped: result.skipped };
           }}
         />

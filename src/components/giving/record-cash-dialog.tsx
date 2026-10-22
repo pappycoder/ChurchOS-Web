@@ -27,6 +27,7 @@ import {
   type GivingTransaction,
 } from "@/hooks/use-giving";
 import { useAttendanceServices } from "@/hooks/use-attendance";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useEventsList } from "@/hooks/use-events";
 import { MemberCombobox } from "@/components/members/member-combobox";
 import { AvailableSelect } from "@/components/shared/available-select";
@@ -59,6 +60,8 @@ export function RecordCashDialog({
   branchId?: string;
 }) {
   const { data: profile } = useCurrentProfile();
+  const { can } = usePermissions();
+  const canReadEvents = can("events:list", "read");
   const [selectedBranchId, setSelectedBranchId] = React.useState(initialBranchId ?? "");
   const branchId = profile?.isAdminHq ? selectedBranchId : profile?.branchId;
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: open && !!profile?.isAdminHq });
@@ -70,7 +73,7 @@ export function RecordCashDialog({
     { isActive: true, limit: 100, branchId },
     { enabled: open }
   );
-  const eventsQuery = useEventsList({ limit: 50, branchId }, { enabled: open });
+  const eventsQuery = useEventsList({ limit: 50, branchId }, { enabled: open && canReadEvents });
   const createCategoryMutation = useCreateGivingCategory();
   const recordMutation = useRecordCashGiving();
 
@@ -200,7 +203,7 @@ export function RecordCashDialog({
         <DialogHeader>
           <DialogTitle>Record Giving</DialogTitle>
           <DialogDescription>
-            Log a cash or bank-transfer gift against a member, service or event.
+            Log a cash or bank-transfer gift.
           </DialogDescription>
         </DialogHeader>
 
@@ -255,7 +258,7 @@ export function RecordCashDialog({
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Linked to</p>
             <div className="flex gap-1 rounded-md border p-1 w-fit">
-              {LINK_TABS.map((tab) => (
+              {LINK_TABS.filter((tab) => tab.value !== "event" || canReadEvents).map((tab) => (
                 <button
                   key={tab.value}
                   type="button"

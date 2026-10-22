@@ -147,6 +147,7 @@ export interface RecordAttendanceInput {
 }
 
 export interface RecordBulkAttendanceInput {
+  attendanceDate?: string;
   serviceId?: string;
   eventId?: string;
   records: Array<{

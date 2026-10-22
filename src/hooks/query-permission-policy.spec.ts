@@ -6,7 +6,7 @@ import { useAssetCategories } from "./use-assets";
 import { useMediaFolders } from "./use-media";
 import { useFormSubmissions } from "./use-forms";
 import { useCurrentProfile } from "./use-profile";
-import { useEventRegistrations, useEventAttendance } from "./use-events";
+import { useEventsList, useEventRegistrations, useEventAttendance } from "./use-events";
 import { useFamiliesList } from "./use-families";
 import { useAnalyticsDashboard, useAnalyticsGiving, useAnalyticsAttendance, useAnalyticsMembers } from "./use-analytics";
 import { api } from "@/lib/api";
@@ -53,6 +53,15 @@ describe("permission-gated queries", () => {
     state.query.mockClear(); state.grants.add("roles:read");
     useRolesSummary(); useRolePermissions("secretary"); useAllPermissions();
     expect(state.query.mock.calls.map(([options]) => options.enabled)).toEqual([true, true, true]);
+  });
+
+  it("does not request paid event pickers without effective event-list access", () => {
+    useEventsList({}, { enabled: true });
+    expect(state.query.mock.calls[0][0].enabled).toBe(false);
+    state.grants.add("events:list:read");
+    useEventsList();
+    useEventsList({}, { enabled: false });
+    expect(state.query.mock.calls.slice(1).map(([options]) => options.enabled)).toEqual([true, false]);
   });
 
   it("fetches event registrations and attendance independently by permission", () => {

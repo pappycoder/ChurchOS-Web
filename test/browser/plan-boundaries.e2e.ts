@@ -12,7 +12,7 @@ async function fixture(context: BrowserContext, features: string[] | undefined, 
       requests.push(path);
       if(path==='/api/session')return new Response(JSON.stringify({hasSession:true}));
       const profile={ profileId:'p',userId:'u',churchId:'c',role:[role],status:'active',firstName:'Plan',lastName:'Test',isAdminHq:true,planFeatures:features,
-        permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','attendance:services:create','attendance:services:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','giving:reports:read','reports:view','reports:financial:read','reports:attendance:read','reports:members:read'] };
+        permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','attendance:services:create','attendance:services:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','giving:records:create','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','giving:reports:read','reports:view','reports:financial:read','reports:attendance:read','reports:members:read'] };
       const data=path.endsWith('/profiles/me')?profile:path.endsWith('/reports/financial')?{startDate:'2026-10-01',endDate:'2026-10-22',grandTotal:25000,transactionCount:2,averageAmount:12500,byCategory:[],monthlyTrend:[]}:path.endsWith('/church/roles')?{roles:['super_admin','senior_pastor','church_admin'].map(roleName=>({roleName,permissions:[],description:null,isCustomized:false}))}:path.endsWith('/church/roles/all')?[]:path.endsWith('/attendance/summary')?{totalCheckIns:42,memberCheckIns:30,visitorCheckIns:12,bySource:{},byCategory:{},byGender:{}}:path.endsWith('/attendance/trends')?[]:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
       return new Response(JSON.stringify({success:true,data}),{headers:{'Content-Type':'application/json'}});
     };
@@ -147,3 +147,47 @@ test('service creation and editing round-trip local clock times', async ({page,c
   await page.getByRole('button',{name:'Save Changes',exact:true}).click();
   await expect(page.getByRole('cell',{name:'23:30–00:00',exact:true})).toBeVisible();
 });
+
+for (const method of ['cash', 'bank_transfer']) {
+  test(`Essentials records ${method} giving without fetching paid event data`, async ({page,context}) => {
+    await fixture(context, ['giving'], 'church_admin');
+    await context.addInitScript(() => {
+      const previous = window.fetch.bind(window);
+      const calls: {path:string;body?:Record<string,unknown>}[] = [];
+      (window as unknown as {givingCalls:typeof calls}).givingCalls = calls;
+      window.fetch = async (input, options) => {
+        const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+        calls.push({path,body: options?.body ? JSON.parse(String(options.body)) : undefined});
+        let data: unknown;
+        if (path.endsWith('/profiles/me')) {
+          const response = await previous(input, options);
+          const body = await response.json();
+          body.data.isAdminHq = false;
+          body.data.branchId = 'branch-a';
+          return Response.json(body);
+        }
+        if (path.endsWith('/events')) return Response.json({success:false,error:{code:'PLAN_FEATURE_REQUIRED',message:'Upgrade required'}},{status:403});
+        if (path.endsWith('/giving/categories')) data = {data:[{categoryId:'offering',name:'Offering',isActive:true}],meta:{page:1,limit:100,total:1,totalPages:1}};
+        else if (path.endsWith('/giving/cash')) data = {transactionId:'gift-a',currency:'NGN',amount:5000,receiptNumber:'R-001'};
+        else return previous(input, options);
+        return Response.json({success:true,data});
+      };
+    });
+    await page.goto('/giving/records');
+    await page.getByRole('button',{name:'Record Giving',exact:true}).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.getByRole('button',{name:'Event',exact:true})).toHaveCount(0);
+    await dialog.getByPlaceholder('e.g. 5000').fill('5000');
+    if (method === 'bank_transfer') {
+      await dialog.getByRole('combobox').nth(1).click();
+      await page.getByRole('option',{name:'Bank transfer',exact:true}).click();
+    }
+    await dialog.getByText('Choose or type a category',{exact:true}).click();
+    await page.getByRole('option',{name:'Offering',exact:true}).click();
+    await dialog.getByRole('button',{name:'Record Giving',exact:true}).click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    const calls = await page.evaluate(() => (window as unknown as {givingCalls:{path:string;body?:Record<string,unknown>}[]}).givingCalls);
+    expect(calls.some(call => call.path.endsWith('/events'))).toBe(false);
+    expect(calls.find(call => call.path.endsWith('/giving/cash'))?.body).toMatchObject({amount:5000,type:method,categoryId:'offering',branchId:'branch-a'});
+  });
+}

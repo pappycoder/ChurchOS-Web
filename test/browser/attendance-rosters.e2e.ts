@@ -46,6 +46,7 @@ test.beforeEach(async ({ context }, info) => {
             status: "active",
             role: ["custom"],
             isAdminHq: false,
+            planFeatures: ["giving", "events", "groups", "tickets"],
             permissions: [
               "attendance:view",
               "attendance:checkin:create",
@@ -205,6 +206,7 @@ test("service roster loads real pages and records 210 selections in bounded batc
   page,
 }) => {
   await selectService(page);
+  await page.getByLabel("Attendance Date", {exact:true}).fill("2026-10-18");
   const roster = await selectAllPages(page);
   await expect(roster.getByRole("button",{name:/export/i})).toHaveCount(0);
   await roster
@@ -213,15 +215,17 @@ test("service roster loads real pages and records 210 selections in bounded batc
   await expect(roster.getByText("0 selected", { exact: true })).toBeVisible();
   const calls = await page.evaluate(
     () =>
-      (window as unknown as { rosterCalls: { body: { records: unknown[] } }[] })
+      (window as unknown as { rosterCalls: { body: { records: unknown[]; attendanceDate: string } }[] })
         .rosterCalls,
   );
   expect(calls.map((call) => call.body.records.length)).toEqual([200, 10]);
+  expect(calls.map((call) => call.body.attendanceDate)).toEqual(["2026-10-18", "2026-10-18"]);
 });
 test("partial batch failure keeps unsaved selections for retry", async ({
   page,
 }) => {
   await selectService(page);
+  await page.getByLabel("Attendance Date", {exact:true}).fill("2026-10-18");
   const roster = await selectAllPages(page);
   await roster
     .getByRole("button", { name: "Mark attendance (210)", exact: true })
@@ -238,6 +242,7 @@ test("event roster keeps selections across searches", async ({ page }) => {
   await page.goto("/events/check-in");
   await page.getByRole("combobox").first().click();
   await page.getByRole("option", { name: /Annual Meeting/ }).click();
+  await page.getByLabel("Attendance Date", {exact:true}).fill("2026-10-19");
   const roster = page.getByLabel("Attendance roster", { exact: true });
   await roster
     .getByRole("checkbox", { name: "Select Person 0 Test", exact: true })
@@ -256,11 +261,12 @@ test("event roster keeps selections across searches", async ({ page }) => {
     () =>
       (
         window as unknown as {
-          rosterCalls: { body: { memberIds: string[] } }[];
+          rosterCalls: { body: { memberIds: string[]; attendanceDate: string } }[];
         }
       ).rosterCalls,
   );
   expect(calls[0].body.memberIds).toEqual(["member-0", "member-209"]);
+  expect(calls[0].body.attendanceDate).toBe("2026-10-19");
 });
 for (const type of ["department", "cell"] as const)
   test(`${type} meeting roster searches and saves multiple own members`, async ({
@@ -314,4 +320,19 @@ test("dashboard has no export controls", async ({ page }) => {
   await expect(
     page.locator("#main-content").getByRole("button", { name: /export/i }),
   ).toHaveCount(0);
+});
+
+test("service roster requires a date and clears selections when the day changes", async ({page}) => {
+  await selectService(page);
+  const roster = page.getByLabel('Attendance roster', {exact:true});
+  const date = roster.getByLabel('Attendance Date', {exact:true});
+  await expect(date).toHaveValue(/\d{4}-\d{2}-\d{2}/);
+  await date.fill('');
+  await roster.getByRole('checkbox', {name:'Select Person 0 Test',exact:true}).click();
+  await expect(roster.getByRole('button', {name:'Mark attendance (1)',exact:true})).toBeDisabled();
+  await date.fill('2026-10-18');
+  await expect(roster.getByText('0 selected', {exact:true})).toBeVisible();
+  await roster.getByRole('checkbox', {name:'Select Person 0 Test',exact:true}).click();
+  await date.fill('2026-10-19');
+  await expect(roster.getByText('0 selected', {exact:true})).toBeVisible();
 });
