@@ -193,3 +193,92 @@ test("closing the AI drawer cannot restore support after the session ended", asy
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeHidden();
 });
+
+test("stalled assistant access times out and retry restores sending without an AI key", async ({ page, context }) => {
+  await fixture(context, "guides"); await answerRoute(page);
+  await context.addInitScript(() => {
+    const previous = window.fetch;
+    let attempts = 0;
+    window.fetch = async (input, options) => {
+      const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+      if (path.endsWith('/assistant/context') && attempts++ === 0) return new Promise<Response>(() => {});
+      return previous(input, options);
+    };
+  });
+  await page.clock.install();
+  await page.goto('/dashboard');
+  await page.getByRole('button', { name: 'Ask ChurchOS', exact: true }).click();
+  await expect(page.getByLabel('Your ChurchOS question')).toBeDisabled();
+  await page.clock.fastForward(15001);
+  await expect(page.getByRole('dialog', { name: 'Ask ChurchOS' }).getByRole('alert')).toContainText('took too long to verify');
+  await page.getByRole('button', { name: 'Retry assistant', exact: true }).click();
+  await expect(page.getByLabel('Your ChurchOS question')).toBeEnabled();
+  await page.getByLabel('Your ChurchOS question').fill('   ');
+  await expect(page.getByRole('button', { name: 'Send ChurchOS question' })).toBeDisabled();
+  await expect(page.getByText('Type a question to send.', { exact: true })).toBeVisible();
+  await page.getByLabel('Your ChurchOS question').fill('How do table controls work?');
+  await expect(page.getByRole('button', { name: 'Send ChurchOS question' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Send ChurchOS question' }).click();
+  await expect(page.getByText(reply().answer, { exact: true })).toBeVisible();
+});
+
+test("stalled answers restore the question and Send instead of leaving the composer disabled", async ({ page, context }) => {
+  await fixture(context);
+  await page.clock.install();
+  let release: (() => void) | undefined;
+  let calls = 0;
+  await page.route('**/api/backend/assistant/message', async route => {
+    calls++;
+    if (calls === 1) {
+      await new Promise<void>(resolve => { release = resolve; });
+      await route.fulfill({ json: { success: true, data: reply('Expired reply must not return.') } }).catch(() => {});
+    } else await route.fulfill({ json: { success: true, data: reply() } });
+  });
+  await open(page);
+  await page.getByLabel('Your ChurchOS question').fill('Explain table controls');
+  await page.getByRole('button', { name: 'Send ChurchOS question' }).click();
+  await expect.poll(() => calls).toBe(1);
+  await page.clock.fastForward(35001);
+  await expect(page.getByRole('log').getByRole('alert')).toContainText('took too long to answer');
+  await expect(page.getByLabel('Your ChurchOS question')).toHaveValue('Explain table controls');
+  await expect(page.getByRole('button', { name: 'Send ChurchOS question' })).toBeEnabled();
+  release?.();
+  await page.getByRole('button', { name: 'Send ChurchOS question' }).click();
+  await expect(page.getByText(reply().answer, { exact: true })).toBeVisible();
+  await expect(page.getByText('Expired reply must not return.', { exact: true })).toHaveCount(0);
+});
+
+test("an empty assistant context response shows retry instead of a permanently disabled composer", async ({ page, context }) => {
+  await fixture(context);
+  await context.addInitScript(() => {
+    const previous = window.fetch;
+    let attempts = 0;
+    window.fetch = async (input, options) => {
+      const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+      if (path.endsWith('/assistant/context') && attempts++ === 0) return Response.json({ success: true });
+      return previous(input, options);
+    };
+  });
+  await page.goto('/dashboard');
+  await page.getByRole('button', { name: 'Ask ChurchOS', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Ask ChurchOS' }).getByRole('alert')).toContainText('couldn’t load assistant access');
+  await page.getByRole('button', { name: 'Retry assistant', exact: true }).click();
+  await expect(page.getByLabel('Your ChurchOS question')).toBeEnabled();
+  await page.getByLabel('Your ChurchOS question').fill('Explain this page');
+  await expect(page.getByRole('button', { name: 'Send ChurchOS question' })).toBeEnabled();
+});
+
+
+for (const mode of ["guides", "ai"]) test(`typing a short message enables Send in ${mode} mode`, async ({ page, context }) => {
+  await fixture(context, mode); await answerRoute(page, reply("How can I help you use ChurchOS?", mode));
+  await open(page);
+  const input = page.getByLabel("Your ChurchOS question");
+  const send = page.getByRole("button", { name: "Send ChurchOS question" });
+  await expect(send).toBeDisabled();
+  await input.pressSequentially("Hi");
+  await expect(input).toHaveValue("Hi");
+  await expect(send).toBeEnabled();
+  await send.click();
+  await expect(page.getByText("How can I help you use ChurchOS?", { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { assistantCalls: unknown[] }).assistantCalls)).toEqual([{ question: "Hi", page: "/dashboard", history: [] }]);
+});

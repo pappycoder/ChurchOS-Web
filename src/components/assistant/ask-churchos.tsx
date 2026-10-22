@@ -65,12 +65,19 @@ function AssistantPanel({ profile }: { profile: CurrentProfile }) {
     if (!open) return;
     const controller = new AbortController();
     setContextError(""); setContext(null);
+    const timeout = window.setTimeout(() => {
+      controller.abort();
+      setContext(null);
+      setContextError("ChurchOS took too long to verify assistant access. Please retry.");
+    }, 15000);
     api.get<Context>("/assistant/context", { signal: controller.signal }).then(value => {
+      if (!value || !["ai", "guides"].includes(value.mode) || !value.scope || !value.limits)
+        throw new Error("ChurchOS couldn’t load assistant access. Please retry.");
       if (!controller.signal.aborted) setContext(value);
     }).catch(error => {
       if (!controller.signal.aborted) { setContext(null); setContextError(getToastErrorMessage(error, "We couldn’t verify assistant access. Please retry.")); }
-    });
-    return () => controller.abort();
+    }).finally(() => window.clearTimeout(timeout));
+    return () => { window.clearTimeout(timeout); controller.abort(); };
   }, [open, contextAttempt]);
   useEffect(() => { end.current?.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, [turns, pending]);
 
@@ -83,13 +90,19 @@ function AssistantPanel({ profile }: { profile: CurrentProfile }) {
   }
   async function send(text = question) {
     const cleaned = text.trim();
-    if (!context || pending || active.current || cleaned.length < 3 || cleaned.length > 1200) return;
+    if (!context || pending || active.current || cleaned.length === 0 || cleaned.length > 1200) return;
     const id = ++sequence.current;
     const controller = new AbortController();
     active.current = controller;
     const history = turns.filter(turn => turn.reply).slice(-3).map(turn => turn.question.slice(0, 600));
     setTurns(previous => [...previous.slice(-19), { id, question: cleaned }]);
     setQuestion(""); setPending(true);
+    const timeout = window.setTimeout(() => {
+      if (active.current !== controller) return;
+      controller.abort(); active.current = null;
+      setPending(false); setQuestion(cleaned);
+      setTurns(previous => previous.map(turn => turn.id === id ? { ...turn, error: "ChurchOS took too long to answer. Your question is saved below; please try again." } : turn));
+    }, 35000);
     try {
       const reply = await api.post<Reply>("/assistant/message", { question: cleaned, page, history }, { signal: controller.signal });
       if (!controller.signal.aborted) setTurns(previous => previous.map(turn => turn.id === id ? { ...turn, reply } : turn));
@@ -98,7 +111,10 @@ function AssistantPanel({ profile }: { profile: CurrentProfile }) {
         setTurns(previous => previous.map(turn => turn.id === id ? { ...turn, error: getToastErrorMessage(error, "We couldn’t answer that question. Please try again.") } : turn));
         setQuestion(cleaned);
       }
-    } finally { if (active.current === controller) { active.current = null; setPending(false); } }
+    } finally {
+      window.clearTimeout(timeout);
+      if (active.current === controller) { active.current = null; setPending(false); }
+    }
   }
   function reset() {
     active.current?.abort(); active.current = null;
@@ -139,8 +155,9 @@ function AssistantPanel({ profile }: { profile: CurrentProfile }) {
         </div>
         <form className="shrink-0 space-y-2 border-t bg-background p-4" onSubmit={event => { event.preventDefault(); void send(); }}>
           <label htmlFor="churchos-question" className="sr-only">Your ChurchOS question</label>
-          <Textarea id="churchos-question" value={question} onChange={event => setQuestion(event.target.value)} maxLength={1200} placeholder="Ask about ChurchOS…" disabled={!context || pending} className="max-h-32 min-h-20 resize-none" onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
-          <div className="flex items-center justify-between gap-2"><Button type="button" variant="ghost" size="sm" onClick={reset} disabled={!turns.length}><RotateCcw className="size-3.5" />New conversation</Button><Button type="submit" size="sm" disabled={!context || pending || question.trim().length < 3} aria-label="Send ChurchOS question"><ArrowUp className="size-4" />Send</Button></div>
+          <Textarea id="churchos-question" aria-describedby="churchos-question-hint" value={question} onChange={event => setQuestion(event.target.value)} maxLength={1200} placeholder="Ask about ChurchOS…" disabled={!context || pending} className="max-h-32 min-h-20 resize-none" onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); void send(); } }} />
+          <p id="churchos-question-hint" className="text-xs text-muted-foreground">{!context ? (contextError ? "Retry assistant access to send a question." : "Checking access before you can send.") : pending ? "Waiting for an answer…" : question.trim().length === 0 ? "Type a question to send." : "Press Enter to send, or Shift+Enter for a new line."}</p>
+          <div className="flex items-center justify-between gap-2"><Button type="button" variant="ghost" size="sm" onClick={reset} disabled={!turns.length}><RotateCcw className="size-3.5" />New conversation</Button><Button type="submit" size="sm" disabled={!context || pending || question.trim().length === 0} aria-label="Send ChurchOS question"><ArrowUp className="size-4" />Send</Button></div>
           <p className="text-[11px] leading-4 text-muted-foreground">{context?.mode === "ai" ? `AI allowance: up to ${context.limits.userDailyQuestions} questions per person and ${context.limits.churchDailyQuestions} per church daily, subject to shared availability. ` : "Answers use ChurchOS product references. "}Conversation stays in this tab and clears when your access changes.</p>
         </form>
       </div>
