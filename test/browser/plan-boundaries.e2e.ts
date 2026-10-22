@@ -1,8 +1,8 @@
 import { test, expect, type BrowserContext } from '@playwright/test';
-async function fixture(context: BrowserContext, features: string[] | undefined) {
+async function fixture(context: BrowserContext, features: string[] | undefined, role = "branch_pastor") {
   await context.route('https://embed.tawk.to/**', route => route.fulfill({body:''}));
   await context.addCookies([{name:'churchos_token',value:'plan-fixture',url:'http://127.0.0.1:3107'}]);
-  await context.addInitScript(({features}) => {
+  await context.addInitScript(({features,role}) => {
     const original=window.fetch.bind(window);
     const requests:string[]=[];
     (window as unknown as { planRequests:string[] }).planRequests=requests;
@@ -11,22 +11,32 @@ async function fixture(context: BrowserContext, features: string[] | undefined) 
       if(!path.startsWith('/api/'))return original(input,options);
       requests.push(path);
       if(path==='/api/session')return new Response(JSON.stringify({hasSession:true}));
-      const profile={ profileId:'p',userId:'u',churchId:'c',role:['branch_pastor'],status:'active',firstName:'Plan',lastName:'Test',isAdminHq:true,planFeatures:features,
-        permissions:['members:all:read','members:read','families:read','attendance:dashboard:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','reports:view','reports:financial:read'] };
-      const data=path.endsWith('/profiles/me')?profile:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
+      const profile={ profileId:'p',userId:'u',churchId:'c',role:[role],status:'active',firstName:'Plan',lastName:'Test',isAdminHq:true,planFeatures:features,
+        permissions:[...(role==='church_admin'?['integrations:read','integrations:update']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','reports:view','reports:financial:read'] };
+      const data=path.endsWith('/profiles/me')?profile:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
       return new Response(JSON.stringify({success:true,data}),{headers:{'Content-Type':'application/json'}});
     };
-  },{features});
+  },{features,role});
 }
 test('Essentials blocks paid pages and hides their nested navigation without fetching module data',async({page,context})=>{
-  await fixture(context,[]);
-  for(const path of ['/giving/categories','/departments','/departments/cell-groups','/forms','/events/management','/pastoral','/assets','/sermons']){
+  await fixture(context,["giving"]);
+  for(const path of ['/departments','/departments/cell-groups','/forms','/events/management','/pastoral','/assets','/sermons']){
     await page.goto(path);
     await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toBeVisible();
     await expect(page.getByRole('button',{name:'View historical records'})).toHaveCount(0);
     const requests=await page.evaluate(()=>(window as unknown as {planRequests:string[]}).planRequests);
     expect(requests.some(path=>/^\/api\/v1\/(giving|forms|events|pastoral|assets|sermons|admin\/(departments|cell-groups))(\/|$)/.test(path))).toBe(false);
   }
+});
+test('Essentials can use giving categories and records while analytics stays locked',async({page,context})=>{
+  await fixture(context,['giving']);
+  await page.goto('/giving/categories');
+  await expect(page.getByRole('heading',{name:'Categories',exact:true})).toBeVisible();
+  await page.goto('/giving/records');
+  await expect(page.getByRole('heading',{name:'Records',exact:true})).toBeVisible();
+  await expect(page.getByText('Send to giver…')).toHaveCount(0);
+  await page.goto('/analytics/giving');
+  await expect(page.getByText('Available on Network and higher plans.')).toBeVisible();
 });
 test('Community includes giving and groups but blocks Network tickets and check-in',async({page,context})=>{
   await fixture(context,['giving','events','groups','forms','reports','email','media']);
@@ -42,4 +52,22 @@ test('missing plan entitlements fail closed for paid modules',async({page,contex
   await fixture(context,undefined);
   await page.goto('/forms');
   await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toBeVisible();
+});
+
+test('Community creates free events while paid-event controls require Network',async({page,context})=>{
+  await fixture(context,['giving','events','groups','forms','reports','email','media']);
+  await page.goto('/events/new');
+  await expect(page.getByRole('switch')).toBeDisabled();
+  await expect(page.getByRole('switch')).toBeChecked();
+  await expect(page.getByText('Paid events require Network or above and ticket management access.')).toBeVisible();
+});
+
+test('Essentials administrators can configure payments without email or messaging channels',async({page,context})=>{
+  await fixture(context,['giving'],'church_admin');
+  await page.goto('/admin/integrations');
+  await expect(page.getByRole('heading',{name:'Payments',exact:true})).toBeVisible();
+  await expect(page.getByLabel('Provider',{exact:true})).toBeVisible();
+  await expect(page.getByRole('heading',{name:'Email',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('heading',{name:'WhatsApp',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('heading',{name:'SMS',exact:true})).toHaveCount(0);
 });

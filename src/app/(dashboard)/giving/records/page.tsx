@@ -77,6 +77,8 @@ export default function GivingRecordsPage() {
   const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const canCreate = can("giving:records", "create");
+  const canEmailReceipt = profile?.planFeatures?.includes("email") === true;
+  const canWhatsAppReceipt = profile?.planFeatures?.includes("whatsapp") === true;
 
   // Filters
   const [categoryId, setCategoryId] = React.useState("all");
@@ -423,11 +425,11 @@ export default function GivingRecordsPage() {
                                 <Receipt className="mr-2 h-4 w-4" />
                                 Download PDF
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => setReceiptTarget(tx)}>
+                              {(canEmailReceipt || canWhatsAppReceipt) && <DropdownMenuSeparator />}
+                              {(canEmailReceipt || canWhatsAppReceipt) && <DropdownMenuItem onClick={() => setReceiptTarget(tx)}>
                                 <SendHorizonal className="mr-2 h-4 w-4" />
                                 Send to giver…
-                              </DropdownMenuItem>
+                              </DropdownMenuItem>}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -458,16 +460,16 @@ export default function GivingRecordsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end">
-            <Button
+            {canWhatsAppReceipt && <Button
               variant="outline"
               onClick={() => void handleSendReceipt("whatsapp")}
               disabled={sendReceiptMutation.isPending}
             >
               WhatsApp
-            </Button>
-            <Button onClick={() => void handleSendReceipt("email")} disabled={sendReceiptMutation.isPending}>
+            </Button>}
+            {canEmailReceipt && <Button onClick={() => void handleSendReceipt("email")} disabled={sendReceiptMutation.isPending}>
               Email
-            </Button>
+            </Button>}
           </DialogFooter>
         </DialogContent>
       </Dialog>

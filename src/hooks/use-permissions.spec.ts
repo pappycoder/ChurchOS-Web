@@ -43,6 +43,15 @@ describe("frontend permission enforcement", () => {
     expect(checker.canAny("events:tickets:read", "events:checkin:create")).toBe(false);
   });
 
+  it("includes giving and payment setup on Essentials without unlocking groups, communication or analytics", () => {
+    state.data={status:"active",planFeatures:["giving"],permissions:["giving:records:read","giving:records:create","giving:categories:create","integrations:read","integrations:update","cell_groups:giving:read","broadcasts:read","analytics:giving:read"]};
+    const checker=check();
+    expect(checker.canAny("giving:records:read")).toBe(true);
+    expect(checker.canAny("giving:records:create")).toBe(true);
+    expect(checker.canAny("integrations:update")).toBe(true);
+    expect(checker.canAny("cell_groups:giving:read","broadcasts:read","analytics:giving:read")).toBe(false);
+  });
+
   it.each(["loading", "error", "inactive", "missing"])("fails closed for %s, including cached grants", (condition) => {
     if (condition === "loading") state.isLoading = true;
     if (condition === "error") state.isError = true;

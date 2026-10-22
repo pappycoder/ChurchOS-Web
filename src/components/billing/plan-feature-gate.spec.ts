@@ -27,3 +27,8 @@ describe('Plan feature gate', () => {
     expect(renderToString(React.createElement(PlanFeatureGate,null,'Included form content'))).toContain('Included form content');
   });
 });
+
+it('names Essentials correctly when giving entitlement data is missing', () => {
+  state.path='/giving';state.features=undefined;
+  expect(renderToString(React.createElement(PlanFeatureGate,null,'Giving records'))).toContain('Essentials');
+});

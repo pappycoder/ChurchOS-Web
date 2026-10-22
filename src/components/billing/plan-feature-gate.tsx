@@ -14,6 +14,8 @@ export function PlanFeatureGate({ children }: { children: React.ReactNode }) {
     profile?.planFeatures?.includes(feature)
   )
     return <>{children}</>;
+  const minimumPlan = FEATURE_MINIMUM_PLAN[feature];
+  const minimumPlanName = minimumPlan[0].toUpperCase() + minimumPlan.slice(1);
   const admin = profile?.role.some(
     (r) => r === "church_admin" || r === "super_admin",
   );
@@ -23,7 +25,7 @@ export function PlanFeatureGate({ children }: { children: React.ReactNode }) {
         This feature is available on a different plan
       </h1>
       <p className="text-muted-foreground">
-        Available on {FEATURE_MINIMUM_PLAN[feature] === "community" ? "Community" : "Network"} and higher plans.
+        Available on {minimumPlanName} and higher plans.
       </p>
       <p className="text-muted-foreground">
         {admin

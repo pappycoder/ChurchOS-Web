@@ -10,6 +10,8 @@ export const launchPlans = [
     features: [
       "Member and visitor directory",
       "Services and attendance",
+      "Cash, bank and online giving",
+      "Giving categories, receipts and basic totals",
       "Visitor follow-up",
       "Permission-based access",
     ],
@@ -23,7 +25,6 @@ export const launchPlans = [
     capacity: "300 members · 1 location · 5 staff accounts",
     features: [
       "Everything in Essentials",
-      "Giving records and receipts",
       "Events and registrations",
       "Departments and cell groups",
       "Forms and essential reports",
