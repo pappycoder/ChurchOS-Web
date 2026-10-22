@@ -102,7 +102,7 @@ export function UserFormDialog({
   const handleInviteSubmit = (values: InviteFormValues) => {
     inviteMutation.mutate(values, {
       onSuccess: () => {
-        toast.success("User invited successfully");
+        toast.success("Invitation created", { description: "They’ll receive a ChurchOS email to set their password." });
         onOpenChange(false);
       },
       onError: (error) => {

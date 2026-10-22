@@ -299,6 +299,13 @@ export function useForgotPassword() {
   });
 }
 
+export function useAcceptInvitation() {
+  return useMutation({
+    mutationFn: (input: {token: string; newPassword: string}) =>
+      api.post<{success: boolean}>("/auth/accept-invitation", input, {skipAuth:true}),
+  });
+}
+
 export function useResetPassword() {
   return useMutation({
     mutationFn: async (input: ResetPasswordInput) => {

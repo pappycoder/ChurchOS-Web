@@ -42,6 +42,7 @@ async function proxy(request: NextRequest, context: Context) {
   if (
     token &&
     !sessionEndpoints.has(endpoint) &&
+    endpoint !== "auth/accept-invitation" &&
     !isAnonymousPublicFormRequest(endpoint, request.method)
   )
     headers.set("authorization", `Bearer ${token}`);

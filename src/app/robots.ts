@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
   if (isPreviewDeployment()) return { rules: { userAgent: "*", disallow: "/" } };
   return {
     rules: { userAgent: "*", allow: "/", disallow: [
-      "/api/", "/login", "/register", "/forgot-password", "/reset-password",
+      "/api/", "/login", "/register", "/forgot-password", "/reset-password", "/accept-invitation",
       "/subscription", "/payment/", "/offline", "/docs", "/support",
       "/dashboard", "/members", "/visitors", "/attendance", "/giving",
       "/events", "/forms", "/media", "/pastoral", "/admin", "/profile",
