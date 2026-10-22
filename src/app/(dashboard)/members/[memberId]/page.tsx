@@ -22,7 +22,7 @@ import {
   StickyNote,
   Tag,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -380,7 +380,7 @@ export default function MemberDetailPage({
               {pagedGiving.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell className="text-muted-foreground">
-                    {format(new Date(tx.createdAt), "MMM d, yyyy")}
+                    {format(parseISO(tx.givingDate ?? tx.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell className="font-medium">
                     {tx.currency} {Number(tx.amount).toLocaleString()}

@@ -11,7 +11,7 @@ import {
   Settings2,
   Wallet,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import {
   Area,
   AreaChart,
@@ -222,7 +222,7 @@ export default function GivingDashboardPage() {
                     </p>
                     <p className="text-xs text-muted-foreground truncate">
                       {tx.categoryName} ·{" "}
-                      {format(new Date(tx.createdAt), "MMM d")}
+                      {format(parseISO(tx.givingDate ?? tx.createdAt), "MMM d")}
                       {tx.receiptNumber ? ` · ${tx.receiptNumber}` : ""}
                     </p>
                   </div>

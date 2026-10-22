@@ -287,7 +287,7 @@ export default function AttendanceRecordsPage() {
                     <TableHead>Service</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Source</TableHead>
-                    <TableHead exportKeys={["date", "time"]}>Checked In</TableHead>
+                    <TableHead exportKeys={["date", "time"]}>Date</TableHead>
                     {canDelete && <TableHead className="text-right">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
@@ -318,7 +318,7 @@ export default function AttendanceRecordsPage() {
                         {record.source}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {format(new Date(record.checkInAt), "MMM d, yyyy · HH:mm")}
+                        {format(new Date(record.checkInAt), "MMM d, yyyy")}
                       </TableCell>
                       {canDelete && (
                         <TableCell className="text-right">

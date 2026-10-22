@@ -43,6 +43,7 @@ export type UpdateGivingCategoryInput = Partial<Omit<CreateGivingCategoryInput, 
 
 /** Shape returned by GET /giving/transactions (TransactionResponseDto). */
 export interface GivingTransaction {
+  givingDate?: string;
   givingType?: "normal" | "cell_group";
   title?: string;
   description?: string;
@@ -87,7 +88,7 @@ export interface ListGivingTransactionsParams {
   gateway?: string;
   startDate?: string;
   endDate?: string;
-  sortBy?: "amount" | "created_at";
+  sortBy?: "amount" | "created_at" | "giving_date";
   sortOrder?: "asc" | "desc";
 }
 
@@ -107,6 +108,7 @@ export interface GivingSummary {
 }
 
 export interface RecordCashGivingInput {
+  givingDate?: string;
   categoryId: string;
   amount: number;
   type: "cash" | "bank_transfer";

@@ -74,6 +74,7 @@ export type UpdateMemberInput = Partial<CreateMemberInput> & {
 };
 
 export interface MemberGivingRecord {
+  givingDate?: string;
   id: string;
   amount: number;
   currency: string;

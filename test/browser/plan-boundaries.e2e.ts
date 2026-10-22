@@ -13,7 +13,7 @@ async function fixture(context: BrowserContext, features: string[] | undefined, 
       if(path==='/api/session')return new Response(JSON.stringify({hasSession:true}));
       const profile={ profileId:'p',userId:'u',churchId:'c',role:[role],status:'active',firstName:'Plan',lastName:'Test',isAdminHq:true,planFeatures:features,
         permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','attendance:services:create','attendance:services:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','giving:records:create','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','giving:reports:read','reports:view','reports:financial:read','reports:attendance:read','reports:members:read'] };
-      const data=path.endsWith('/profiles/me')?profile:path.endsWith('/reports/financial')?{startDate:'2026-10-01',endDate:'2026-10-22',grandTotal:25000,transactionCount:2,averageAmount:12500,byCategory:[],monthlyTrend:[]}:path.endsWith('/church/roles')?{roles:['super_admin','senior_pastor','church_admin'].map(roleName=>({roleName,permissions:[],description:null,isCustomized:false}))}:path.endsWith('/church/roles/all')?[]:path.endsWith('/attendance/summary')?{totalCheckIns:42,memberCheckIns:30,visitorCheckIns:12,bySource:{},byCategory:{},byGender:{}}:path.endsWith('/attendance/trends')?[]:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
+      const data=path.endsWith('/profiles/me')?profile:path.endsWith('/reports/attendance')?{startDate:'2026-10-01',endDate:'2026-10-22',totalAttendance:0,serviceCount:0,averagePerService:0,byService:[],monthlyTrend:[]}:path.endsWith('/reports/members')?{startDate:'2026-10-01',endDate:'2026-10-22',totalMembers:0,newMembersInPeriod:0,activeMembers:0,byStatus:[],byGender:[],monthlyGrowth:[]}:path.endsWith('/reports/financial')?{startDate:'2026-10-01',endDate:'2026-10-22',grandTotal:25000,transactionCount:2,averageAmount:12500,byCategory:[],monthlyTrend:[]}:path.endsWith('/church/roles')?{roles:['super_admin','senior_pastor','church_admin'].map(roleName=>({roleName,permissions:[],description:null,isCustomized:false}))}:path.endsWith('/church/roles/all')?[]:path.endsWith('/attendance/summary')?{totalCheckIns:42,memberCheckIns:30,visitorCheckIns:12,bySource:{},byCategory:{},byGender:{}}:path.endsWith('/attendance/trends')?[]:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
       return new Response(JSON.stringify({success:true,data}),{headers:{'Content-Type':'application/json'}});
     };
   },{features,role});
@@ -29,7 +29,7 @@ test('Essentials blocks paid pages and hides their nested navigation without fet
   }
 });
 test('Essentials can use giving categories and records while analytics stays locked',async({page,context})=>{
-  await fixture(context,['giving']);
+  await fixture(context,['giving','reports']);
   await page.goto('/giving/categories');
   await expect(page.getByRole('heading',{name:'Categories',exact:true})).toBeVisible();
   await page.goto('/giving/records');
@@ -63,7 +63,7 @@ test('Community creates free events while paid-event controls require Network',a
 });
 
 test('Essentials administrators can configure payments without email or messaging channels',async({page,context})=>{
-  await fixture(context,['giving'],'church_admin');
+  await fixture(context,['giving','reports'],'church_admin');
   await page.goto('/admin/integrations');
   await expect(page.getByRole('heading',{name:'Payments',exact:true})).toBeVisible();
   await expect(page.getByLabel('Provider',{exact:true})).toBeVisible();
@@ -74,7 +74,7 @@ test('Essentials administrators can configure payments without email or messagin
 
 for (const role of ['church_admin', 'branch_pastor']) {
   test(`Essentials ${role} attendance dashboard loads without requesting paid modules`, async ({page,context}) => {
-    await fixture(context, ['giving'], role);
+    await fixture(context, ['giving','reports'], role);
     await page.goto('/attendance');
     await expect(page.getByRole('heading', {name:'Attendance',exact:true})).toBeVisible();
     await expect(page.getByText('42', {exact:true}).first()).toBeVisible();
@@ -87,7 +87,7 @@ for (const role of ['church_admin', 'branch_pastor']) {
 }
 
 test('church roles and invitation options put Church Admin first and hide Super Admin', async ({page,context}) => {
-  await fixture(context, ['giving'], 'church_admin');
+  await fixture(context, ['giving','reports'], 'church_admin');
   await page.goto('/admin/roles');
   await expect(page.getByRole('heading', {name:'Roles & Permissions',exact:true})).toBeVisible();
   await expect(page.getByRole('row').nth(1).getByRole('cell').first()).toHaveText('Church Admin');
@@ -100,22 +100,26 @@ test('church roles and invitation options put Church Admin first and hide Super 
   await expect(page.getByRole('option', {name:'Senior Pastor',exact:true})).toBeVisible();
 });
 
-test('Essentials can open giving reports and generate financial reports without other report blocks', async ({page,context}) => {
-  await fixture(context, ['giving'], 'church_admin');
+test('Essentials can open giving reports and generate financial reports with all standard report blocks', async ({page,context}) => {
+  await fixture(context, ['giving','reports'], 'church_admin');
   await page.goto('/giving/reports');
   await expect(page.getByRole('heading', {name:'Reports',exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toHaveCount(0);
   await page.goto('/reports');
   await expect(page.getByText('Financial summary', {exact:true}).first()).toBeVisible();
-  await expect(page.getByRole('checkbox')).toHaveCount(1);
+  await expect(page.getByRole('checkbox')).toHaveCount(3);
+  await page.getByText('Attendance summary', {exact:true}).click();
+  await page.getByText('Members summary', {exact:true}).click();
+  await expect.poll(async () => page.evaluate(() => (window as unknown as {planRequests:string[]}).planRequests.some(path => path.endsWith('/reports/members')))).toBe(true);
   const requests = await page.evaluate(() => (window as unknown as {planRequests:string[]}).planRequests);
   expect(requests.some(path => path.endsWith('/reports/financial'))).toBe(true);
-  expect(requests.some(path => /\/reports\/(attendance|members)$/.test(path))).toBe(false);
+  expect(requests.some(path => path.endsWith('/reports/attendance'))).toBe(true);
+  expect(requests.some(path => path.endsWith('/reports/members'))).toBe(true);
   await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toHaveCount(0);
 });
 
 test('service creation and editing round-trip local clock times', async ({page,context}) => {
-  await fixture(context, ['giving'], 'church_admin');
+  await fixture(context, ['giving','reports'], 'church_admin');
   await context.addInitScript(() => {
     const previous = window.fetch.bind(window);
     let saved: Record<string, unknown> | undefined;
@@ -150,7 +154,7 @@ test('service creation and editing round-trip local clock times', async ({page,c
 
 for (const method of ['cash', 'bank_transfer']) {
   test(`Essentials records ${method} giving without fetching paid event data`, async ({page,context}) => {
-    await fixture(context, ['giving'], 'church_admin');
+    await fixture(context, ['giving','reports'], 'church_admin');
     await context.addInitScript(() => {
       const previous = window.fetch.bind(window);
       const calls: {path:string;body?:Record<string,unknown>}[] = [];
@@ -177,6 +181,7 @@ for (const method of ['cash', 'bank_transfer']) {
     await page.getByRole('button',{name:'Record Giving',exact:true}).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByRole('button',{name:'Event',exact:true})).toHaveCount(0);
+    await dialog.getByLabel('Giving Date', {exact:true}).fill('2026-10-18');
     await dialog.getByPlaceholder('e.g. 5000').fill('5000');
     if (method === 'bank_transfer') {
       await dialog.getByRole('combobox').nth(1).click();
@@ -188,6 +193,6 @@ for (const method of ['cash', 'bank_transfer']) {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     const calls = await page.evaluate(() => (window as unknown as {givingCalls:{path:string;body?:Record<string,unknown>}[]}).givingCalls);
     expect(calls.some(call => call.path.endsWith('/events'))).toBe(false);
-    expect(calls.find(call => call.path.endsWith('/giving/cash'))?.body).toMatchObject({amount:5000,type:method,categoryId:'offering',branchId:'branch-a'});
+    expect(calls.find(call => call.path.endsWith('/giving/cash'))?.body).toMatchObject({amount:5000,type:method,categoryId:'offering',branchId:'branch-a',givingDate:'2026-10-18'});
   });
 }

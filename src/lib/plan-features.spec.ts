@@ -24,9 +24,9 @@ describe('Tier-specific page boundaries', () => {
   ])('maps %s to %s', (path, feature) => expect(featureForPath(path)).toBe(feature));
 });
 
-it('includes giving and financial reports in Essentials while other reports require Community', () => {
+it('includes giving and financial reports in Essentials alongside member and attendance reports', () => {
   for (const path of ['/giving/reports', '/reports', '/reports/financial']) expect(planAllowsPath(['giving'], path)).toBe(true);
   for (const permission of ['giving:reports:read', 'reports:view', 'reports:financial:read']) expect(planAllowsPermission(['giving'], permission)).toBe(true);
-  for (const permission of ['reports:attendance:read', 'reports:members:read']) expect(planAllowsPermission(['giving'], permission)).toBe(false);
+  for (const permission of ['reports:attendance:read', 'reports:members:read']) expect(planAllowsPermission(['giving','reports'], permission)).toBe(true);
   expect(planAllowsPath(['giving'], '/analytics/giving')).toBe(false);
 });

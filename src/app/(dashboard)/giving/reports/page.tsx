@@ -2,7 +2,7 @@
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { AlertTriangle, CalendarRange } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -76,7 +76,7 @@ export default function GivingReportsPage() {
   const exportData = React.useMemo(
     () =>
       (rows ?? []).map((t) => ({
-        date: format(new Date(t.createdAt), "yyyy-MM-dd"),
+        date: format(parseISO(t.givingDate ?? t.createdAt), "yyyy-MM-dd"),
         name: t.memberName || "",
         linkedTo: t.serviceName || t.eventName || "General",
         category: t.categoryName,

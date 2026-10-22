@@ -10,7 +10,7 @@ import {
   Receipt,
   SendHorizonal,
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
@@ -107,7 +107,7 @@ export default function GivingRecordsPage() {
       startDate: startDate || undefined,
       endDate: endDate || undefined,
       branchId: effectiveBranchId || undefined,
-      sortBy: "created_at" as const,
+      sortBy: "giving_date" as const,
       sortOrder: "desc" as const,
     }),
     [page, perPage, categoryId, status, type, serviceId, startDate, endDate, effectiveBranchId]
@@ -130,7 +130,7 @@ export default function GivingRecordsPage() {
   const buildExportRows = React.useCallback(
     (rows: GivingTransaction[]) =>
       rows.map((t) => ({
-        date: format(new Date(t.createdAt), "yyyy-MM-dd"),
+        date: format(parseISO(t.givingDate ?? t.createdAt), "yyyy-MM-dd"),
         name: t.title || t.cellGroupName || t.memberName || "",
         linkType: linkedKind(t),
         linkedTo: linkedName(t),
@@ -383,7 +383,7 @@ export default function GivingRecordsPage() {
                   {transactions.map((tx) => (
                     <TableRow key={tx.transactionId}>
                       <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {format(new Date(tx.createdAt), "MMM d, yyyy")}
+                        {format(parseISO(tx.givingDate ?? tx.createdAt), "MMM d, yyyy")}
                       </TableCell>
                       <TableCell>
                         <div className="min-w-0">

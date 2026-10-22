@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   Dialog,
@@ -79,6 +80,7 @@ export function RecordCashDialog({
 
   const categories = categoriesQuery.data?.data ?? [];
 
+  const [givingDate, setGivingDate] = React.useState(() => format(new Date(), "yyyy-MM-dd"));
   const [amount, setAmount] = React.useState("");
   const [method, setMethod] = React.useState<"cash" | "bank_transfer">("cash");
   const [linkTo, setLinkTo] = React.useState<LinkTo>("general");
@@ -92,6 +94,7 @@ export function RecordCashDialog({
 
   React.useEffect(() => {
     if (open) {
+      setGivingDate(format(new Date(), "yyyy-MM-dd"));
       setAmount("");
       setMethod("cash");
       setLinkTo("general");
@@ -144,6 +147,10 @@ export function RecordCashDialog({
   };
 
   const handleSubmit = async () => {
+    if (!givingDate) {
+      toast.error("Select a giving date");
+      return;
+    }
     if (!branchId) {
       toast.error("Select a branch for the giving");
       return;
@@ -166,6 +173,7 @@ export function RecordCashDialog({
     try {
       const resolvedCategoryId = await resolveCategoryId();
       const transaction = await recordMutation.mutateAsync({
+        givingDate,
         categoryId: resolvedCategoryId,
         branchId,
         amount: amountNumber,
@@ -208,6 +216,11 @@ export function RecordCashDialog({
         </DialogHeader>
 
         <div className="space-y-4">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium">Giving Date *</span>
+            <Input aria-label="Giving Date" type="date" required value={givingDate}
+              onChange={(event) => setGivingDate(event.target.value)} disabled={pending} />
+          </label>
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Branch *</p>
             <AvailableSelect unavailableMessage={profile?.isAdminHq && !branchesQuery.data?.data.length ? "No branches are available. Please try again later." : undefined} value={branchId || undefined} disabled={!profile?.isAdminHq || branchesQuery.isLoading} onValueChange={(value) => {
@@ -370,7 +383,7 @@ export function RecordCashDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
             Cancel
           </Button>
-          <Button onClick={() => void handleSubmit()} disabled={pending}>
+          <Button onClick={() => void handleSubmit()} disabled={pending || !givingDate}>
             {pending ? "Recording..." : "Record Giving"}
           </Button>
         </DialogFooter>
