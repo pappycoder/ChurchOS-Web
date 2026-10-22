@@ -19,6 +19,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormDescription,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useBranchesList } from "@/hooks/use-branches";
 import { Button } from "@/components/ui/button";
 import { useInviteUser, useUpdateUserRole } from "@/hooks/use-users";
 import { useAssignableRoles } from "@/hooks/use-roles";
@@ -40,7 +44,7 @@ const inviteSchema = z.object({
   lastName: z.string().min(1, "Last name is required"),
   phone: z.string().optional(),
   role: z.string().min(1, "Role is required"),
-  branchId: z.string().optional(),
+  branchId: z.string().min(1, "Select a branch"),
 });
 
 const updateRoleSchema = z.object({
@@ -66,6 +70,19 @@ export function UserFormDialog({
   const inviteMutation = useInviteUser();
   const updateRoleMutation = useUpdateUserRole();
   const assignableRoles = useAssignableRoles();
+  const { data: profile } = useCurrentProfile();
+  const { can } = usePermissions();
+  const loadBranches = open && mode === "invite" &&
+    profile?.isAdminHq === true && can("branches", "read");
+  const branchQuery = useBranchesList({ limit: 100 }, { enabled: loadBranches });
+  const branchOptions = React.useMemo(() => {
+    if (loadBranches) return branchQuery.data?.data ?? [];
+    return profile?.branchId ? [{
+      branchId: profile.branchId,
+      name: profile.branch?.name ?? "Your branch",
+      isHeadquarters: profile.branch?.isHeadquarters ?? false,
+    }] : [];
+  }, [loadBranches, branchQuery.data, profile?.branchId, profile?.branch?.name, profile?.branch?.isHeadquarters]);
 
   const inviteForm = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
@@ -78,6 +95,17 @@ export function UserFormDialog({
       branchId: "",
     },
   });
+
+  React.useEffect(() => {
+    if (!open || mode !== "invite") return;
+    if (!profile?.isAdminHq && profile?.branchId) {
+      inviteForm.setValue("branchId", profile.branchId);
+    } else if (!inviteForm.getValues("branchId")) {
+      const initial = branchOptions.find(branch => branch.branchId === profile?.branchId) ??
+        (branchOptions.length === 1 ? branchOptions[0] : undefined);
+      if (initial) inviteForm.setValue("branchId", initial.branchId);
+    }
+  }, [open, mode, inviteForm, branchOptions, profile?.isAdminHq, profile?.branchId]);
 
   const updateRoleForm = useForm<UpdateRoleFormValues>({
     resolver: zodResolver(updateRoleSchema),
@@ -216,7 +244,7 @@ export function UserFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isPending}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a role" />
@@ -235,6 +263,39 @@ export function UserFormDialog({
                 )}
               />
 
+              <FormField
+                control={inviteForm.control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Branch</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={isPending || branchQuery.isLoading || !profile?.isAdminHq}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={branchQuery.isLoading ? "Loading branches..." : "Select a branch"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {branchOptions.map(branch => (
+                          <SelectItem key={branch.branchId} value={branch.branchId}>
+                            {branch.name}{branch.isHeadquarters ? " (HQ)" : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>{profile?.isAdminHq ? "Assign the user’s home branch." : "Users you invite are assigned to your branch."}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {loadBranches && branchQuery.isError && (
+                <div role="alert" className="space-y-2 text-sm text-destructive">
+                  <p>Could not load branches. Please try again.</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => void branchQuery.refetch()} disabled={branchQuery.isFetching}>
+                    Reload branches
+                  </Button>
+                </div>
+              )}
               <DialogFooter>
                 <Button
                   type="button"
@@ -244,7 +305,7 @@ export function UserFormDialog({
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isPending}>
+                <Button type="submit" disabled={isPending || !profile || branchQuery.isLoading || (loadBranches && branchQuery.isError)}>
                   {isPending ? "Sending..." : "Send Invitation"}
                 </Button>
               </DialogFooter>

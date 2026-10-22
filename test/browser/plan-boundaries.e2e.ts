@@ -94,7 +94,7 @@ test('church roles and invitation options put Church Admin first and hide Super 
   await expect(page.getByRole('cell', {name:'Super Admin',exact:true})).toHaveCount(0);
   await page.goto('/admin/users');
   await page.getByRole('button', {name:'Add User',exact:true}).click();
-  await page.getByRole('dialog').getByRole('combobox').click();
+  await page.getByRole('dialog').getByRole('combobox', {name:'Role', exact:true}).click();
   await expect(page.getByRole('option').first()).toHaveText('Church Admin');
   await expect(page.getByRole('option', {name:'Super Admin',exact:true})).toHaveCount(0);
   await expect(page.getByRole('option', {name:'Senior Pastor',exact:true})).toBeVisible();
