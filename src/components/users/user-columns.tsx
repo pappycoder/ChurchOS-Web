@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   Pencil,
+  Trash2,
   ShieldCheck,
   ShieldOff,
   MoreHorizontal,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import type { UserProfile } from "@/hooks/use-users";
 import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
+import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
 
@@ -60,6 +62,7 @@ export function UserCheckboxCell({
 interface UserActionsCellProps {
   user: UserProfile;
   onEditRole: (user: UserProfile) => void;
+  onDelete: (user: UserProfile) => void;
   onDeactivate: (user: UserProfile) => void;
   onReactivate: (user: UserProfile) => void;
   onResetPassword: (user: UserProfile) => void;
@@ -70,11 +73,14 @@ export function UserActionsCell({
   user,
   onEditRole,
   onDeactivate,
+  onDelete,
   onReactivate,
   onResetPassword,
   onForceSignout,
 }: UserActionsCellProps) {
   const { can } = usePermissions();
+  const { user: currentUser } = useAuth();
+  const canDelete = can("profiles", "delete") && user.userId !== currentUser?.userId && !user.role.includes("super_admin");
   const canUpdate = can("profiles", "update");
   const canEditRole = can("roles", "update");
   const canToggleStatus = canUpdate;
@@ -82,7 +88,7 @@ export function UserActionsCell({
   const canForceSignout = canUpdate;
 
   // Nothing actionable for this viewer — render an empty cell.
-  if (!canEditRole && !canToggleStatus && !canResetPassword && !canForceSignout) {
+  if (!canDelete && !canEditRole && !canToggleStatus && !canResetPassword && !canForceSignout) {
     return <div className="flex items-center justify-end" />;
   }
 
@@ -120,7 +126,7 @@ export function UserActionsCell({
           <ShieldCheck className="h-4 w-4" />
         </Button>
       ))}
-      {(canResetPassword || canForceSignout) && (
+      {(canDelete || canResetPassword || canForceSignout) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -142,6 +148,12 @@ export function UserActionsCell({
                 Force Sign Out
               </DropdownMenuItem>
             )}
+            {canDelete && <>
+              {(canResetPassword || canForceSignout) && <DropdownMenuSeparator />}
+              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(user)}>
+                <Trash2 className="mr-2 h-4 w-4" />Delete User
+              </DropdownMenuItem>
+            </>}
           </DropdownMenuContent>
         </DropdownMenu>
       )}

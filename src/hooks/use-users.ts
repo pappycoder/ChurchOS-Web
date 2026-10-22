@@ -230,6 +230,22 @@ export function useUpdateUserRole() {
   });
 }
 
+export function useDeleteUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (profileId: string) => api.delete<{success: boolean}>(`/profiles/${profileId}/account`),
+    onSuccess: (_data, profileId) => {
+      queryClient.removeQueries({ queryKey: ["admin-user", profileId] });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      queryClient.invalidateQueries({ queryKey: ["platform-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["roles-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["visitors-list"] });
+      queryClient.invalidateQueries({ queryKey: ["visitor"] });
+    },
+  });
+}
+
 export function useDeactivateUser() {
   const queryClient = useQueryClient();
   return useMutation({

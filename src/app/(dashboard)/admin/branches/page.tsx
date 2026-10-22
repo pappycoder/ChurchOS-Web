@@ -237,7 +237,7 @@ export default function BranchesPage() {
   }
 
   return (
-    <div>
+    <div className="min-w-0 w-full">
       <PageHeader
         title="Branches"
         breadcrumbs={[{ label: "Admin" }, { label: "Church Settings", href: "/admin/settings" }, { label: "Branches" }]}
@@ -265,6 +265,7 @@ export default function BranchesPage() {
           </div>
 
           <TableCard
+            className="min-w-0 w-full"
             title="Branches List"
             toolbar={
               <div className="flex items-center gap-2 flex-wrap">
@@ -361,7 +362,7 @@ export default function BranchesPage() {
                 />
               </div>
             ) : (
-              <Table exportable={false} tableId="branches">
+              <Table exportable={false} tableId="branches" className="min-w-[56rem]">
                     <TableHeader>
                       <TableRow>
                         {!archivedView && (
@@ -403,7 +404,7 @@ export default function BranchesPage() {
                           )}
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9 rounded-lg">
+                              <Avatar className="hidden h-9 w-9 rounded-lg sm:flex">
                                 {branch.photoUrl && (
                                   <AvatarImage src={branch.photoUrl} alt={branch.name} className="rounded-lg object-cover" />
                                 )}
@@ -411,13 +412,11 @@ export default function BranchesPage() {
                                   {getInitials(branch.name)}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="font-medium truncate">{branch.name}</span>
-                                  {branch.isHeadquarters && (
-                                    <Badge variant="secondary" className="shrink-0">HQ</Badge>
-                                  )}
-                                </div>
+                              <div className="min-w-0 flex-1">
+                                <span className="block overflow-hidden text-ellipsis whitespace-nowrap font-medium" title={branch.name}>{branch.name}</span>
+                                {branch.isHeadquarters && (
+                                  <Badge variant="secondary" className="mt-1">HQ</Badge>
+                                )}
                               </div>
                             </div>
                           </TableCell>

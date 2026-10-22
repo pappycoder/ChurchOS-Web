@@ -3,7 +3,7 @@
 import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,6 +15,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { usePermissions } from "@/hooks/use-permissions";
+import { useAuth } from "@/hooks/use-auth";
+import { DeleteUserDialog } from "@/components/users/delete-user-dialog";
 import { useUser } from "@/hooks/use-users";
 import { UserDetailSidebar } from "@/components/users/user-detail-sidebar";
 import { UserDetailContent } from "@/components/users/user-detail-content";
@@ -22,6 +25,9 @@ import { UserDetailContent } from "@/components/users/user-detail-content";
 export default function UserDetailPage({ params }: { params: Promise<{ profileId: string }> }) {
   const { profileId } = React.use(params);
   const router = useRouter();
+  const { can } = usePermissions();
+  const { user: currentUser } = useAuth();
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const { data: user, isLoading, error } = useUser(profileId);
 
   if (error) {
@@ -52,7 +58,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users")} aria-label="Back to users">
           <ArrowLeft className="h-4 w-4" />
         </Button>
@@ -69,6 +75,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+        {user && can("profiles", "delete") && user.userId !== currentUser?.userId && !user.role.includes("super_admin") &&
+          <Button variant="destructive" className="ml-auto" onClick={() => setDeleteOpen(true)}><Trash2 className="h-4 w-4" />Delete User</Button>}
       </div>
 
       {isLoading ? (
@@ -102,6 +110,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
           </div>
         </div>
       ) : null}
+      {user && <DeleteUserDialog open={deleteOpen} onOpenChange={setDeleteOpen} users={[user]} mode="delete" onCompleted={() => router.push("/admin/users")} />}
     </div>
   );
 }

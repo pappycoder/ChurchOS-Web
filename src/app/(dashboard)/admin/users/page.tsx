@@ -46,6 +46,7 @@ import {
   type ListUsersParams,
 } from "@/hooks/use-users";
 import { useAssignableRoles } from "@/hooks/use-roles";
+import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   UserCheckboxCell,
@@ -121,6 +122,8 @@ function TableSkeleton() {
 
 export default function UsersPage() {
   const router = useRouter();
+  const { user: currentUser } = useAuth();
+  const [confirmMode, setConfirmMode] = React.useState<"delete" | "deactivate">("deactivate");
   const [search, setSearch] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState("all");
   const [statusFilter, setStatusFilter] = React.useState<"all" | "active" | "inactive">("all");
@@ -157,7 +160,8 @@ export default function UsersPage() {
   const { can } = usePermissions();
   const canCreateUsers = can("profiles", "create");
   const canUpdateUsers = can("profiles", "update");
-  const canManageUsers = canUpdateUsers || can("roles", "update");
+  const canDeleteUsers = can("profiles", "delete");
+  const canManageUsers = canDeleteUsers || canUpdateUsers || can("roles", "update");
 
   const users = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
@@ -204,6 +208,7 @@ export default function UsersPage() {
   };
 
   const handleDeactivate = (user: UserProfile) => {
+    setConfirmMode("deactivate");
     setDeleteTargets([user]);
   };
 
@@ -345,21 +350,26 @@ export default function UsersPage() {
               setPage(1);
             }}
           >
-            {someSelected && canUpdateUsers && (
-              <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
+            {someSelected && (canUpdateUsers || canDeleteUsers) && (
+              <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
                 <span className="text-sm font-medium">{selectedIds.size} selected</span>
-                <Button
-                  variant="destructive"
+                {canUpdateUsers && <Button
+                  variant="outline"
                   size="sm"
-                  onClick={() =>
-                    setDeleteTargets(
-                      users.filter((u) => selectedIds.has(u.profileId))
-                    )
-                  }
+                  onClick={() => {
+                    setConfirmMode("deactivate");
+                    setDeleteTargets(users.filter((u) => selectedIds.has(u.profileId)));
+                  }}
                 >
                   <Trash2 className="h-4 w-4 mr-1.5" />
                   Deactivate Selected
-                </Button>
+                </Button>}
+                {canDeleteUsers && <Button variant="destructive" size="sm"
+                  disabled={!users.some(u => selectedIds.has(u.profileId) && u.userId !== currentUser?.userId && !u.role.includes("super_admin"))}
+                  onClick={() => {
+                    setConfirmMode("delete");
+                    setDeleteTargets(users.filter(u => selectedIds.has(u.profileId) && u.userId !== currentUser?.userId && !u.role.includes("super_admin")));
+                  }}><Trash2 className="h-4 w-4 mr-1.5" />Delete Selected</Button>}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -444,6 +454,7 @@ export default function UsersPage() {
                                 user={user}
                                 onEditRole={handleEditRole}
                                 onDeactivate={handleDeactivate}
+                                onDelete={(user) => { setConfirmMode("delete"); setDeleteTargets([user]); }}
                                 onReactivate={handleReactivate}
                                 onResetPassword={handleResetPassword}
                                 onForceSignout={handleForceSignout}
@@ -479,7 +490,8 @@ export default function UsersPage() {
         open={!!deleteTargets}
         onOpenChange={(open) => !open && setDeleteTargets(null)}
         users={deleteTargets ?? []}
-        onDeactivated={() => setSelectedIds(new Set())}
+        mode={confirmMode}
+        onCompleted={() => setSelectedIds(new Set())}
       />
     </div>
   );
