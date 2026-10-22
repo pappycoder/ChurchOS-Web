@@ -8,7 +8,8 @@ import { Header } from "@/components/layouts/header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { TopProgressBar } from "@/components/layouts/top-progress-bar";
 import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
-import { OfflineEntry } from "@/components/offline/offline-entry";
+// Temporarily hidden until offline workspace returns in a future build.
+// import { OfflineEntry } from "@/components/offline/offline-entry";
 
 export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -29,7 +30,7 @@ export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
           tabIndex={-1}
           className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-6 lg:px-8"
         >
-          <OfflineEntry />
+          {/* <OfflineEntry /> */}
           <BillingNotice />
           <PlanLimitDialog />
           <TableColumnsProvider key={pathname}>
