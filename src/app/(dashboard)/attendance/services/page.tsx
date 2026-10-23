@@ -147,7 +147,7 @@ export default function AttendanceServicesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
-  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: dialogOpen && !editing && isAdminHq });
+  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: dialogOpen && isAdminHq });
   const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
   const [deleteTarget, setDeleteTarget] = React.useState<ChurchService | null>(
     null,
@@ -187,7 +187,7 @@ export default function AttendanceServicesPage() {
 
   React.useEffect(() => {
     if (dialogOpen) {
-      form.reset({ ...toFormValues(editing), branchId: editing?.branchId ?? profile?.branchId ?? "" });
+      form.reset({ ...toFormValues(editing), branchId: editing ? editing.branchId ?? "" : profile?.branchId ?? "" });
     }
   }, [dialogOpen, editing, form, profile?.branchId]);
 
@@ -210,7 +210,8 @@ export default function AttendanceServicesPage() {
   const onSubmit = async (values: ServiceFormValues) => {
     try {
       const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
-      if (!editing && (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch)))) {
+      const branchChanged = !!editing && values.branchId !== (editing.branchId ?? "");
+      if ((!editing || branchChanged) && (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch)))) {
         form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
         return;
       }
@@ -218,6 +219,7 @@ export default function AttendanceServicesPage() {
         // Explicit nulls so cleared Day/Time fields persist as "no value".
         await updateMutation.mutateAsync({
           name: values.name.trim(),
+          ...(isAdminHq && branchChanged ? { branchId: selectedBranch } : {}),
           category: values.category as ServiceCategory,
           dayOfWeek:
             values.dayOfWeek && values.dayOfWeek !== "none"
@@ -568,15 +570,14 @@ export default function AttendanceServicesPage() {
                   </FormItem>
                 )}
               />
-              {!editing && (
-                <FormField
+              <FormField
                   control={form.control}
                   name="branchId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Branch *</FormLabel>
                       {isAdminHq ? (
-                        <Select value={field.value} onValueChange={field.onChange} disabled={branchesQuery.isLoading || createMutation.isPending}>
+                        <Select value={field.value} onValueChange={field.onChange} disabled={branchesQuery.isLoading || createMutation.isPending || updateMutation.isPending}>
                           <FormControl>
                             <SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger>
                           </FormControl>
@@ -588,7 +589,7 @@ export default function AttendanceServicesPage() {
                         <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly aria-readonly="true" /></FormControl>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {isAdminHq ? "Choose the branch where this service takes place." : "Services are created in your assigned branch."}
+                        {isAdminHq ? "Choose the branch where this service takes place." : "Services are limited to your assigned branch."}
                       </p>
                       {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
                       {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
@@ -596,7 +597,6 @@ export default function AttendanceServicesPage() {
                     </FormItem>
                   )}
                 />
-              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
