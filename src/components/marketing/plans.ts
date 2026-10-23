@@ -14,7 +14,8 @@ export const launchPlans = [
       "Giving categories and receipts",
       "Giving, member and attendance reports",
       "Visitor follow-up",
-      "Permission-based access",
+      "Church Admin + 1 Senior Pastor, Branch Pastor or Secretary",
+      "Built-in roles only; no custom roles",
     ],
   },
   {
@@ -26,6 +27,8 @@ export const launchPlans = [
     capacity: "300 members · 1 location · 5 staff accounts",
     features: [
       "Everything in Essentials",
+      "All built-in staff roles across 5 staff accounts",
+      "No custom roles",
       "Events and registrations",
       "Departments and cell groups",
       "Forms and submissions",
@@ -43,6 +46,8 @@ export const launchPlans = [
     featured: true,
     features: [
       "Everything in Community",
+      "All staff roles across 15 staff accounts",
+      "Create custom roles and permissions",
       "Branch and HQ workspaces",
       "SMS, WhatsApp and live calls",
       "Outbound webhook integrations",

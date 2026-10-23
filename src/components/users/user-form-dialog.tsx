@@ -69,7 +69,7 @@ export function UserFormDialog({
 }: UserFormDialogProps) {
   const inviteMutation = useInviteUser();
   const updateRoleMutation = useUpdateUserRole();
-  const assignableRoles = useAssignableRoles();
+  const assignableRoles = useAssignableRoles(mode === "edit-role" ? user?.role : []);
   const { data: profile } = useCurrentProfile();
   const { can } = usePermissions();
   const loadBranches = open && mode === "invite" &&

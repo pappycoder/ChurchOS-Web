@@ -36,6 +36,7 @@ import {
 } from "@/hooks/use-roles";
 import { PermissionMatrixEditor } from "@/components/roles/permission-matrix-editor";
 import { ResetRoleDialog } from "@/components/roles/reset-role-dialog";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export default function RoleDetailPage({
@@ -64,7 +65,8 @@ export default function RoleDetailPage({
   const isSuperAdmin = roleName === "super_admin";
   const isChurchOwned = role?.isChurchOwned ?? false;
   const { can } = usePermissions();
-  const canManageRoles = can("roles", "update");
+  const { data: profile } = useCurrentProfile();
+  const canManageRoles = can("roles", "update") && (!isChurchOwned || profile?.planFeatures?.includes("custom_roles") === true);
   const displayLabel = role?.label || getRoleLabel(roleName);
 
   const permissionIdByName = React.useMemo(

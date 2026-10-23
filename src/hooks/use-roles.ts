@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { usePermissions } from "@/hooks/use-permissions";
 import { api } from "@/lib/api";
 import { getRoleLabel, VALID_ROLES } from "@/hooks/use-users";
@@ -111,15 +112,22 @@ export function resolveRoleLabel(
  * All roles that can be assigned in pickers and filters: the 8 seeded church staff roles
  * plus every church-owned custom role, each with its display label.
  */
-export function useAssignableRoles(): { value: string; label: string }[] {
+export function useAssignableRoles(currentRoles: readonly string[] = []): { value: string; label: string }[] {
   const { data } = useRolesSummary();
+  const { data: profile } = useCurrentProfile();
+  const extendedRoles = profile?.planFeatures?.includes("staff_roles") === true;
+  const customRoles = profile?.planFeatures?.includes("custom_roles") === true;
+  const retainAdmin = currentRoles.includes("church_admin");
   return React.useMemo(() => {
     const custom = (data?.roles ?? [])
       .filter((r) => r.isChurchOwned && !["member", "super_admin"].includes(r.roleName))
       .map((r) => ({ value: r.roleName, label: r.label || getRoleLabel(r.roleName) }));
     const seen = new Set<string>(VALID_ROLES.map((r) => r.value));
-    return [...VALID_ROLES, ...custom.filter((c) => !seen.has(c.value))];
-  }, [data]);
+    const builtIn = extendedRoles ? VALID_ROLES : VALID_ROLES.filter(role =>
+      ["senior_pastor", "branch_pastor", "secretary"].includes(role.value) || (retainAdmin && role.value === "church_admin")
+    );
+    return [...builtIn, ...(customRoles ? custom.filter((c) => !seen.has(c.value)) : [])];
+  }, [data, extendedRoles, customRoles, retainAdmin]);
 }
 
 export function useRolePermissions(roleName: string) {

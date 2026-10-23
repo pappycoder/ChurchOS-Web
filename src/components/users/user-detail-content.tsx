@@ -360,7 +360,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
     currentProfile?.profileId !== user.profileId;
   const currentRoles = new Set(user.role ?? []);
   const [selected, setSelected] = React.useState<Set<string>>(currentRoles);
-  const assignableRoles = useAssignableRoles();
+  const assignableRoles = useAssignableRoles(user.role);
   const roleLabels = useRoleLabelMap();
   const updateUserRoles = useUpdateUserRoles(user.profileId);
   const updateUser = useUpdateUser(user.profileId);
@@ -406,6 +406,7 @@ function RolePermissionsTab({ user }: RolePermissionsTabProps) {
   const toggleRole = (role: string) => {
     if (!canManageRoles) return;
     setSelected((prev) => {
+      if (!currentProfile?.planFeatures?.includes("staff_roles")) return new Set([role]);
       const next = new Set(prev);
       if (next.has(role)) {
         next.delete(role);

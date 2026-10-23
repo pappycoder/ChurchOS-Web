@@ -1,9 +1,9 @@
 import { test, expect, type BrowserContext } from '@playwright/test';
 
-async function fixture(context: BrowserContext, hq: boolean) {
+async function fixture(context: BrowserContext, hq: boolean, features: string[] = ['giving', 'reports']) {
   await context.route('https://embed.tawk.to/**', route => route.fulfill({ body: '' }));
   await context.addCookies([{ name: 'churchos_token', value: 'invite-fixture', url: 'http://127.0.0.1:3107' }]);
-  await context.addInitScript(({ hq }) => {
+  await context.addInitScript(({ hq, features }) => {
     const original = window.fetch.bind(window);
     const state = { invitations: [] as Record<string, unknown>[], branchReads: 0 };
     (window as unknown as { inviteFixture: typeof state }).inviteFixture = state;
@@ -16,8 +16,8 @@ async function fixture(context: BrowserContext, hq: boolean) {
         profileId: 'p', userId: 'u', churchId: 'c', role: ['church_admin'], status: 'active',
         firstName: 'Invite', lastName: 'Admin', isAdminHq: hq, branchId: 'branch-a',
         branch: { branchId: 'branch-a', name: 'Central', isHeadquarters: true },
-        planFeatures: ['giving', 'reports'],
-        permissions: ['users:read', 'profiles:read', 'profiles:create', 'roles:read', 'branches:read'],
+        planFeatures: features,
+        permissions: ['users:read', 'profiles:read', 'profiles:create', 'roles:read', 'roles:create', 'roles:update', 'branches:read'],
       };
       else if (path.endsWith('/branches')) {
         state.branchReads++;
@@ -36,7 +36,7 @@ async function fixture(context: BrowserContext, hq: boolean) {
       }
       return Response.json({ success: true, data });
     };
-  }, { hq });
+  }, { hq, features });
 }
 
 for (const hq of [true, false]) {
@@ -52,7 +52,7 @@ for (const hq of [true, false]) {
     await dialog.getByLabel('Last Name', { exact: true }).fill('Invite');
     await dialog.getByLabel('Email', { exact: true }).fill('invite@example.com');
     await dialog.getByRole('combobox', { name: 'Role', exact: true }).click();
-    await page.getByRole('option', { name: 'Church Admin', exact: true }).click();
+    await page.getByRole('option', { name: 'Secretary', exact: true }).click();
     const branch = dialog.getByRole('combobox', { name: 'Branch', exact: true });
     await expect(branch).toContainText('Central');
     if (hq) {
@@ -65,8 +65,44 @@ for (const hq of [true, false]) {
       inviteFixture: { invitations: Record<string, unknown>[]; branchReads: number }
     }).inviteFixture);
     expect(state.invitations).toHaveLength(1);
-    expect(state.invitations[0]).toMatchObject({ branchId: hq ? 'branch-b' : 'branch-a', role: 'church_admin' });
+    expect(state.invitations[0]).toMatchObject({ branchId: hq ? 'branch-b' : 'branch-a', role: 'secretary' });
     expect(state.invitations[0]).not.toHaveProperty('isAdminHq');
     expect(state.branchReads).toBe(hq ? 1 : 0);
   });
 }
+
+for (const plan of ['essentials', 'community', 'network']) {
+  test(`${plan} restricts invite roles and custom-role creation`, async ({ page, context }) => {
+    const features = ['giving','reports', ...(plan !== 'essentials' ? ['staff_roles'] : []), ...(plan === 'network' ? ['custom_roles'] : [])];
+    await fixture(context, true, features);
+    await context.addInitScript(() => {
+      const previous = window.fetch.bind(window);
+      window.fetch = async (input, options) => {
+        const response = await previous(input, options);
+        const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+        if (!path.endsWith('/church/roles')) return response;
+        const body = await response.json();
+        body.data.roles.push({ roleName: 'media_team', label: 'Media Team', permissions: [], isChurchOwned: true });
+        return Response.json(body);
+      };
+    });
+    await page.goto('/admin/roles');
+    await expect(page.getByRole('heading', { name: 'Roles & Permissions', exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Add Role', exact: true })).toHaveCount(plan === 'network' ? 1 : 0);
+    await page.goto('/admin/users');
+    await page.getByRole('button', { name: 'Add User', exact: true }).click();
+    await page.getByRole('dialog').getByRole('combobox', { name: 'Role', exact: true }).click();
+    await expect(page.getByRole('option')).toHaveCount(plan === 'essentials' ? 3 : plan === 'community' ? 8 : 9);
+    await expect(page.getByRole('option', { name: 'Secretary', exact: true })).toBeVisible();
+    await expect(page.getByRole('option', { name: 'Media Team', exact: true })).toHaveCount(plan === 'network' ? 1 : 0);
+    await expect(page.getByRole('option', { name: 'Treasurer', exact: true })).toHaveCount(plan === 'essentials' ? 0 : 1);
+  });
+}
+
+test('public pricing describes each plan’s staff-role access', async ({ page, context }) => {
+  await context.route('https://embed.tawk.to/**', route => route.fulfill({ body: '' }));
+  await page.goto('/');
+  await expect(page.getByText('Church Admin + 1 Senior Pastor, Branch Pastor or Secretary', { exact: true })).toBeVisible();
+  await expect(page.getByText('All built-in staff roles across 5 staff accounts', { exact: true })).toBeVisible();
+  await expect(page.getByText('Create custom roles and permissions', { exact: true })).toBeVisible();
+});

@@ -156,7 +156,7 @@ export default function UsersPage() {
   const resetPasswordMutation = useResetPassword();
   const forceSignoutMutation = useForceSignout();
 
-  const assignableRoles = useAssignableRoles();
+  const assignableRoles = useAssignableRoles(["church_admin"]);
   const { can } = usePermissions();
   const canCreateUsers = can("profiles", "create");
   const canUpdateUsers = can("profiles", "update");
