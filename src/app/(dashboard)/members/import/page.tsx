@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { exportExcel } from "@/lib/export-utils";
-import { memberImportTemplate, TARGET_FIELDS, VALID_STATUSES } from "@/lib/member-import-template";
+import { memberImportTemplate, TARGET_FIELDS } from "@/lib/member-import-template";
 import { parseMemberSpreadsheet } from "@/lib/import-spreadsheet";
 import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
@@ -195,14 +195,6 @@ export default function MemberImportPage() {
         errors.push({ row: r.rowNumber, message: `Invalid email "${email}".` });
       }
 
-      const status = get("status").toLowerCase();
-      if (status && !VALID_STATUSES.has(status)) {
-        errors.push({
-          row: r.rowNumber,
-          message: `Unknown status "${status}" (use active, inactive, suspended, or transferred).`,
-        });
-      }
-
       const branchName = get("branch");
       if (branchName && !branchIdByName.has(branchName.toLowerCase())) {
         errors.push({
@@ -230,9 +222,6 @@ export default function MemberImportPage() {
         ...(get("city") ? { city: get("city") } : {}),
         ...(get("state") ? { state: get("state") } : {}),
         ...(branchName ? { branchId: branchIdByName.get(branchName.toLowerCase()) } : {}),
-        ...(VALID_STATUSES.has(get("status").toLowerCase())
-          ? { status: get("status").toLowerCase() }
-          : {}),
         ...(get("notes") ? { notes: get("notes") } : {}),
       };
     });
