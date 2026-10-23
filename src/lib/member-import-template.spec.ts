@@ -13,6 +13,9 @@ describe("member import template", () => {
     const sheet = restored.worksheets[0];
     expect(sheet.name).toBe("Members");
     expect(sheet.getCell("D1").value).toBe("Phone");
+    expect(sheet.getRow(1).values).not.toContain("Status");
+    expect(sheet.getCell("L1").value).toBe("Notes");
+    expect(sheet.columnCount).toBe(12);
     expect(sheet.getCell("G1").value).toBe("Date of Birth");
     expect(sheet.getCell("D2").value).toBe("+234 803 456 7890");
     for (const address of ["D2", "E2", "D3", "E3", "D500", "E500"]) {
@@ -28,7 +31,7 @@ describe("member import template", () => {
       expect(cell.dataValidation).toMatchObject({ type: "date", operator: "between", allowBlank: true, showErrorMessage: true });
       expect(cell.dataValidation.formulae).toHaveLength(2);
     }
-    for (const column of ["F", "K", "L"]) {
+    for (const column of ["F", "K"]) {
       const name = sheet.getCell(`${column}500`).dataValidation.formulae[0];
       expect(restored.definedNames.getRanges(name).ranges.length).toBeGreaterThan(0);
     }
