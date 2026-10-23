@@ -30,6 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
 import { useUsers } from "@/hooks/use-users";
 import {
   useCreateVisitor,
@@ -40,6 +42,7 @@ import {
 
 const visitorSchema = z.object({
   assignedToId: z.string().optional(),
+  branchId: z.string().optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   gender: z.string().optional(),
@@ -53,6 +56,7 @@ type VisitorFormValues = z.infer<typeof visitorSchema>;
 function toFormValues(visitor?: Visitor | null): VisitorFormValues {
   return {
     assignedToId: visitor?.assignedToId ?? "",
+    branchId: visitor?.branchId ?? "",
     firstName: visitor?.firstName ?? "",
     lastName: visitor?.lastName ?? "",
     gender: visitor?.gender ?? "",
@@ -75,6 +79,10 @@ export function VisitorFormDialog({
   onSaved?: (saved: Visitor) => void;
 }) {
   const isEdit = !!visitor;
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
+  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: open && isAdminHq });
+  const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
   const usersQuery = useUsers({ limit: 100, status: "active" });
   const assignees = usersQuery.data?.data ?? [];
   const currentAssigneeMissing = visitor?.assignedToId &&
@@ -90,15 +98,28 @@ export function VisitorFormDialog({
 
   React.useEffect(() => {
     if (open) {
-      form.reset(toFormValues(visitor));
+      form.reset({ ...toFormValues(visitor), branchId: visitor ? visitor.branchId ?? "" : profile?.branchId ?? "" });
     }
-  }, [open, visitor, form]);
+  }, [open, visitor, form, profile?.branchId]);
+
+  React.useEffect(() => {
+    if (open && !visitor && isAdminHq && branchOptions.length === 1 && !form.getValues("branchId")) {
+      form.setValue("branchId", branchOptions[0].branchId);
+    }
+  }, [open, visitor, isAdminHq, branchOptions, form]);
 
   const onSubmit = async (values: VisitorFormValues) => {
     setPending(true);
     try {
+      const branchChanged = isEdit && values.branchId !== (visitor?.branchId ?? "");
+      const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
+      if ((!isEdit || branchChanged) && (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch)))) {
+        form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
+        return;
+      }
       const assignmentChanged = (values.assignedToId ?? "") !== (visitor?.assignedToId ?? "");
       const payload = {
+        ...(!isEdit || (isAdminHq && branchChanged) ? { branchId: selectedBranch } : {}),
         assignedToId: assignmentChanged ? values.assignedToId || "" : undefined,
         firstName: values.firstName.trim(),
         lastName: values.lastName?.trim() || undefined,
@@ -130,7 +151,7 @@ export function VisitorFormDialog({
           <DialogTitle>{isEdit ? "Edit Visitor" : "Register Visitor"}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update the visitor's contact details and follow-up assignee."
+              ? "Update the visitor's details, branch and follow-up assignee."
               : "Add a new visitor so your team can follow up."}
           </DialogDescription>
         </DialogHeader>
@@ -165,6 +186,31 @@ export function VisitorFormDialog({
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="branchId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Branch *</FormLabel>
+                  {isAdminHq ? (
+                    <Select value={field.value} onValueChange={field.onChange} disabled={pending || branchesQuery.isLoading}>
+                      <FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {visitor?.branchId && !branchOptions.some((branch) => branch.branchId === visitor.branchId) && <SelectItem value={visitor.branchId} disabled>{visitor.branchName ?? "Current branch"}</SelectItem>}
+                        {branchOptions.map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly /></FormControl>
+                  )}
+                  <p className="text-xs text-muted-foreground">{isAdminHq ? "Choose the visitor's branch." : "Visitors are limited to your assigned branch."}</p>
+                  {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
+                  {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

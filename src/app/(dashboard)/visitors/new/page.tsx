@@ -35,6 +35,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateVisitor, FOLLOW_UP_STATUSES, type FollowUpStatus } from "@/hooks/use-visitors";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
 import { useUsers } from "@/hooks/use-users";
 import {
   CustomFieldsEditor,
@@ -42,6 +44,7 @@ import {
 } from "@/components/members/custom-fields-editor";
 
 const newVisitorSchema = z.object({
+  branchId: z.string().optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   gender: z.string().optional(),
@@ -64,12 +67,17 @@ type NewVisitorFormValues = z.infer<typeof newVisitorSchema>;
 export default function AddVisitorPage() {
   const router = useRouter();
   const createMutation = useCreateVisitor();
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
+  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: isAdminHq });
+  const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
   // Powers the assignee picker.
   const usersQuery = useUsers({ limit: 100, status: "active" });
 
   const form = useForm<NewVisitorFormValues>({
     resolver: zodResolver(newVisitorSchema),
     defaultValues: {
+      branchId: "",
       firstName: "",
       lastName: "",
       gender: "",
@@ -89,12 +97,25 @@ export default function AddVisitorPage() {
     name: "customFields",
   });
 
+  React.useEffect(() => {
+    if (!form.getValues("branchId")) {
+      const defaultBranch = profile?.branchId ?? (isAdminHq && branchOptions.length === 1 ? branchOptions[0].branchId : "");
+      if (defaultBranch) form.setValue("branchId", defaultBranch);
+    }
+  }, [profile?.branchId, isAdminHq, branchOptions, form]);
+
   const [saving, setSaving] = React.useState(false);
 
   const onSubmit = async (values: NewVisitorFormValues) => {
     setSaving(true);
     try {
+      const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
+      if (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch))) {
+        form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
+        return;
+      }
       const visitor = await createMutation.mutateAsync({
+        branchId: selectedBranch,
         firstName: values.firstName.trim(),
         lastName: values.lastName?.trim() || undefined,
         gender: values.gender || undefined,
@@ -147,6 +168,30 @@ export default function AddVisitorPage() {
               <CardDescription>Basic identity and contact details.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="branchId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Branch *</FormLabel>
+                  {isAdminHq ? (
+                    <Select value={field.value} onValueChange={field.onChange} disabled={saving || branchesQuery.isLoading}>
+                      <FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {branchOptions.map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly /></FormControl>
+                  )}
+                  <p className="text-xs text-muted-foreground">{isAdminHq ? "Choose the visitor's branch." : "Visitors are limited to your assigned branch."}</p>
+                  {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
+                  {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
               <FormField
                 control={form.control}
                 name="firstName"

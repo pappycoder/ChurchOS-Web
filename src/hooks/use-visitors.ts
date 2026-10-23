@@ -24,6 +24,8 @@ export const FOLLOW_UP_STATUSES: { value: FollowUpStatus; label: string }[] = [
 export interface Visitor {
   id: string;
   churchId: string;
+  branchId?: string;
+  branchName?: string;
   firstName: string;
   lastName?: string;
   gender?: string;
@@ -66,6 +68,7 @@ export interface ListVisitorsParams {
 }
 
 export interface CreateVisitorInput {
+  branchId?: string;
   firstName: string;
   lastName?: string;
   gender?: string;
