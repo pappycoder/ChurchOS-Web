@@ -1,19 +1,16 @@
 import { expect, test, type BrowserContext } from "@playwright/test";
 
-test("production login shows the seeded-account dropdown and prefills without submitting", async ({ page }) => {
+test("login has no seeded-account dropdown or prefilled credentials", async ({ page }) => {
   let loginRequests = 0;
   page.on("request", (request) => {
     if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/auth/login")) loginRequests++;
   });
   await page.goto("/login");
   await expect(page.getByRole("button", { name: "Sign In", exact: true })).toBeVisible();
-  const accounts = page.getByLabel("Quick sign-in (seeded accounts)");
-  await expect(accounts).toBeVisible();
-  for (const email of ["admin@churchos.dev", "branch.usher@churchos.dev"]) {
-    await accounts.selectOption(email);
-    await expect(page.getByLabel("Email Address")).toHaveValue(email);
-    await expect(page.locator('input[type="password"]')).not.toHaveValue("");
-  }
+  await expect(page.getByLabel("Quick sign-in (seeded accounts)")).toHaveCount(0);
+  await expect(page.locator("#dev-account")).toHaveCount(0);
+  await expect(page.getByLabel("Email Address")).toHaveValue("");
+  await expect(page.locator('input[type="password"]')).toHaveValue("");
   expect(loginRequests).toBe(0);
 });
 

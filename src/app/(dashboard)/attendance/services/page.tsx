@@ -76,6 +76,8 @@ import {
   type ChurchService,
   type ServiceCategory,
 } from "@/hooks/use-attendance";
+import { useCurrentProfile } from "@/hooks/use-profile";
+import { useBranchesList } from "@/hooks/use-branches";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import {
@@ -103,6 +105,7 @@ function dayLabel(day?: number): string {
 
 const serviceSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  branchId: z.string().optional(),
   category: z.string(),
   dayOfWeek: z.string().optional(),
   startTime: z.string().optional(),
@@ -115,6 +118,7 @@ type ServiceFormValues = z.infer<typeof serviceSchema>;
 function toFormValues(service?: ChurchService | null): ServiceFormValues {
   return {
     name: service?.name ?? "",
+    branchId: service?.branchId ?? "",
     category: service?.category ?? "adult",
     dayOfWeek:
       service?.dayOfWeek !== undefined && service?.dayOfWeek !== null
@@ -130,6 +134,8 @@ function toFormValues(service?: ChurchService | null): ServiceFormValues {
 export default function AttendanceServicesPage() {
   const router = useRouter();
   const { can, canAny } = usePermissions();
+  const { data: profile } = useCurrentProfile();
+  const isAdminHq = !!profile?.isAdminHq;
   const canCreate = canAny("attendance:services:create");
   const canUpdate = can("attendance:services", "update");
   const canDelete = can("attendance:services", "delete");
@@ -141,6 +147,8 @@ export default function AttendanceServicesPage() {
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
+  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: dialogOpen && !editing && isAdminHq });
+  const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
   const [deleteTarget, setDeleteTarget] = React.useState<ChurchService | null>(
     null,
   );
@@ -179,9 +187,15 @@ export default function AttendanceServicesPage() {
 
   React.useEffect(() => {
     if (dialogOpen) {
-      form.reset(toFormValues(editing));
+      form.reset({ ...toFormValues(editing), branchId: editing?.branchId ?? profile?.branchId ?? "" });
     }
-  }, [dialogOpen, editing, form]);
+  }, [dialogOpen, editing, form, profile?.branchId]);
+
+  React.useEffect(() => {
+    if (dialogOpen && !editing && isAdminHq && branchOptions.length === 1 && !form.getValues("branchId")) {
+      form.setValue("branchId", branchOptions[0].branchId);
+    }
+  }, [dialogOpen, editing, isAdminHq, branchOptions, form]);
 
   const openCreate = () => {
     setEditing(null);
@@ -195,6 +209,11 @@ export default function AttendanceServicesPage() {
 
   const onSubmit = async (values: ServiceFormValues) => {
     try {
+      const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
+      if (!editing && (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch)))) {
+        form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
+        return;
+      }
       if (editing) {
         // Explicit nulls so cleared Day/Time fields persist as "no value".
         await updateMutation.mutateAsync({
@@ -212,7 +231,7 @@ export default function AttendanceServicesPage() {
       } else {
         await createMutation.mutateAsync({
           name: values.name.trim(),
-          branchId: branchId || undefined,
+          branchId: selectedBranch,
           category: values.category as ServiceCategory,
           dayOfWeek:
             values.dayOfWeek && values.dayOfWeek !== "none"
@@ -549,6 +568,35 @@ export default function AttendanceServicesPage() {
                   </FormItem>
                 )}
               />
+              {!editing && (
+                <FormField
+                  control={form.control}
+                  name="branchId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Branch *</FormLabel>
+                      {isAdminHq ? (
+                        <Select value={field.value} onValueChange={field.onChange} disabled={branchesQuery.isLoading || createMutation.isPending}>
+                          <FormControl>
+                            <SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {branchOptions.map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly aria-readonly="true" /></FormControl>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {isAdminHq ? "Choose the branch where this service takes place." : "Services are created in your assigned branch."}
+                      </p>
+                      {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
+                      {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}

@@ -14,30 +14,6 @@ import { RecoveryCodesPanel } from "@/components/shared/recovery-codes-panel";
 import type { LoginResponse } from "@/types/auth";
 import { useCompleteLogin, useLogin, useVerifyTwoFactor } from "@/hooks/use-auth";
 
-// Temporary testing helper for the seeded accounts, including deployed testing.
-const DEV_PASSWORD = "ChurchOS@1234";
-const DEV_ACCOUNTS = [
-  { label: "HQ · Super Admin", email: "superadmin@churchos.dev" },
-  { label: "HQ · Senior Pastor", email: "senior.pastor@churchos.dev" },
-  { label: "HQ · Church Admin", email: "admin@churchos.dev" },
-  { label: "HQ · Treasurer", email: "treasurer.hq@churchos.dev" },
-  { label: "HQ · Usher", email: "usher.hq@churchos.dev" },
-  { label: "HQ · Secretary", email: "secretary.hq@churchos.dev" },
-  { label: "HQ · Department Head", email: "dept.head.hq@churchos.dev" },
-  { label: "HQ · Cell Leader", email: "cell.leader.hq@churchos.dev" },
-  { label: "Lekki · Branch Pastor", email: "branch.pastor@churchos.dev" },
-  { label: "Lekki · Secretary", email: "branch.secretary@churchos.dev" },
-  { label: "Lekki · Treasurer", email: "branch.treasurer@churchos.dev" },
-  { label: "Lekki · Usher", email: "branch.usher@churchos.dev" },
-  { label: "Lekki · Department Head", email: "branch.depthead@churchos.dev" },
-  { label: "Lekki · Cell Leader", email: "cell.leader@churchos.dev" },
-  { label: "HQ · Fatima Abdullahi", email: "fatima.abdullahi@churchos.dev" },
-  { label: "Lekki · Ngozi Eze", email: "ngozi.eze@churchos.dev" },
-  { label: "HQ · Aisha Mohammed", email: "aisha.mohammed@churchos.dev" },
-  { label: "Lekki · Kunle Fashola", email: "kunle.fashola@churchos.dev" },
-  { label: "HQ · Blessing Effiong", email: "blessing.effiong@churchos.dev" },
-];
-
 export default function LoginPage() {
   const [registered, setRegistered] = React.useState(false);
   React.useEffect(() => {
@@ -227,37 +203,6 @@ export default function LoginPage() {
             transition={{ duration: 0.35, ease: AUTH_EASE }}
           >
             <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="dev-account"
-                  className="text-sm font-medium leading-none"
-                >
-                  Quick sign-in (seeded accounts)
-                </label>
-                <select
-                  id="dev-account"
-                  defaultValue=""
-                  onChange={(event) => {
-                    const account = DEV_ACCOUNTS.find(
-                      (item) => item.email === event.target.value,
-                    );
-                    if (account) {
-                      setEmail(account.email);
-                      setPassword(DEV_PASSWORD);
-                    }
-                  }}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="" disabled>
-                    Select a seeded account…
-                  </option>
-                  {DEV_ACCOUNTS.map((account) => (
-                    <option key={account.email} value={account.email}>
-                      {account.label} — {account.email}
-                    </option>
-                  ))}
-                </select>
-              </div>
               <AuthField
                 label="Email Address"
                 type="email"

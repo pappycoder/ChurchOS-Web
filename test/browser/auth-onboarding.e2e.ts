@@ -488,7 +488,7 @@ for (const route of [
     if (route === "/login")
       await expect(
         page.getByText("Quick sign-in (seeded accounts)", { exact: true }),
-      ).toBeVisible();
+      ).toHaveCount(0);
   });
 test("auth desktop design preview", async ({ page, context }) => {
   await publicSession(context);
