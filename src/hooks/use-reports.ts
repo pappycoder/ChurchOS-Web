@@ -18,6 +18,7 @@ export interface CategoryBreakdown {
 }
 
 export interface FinancialReport {
+  currency?: string;
   startDate: string;
   endDate: string;
   grandTotal: number;
@@ -67,6 +68,7 @@ export interface MemberReport {
 }
 
 export interface ReportQueryParams {
+  currency?: string;
   startDate?: string;
   endDate?: string;
   branchId?: string;
@@ -81,6 +83,7 @@ export interface ReportExportSheet {
 
 function buildQuery(params: ReportQueryParams): string {
   const searchParams = new URLSearchParams();
+  if (params.currency) searchParams.set("currency", params.currency);
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== null && value !== "") {
       searchParams.set(key, String(value));
@@ -93,7 +96,7 @@ function buildQuery(params: ReportQueryParams): string {
 export function monthLabel(month: string): string {
   const [year, m] = month.split("-");
   const date = new Date(Number(year), Number(m) - 1, 1);
-  return date.toLocaleString("en-NG", { month: "short" });
+  return date.toLocaleString("en-NG", { month: "short", year: "numeric" });
 }
 
 // ─── Queries ─────────────────────────────────────────────

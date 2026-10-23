@@ -1,5 +1,7 @@
 "use client";
 
+import { givingExportColumns, givingExportRows } from "@/lib/giving-export";
+
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -78,7 +80,7 @@ export default function GivingRecordsPage() {
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const canCreate = can("giving:records", "create");
   const canEmailReceipt = profile?.planFeatures?.includes("email") === true;
-  const canWhatsAppReceipt = profile?.planFeatures?.includes("whatsapp") === true;
+  const canWhatsAppReceipt = false; // PDF media delivery is not implemented; downloads/email remain available.
 
   // Filters
   const [categoryId, setCategoryId] = React.useState("all");
@@ -127,24 +129,7 @@ export default function GivingRecordsPage() {
   const linkedKind = (tx: GivingTransaction): string =>
     tx.cellGroupId ? "Cell Group Giving" : tx.memberId ? "Member" : tx.serviceId ? "Service" : tx.eventId ? "Event" : "General";
 
-  const buildExportRows = React.useCallback(
-    (rows: GivingTransaction[]) =>
-      rows.map((t) => ({
-        date: format(parseISO(t.givingDate ?? t.createdAt), "yyyy-MM-dd"),
-        name: t.title || t.cellGroupName || t.memberName || "",
-        linkType: linkedKind(t),
-        linkedTo: linkedName(t),
-        description: t.description || t.notes || "",
-        category: t.categoryName,
-        amount: t.amount,
-        currency: t.currency,
-        type: t.type.replace("_", " "),
-        gateway: t.paymentGateway,
-        status: t.status,
-        receiptNumber: t.receiptNumber || "",
-      })),
-    []
-  );
+  const buildExportRows = givingExportRows;
   const exportData = buildExportRows(transactions);
 
   // Export walks every page of the current filter set server-side.
@@ -161,7 +146,7 @@ export default function GivingRecordsPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${tx.receiptNumber ?? "receipt"}.pdf`;
+      a.download = `receipt-${(tx.receiptNumber || tx.transactionId).replace(/[^a-zA-Z0-9_.-]+/g, "-")}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -321,20 +306,7 @@ export default function GivingRecordsPage() {
         } exportAction={
           <ExportDropdown
               tableId="giving-records"
-              columns={[
-                { key: "date", label: "Date" },
-                { key: "name", label: "Name" },
-                { key: "linkType", label: "Link Type" },
-                { key: "linkedTo", label: "Linked To" },
-                { key: "category", label: "Category" },
-                { key: "description", label: "Description" },
-                { key: "amount", label: "Amount" },
-                { key: "currency", label: "Currency" },
-                { key: "type", label: "Method" },
-                { key: "gateway", label: "Gateway" },
-                { key: "status", label: "Status" },
-                { key: "receiptNumber", label: "Receipt #" },
-              ]}
+              columns={givingExportColumns}
               data={exportData}
               fetchAllRows={fetchAllExportRows}
               title="Giving Records"
@@ -369,13 +341,13 @@ export default function GivingRecordsPage() {
               <Table exportable={false} tableId="giving-records">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead exportKeys={["name", "linkType", "linkedTo", "description"]}>Name / Linked To</TableHead>
+                    <TableHead exportKeys={["date", "recordedAt"]}>Date</TableHead>
+                    <TableHead exportKeys={["name", "linkType", "linkedTo", "description", "meetingDate", "branch"]}>Name / Linked To</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead exportKeys={["amount", "currency"]}>Amount</TableHead>
-                    <TableHead exportKeys={["type", "gateway"]}>Method</TableHead>
+                    <TableHead exportKeys={["method", "gateway"]}>Method</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Receipt #</TableHead>
+                    <TableHead exportKeys={["receiptNumber", "paymentReference", "transactionId"]}>Receipt #</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>

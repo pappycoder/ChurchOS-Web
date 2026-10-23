@@ -1,8 +1,11 @@
 "use client";
 
+import { givingExportColumns, givingExportRows } from "@/lib/giving-export";
+
+import { getToastErrorMessage } from "@/lib/toast";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
-import { format, parseISO } from "date-fns";
+import { format } from "date-fns";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { AlertTriangle, CalendarRange } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -49,60 +52,37 @@ export default function GivingReportsPage() {
     branchId: effectiveBranchId || undefined,
   });
 
+  const [currencyFilter, setCurrencyFilter] = React.useState("");
+  const currencies = [...new Set((rows ?? []).map(row => row.currency))].sort();
+  const currency = currencies.includes(currencyFilter) ? currencyFilter : currencies[0] ?? "NGN";
+  const reportRows = React.useMemo(() => (rows ?? []).filter(row => row.currency === currency), [rows, currency]);
+
   const totalAmount = React.useMemo(
-    () => (rows ?? []).reduce((sum, t) => sum + t.amount, 0),
-    [rows]
+    () => reportRows.reduce((sum, t) => sum + t.amount, 0),
+    [reportRows]
   );
 
   const byCategory = React.useMemo(() => {
     const map = new Map<string, number>();
-    for (const t of rows ?? []) {
+    for (const t of reportRows) {
       map.set(t.categoryName, (map.get(t.categoryName) ?? 0) + t.amount);
     }
     return Array.from(map.entries())
       .map(([name, amount]) => ({ name, amount }))
       .sort((a, b) => b.amount - a.amount);
-  }, [rows]);
+  }, [reportRows]);
 
   const byMethod = React.useMemo(() => {
     const map = new Map<string, number>();
-    for (const t of rows ?? []) {
-      const key = t.type.replace("_", " ");
+    for (const t of reportRows) {
+      const key = (t.paymentMethod || t.type).replaceAll("_", " ");
       map.set(key, (map.get(key) ?? 0) + t.amount);
     }
     return Array.from(map.entries()).map(([name, amount]) => ({ name, amount }));
-  }, [rows]);
+  }, [reportRows]);
 
-  const exportData = React.useMemo(
-    () =>
-      (rows ?? []).map((t) => ({
-        date: format(parseISO(t.givingDate ?? t.createdAt), "yyyy-MM-dd"),
-        name: t.memberName || "",
-        linkedTo: t.serviceName || t.eventName || "General",
-        category: t.categoryName,
-        amount: t.amount,
-        currency: t.currency,
-        method: t.type.replace("_", " "),
-        receiptNumber: t.receiptNumber || "",
-      })),
-    [rows]
-  );
+  const exportData = React.useMemo(() => givingExportRows(reportRows), [reportRows]);
 
-  if (error) {
-    return (
-      <div>
-        <PageHeader
-          title="Reports"
-          breadcrumbs={[
-            { label: "Home", href: "/dashboard" },
-            { label: "Giving", href: "/giving" },
-            { label: "Reports" },
-          ]}
-        />
-        <ErrorState title="Failed to load giving reports." />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -152,6 +132,10 @@ export default function GivingReportsPage() {
               <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
             </Select>
           )}
+          <Select value={currency} onValueChange={setCurrencyFilter}>
+            <SelectTrigger className="w-32" aria-label="Giving report currency"><SelectValue /></SelectTrigger>
+            <SelectContent>{(currencies.length ? currencies : ["NGN"]).map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}</SelectContent>
+          </Select>
           {(startDate || endDate) && (
             <Button
               variant="ghost"
@@ -170,14 +154,15 @@ export default function GivingReportsPage() {
         </CardContent>
       </Card>
 
+      {error ? <ErrorState title="Failed to load giving reports." description={getToastErrorMessage(error, "Please try again or narrow the date range.")} /> : <>
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard
           title="Total Given"
-          value={loadingRows ? "..." : totalAmount.toLocaleString()}
+          value={loadingRows ? "..." : `${currency} ${totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={<AlertTriangle className="h-4 w-4 hidden" />}
         />
-        <StatsCard title="Gifts" value={rows?.length ?? 0} icon={<CalendarRange className="h-4 w-4" />} />
+        <StatsCard title="Gifts" value={reportRows.length} icon={<CalendarRange className="h-4 w-4" />} />
         <StatsCard
           title="Categories Touched"
           value={byCategory.length}
@@ -189,19 +174,10 @@ export default function GivingReportsPage() {
         {/* By category */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2"><ExportDropdown
-            columns={[
-              { key: "date", label: "Date" },
-              { key: "name", label: "Name" },
-              { key: "linkedTo", label: "Linked To" },
-              { key: "category", label: "Category" },
-              { key: "amount", label: "Amount" },
-              { key: "currency", label: "Currency" },
-              { key: "method", label: "Method" },
-              { key: "receiptNumber", label: "Receipt #" },
-            ]}
+            columns={givingExportColumns}
             data={exportData}
             fetchAllRows={async () => exportData}
-            title={`Giving Report${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
+            title={`Giving Report — ${currency}${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
             filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
             disabled={!rows || rows.length === 0}
           />
@@ -248,6 +224,7 @@ export default function GivingReportsPage() {
           </CardContent>
         </Card>
       </div>
+      </>}
     </div>
   );
 }

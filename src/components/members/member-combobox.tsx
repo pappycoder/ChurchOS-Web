@@ -40,6 +40,7 @@ export function MemberCombobox({
 }: MemberComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [chosen, setChosen] = React.useState<{ id: string; name: string }>();
 
   const initialQuery = useMembersList({ limit: 20, branchId }, { enabled: open && !disabled && searchTerm.trim().length < 2 });
   const searchQuery = useSearchMembers(searchTerm.trim(), 20, { branchId, enabled: open && !disabled });
@@ -57,9 +58,14 @@ export function MemberCombobox({
   }, [searchTerm, searchQuery.data, initialQuery.data, excluded, branchId]);
 
   const handleSelect = (member: Member) => {
+    setChosen({ id: member.memberId, name: `${member.firstName} ${member.lastName}`.trim() });
     onChange(member.memberId, member);
     setOpen(false);
   };
+
+  const option = options.find(member => member.memberId === value);
+  const displayName = selectedName || (option ? `${option.firstName} ${option.lastName}`.trim() : undefined) ||
+    (chosen?.id === value ? chosen.name : undefined) || "Selected member";
 
   return (
     <Popover open={open && !disabled} onOpenChange={(next) => !disabled && setOpen(next)}>
@@ -74,7 +80,7 @@ export function MemberCombobox({
           )}
         >
           <span className={cn("truncate", !value && "text-muted-foreground")}>
-            {value && selectedName ? selectedName : value ? value : placeholder}
+            {value ? displayName : placeholder}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </button>

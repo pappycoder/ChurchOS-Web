@@ -17,6 +17,7 @@ import {
 import { PageHeader } from "@/components/shared/page-header";
 import { StatsCard } from "@/components/shared/stats-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -80,8 +81,8 @@ const FORMATS: {
   { key: "csv", label: "CSV", description: "One file per block", icon: FileBarChart },
 ];
 
-function formatNaira(value: number): string {
-  return `₦${value.toLocaleString("en-NG")}`;
+function formatNaira(value: number, currency = "NGN"): string {
+  return new Intl.NumberFormat("en-NG", { style: "currency", currency, currencyDisplay: "code", minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 }
 
 export default function ReportsGeneratorPage() {
@@ -91,6 +92,7 @@ export default function ReportsGeneratorPage() {
   const isAdminHq = !!profile?.isAdminHq;
   const [blocks, setBlocks] = React.useState<ReportBlock[]>(["financial"]);
   const [range, setRange] = React.useState<ReportRange>({ startDate: "", endDate: "" });
+  const [currency, setCurrency] = React.useState("NGN");
   const [branchId, setBranchId] = React.useState<string>("");
   const [outputFormat, setOutputFormat] = React.useState<Format>("pdf");
   const [exporting, setExporting] = React.useState(false);
@@ -111,6 +113,7 @@ export default function ReportsGeneratorPage() {
 
   const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
   const params = {
+    currency,
     startDate: range.startDate || undefined,
     endDate: range.endDate || undefined,
     branchId: effectiveBranchId || undefined,
@@ -198,9 +201,9 @@ export default function ReportsGeneratorPage() {
         ],
         columns: [
           { key: "name", label: "Category / Month" },
-          { key: "total", label: "Total (₦)" },
+          { key: "total", label: `Total (${r?.currency ?? currency})` },
           { key: "count", label: "Transactions" },
-          { key: "average", label: "Average (₦)" },
+          { key: "average", label: `Average (${r?.currency ?? currency})` },
         ],
       };
     }
@@ -356,6 +359,9 @@ export default function ReportsGeneratorPage() {
             <div>
               <Label className="mb-1.5 block text-sm font-medium">Date range</Label>
               <ReportDateRange value={range} onChange={setRange} />
+              {blocks.includes("financial") && <label className="block text-sm font-medium mt-3">Financial currency
+                <Input aria-label="Financial report currency" value={currency} maxLength={3} onChange={event => setCurrency(event.target.value.toUpperCase().replace(/[^A-Z]/g, ""))} className="w-28 mt-1" />
+              </label>}
             </div>
             <div>
               <Label className="mb-1.5 block text-sm font-medium">Branch</Label>
@@ -464,14 +470,14 @@ function FinancialPreview({ report }: { report: FinancialReport | undefined }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-3">
-          <StatsCard title="Grand Total" value={formatNaira(report.grandTotal)} icon={<Landmark className="h-4 w-4" />} variant="primary" />
+          <StatsCard title="Grand Total" value={formatNaira(report.grandTotal, report.currency)} icon={<Landmark className="h-4 w-4" />} variant="primary" />
           <StatsCard title="Transactions" value={report.transactionCount} icon={<ListOrdered className="h-4 w-4" />} />
-          <StatsCard title="Average Gift" value={formatNaira(report.averageAmount)} icon={<ListOrdered className="h-4 w-4" />} />
+          <StatsCard title="Average Gift" value={formatNaira(report.averageAmount, report.currency)} icon={<ListOrdered className="h-4 w-4" />} />
         </div>
         <BreakdownBars
           items={report.byCategory.map((c) => ({ name: c.name, value: c.total, count: c.count }))}
           labelSuffix={(item) => `${item.count} txns`}
-          formatValue={formatNaira}
+          formatValue={value => formatNaira(value, report.currency)}
         />
       </CardContent>
     </Card>

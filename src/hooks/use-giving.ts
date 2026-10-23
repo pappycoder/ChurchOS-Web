@@ -58,6 +58,7 @@ export interface GivingTransaction {
   serviceName?: string;
   eventId?: string;
   branchId?: string;
+  branchName?: string;
   eventName?: string;
   categoryId: string;
   categoryName: string;

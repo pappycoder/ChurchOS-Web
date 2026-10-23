@@ -23,8 +23,7 @@ interface ExportDropdownProps {
   disabled?: boolean;
   /**
    * When provided and no rows are selected client-side, exports EVERY
-   * matching row by paging through the list endpoint. Errors surface as
-   * a toast and fall back to the passed-in `data`.
+   * matching row by paging through the list endpoint. Errors abort the download and surface as a toast.
    */
   fetchAllRows?: () => Promise<Record<string, unknown>[]>;
 }
@@ -43,17 +42,7 @@ export function ExportDropdown({
   const [loading, setLoading] = React.useState<"csv" | "pdf" | "xlsx" | null>(null);
 
   const resolveRows = async (): Promise<Record<string, unknown>[]> => {
-    if (fetchAllRows) {
-      try {
-        const rows = await fetchAllRows();
-        return rows.length > 0 ? rows : data;
-      } catch (error) {
-        toast.error("Could not load all rows for export", {
-          description:
-            getToastErrorMessage(error, "Exporting the loaded rows instead."),
-        });
-      }
-    }
+    if (fetchAllRows) return fetchAllRows();
     return data;
   };
 

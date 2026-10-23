@@ -17,7 +17,7 @@ for (const logo of ["uploaded", "missing", "broken"]) test(`read-only exports re
       if (path.endsWith("/auth/session")) data = { userId: "user-a", email: "reader@example.com" };
       else if (path.endsWith("/profiles/me")) data = {
         profileId: "profile-a", userId: "user-a", churchId: "church-a", branchId: "branch-a", role: ["custom_reader"], status: "active", isAdminHq: false,
-        firstName: "Read", lastName: "Only", permissions: ["assets:list:read"], branch: { branchId: "branch-a", name: "Branch A" },
+        firstName: "Read", lastName: "Only", planFeatures: ["assets"], permissions: ["assets:list:read"], branch: { branchId: "branch-a", name: "Branch A" },
         church: { churchId: "church-a", name: "Grace Community Church", logoUrl: logo === "uploaded" ? "/brand/churchos-emblem.png" : logo === "broken" ? "/missing-church-logo.png" : undefined },
       };
       else if (path.endsWith("/assets")) data = { data: [{ id: "asset-a", churchId: "church-a", branchId: "branch-a", name: "Church keyboard", assetTag: "KEY-001", condition: "good", status: "active", currentValue: 100, createdAt: "2026-10-01T00:00:00Z" }], meta: { total: 1, page: 1, limit: 20, totalPages: 1 } };
