@@ -11,6 +11,7 @@ import {
   Phone,
   Mail,
   CalendarDays,
+  Building2,
   User,
   StickyNote,
   Tag,
@@ -348,6 +349,11 @@ export default function VisitorDetailPage({
             <CardTitle className="text-sm font-semibold">Visit &amp; Follow-Up</CardTitle>
           </CardHeader>
           <CardContent className="divide-y">
+            <DataRow
+              icon={<Building2 className="h-4 w-4" />}
+              label="Branch"
+              value={display.branchName || (display.branchId ? "Branch name unavailable" : "Not assigned")}
+            />
             <DataRow
               icon={<CalendarDays className="h-4 w-4" />}
               label="First Visit"
