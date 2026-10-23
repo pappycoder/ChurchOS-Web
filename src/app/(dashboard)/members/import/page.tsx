@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { exportExcel } from "@/lib/export-utils";
+import { memberImportTemplate, TARGET_FIELDS, VALID_STATUSES } from "@/lib/member-import-template";
 import { parseMemberSpreadsheet } from "@/lib/import-spreadsheet";
 import { api } from "@/lib/api";
 import { useBranchesList } from "@/hooks/use-branches";
@@ -59,29 +60,6 @@ interface ImportResult {
   errors: ImportError[];
 }
 
-/** Target fields the importer can fill on each member record. */
-const TARGET_FIELDS: Array<{
-  key: string;
-  label: string;
-  required?: boolean;
-  aliases: string[];
-}> = [
-  { key: "firstName", label: "First Name *", required: true, aliases: ["firstname", "first", "givenname", "forename"] },
-  { key: "lastName", label: "Last Name *", required: true, aliases: ["lastname", "last", "surname", "familyname"] },
-  { key: "email", label: "Email", aliases: ["email", "emailaddress"] },
-  { key: "phone", label: "Phone", aliases: ["phone", "phonenumber", "mobile", "telephone", "tel"] },
-  { key: "whatsappNumber", label: "WhatsApp Number", aliases: ["whatsapp", "whatsappnumber", "whatsappno"] },
-  { key: "gender", label: "Gender", aliases: ["gender", "sex"] },
-  { key: "dateOfBirth", label: "Date of Birth", aliases: ["dateofbirth", "dob", "birthday"] },
-  { key: "address", label: "Address", aliases: ["address", "streetaddress", "residentialaddress"] },
-  { key: "city", label: "City", aliases: ["city", "town"] },
-  { key: "state", label: "State", aliases: ["state", "region", "province"] },
-  { key: "branch", label: "Branch (by name)", aliases: ["branch", "branchname", "campus"] },
-  { key: "status", label: "Status", aliases: ["status", "membershipstatus"] },
-  { key: "notes", label: "Notes", aliases: ["notes", "note", "comments"] },
-];
-
-const VALID_STATUSES = new Set(["active", "inactive", "suspended", "transferred"]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function normalizeHeader(header: string): string {
@@ -191,22 +169,8 @@ export default function MemberImportPage() {
     const branchNames = currentProfile?.isAdminHq
       ? (branchesQuery.data?.data ?? []).map((branch) => branch.name)
       : [currentProfile?.branch?.name].filter((name): name is string => !!name);
-    const example = ["Chioma", "Eze", "chioma@example.com", "+234 803 456 7890", "", "female", "1995-04-12", "12 Awolowo Road", "Lagos", "Lagos", currentProfile?.branch?.name ?? branchNames[0] ?? "", "active", ""];
     try {
-      await exportExcel([
-        { name: "Members", template: true, columns: TARGET_FIELDS.map((field) => ({
-          key: field.key, label: field.label.replace(/ \*$/, "").replace(/ \(.*\)$/, ""),
-          ...(field.key === "gender" ? { options: ["male", "female"] } : {}),
-          ...(field.key === "status" ? { options: [...VALID_STATUSES] } : {}),
-          ...(field.key === "branch" ? { options: branchNames } : {}),
-        })), data: [Object.fromEntries(TARGET_FIELDS.map((field, index) => [field.key, example[index]]))] },
-        { name: "Instructions", columns: [{ key: "step", label: "Step", width: 22 }, { key: "instruction", label: "Instructions", width: 80 }], data: [
-          { step: "1. Add members", instruction: "Replace the example on the Members sheet. First Name and Last Name are required. Keep the headers in row 1 unchanged." },
-          { step: "2. Choose values", instruction: "Use the Gender, Status and Branch dropdowns. Dropdowns are prepared through row 500; copy a formatted row to extend them." },
-          { step: "3. Dates and phones", instruction: "Use YYYY-MM-DD for dates. Keep phone numbers as text, including their country code." },
-          { step: "4. Upload", instruction: "Save as .xlsx and upload it on Import Members. Review the preview before confirming. Workbook edits do not update ChurchOS until imported." },
-        ] },
-      ], "member-import-template");
+      await exportExcel(memberImportTemplate(branchNames, currentProfile?.branch?.name), "member-import-template");
     } catch (error) {
       toast.error("Template download failed", { description: getToastErrorMessage(error, "Please try again.") });
     }
@@ -515,6 +479,10 @@ export default function MemberImportPage() {
                 <Download className="h-4 w-4 mr-2" />
                 Download Template
               </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Phone numbers accept + country codes and leading zeros. Dates use YYYY-MM-DD;
+                calendar availability depends on your spreadsheet app.
+              </p>
             </CardContent>
           </Card>
         </div>

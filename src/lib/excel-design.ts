@@ -6,6 +6,8 @@ export interface ExcelColumn {
   label: string;
   width?: number;
   numberFormat?: string;
+  /** Native date cells and validation; calendar UI is supplied by the spreadsheet app. */
+  dateInput?: boolean;
   options?: string[];
 }
 
@@ -129,6 +131,8 @@ export function addDesignedSheet(workbook: Workbook, spec: ExcelSheet, index: nu
     const longest = Math.max(column.label.length + 5, ...spec.data.slice(0, 200).map((row) => String(row[column.key] ?? "").length));
     sheet.getColumn(col).width = column.width ?? Math.max(15, Math.min(42, longest + 2));
     const format = column.numberFormat ?? (/₦|NGN|amount|price|cost|value/i.test(column.label) ? '#,##0.00;[Red](#,##0.00)' : '#,##0.########');
+    // Column defaults also cover newly inserted rows and unfilled template cells.
+    if (column.numberFormat || column.dateInput) sheet.getColumn(col).numFmt = column.numberFormat ?? "yyyy-mm-dd";
     const explicitChoices = column.options;
     const detected = /^(status|gender|branch|department|role|payment.?method|event.?type)$/i.test(column.key)
       ? [...new Set(spec.data.map((row) => row[column.key]).filter((value): value is string => typeof value === "string" && !!value))].sort()
@@ -142,7 +146,19 @@ export function addDesignedSheet(workbook: Workbook, spec: ExcelSheet, index: nu
       cell.border = { bottom: { style: "hair", color: { argb: colors.line } } };
       cell.alignment = { vertical: "middle", wrapText: true };
       if (typeof cell.value === "number") { cell.numFmt = format; cell.alignment.horizontal = "right"; }
-      if (cell.value instanceof Date) cell.numFmt = "dd mmm yyyy";
+      if (cell.value instanceof Date) cell.numFmt = column.numberFormat ?? "dd mmm yyyy";
+      if (column.numberFormat) cell.numFmt = column.numberFormat;
+      if (column.dateInput) {
+        cell.numFmt = column.numberFormat ?? "yyyy-mm-dd";
+        cell.dataValidation = {
+          type: "date", operator: "between", allowBlank: true,
+          formulae: [new Date("1900-01-01T00:00:00Z"), new Date("9999-12-31T00:00:00Z")],
+          showInputMessage: true, promptTitle: column.label,
+          prompt: "Use your app's date picker if available, or enter YYYY-MM-DD (for example, 1995-04-12).",
+          showErrorMessage: true, errorStyle: "stop", errorTitle: "Enter a valid date",
+          error: "Choose a date or enter YYYY-MM-DD, for example 1995-04-12.",
+        };
+      }
       if (choiceName) cell.dataValidation = { type: "list", allowBlank: true, formulae: [choiceName], showInputMessage: true, promptTitle: column.label, prompt: spec.template ? "Choose an option from the dropdown." : "Choices come from the exported rows. Workbook edits do not update ChurchOS.", showErrorMessage: !!explicitChoices, errorStyle: "stop", errorTitle: "Choose a listed value", error: "Use one of the available options." };
     }
     if (/status/i.test(column.key)) {
