@@ -95,13 +95,9 @@ for (const role of ["usher", "secretary", "branch_pastor", "church_admin", "supe
     if (admin) await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toBeVisible();
     else await expect(page.getByRole("button", { name: "Open Tawk.to chat" })).toHaveCount(0);
     await page.getByRole("button", { name: "Account menu", exact: true }).last().click();
-    if (admin)
-      await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toBeVisible();
-    else
-      await expect(page.getByRole("menuitem", { name: "Live chat", exact: true })).toHaveCount(0);
-    await expect(
-      page.getByRole("menuitem", { name: "Contact support", exact: true }),
-    ).toHaveAttribute("href", "/support");
+    for (const name of ["Help Centre", "Contact support", "Integrations", "Live chat"]) {
+      await expect(page.getByRole("menuitem", { name, exact: true })).toHaveCount(0);
+    }
     await expect(page.getByRole("menuitem", { name: "Support ticket", exact: true })).toHaveCount(
       0,
     );

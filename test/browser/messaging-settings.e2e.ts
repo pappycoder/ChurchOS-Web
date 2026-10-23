@@ -62,8 +62,8 @@ for (const role of ["church_admin", "super_admin"]) test(`${role} can find integ
   await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Save provider account", exact: true })).toBeVisible();
   await page.locator("header").getByRole("button", { name: "Account menu", exact: true }).click();
-  await expect(page.getByRole("menuitem", { name: "Integrations", exact: true })).toBeVisible();
-  await page.getByRole("menuitem", { name: "Integrations", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "Integrations", exact: true })).toHaveCount(0);
+  await page.keyboard.press("Escape");
   await expect(page).toHaveURL(/\/admin\/integrations$/);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Provider accounts", exact: true })).toBeVisible();
