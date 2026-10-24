@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+
 import * as React from "react";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { toast } from "@/lib/toast";
@@ -82,6 +84,7 @@ export function TemplateFormDialog({
   template,
 }: TemplateFormDialogProps) {
   const { data: profile } = useCurrentProfile();
+  const branchAssignment = useBranchAssignment(template, open);
   const isEdit = !!template;
   const createMutation = useCreateTemplate();
   const updateMutation = useUpdateTemplate(template?.templateId ?? "");
@@ -98,6 +101,8 @@ export function TemplateFormDialog({
   }, [open, template, form]);
 
   const onSubmit = (values: TemplateFormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     const variables = values.variables
       ? values.variables
           .split(",")
@@ -106,6 +111,7 @@ export function TemplateFormDialog({
       : undefined;
 
     const payload = {
+        ...branchPayload,
       name: values.name.trim(),
       content: values.content,
       channel: values.channel,
@@ -147,6 +153,7 @@ export function TemplateFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <BranchAssignmentField assignment={branchAssignment} />
             <FormField
               control={form.control}
               name="name"
@@ -167,7 +174,7 @@ export function TemplateFormDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Channel *</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={(value) => { if (value) field.onChange(value); }}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select channel" />
@@ -195,7 +202,7 @@ export function TemplateFormDialog({
                     <FormLabel>Category</FormLabel>
                     <Select
                       value={field.value || undefined}
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => { if (value) field.onChange(value); }}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -274,7 +281,7 @@ export function TemplateFormDialog({
                   <FormLabel>Status</FormLabel>
                   <Select
                     value={field.value ?? "draft"}
-                    onValueChange={field.onChange}
+                    onValueChange={(value) => { if (value) field.onChange(value); }}
                   >
                     <FormControl>
                       <SelectTrigger>

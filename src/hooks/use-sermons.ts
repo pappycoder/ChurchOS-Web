@@ -7,6 +7,8 @@ import { api } from "@/lib/api";
 
 /** Shape returned by GET /sermons/:id (SermonResponseDto). */
 export interface Sermon {
+  branchName?: string;
+  branchId?: string;
   sermonId: string;
   churchId: string;
   title: string;
@@ -51,6 +53,7 @@ export interface ListSermonsParams {
 }
 
 export interface CreateSermonInput {
+  branchId?: string;
   title: string;
   speaker?: string;
   sermonDate: string;

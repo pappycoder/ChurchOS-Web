@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,6 +44,7 @@ interface SermonFormProps {
 }
 
 export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
+  const branchAssignment = useBranchAssignment(sermon);
   const [saving, setSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(sermon?.tags ?? []);
@@ -102,6 +105,8 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
   };
 
   const handleSubmit = async (values: SermonFormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     setSaving(true);
     try {
       const mins = parseInt(values.durationMinutes || "0", 10) || 0;
@@ -109,6 +114,7 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
       const durationSeconds = mins * 60 + secs || undefined;
 
       const input: CreateSermonInput = {
+        ...branchPayload,
         title: values.title,
         sermonDate: values.sermonDate,
         speaker: values.speaker || undefined,
@@ -134,6 +140,7 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
             <CardTitle>Sermon Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <BranchAssignmentField assignment={branchAssignment} />
             <FormField
               control={form.control}
               name="title"

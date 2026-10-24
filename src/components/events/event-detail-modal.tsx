@@ -1,4 +1,5 @@
 "use client";
+import { BranchDetail } from "@/components/shared/branch-assignment";
 
 import * as React from "react";
 import { PermissionLink as Link } from "@/components/shared/permission-link";
@@ -96,6 +97,7 @@ export function EventDetailModal({
         </DialogHeader>
 
         <div className="px-6 py-5 space-y-4">
+          <BranchDetail record={event} />
           <div className="flex flex-wrap items-center gap-2">
             <Badge className={badgeClasses}>
               {EVENT_TYPE_MAP[event.type]}

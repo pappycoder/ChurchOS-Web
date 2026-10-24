@@ -30,6 +30,7 @@ export const EVENT_TYPE_MAP: Record<EventType, string> = {
 
 /** Shape returned by GET /events (EventResponseDto). */
 export interface EventItem {
+  branchName?: string;
   eventId: string;
   churchId: string;
   branchId?: string;
@@ -104,6 +105,7 @@ export interface ListEventsParams {
 }
 
 export interface CreateEventInput {
+  branchId?: string;
   title: string;
   description?: string;
   type: EventType;

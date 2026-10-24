@@ -23,6 +23,8 @@ export interface BroadcastAudienceFilter {
 }
 
 export interface Broadcast {
+  branchId?: string;
+  branchName?: string;
   broadcastId: string;
   churchId: string;
   name: string;
@@ -50,6 +52,7 @@ export interface BroadcastListResponse {
 }
 
 export interface ListBroadcastsParams {
+  branchId?: string;
   page?: number;
   limit?: number;
   status?: BroadcastStatus;
@@ -58,6 +61,7 @@ export interface ListBroadcastsParams {
 }
 
 export interface CreateBroadcastInput {
+  branchId?: string;
   name: string;
   templateId: string;
   channel: BroadcastChannel;
@@ -157,6 +161,15 @@ export function useCancelBroadcast() {
   return useMutation({
     mutationFn: (broadcastId: string) =>
       api.patch<{ success: boolean }>(`/broadcasts/${broadcastId}/cancel`, {}),
+    onSuccess: () => invalidateBroadcastCaches(qc),
+  });
+}
+
+export function useUpdateBroadcast() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ broadcastId, branchId }: { broadcastId: string; branchId: string }) =>
+      api.patch<Broadcast>(`/broadcasts/${broadcastId}`, { branchId }),
     onSuccess: () => invalidateBroadcastCaches(qc),
   });
 }

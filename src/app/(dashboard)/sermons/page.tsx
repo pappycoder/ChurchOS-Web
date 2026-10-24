@@ -141,8 +141,8 @@ function SermonsListContent() {
   const archiveMutation = useArchiveSermon();
   const restoreArchiveMutation = useRestoreArchiveSermon();
 
-  const totalsQuery = useSermonsList({ limit: 1 });
-  const seriesQuery = useSermonsList({ limit: 1, series: "__any__" });
+  const totalsQuery = useSermonsList({ limit: 1, branchId: branchId || undefined });
+  const seriesQuery = useSermonsList({ limit: 1, branchId: branchId || undefined, series: "__any__" });
 
   const sermons = React.useMemo(() => data?.data ?? [], [data]);
   const total = data?.total ?? 0;

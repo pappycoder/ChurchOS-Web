@@ -1,4 +1,5 @@
 "use client";
+import { BranchDetail } from "@/components/shared/branch-assignment";
 
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -344,6 +345,7 @@ export default function SermonDetailPage() {
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent className="space-y-1">
+          <BranchDetail record={sermon} />
           <DataRow
             label="Speaker"
             value={sermon.speaker}

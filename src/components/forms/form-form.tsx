@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -93,6 +95,7 @@ const EMPTY_VALUES: FormValues = {
 };
 
 export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
+  const branchAssignment = useBranchAssignment(form);
   const [saving, setSaving] = useState(false);
   const [builderFields, setBuilderFields] = useState<FormFieldType[]>([]);
 
@@ -137,9 +140,12 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
   };
 
   const handleSubmit = async (values: FormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     setSaving(true);
     try {
       await onSubmit({
+        ...branchPayload,
         title: values.title,
         description: values.description?.trim() || undefined,
         fields: values.fields,
@@ -171,6 +177,7 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
             <CardDescription>Name and describe this form.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
+            <BranchAssignmentField assignment={branchAssignment} />
             <FormField
               control={formControl.control}
               name="title"

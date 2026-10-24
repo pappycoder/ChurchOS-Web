@@ -1,4 +1,5 @@
 "use client";
+import { BranchDetail } from "@/components/shared/branch-assignment";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -123,7 +124,7 @@ function TemplatesListContent() {
 
   const { data, isLoading, error } = useTemplatesList(queryParams);
 
-  const allQuery = useTemplatesList({ limit: 200, archived: archivedView ? true : undefined });
+  const allQuery = useTemplatesList({ limit: 100, branchId: branchId || undefined, archived: archivedView ? true : undefined });
   const allTemplates = React.useMemo(() => allQuery.data?.data ?? [], [allQuery.data]);
   const total = data?.meta?.total ?? 0;
   const templates = React.useMemo(() => data?.data ?? [], [data]);
@@ -471,6 +472,7 @@ function TemplatesListContent() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            {viewing && <BranchDetail record={viewing} />}
             {viewing?.language && (
               <p className="text-sm text-muted-foreground">Language: {viewing.language}</p>
             )}

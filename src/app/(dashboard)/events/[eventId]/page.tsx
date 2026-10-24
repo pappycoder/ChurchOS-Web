@@ -1,4 +1,5 @@
 "use client";
+import { BranchDetail } from "@/components/shared/branch-assignment";
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import { ErrorState } from "@/components/shared/error-state";
@@ -171,6 +172,7 @@ export default function EventDetailPage({
       {/* Header card */}
       <Card>
         <CardContent className="p-6">
+          <BranchDetail record={event} />
           <div className="flex items-start gap-3 flex-wrap">
             <h2 className="text-xl font-semibold">{event.title}</h2>
             <Badge variant="outline">{EVENT_TYPE_MAP[event.type] ?? event.type}</Badge>

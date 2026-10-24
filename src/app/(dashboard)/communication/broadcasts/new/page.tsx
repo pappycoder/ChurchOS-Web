@@ -37,7 +37,7 @@ import {
   type MemberStatus,
 } from "@/hooks/use-broadcasts";
 import { useTemplatesList } from "@/hooks/use-templates";
-import { useBranchesList } from "@/hooks/use-branches";
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const broadcastSchema = z.object({
@@ -62,12 +62,12 @@ export default function NewBroadcastPage() {
   const createMutation = useCreateBroadcast();
 
   const [channel, setChannel] = React.useState<BroadcastChannel>("email");
-  const templatesQuery = useTemplatesList({ status: "published", limit: 200 });
-  const branchesQuery = useBranchesList({ limit: 200 });
+  const branchAssignment = useBranchAssignment();
+  const templatesQuery = useTemplatesList({ status: "published", limit: 100, branchId: branchAssignment.value || undefined });
 
   const templates = React.useMemo(
-    () => (templatesQuery.data?.data ?? []).filter((t) => t.channel === channel),
-    [templatesQuery.data, channel]
+    () => (templatesQuery.data?.data ?? []).filter((t) => t.channel === channel && (!t.branchId || t.branchId === branchAssignment.value)),
+    [templatesQuery.data, channel, branchAssignment.value]
   );
 
   const form = useForm<BroadcastFormValues>({
@@ -82,6 +82,10 @@ export default function NewBroadcastPage() {
       scheduledAt: "",
     },
   });
+
+  React.useEffect(() => {
+    form.setValue("templateId", "");
+  }, [branchAssignment.value, form]);
 
   if (!canCreate) {
     return (
@@ -104,9 +108,11 @@ export default function NewBroadcastPage() {
   }
 
   const onSubmit = async (values: BroadcastFormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     const audienceFilter: Record<string, string> = {};
     if (values.memberStatus) audienceFilter.status = values.memberStatus;
-    if (values.branchId) audienceFilter.branchId = values.branchId;
+    if (branchPayload.branchId) audienceFilter.branchId = branchPayload.branchId;
     if (values.gender) audienceFilter.gender = values.gender;
 
     const scheduledAt = values.scheduledAt
@@ -115,6 +121,7 @@ export default function NewBroadcastPage() {
 
     try {
       await createMutation.mutateAsync({
+        ...branchPayload,
         name: values.name.trim(),
         templateId: values.templateId,
         channel: values.channel,
@@ -283,33 +290,7 @@ export default function NewBroadcastPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="branchId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Branch</FormLabel>
-                      <Select
-                        value={field.value || undefined}
-                        onValueChange={field.onChange}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="All branches" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {(branchesQuery.data?.data ?? []).map((b) => (
-                            <SelectItem key={b.branchId} value={b.branchId}>
-                              {b.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <BranchAssignmentField assignment={branchAssignment} disabled={pending} />
                 <FormField
                   control={form.control}
                   name="gender"

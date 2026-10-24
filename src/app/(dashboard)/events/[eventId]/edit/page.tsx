@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -95,6 +97,7 @@ export default function EditEventPage() {
 
   const event = eventQuery.data;
 
+  const branchAssignment = useBranchAssignment(event);
   const form = useForm<EditEventFormValues>({
     resolver: zodResolver(editEventSchema),
     defaultValues: {
@@ -129,9 +132,12 @@ export default function EditEventPage() {
   const isFree = form.watch("isFree");
 
   const onSubmit = async (values: EditEventFormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     setSaving(true);
     try {
       const input: Record<string, unknown> = {
+        ...branchPayload,
         title: values.title.trim(),
         type: values.type as EventType,
         startDate: values.startDate,
@@ -232,6 +238,7 @@ export default function EditEventPage() {
               <CardDescription>Basic information about the event.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
+              <BranchAssignmentField assignment={branchAssignment} disabled={saving} />
               <FormField
                 control={form.control}
                 name="title"
@@ -251,7 +258,7 @@ export default function EditEventPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(value) => { if (value) field.onChange(value); }} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select event type" />

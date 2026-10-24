@@ -1,4 +1,5 @@
 "use client";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -88,6 +89,7 @@ export default function EventsListPage() {
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
   const [sortBy, setSortBy] = React.useState<ListEventsParams["sortBy"]>("startDate");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
+  const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [deleteTarget, setDeleteTarget] = React.useState<EventItem | null>(null);
@@ -109,13 +111,14 @@ export default function EventsListPage() {
     () => ({
       page,
       limit: perPage,
+      branchId: branchId || undefined,
       search: search || undefined,
       type: typeFilter === "all" ? undefined : typeFilter,
       archived: archivedView ? true : undefined,
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, typeFilter, archivedView, sortBy, sortOrder]
+    [page, perPage, branchId, search, typeFilter, archivedView, sortBy, sortOrder]
   );
 
   const { data, isLoading, error } = useEventsList(queryParams);
@@ -124,12 +127,14 @@ export default function EventsListPage() {
   const restoreArchiveMutation = useRestoreArchiveEvent();
 
   // Stats: unfiltered total, upcoming, past.
-  const totalsQuery = useEventsList({ limit: 1 });
+  const totalsQuery = useEventsList({ limit: 1, branchId: branchId || undefined });
   const upcomingQuery = useEventsList({
+    branchId: branchId || undefined,
     limit: 1,
     status: "upcoming",
   });
   const pastQuery = useEventsList({
+    branchId: branchId || undefined,
     limit: 1,
     status: "past",
   });
@@ -220,6 +225,7 @@ export default function EventsListPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
             <SearchInput
               value={searchInput}

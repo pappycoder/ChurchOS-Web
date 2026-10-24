@@ -10,6 +10,8 @@ export type TemplateStatus = "draft" | "published" | "archived";
 export type TemplateCategory = "MARKETING" | "UTILITY" | "AUTHENTICATION";
 
 export interface Template {
+  branchName?: string;
+  branchId?: string;
   templateId: string;
   churchId: string;
   name: string;
@@ -49,6 +51,7 @@ export interface ListTemplatesParams {
 }
 
 export interface CreateTemplateInput {
+  branchId?: string;
   name: string;
   content: string;
   channel: TemplateChannel;

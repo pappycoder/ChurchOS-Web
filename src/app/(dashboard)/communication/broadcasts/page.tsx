@@ -1,4 +1,7 @@
 "use client";
+import { BroadcastBranchDialog } from "@/components/communication/broadcast-branch-dialog";
+import { BranchFilter } from "@/components/shared/branch-filter";
+import { BranchDetail } from "@/components/shared/branch-assignment";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -77,8 +80,10 @@ function BroadcastsListContent() {
 
   const [statusFilter, setStatusFilter] = React.useState<BroadcastStatus | "">("");
   const [channel, setChannel] = React.useState<BroadcastChannel | "">("");
+  const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
+  const [editing, setEditing] = React.useState<Broadcast | null>(null);
   const [viewing, setViewing] = React.useState<Broadcast | null>(null);
   const [cancelTarget, setCancelTarget] = React.useState<Broadcast | null>(null);
 
@@ -86,15 +91,16 @@ function BroadcastsListContent() {
     () => ({
       page,
       limit: perPage,
+      branchId: branchId || undefined,
       status: statusFilter || undefined,
       channel: channel || undefined,
     }),
-    [page, perPage, statusFilter, channel]
+    [page, perPage, branchId, statusFilter, channel]
   );
 
   const { data, isLoading, error } = useBroadcastsList(queryParams);
 
-  const allQuery = useBroadcastsList({ limit: 200 });
+  const allQuery = useBroadcastsList({ limit: 100, branchId: branchId || undefined });
   const allBroadcasts = React.useMemo(() => allQuery.data?.data ?? [], [allQuery.data]);
 
   const total = data?.meta?.total ?? 0;
@@ -181,7 +187,8 @@ function BroadcastsListContent() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <select
+              <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
+            <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value as BroadcastStatus | "");
@@ -316,6 +323,8 @@ function BroadcastsListContent() {
         )}
       </TableCard>
 
+      <BroadcastBranchDialog broadcast={editing} onClose={() => setEditing(null)} />
+
       {/* View detail */}
       <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
         <DialogContent className="sm:max-w-[560px]">
@@ -334,6 +343,7 @@ function BroadcastsListContent() {
           </DialogHeader>
           {viewing && (
             <div className="space-y-4 text-sm">
+          <BranchDetail record={viewing} />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <p className="text-muted-foreground text-xs mb-0.5">Template</p>
@@ -365,6 +375,9 @@ function BroadcastsListContent() {
               </div>
               {canUpdate && isCancelable(viewing) && (
                 <DialogFooter>
+                  {viewing.status === "scheduled" && viewing.scheduledAt && new Date(viewing.scheduledAt) > new Date() && (
+                    <Button variant="outline" onClick={() => { setEditing(viewing); setViewing(null); }}>Edit Branch</Button>
+                  )}
                   <Button
                     variant="destructive"
                     onClick={() => {

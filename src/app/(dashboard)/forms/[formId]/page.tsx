@@ -1,4 +1,5 @@
 "use client";
+import { BranchDetail } from "@/components/shared/branch-assignment";
 import { SubmissionsTable } from "@/components/forms/submissions-table";
 
 import * as React from "react";
@@ -337,6 +338,7 @@ export default function FormDetailPage() {
       <section className="mb-6 overflow-hidden rounded-2xl border bg-card">
         <div className="border-b bg-accent/40 p-5 sm:p-7">
           <div className="mb-3 flex flex-wrap items-center gap-2">
+          <BranchDetail record={form} />
             <Badge variant="outline" className={FORM_STATUS_TEXT[form.status]}>
               {FORM_STATUS_LABELS[form.status]}
             </Badge>

@@ -48,7 +48,7 @@ export function FormSettingsCard({
         <Label className="text-xs">Status</Label>
         <Select
           value={values.status ?? "draft"}
-          onValueChange={(value) => onChange({ ...values, status: value as FormStatus })}
+          onValueChange={(value) => { if (value) onChange({ ...values, status: value as FormStatus }); }}
           disabled={disabled}
         >
           <SelectTrigger className="w-full sm:max-w-[260px]">

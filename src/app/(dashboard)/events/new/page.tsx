@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -81,6 +83,7 @@ export default function CreateEventPage() {
 
   const router = useRouter();
   const createMutation = useCreateEvent();
+  const branchAssignment = useBranchAssignment(undefined);
   const [saving, setSaving] = React.useState(false);
 
   const form = useForm<NewEventFormValues>({
@@ -101,9 +104,12 @@ export default function CreateEventPage() {
   const isFree = form.watch("isFree");
 
   const onSubmit = async (values: NewEventFormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     setSaving(true);
     try {
       const input: CreateEventInput = {
+        ...branchPayload,
         title: values.title.trim(),
         type: values.type as EventType,
         startDate: values.startDate,
@@ -174,6 +180,7 @@ export default function CreateEventPage() {
               <CardDescription>Basic information about the event.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
+              <BranchAssignmentField assignment={branchAssignment} disabled={saving} />
               <FormField
                 control={form.control}
                 name="title"
@@ -193,7 +200,7 @@ export default function CreateEventPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select onValueChange={(value) => { if (value) field.onChange(value); }} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select event type" />

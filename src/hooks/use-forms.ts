@@ -76,6 +76,8 @@ export interface FormField {
 }
 
 export interface Form {
+  branchName?: string;
+  branchId?: string;
   id: string;
   churchId: string;
   title: string;
@@ -144,6 +146,7 @@ export interface ListSubmissionsParams {
 }
 
 export interface CreateFormInput {
+  branchId?: string;
   title: string;
   description?: string;
   fields: FormField[];

@@ -1,4 +1,5 @@
 "use client";
+import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
 import { Plus } from "lucide-react";
@@ -20,14 +21,15 @@ export default function EventsDashboardPage() {
   const { can } = usePermissions();
   const canCreate = can("events", "create");
 
+  const [branchId, setBranchId] = React.useState("");
   const [selectedDate, setSelectedDate] = React.useState<Date>(new Date());
   const [addModalOpen, setAddModalOpen] = React.useState(false);
   const [addModalDate, setAddModalDate] = React.useState<Date | undefined>();
   const [detailModalOpen, setDetailModalOpen] = React.useState(false);
   const [selectedEvent, setSelectedEvent] = React.useState<EventItem | null>(null);
 
-  const eventsQuery = useEventsList({ limit: 100, sortBy: "startDate", sortOrder: "asc" });
-  const servicesQuery = useAttendanceServices({ limit: 100 });
+  const eventsQuery = useEventsList({ branchId: branchId || undefined, limit: 100, sortBy: "startDate", sortOrder: "asc" });
+  const servicesQuery = useAttendanceServices({ branchId: branchId || undefined, limit: 100 });
 
   const allEvents = eventsQuery.data?.data ?? [];
   const listEvents = eventsQuery.data?.data ?? [];
@@ -70,6 +72,8 @@ export default function EventsDashboardPage() {
           </div>
         }
       />
+
+      <BranchFilter value={branchId} onChange={setBranchId} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
         {/* Sidebar */}

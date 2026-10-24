@@ -1,5 +1,7 @@
 "use client";
 
+import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -76,6 +78,7 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
   const createMutation = useCreateEvent();
   const [pending, setPending] = React.useState(false);
 
+  const branchAssignment = useBranchAssignment(undefined, open);
   const form = useForm<AddEventFormValues>({
     resolver: zodResolver(addEventSchema),
     defaultValues: buildDefaults(defaultDate),
@@ -88,11 +91,14 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
   }, [open, defaultDate, form]);
 
   const onSubmit = async (values: AddEventFormValues) => {
+    const branchPayload = branchAssignment.payload();
+    if (!branchPayload) return;
     setPending(true);
     try {
       const startIso = `${values.startDate}T${values.startTime}:00`;
 
       const input: CreateEventInput = {
+        ...branchPayload,
         title: values.title.trim(),
         type: values.type as EventType,
         startDate: startIso,
@@ -125,6 +131,7 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <BranchAssignmentField assignment={branchAssignment} />
             <FormField
               control={form.control}
               name="title"
