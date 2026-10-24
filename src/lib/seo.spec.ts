@@ -1,3 +1,4 @@
+import { LEGAL_LINKS } from "./legal/company";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { access } from "node:fs/promises";
 import path from "node:path";
@@ -43,12 +44,12 @@ describe("SEO publication boundaries", () => {
     expect(sitemap()).toEqual([]);
     expect(robots().rules).toEqual({ userAgent: "*", disallow: "/" });
   });
-  it("lists only the landing page and published guides in the sitemap", () => {
+  it("lists only the landing page, legal pages and published guides in the sitemap", () => {
     vi.stubEnv("VERCEL_ENV", "production");
     const entries = sitemap();
-    expect(entries).toHaveLength(helpArticles.length + 2);
+    expect(entries).toHaveLength(helpArticles.length + 2 + LEGAL_LINKS.length);
     expect(new Set(entries.map(entry => entry.url)).size).toBe(entries.length);
-    expect(entries.every(entry => new URL(entry.url).pathname === "/" || new URL(entry.url).pathname === "/help" || helpArticles.some(article => `/help/${article.slug}` === new URL(entry.url).pathname))).toBe(true);
+    expect(entries.every(entry => new URL(entry.url).pathname === "/" || new URL(entry.url).pathname === "/help" || LEGAL_LINKS.some(link => link.href === new URL(entry.url).pathname) || helpArticles.some(article => `/help/${article.slug}` === new URL(entry.url).pathname))).toBe(true);
     expect(entries.find(entry => new URL(entry.url).pathname === "/")?.lastModified).toBeUndefined();
   });
   it("escapes HTML boundaries in structured data without corrupting JSON values", () => {

@@ -15,7 +15,8 @@
     "audit:ui": "node scripts/audit-ui-contracts.mjs",
     "audit:live-roles": "node scripts/audit-live-role-access.mjs",
     "console": "bash scripts/console.sh",
-    "ops:test": "node --test test/ops/console.test.cjs"
+    "ops:test": "node --test test/ops/console.test.cjs",
+    "legal:export": "node scripts/export-legal-documents.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

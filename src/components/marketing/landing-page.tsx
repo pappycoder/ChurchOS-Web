@@ -1,3 +1,5 @@
+import { LEGAL_COMPANY } from "@/lib/legal/company";
+import { LegalNavigation } from "@/components/legal/legal-navigation";
 import { SubscriptionStartingPrice } from "@/components/billing/subscription-currency";
 import Link from "next/link";
 import Image from "next/image";
@@ -528,9 +530,10 @@ export function LandingPage() {
             </Link>
           </nav>
         </div>
+        <LegalNavigation className="py-6" />
         <div className={styles.footerBottom}>
           <span>
-            © {new Date().getFullYear()} ChurchOS. Built for the people behind
+            © {new Date().getFullYear()} {LEGAL_COMPANY.name}. ChurchOS, built for the people behind
             the ministry.
           </span>
           <a href="#hero-title">

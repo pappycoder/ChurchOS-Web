@@ -1,4 +1,5 @@
 "use client";
+import { LegalNavigation } from "@/components/legal/legal-navigation";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { SupportChatButton } from "@/components/support/support-chat-button";
 import * as React from "react";
@@ -684,6 +685,10 @@ export default function SubscriptionPage() {
                       ) : (
                         <p role="status">Calculating your payment…</p>
                       )}
+                      <div className="space-y-2 rounded-lg border p-3 text-xs leading-5 text-muted-foreground">
+                        <p>Before paying, review the exact amount, currency and period. The Terms of Service include cancellation and refund rules, a customer indemnity and liability limits, subject to mandatory legal rights. Standard renewals are manual.</p>
+                        <LegalNavigation label="Checkout legal information" />
+                      </div>
                       <Button
                         disabled={
                           !status.canPay ||

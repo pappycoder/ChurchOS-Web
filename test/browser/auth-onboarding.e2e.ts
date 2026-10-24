@@ -73,12 +73,15 @@ test("registration preserves edits and redirects to sign-in when email confirmat
   );
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("checkbox", { name: /I am at least 18/ }).check();
   await page
     .getByRole("button", { name: "Create account & continue", exact: true })
     .click();
   await expect(page).toHaveURL(/\/login\?returnTo=%2Fsubscription&registered=1$/);
   await expect(page.getByRole("status")).toContainText("Your account has been created");
   expect(payload).toMatchObject({
+    termsAccepted: true,
+    acceptedTermsVersion: "2026-10-24",
     churchName: "Grace Church Updated",
     plan: "network",
     billingCycle: "annual",
@@ -126,6 +129,7 @@ test("registration failure retains data for a safe retry", async ({
   await churchStep(page);
   await accountStep(page);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("checkbox", { name: /I am at least 18/ }).check();
   await page
     .getByRole("button", { name: "Create account & continue", exact: true })
     .click();
@@ -264,6 +268,7 @@ test("registration signs in and opens the selected subscription for Flutterwave 
   await churchStep(page);
   await accountStep(page);
   await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("checkbox", { name: /I am at least 18/ }).check();
   await page.getByRole("button", { name: "Create account & continue", exact: true }).click();
   await expect(page).toHaveURL(/\/subscription$/);
   await expect(page.getByLabel("Billing period")).toHaveValue("annual");

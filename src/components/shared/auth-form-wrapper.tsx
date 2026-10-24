@@ -1,4 +1,5 @@
 "use client";
+import { LegalNavigation } from "@/components/legal/legal-navigation";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { BrandLogo } from "@/components/shared/brand-logo";
@@ -47,6 +48,7 @@ export function AuthFormWrapper({
       </div>
       {children}
       {footer && <div className="pt-2 text-center text-sm text-muted-foreground">{footer}</div>}
+      <LegalNavigation className="justify-center pt-3 text-muted-foreground" />
     </motion.div>
   );
 }

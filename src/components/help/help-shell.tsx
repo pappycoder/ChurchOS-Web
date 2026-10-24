@@ -1,4 +1,5 @@
 "use client";
+import { LegalNavigation } from "@/components/legal/legal-navigation";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -127,6 +128,7 @@ export function HelpShell({ children }: { children: React.ReactNode }) {
             <Link href={isAuthenticated ? "/support" : SUPPORT_CONTACT_PATH}>Contact support</Link>
           </nav>
         </div>
+        <div className="mx-auto max-w-6xl px-5 pb-6"><LegalNavigation /></div>
       </footer>
     </div>
   );

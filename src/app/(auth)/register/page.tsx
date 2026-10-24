@@ -1,4 +1,5 @@
 "use client";
+import { LEGAL_VERSION } from "@/lib/legal/company";
 import { SubscriptionCurrencySwitcher } from "@/components/billing/subscription-currency";
 import {
   selectSubscriptionCurrency,
@@ -63,6 +64,7 @@ export default function RegisterPage() {
   >("essentials");
   const [cycle, setCycle] = React.useState<"monthly" | "annual">("monthly");
   const [error, setError] = React.useState("");
+  const [termsAccepted, setTermsAccepted] = React.useState(false);
   const [created, setCreated] = React.useState(false);
   const heading = React.useRef<HTMLHeadingElement>(null);
   React.useEffect(() => {
@@ -117,8 +119,14 @@ export default function RegisterPage() {
       move(step + 1);
       return;
     }
+    if (!termsAccepted) {
+      setError("Please read and accept the terms before creating your account.");
+      return;
+    }
     try {
       await register.mutateAsync({
+        termsAccepted: true,
+        acceptedTermsVersion: LEGAL_VERSION,
         churchName: details.churchName.trim(),
         firstName: details.firstName.trim(),
         lastName: details.lastName.trim(),
@@ -479,6 +487,26 @@ export default function RegisterPage() {
                   Sign in after creating your account, then pay through our
                   secure gateway. No automatic renewal or charges.
                 </p>
+                <div className="space-y-4 rounded-xl border bg-card/70 p-4 text-xs leading-6">
+                  <p id="registration-risk-notice" className="font-medium">
+                    Please read the terms before agreeing. They include payment and refund rules,
+                    your church’s data responsibilities, a customer indemnity and limits on our
+                    liability, subject to rights that cannot lawfully be excluded. See
+                    {" "}<Link className="underline underline-offset-4" href="/terms-of-service#liability" target="_blank" rel="noopener noreferrer">sections 24–25</Link>.
+                  </p>
+                  <div className="flex items-start gap-3">
+                    <input id="accept-legal-terms" type="checkbox" required checked={termsAccepted}
+                      onChange={(event) => setTermsAccepted(event.target.checked)}
+                      aria-describedby="registration-risk-notice" className="mt-1.5 size-4 shrink-0 accent-primary" />
+                    <label htmlFor="accept-legal-terms">
+                      I am at least 18 and authorised to act for this church. I agree to the
+                      {" "}<Link className="underline underline-offset-4" href="/terms-of-service" target="_blank" rel="noopener noreferrer">Terms of Service</Link> and
+                      {" "}<Link className="underline underline-offset-4" href="/terms-and-conditions" target="_blank" rel="noopener noreferrer">Website Terms and Conditions</Link>, and acknowledge the
+                      {" "}<Link className="underline underline-offset-4" href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+                    </label>
+                  </div>
+                  <p className="text-muted-foreground">Acknowledging the Privacy Policy is not consent to optional marketing or every use of personal information.</p>
+                </div>
               </>
             )}
           </motion.div>

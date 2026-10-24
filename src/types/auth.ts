@@ -1,6 +1,8 @@
 import type { BillingCycle, SubscriptionPlan } from "./billing";
 
 export interface RegisterInput {
+  termsAccepted?: boolean;
+  acceptedTermsVersion?: string;
   email: string;
   password: string;
   firstName: string;

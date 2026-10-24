@@ -99,3 +99,16 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+@media print {
+  .legal-document { background: white !important; color: black !important; }
+  .legal-document main { max-width: none; padding: 0; }
+  .legal-document article { max-width: none; font-size: 10.5pt; line-height: 1.6; }
+  .legal-document main > div:last-child { display: block; }
+  .legal-document section { break-inside: auto; }
+  .legal-document h1, .legal-document h2, .legal-document thead { break-after: avoid; }
+  .legal-document tr { break-inside: avoid; }
+  .legal-document table { width: 100%; table-layout: fixed; }
+  .legal-document th, .legal-document td { min-width: 0 !important; overflow-wrap: anywhere; }
+  .legal-document a { color: inherit; }
+}
