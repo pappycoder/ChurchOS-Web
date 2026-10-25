@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WifiOff, HardDriveDownload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,14 +11,15 @@ export function OfflineHeaderButton() {
   const { ready, can } = usePermissions();
   if (!ready || !can("offline", "read")) return null;
   return (
-    <a
+    <Link
       href="/offline"
+      prefetch={false}
       className="inline-flex size-9 items-center justify-center rounded-md hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       aria-label="Offline workspace"
       title="Offline workspace"
     >
       <HardDriveDownload size={18} aria-hidden="true" />
-    </a>
+    </Link>
   );
 }
 
@@ -58,7 +60,7 @@ export function OfflineEntry() {
       </span>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" asChild>
-          <a href="/offline">Offline workspace</a>
+          <Link href="/offline" prefetch={false}>Offline workspace</Link>
         </Button>
         <Button
           variant="ghost"
