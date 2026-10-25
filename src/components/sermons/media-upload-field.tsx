@@ -8,7 +8,7 @@ import { Upload, Link, X, FileAudio, FileVideo, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { useUploadMediaFile } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
 import { mediaUploadPermissions } from "@/lib/media-upload-policy";
 
@@ -19,6 +19,8 @@ interface MediaUploadFieldProps {
   mediaType: "audio" | "video";
   value?: string;
   onChange: (url: string | undefined) => void;
+  branchId?: string;
+  onUploadingChange?: (uploading: boolean) => void;
 }
 
 type Mode = "upload" | "url";
@@ -29,7 +31,10 @@ export function MediaUploadField({
   mediaType,
   value,
   onChange,
+  branchId,
+  onUploadingChange,
 }: MediaUploadFieldProps) {
+  const upload = useUploadMediaFile();
   const [mode, setMode] = React.useState<Mode>("upload");
   const [urlInput, setUrlInput] = React.useState("");
   const [uploading, setUploading] = React.useState(false);
@@ -50,13 +55,9 @@ export function MediaUploadField({
   const handleUpload = async () => {
     if (!selectedFile) return;
     setUploading(true);
+    onUploadingChange?.(true);
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      formData.append("folder", "sermons");
-
-
-      const res = await api.post<{ url: string }>("/media/upload", formData);
+      const res = await upload.mutateAsync({ file: selectedFile, folder: "sermons", branchId });
 
       onChange(res.url);
       setSelectedFile(null);
@@ -67,6 +68,7 @@ export function MediaUploadField({
       });
     } finally {
       setUploading(false);
+      onUploadingChange?.(false);
     }
   };
 

@@ -50,6 +50,9 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
   const [tags, setTags] = useState<string[]>(sermon?.tags ?? []);
   const [audioUrl, setAudioUrl] = useState<string | undefined>(sermon?.audioUrl);
   const [videoUrl, setVideoUrl] = useState<string | undefined>(sermon?.videoUrl);
+  const [audioUploading, setAudioUploading] = useState(false);
+  const [videoUploading, setVideoUploading] = useState(false);
+  const uploading = audioUploading || videoUploading;
 
   const form = useForm<SermonFormValues>({
     resolver: zodResolver(sermonSchema),
@@ -105,6 +108,7 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
   };
 
   const handleSubmit = async (values: SermonFormValues) => {
+    if (uploading) return;
     const branchPayload = branchAssignment.payload();
     if (!branchPayload) return;
     setSaving(true);
@@ -280,6 +284,8 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
                   mediaType="audio"
                   value={audioUrl}
                   onChange={setAudioUrl}
+                  branchId={branchAssignment.isHq ? branchAssignment.value || undefined : branchAssignment.profile?.branchId}
+                  onUploadingChange={setAudioUploading}
                 />
               </div>
               <div className="space-y-1.5">
@@ -296,6 +302,8 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
                   mediaType="video"
                   value={videoUrl}
                   onChange={setVideoUrl}
+                  branchId={branchAssignment.isHq ? branchAssignment.value || undefined : branchAssignment.profile?.branchId}
+                  onUploadingChange={setVideoUploading}
                 />
               </div>
             </div>
@@ -356,10 +364,11 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button type="submit" disabled={saving}>
+          <Button type="submit" disabled={saving || uploading}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {submitLabel}
           </Button>
+          {uploading && <p role="status" className="text-sm text-muted-foreground">Wait for the recording upload to finish before saving.</p>}
         </div>
       </form>
     </Form>

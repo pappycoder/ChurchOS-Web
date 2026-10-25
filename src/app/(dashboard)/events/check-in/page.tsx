@@ -40,6 +40,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   useEventsList,
+  useEvent,
   useBulkCheckIn,
   useWalkInCheckIn,
   useEventAttendance,
@@ -72,8 +73,15 @@ export default function EventsCheckInPage() {
   });
   const events = eventsQuery.data?.data ?? [];
   const [eventId, setEventId] = React.useState("");
+  React.useEffect(() => {
+    setEventId(new URLSearchParams(window.location.search).get("eventId") ?? "");
+  }, []);
+  const eventQuery = useEvent(eventId);
 
-  const selectedEvent = events.find((e) => e.eventId === eventId);
+  const selectedEvent = events.find((e) => e.eventId === eventId) ?? eventQuery.data;
+  const eventOptions = selectedEvent && !events.some((e) => e.eventId === selectedEvent.eventId)
+    ? [selectedEvent, ...events]
+    : events;
 
   // Mode switch.
   const [mode, setMode] = React.useState<"members" | "walkIn">("members");
@@ -173,7 +181,7 @@ export default function EventsCheckInPage() {
                 <SelectValue placeholder="Select an event" />
               </SelectTrigger>
               <SelectContent>
-                {events.map((e) => (
+                {eventOptions.map((e) => (
                   <SelectItem key={e.eventId} value={e.eventId}>
                     {e.title} &mdash;{" "}
                     {format(new Date(e.startDate), "MMM d, yyyy")}

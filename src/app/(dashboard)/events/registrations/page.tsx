@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { LoadingState } from "@/components/shared/loading-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
@@ -159,6 +161,13 @@ export default function EventRegistrationsPage() {
               <Badge variant="outline" className="w-fit">
                 {selectedEvent.registrationCount} registration{selectedEvent.registrationCount !== 1 ? "s" : ""}
               </Badge>
+            )}
+            {selectedEvent && !selectedEvent.archivedAt && can("events:checkin", "create") && (
+              <Button asChild>
+                <Link href={`/events/check-in?eventId=${encodeURIComponent(selectedEventId)}`}>
+                  Check In Attendees
+                </Link>
+              </Button>
             )}
           </div>
         </CardContent>

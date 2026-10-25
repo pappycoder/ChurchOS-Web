@@ -36,11 +36,12 @@ describe("frontend permission enforcement", () => {
     expect(checker.canAny("members:all:read")).toBe(true);
   });
 
-  it("separates Community events from Network ticket and check-in permissions", () => {
+  it("allows Community event check-in while retaining Network ticket restrictions", () => {
     state.data = { status: "active", planFeatures: ["events"], permissions: ["events:list:read", "events:tickets:read", "events:checkin:create"] };
     const checker = check();
     expect(checker.canAny("events:list:read")).toBe(true);
-    expect(checker.canAny("events:tickets:read", "events:checkin:create")).toBe(false);
+    expect(checker.canAny("events:tickets:read")).toBe(false);
+    expect(checker.canAny("events:checkin:create")).toBe(true);
   });
 
   it("includes giving and payment setup on Essentials without unlocking groups, communication or analytics", () => {

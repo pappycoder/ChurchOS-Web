@@ -1,6 +1,8 @@
 "use client";
 
 import { ContentImage } from "@/components/shared/content-image";
+import { MediaPlayback } from "@/components/shared/media-playback";
+import { mediaPlaybackUrl } from "@/lib/media-playback";
 
 import * as React from "react";
 import { Suspense } from "react";
@@ -117,7 +119,7 @@ function MediaCard({
 
   const copyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(asset.url);
+      await navigator.clipboard.writeText(new URL(mediaPlaybackUrl(asset.url) ?? asset.url, window.location.origin).href);
       toast.success("URL copied to clipboard");
     } catch {
       toast.error("Could not copy URL", {
@@ -131,6 +133,7 @@ function MediaCard({
 <button
           type="button"
           onClick={() => onPreview(asset)}
+          aria-label={`Preview ${asset.filename}`}
           className="relative aspect-video w-full overflow-hidden rounded-md bg-muted"
         >
         {kind === "image" ? (
@@ -187,6 +190,9 @@ function MediaCard({
       </div>
 
       <div className="mt-2 truncate pr-6 text-sm font-medium">{asset.filename}</div>
+      <Button variant="outline" size="sm" className="mt-2" onClick={() => onPreview(asset)}>
+        {kind === "audio" ? "Play Audio" : kind === "video" ? "Watch Video" : "View File"}
+      </Button>
       <div className="mt-0.5 text-xs text-muted-foreground">
         {formatBytes(asset.sizeBytes)} · {formatDate(asset.createdAt)}
       </div>
@@ -535,6 +541,8 @@ function MediaLibraryContent() {
                 className="mx-auto max-h-[60vh] w-full object-contain"
               />
             </div>
+          ) : preview && ["audio", "video"].includes(classifyMime(preview.mimeType)) ? (
+            <MediaPlayback src={preview.url} kind={classifyMime(preview.mimeType) as "audio" | "video"} title={preview.filename} />
           ) : (
             <div className="flex items-center justify-center gap-2 rounded-md border bg-muted py-10 text-sm text-muted-foreground">
               <Clipboard className="h-4 w-4" />
@@ -547,7 +555,7 @@ function MediaLibraryContent() {
               onClick={() => {
                 if (!preview) return;
                 void navigator.clipboard
-                  .writeText(preview.url)
+                  .writeText(new URL(mediaPlaybackUrl(preview.url) ?? preview.url, window.location.origin).href)
                   .then(() => toast.success("URL copied to clipboard"))
                   .catch(() =>
                     toast.error("Could not copy URL", {
@@ -559,11 +567,13 @@ function MediaLibraryContent() {
               <Clipboard className="mr-2 h-4 w-4" />
               Copy URL
             </Button>
-            {preview && canUpdate && (
+            {preview && (
               <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={() => window.open(preview.url, "_blank")}>
-                  Open Original
-                </Button>
+                {mediaPlaybackUrl(preview.url) && (
+                  <Button variant="outline" asChild>
+                    <a href={mediaPlaybackUrl(preview.url)} target="_blank" rel="noopener noreferrer">Open Original</a>
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => setPreview(null)}>
                   Close
                 </Button>

@@ -1,4 +1,5 @@
 "use client";
+import { MediaPlayback } from "@/components/shared/media-playback";
 import { BranchDetail } from "@/components/shared/branch-assignment";
 
 import * as React from "react";
@@ -10,8 +11,6 @@ import {
   Bookmark,
   BookmarkCheck,
   Edit,
-  Play,
-  Pause,
   Tag,
   Archive,
   RotateCcw,
@@ -47,35 +46,6 @@ function formatDuration(seconds?: number | null): string {
   return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
-/**
- * Extracts a YouTube embed URL from a watch/shorts/youtu.be link, or null.
- */
-function getYouTubeEmbedUrl(url: string): string | null {
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtube.com") || u.hostname === "youtu.be") {
-      if (u.hostname === "youtu.be") {
-        const id = u.pathname.slice(1);
-        return id ? `https://www.youtube.com/embed/${id}` : null;
-      }
-      if (u.pathname === "/watch" || u.pathname.startsWith("/watch/")) {
-        const id = u.searchParams.get("v");
-        return id ? `https://www.youtube.com/embed/${id}` : null;
-      }
-      if (u.pathname.startsWith("/shorts/")) {
-        const id = u.pathname.split("/")[2];
-        return id ? `https://www.youtube.com/embed/${id}` : null;
-      }
-      if (u.pathname.startsWith("/embed/")) {
-        return u.href;
-      }
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 function DataRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
@@ -106,47 +76,7 @@ export default function SermonDetailPage() {
     sermon: Sermon;
   } | null>(null);
 
-  const audioRef = React.useRef<HTMLAudioElement>(null);
-  const [playing, setPlaying] = React.useState(false);
-  const [currentTime, setCurrentTime] = React.useState(0);
-  const [duration, setDuration] = React.useState(0);
-
   const isBookmarked = bookmarkState?.bookmarked ?? false;
-
-  React.useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const onTime = () => setCurrentTime(audio.currentTime);
-    const onDur = () => setDuration(audio.duration);
-    const onEnd = () => setPlaying(false);
-    audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("loadedmetadata", onDur);
-    audio.addEventListener("ended", onEnd);
-    return () => {
-      audio.removeEventListener("timeupdate", onTime);
-      audio.removeEventListener("loadedmetadata", onDur);
-      audio.removeEventListener("ended", onEnd);
-    };
-  }, [sermon?.audioUrl]);
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (playing) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
-    setPlaying(!playing);
-  };
-
-  const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    const time = Number(e.target.value);
-    audio.currentTime = time;
-    setCurrentTime(time);
-  };
 
   const handleBookmark = () => {
     toggleBookmark.mutate(isBookmarked, {
@@ -186,12 +116,6 @@ export default function SermonDetailPage() {
       </div>
     );
   }
-
-  const fmtTime = (t: number) => {
-    const m = Math.floor(t / 60);
-    const s = Math.floor(t % 60);
-    return `${m}:${s.toString().padStart(2, "0")}`;
-  };
 
   return (
     <div className="space-y-4">
@@ -275,66 +199,19 @@ export default function SermonDetailPage() {
         }
       />
 
-      {/* Audio Player */}
       {sermon.audioUrl && (
         <Card>
-          <CardContent className="py-4">
-            <audio ref={audioRef} src={sermon.audioUrl} preload="metadata" />
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-10 w-10 shrink-0 rounded-full"
-                onClick={togglePlay}
-                aria-label={playing ? "Pause audio" : "Play audio"}
-              >
-                {playing ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5 ml-0.5" />
-                )}
-              </Button>
-              <div className="flex-1 space-y-1">
-                <input
-                  type="range"
-                  min={0}
-                  max={duration || 0}
-                  value={currentTime}
-                  onChange={seek}
-                  className="w-full h-1.5 rounded-full appearance-none bg-muted cursor-pointer"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{fmtTime(currentTime)}</span>
-                  <span>{duration ? fmtTime(duration) : "--:--"}</span>
-                </div>
-              </div>
-            </div>
+          <CardHeader><CardTitle role="heading" aria-level={2}>Audio Recording</CardTitle></CardHeader>
+          <CardContent>
+            <MediaPlayback src={sermon.audioUrl} kind="audio" title={`${sermon.title} — audio`} />
           </CardContent>
         </Card>
       )}
-
-      {/* Video Player */}
       {sermon.videoUrl && (
         <Card>
-          <CardContent className="py-4">
-            {getYouTubeEmbedUrl(sermon.videoUrl) ? (
-              <div className="aspect-video overflow-hidden rounded-md">
-                <iframe
-                  src={getYouTubeEmbedUrl(sermon.videoUrl)!}
-                  title={sermon.title}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            ) : (
-              <video
-                src={sermon.videoUrl}
-                controls
-                className="aspect-video w-full rounded-md bg-black"
-                preload="metadata"
-              />
-            )}
+          <CardHeader><CardTitle role="heading" aria-level={2}>Video Recording</CardTitle></CardHeader>
+          <CardContent>
+            <MediaPlayback src={sermon.videoUrl} kind="video" title={`${sermon.title} — video`} />
           </CardContent>
         </Card>
       )}

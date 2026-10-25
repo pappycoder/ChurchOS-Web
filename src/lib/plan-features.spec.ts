@@ -17,7 +17,7 @@ describe("Subscription feature mapping", () => {
 describe('Tier-specific page boundaries', () => {
   it.each([
     ['/departments', 'groups'], ['/departments/cell-groups', 'groups'],
-    ['/events/management', 'tickets'], ['/events/check-in', 'tickets'], ['/events/id/tiers', 'tickets'],
+    ['/events/management', 'tickets'], ['/events/check-in', 'events'], ['/events/id/tiers', 'tickets'],
     ['/events/registrations', 'events'], ['/admin/integrations', 'giving'],
     ['/communication/broadcasts', 'email'], ['/communication/templates', 'email'],
     ['/sermons', 'media'], ['/media/upload', 'media'], ['/admin/settings/webhooks', 'webhooks'],
@@ -30,3 +30,14 @@ it('includes giving and financial reports in Essentials alongside member and att
   for (const permission of ['reports:attendance:read', 'reports:members:read']) expect(planAllowsPermission(['giving','reports'], permission)).toBe(true);
   expect(planAllowsPath(['giving'], '/analytics/giving')).toBe(false);
 });
+
+ it('includes Community event check-in without enabling ticket management or Essentials events', () => {
+   const community = ['giving', 'reports', 'events'];
+   for (const action of ['read', 'create', 'update']) {
+     expect(planAllowsPermission(community, `events:checkin:${action}`)).toBe(true);
+     expect(planAllowsPermission(['giving', 'reports'], `events:checkin:${action}`)).toBe(false);
+     expect(planAllowsPermission(community, `events:tickets:${action}`)).toBe(false);
+   }
+   expect(planAllowsPath(community, '/events/check-in?eventId=event')).toBe(true);
+   expect(planAllowsPath(['giving', 'reports'], '/events/check-in')).toBe(false);
+ });

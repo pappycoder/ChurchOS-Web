@@ -12,7 +12,7 @@ async function fixture(context: BrowserContext, features: string[] | undefined, 
       requests.push(path);
       if(path==='/api/session')return new Response(JSON.stringify({hasSession:true}));
       const profile={ profileId:'p',userId:'u',churchId:'c',role:[role],status:'active',firstName:'Plan',lastName:'Test',isAdminHq:true,planFeatures:features,
-        permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','attendance:services:create','attendance:services:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','giving:records:create','events:create','events:tickets:create','events:calendar:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','giving:reports:read','reports:view','reports:financial:read','reports:attendance:read','reports:members:read'] };
+        permissions:[...(role==='church_admin'?['integrations:read','integrations:update','roles:read','roles:update','attendance:services:create','attendance:services:update','users:read','profiles:read','profiles:create']:[]),'members:all:read','members:read','families:read','attendance:dashboard:read','attendance:records:read','attendance:reports:read','attendance:services:read','visitors:list:read','giving:view','giving:dashboard:read','giving:categories:read','giving:records:read','giving:records:create','events:create','events:tickets:create','events:calendar:read','events:all:read','events:list:read','events:registrations:read','events:tickets:read','events:checkin:read','events:checkin:create','departments:read','cell_groups:read','forms:view','forms:list:read','assets:list:read','pastoral:notes:read','appointments:read','sermons:list:read','media:library:read','templates:read','broadcasts:read','giving:reports:read','reports:view','reports:financial:read','reports:attendance:read','reports:members:read'] };
       const data=path.endsWith('/profiles/me')?profile:path.endsWith('/reports/attendance')?{startDate:'2026-10-01',endDate:'2026-10-22',totalAttendance:0,serviceCount:0,averagePerService:0,byService:[],monthlyTrend:[]}:path.endsWith('/reports/members')?{startDate:'2026-10-01',endDate:'2026-10-22',totalMembers:0,newMembersInPeriod:0,activeMembers:0,byStatus:[],byGender:[],monthlyGrowth:[]}:path.endsWith('/reports/financial')?{startDate:'2026-10-01',endDate:'2026-10-22',grandTotal:25000,transactionCount:2,averageAmount:12500,byCategory:[],monthlyTrend:[]}:path.endsWith('/church/roles')?{roles:['super_admin','senior_pastor','church_admin'].map(roleName=>({roleName,permissions:[],description:null,isCustomized:false}))}:path.endsWith('/church/roles/all')?[]:path.endsWith('/attendance/summary')?{totalCheckIns:42,memberCheckIns:30,visitorCheckIns:12,bySource:{},byCategory:{},byGender:{}}:path.endsWith('/attendance/trends')?[]:path.endsWith('/church/integrations')?{providers:[{id:'paystack',label:'Paystack',channels:['payment'],fields:[],help:'Connect your payment account.'},{id:'flutterwave',label:'Flutterwave',channels:['payment'],fields:[],help:'Connect your payment account.'}],accounts:[],channels:[{channel:'payment',mode:'disabled',account_id:null,settings:{},updated_at:''}]}:{data:[],meta:{page:1,limit:15,total:0,totalPages:1}};
       return new Response(JSON.stringify({success:true,data}),{headers:{'Content-Type':'application/json'}});
     };
@@ -20,7 +20,7 @@ async function fixture(context: BrowserContext, features: string[] | undefined, 
 }
 test('Essentials blocks paid pages and hides their nested navigation without fetching module data',async({page,context})=>{
   await fixture(context,["giving"]);
-  for(const path of ['/departments','/departments/cell-groups','/forms','/events/management','/pastoral','/assets','/sermons']){
+  for(const path of ['/departments','/departments/cell-groups','/forms','/events/management','/events/check-in','/pastoral','/assets','/sermons']){
     await page.goto(path);
     await expect(page.getByRole('heading',{name:'This feature is available on a different plan'})).toBeVisible();
     await expect(page.getByRole('button',{name:'View historical records'})).toHaveCount(0);
@@ -38,15 +38,18 @@ test('Essentials can use giving categories and records while analytics stays loc
   await page.goto('/analytics/giving');
   await expect(page.getByText('Available on Network and higher plans.')).toBeVisible();
 });
-test('Community includes giving and groups but blocks Network tickets and check-in',async({page,context})=>{
+test('Community includes event check-in while keeping ticket management on Network',async({page,context})=>{
   await fixture(context,['giving','events','groups','forms','reports','email','media']);
   await page.goto('/giving/categories');
   await expect(page.getByRole('heading',{name:'Categories',exact:true})).toBeVisible();
   await expect(page.getByRole('link',{name:'Tickets',exact:true})).toHaveCount(0);
-  for(const path of ['/events/management','/events/check-in']){
+  for(const path of ['/events/management']){
     await page.goto(path);
     await expect(page.getByText('Available on Network and higher plans.')).toBeVisible();
   }
+  await page.goto('/events/check-in');
+  await expect(page.getByRole('heading',{name:'Event Check-In',exact:true})).toBeVisible();
+  await expect(page.getByText('Select an event above to start checking people in.')).toBeVisible();
 });
 test('missing plan entitlements fail closed for paid modules',async({page,context})=>{
   await fixture(context,undefined);
@@ -60,6 +63,61 @@ test('Community creates free events while paid-event controls require Network',a
   await expect(page.getByRole('switch')).toBeDisabled();
   await expect(page.getByRole('switch')).toBeChecked();
   await expect(page.getByText('Paid events require Network or above and ticket management access.')).toBeVisible();
+});
+
+test('Community opens check-in from registrations and records roster and walk-in attendance', async ({page,context}) => {
+  await fixture(context,['giving','events','groups','forms','reports','email','media']);
+  await context.addInitScript(() => {
+    const previous = window.fetch.bind(window);
+    const event = {eventId:'community-event',title:'Community Gathering',type:'conference',isFree:true,startDate:'2026-10-25T09:00:00Z',registrationCount:1,branchId:'branch-a'};
+    const calls: {path:string;body:Record<string,unknown>}[] = [];
+    (window as unknown as {eventCheckInCalls:typeof calls}).eventCheckInCalls = calls;
+    const attendance: Record<string,unknown>[] = [];
+    window.fetch = async (input,options) => {
+      const path = new URL(input instanceof Request ? input.url : String(input),location.origin).pathname;
+      let data: unknown;
+      if (path.endsWith('/events')) data = {data:[event],meta:{total:1,page:1,limit:50,totalPages:1}};
+      else if (path.endsWith('/events/community-event')) data = event;
+      else if (path.endsWith('/events/community-event/registrations')) data = [{registrationId:'reg-a',eventId:event.eventId,memberId:'member-a',memberName:'Grace Member',quantity:1,createdAt:'2026-10-24T09:00:00Z',paymentStatus:'paid',checkedIn:attendance.length>0}];
+      else if (path.endsWith('/events/community-event/attendance')) data = attendance;
+      else if (path.endsWith('/attendance-sessions')) data = {data:[],meta:{total:0,page:1,limit:20,totalPages:1}};
+      else if (path.endsWith('/members')) data = {data:[{memberId:'member-a',firstName:'Grace',lastName:'Member'}],meta:{total:1,page:1,limit:100,totalPages:1}};
+      else if (path.endsWith('/check-in') || path.endsWith('/check-in/walk-in')) {
+        const body = JSON.parse(String(options?.body));
+        calls.push({path,body});
+        const record = {attendanceId:`attendance-${calls.length}`,memberId:body.memberIds ? 'member-a' : undefined,memberName:body.memberIds ? 'Grace Member' : undefined,visitorName:body.memberIds ? undefined : `${body.firstName} ${body.lastName}`,checkInAt:'2026-10-25T09:00:00Z',source:'manual'};
+        attendance.push(record);
+        data = body.memberIds ? {checkedIn:1,skipped:0} : record;
+      } else return previous(input,options);
+      return Response.json({success:true,data});
+    };
+  });
+  await page.goto('/events/community-event');
+  await page.getByRole('button',{name:'Check In Attendees',exact:true}).click();
+  await expect(page).toHaveURL(/\/events\/check-in\?eventId=community-event$/);
+  await expect(page.getByRole('combobox').first()).toContainText('Community Gathering');
+  await page.goto('/events/registrations');
+  await page.getByRole('combobox',{name:'Select Event',exact:true}).click();
+  await page.getByRole('option',{name:/Community Gathering/}).click();
+  await page.getByRole('link',{name:'Check In Attendees',exact:true}).click();
+  await expect(page).toHaveURL(/\/events\/check-in\?eventId=community-event$/);
+  const roster = page.getByLabel('Attendance roster',{exact:true});
+  await expect(roster).toBeVisible();
+  await page.getByLabel('Attendance Date',{exact:true}).fill('2026-10-24');
+  await roster.getByRole('checkbox',{name:'Select Grace Member',exact:true}).click();
+  await roster.getByRole('button',{name:'Mark attendance (1)',exact:true}).click();
+  await expect(page.getByText('1 attendance records saved',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Walk-In',exact:true}).click();
+  await page.getByLabel('First Name *',{exact:true}).fill('New');
+  await page.getByLabel('Last Name *',{exact:true}).fill('Visitor');
+  await page.getByLabel('Phone *',{exact:true}).fill('08012345678');
+  await page.getByRole('button',{name:'Check In Walk-In',exact:true}).click();
+  await expect(page.getByText('New Visitor checked in',{exact:true})).toBeVisible();
+  const calls = await page.evaluate(() => (window as unknown as {eventCheckInCalls:{path:string;body:Record<string,unknown>}[]}).eventCheckInCalls);
+  expect(calls).toEqual([
+    {path:'/api/backend/events/community-event/check-in',body:{memberIds:['member-a'],attendanceDate:'2026-10-24'}},
+    {path:'/api/backend/events/community-event/check-in/walk-in',body:{firstName:'New',lastName:'Visitor',phone:'08012345678'}},
+  ]);
 });
 
 test('Essentials administrators can configure payments without email or messaging channels',async({page,context})=>{

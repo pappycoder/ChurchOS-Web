@@ -80,6 +80,7 @@ export default function EventDetailPage({
   const canUpdate = can("events", "update");
   const canReadTiers = can("events:tickets", "read");
   const canDelete = can("events", "delete");
+  const canCheckIn = can("events:checkin", "create");
 
   const eventQuery = useEvent(eventId);
   const registrationsQuery = useEventRegistrations(eventId);
@@ -207,8 +208,14 @@ export default function EventDetailPage({
                 : `${event.registrationCount} registered`}
             </span>
           </p>
-          {(canUpdate || canDelete || canReadTiers) && !event.archivedAt && (
+          {(canUpdate || canDelete || canReadTiers || canCheckIn) && !event.archivedAt && (
             <div className="flex flex-wrap items-center gap-2 mt-4">
+              {canCheckIn && (
+                <Button size="sm" onClick={() => router.push(`/events/check-in?eventId=${encodeURIComponent(eventId)}`)}>
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Check In Attendees
+                </Button>
+              )}
               {canUpdate && (
                 <Button
                   variant="outline"
