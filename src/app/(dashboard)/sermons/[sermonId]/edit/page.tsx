@@ -1,13 +1,16 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
-import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SermonForm } from "@/components/sermons/sermon-form";
-import { useSermon, useUpdateSermon, type CreateSermonInput } from "@/hooks/use-sermons";
+import {
+  useSermon,
+  useUpdateSermon,
+  type UpdateSermonInput,
+} from "@/hooks/use-sermons";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export default function EditSermonPage() {
@@ -32,7 +35,9 @@ export default function EditSermonPage() {
           ]}
         />
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-muted-foreground">You do not have permission to edit sermons.</p>
+          <p className="text-muted-foreground">
+            You do not have permission to edit sermons.
+          </p>
         </div>
       </div>
     );
@@ -68,17 +73,8 @@ export default function EditSermonPage() {
     );
   }
 
-  const handleSubmit = async (input: CreateSermonInput) => {
-    try {
-      await updateMutation.mutateAsync(input);
-      toast.success("Sermon updated");
-      router.push(`/sermons/${sermonId}`);
-    } catch (err) {
-      toast.error("Failed to update sermon", {
-        description: getToastErrorMessage(err, "Please try again."),
-      });
-    }
-  };
+  const handleSubmit = (input: UpdateSermonInput) =>
+    updateMutation.mutateAsync(input);
 
   return (
     <div className="space-y-4">
@@ -91,13 +87,20 @@ export default function EditSermonPage() {
           { label: "Edit" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button
+            variant="outline"
+            onClick={() => router.push(`/sermons/${sermonId}`)}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
+            View Sermon
           </Button>
         }
       />
-      <SermonForm sermon={sermon} onSubmit={handleSubmit} submitLabel="Save Changes" />
+      <SermonForm
+        sermon={sermon}
+        onSubmit={handleSubmit}
+        onSaveRecording={handleSubmit}
+      />
     </div>
   );
 }

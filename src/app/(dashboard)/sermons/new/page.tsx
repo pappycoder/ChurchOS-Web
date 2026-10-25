@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
@@ -27,22 +26,18 @@ export default function NewSermonPage() {
           ]}
         />
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-muted-foreground">You do not have permission to create sermons.</p>
+          <p className="text-muted-foreground">
+            You do not have permission to create sermons.
+          </p>
         </div>
       </div>
     );
   }
 
   const handleSubmit = async (input: CreateSermonInput) => {
-    try {
-      await createMutation.mutateAsync(input);
-      toast.success("Sermon created");
-      router.push("/sermons");
-    } catch (err) {
-      toast.error("Failed to create sermon", {
-        description: getToastErrorMessage(err, "Please try again."),
-      });
-    }
+    const saved = await createMutation.mutateAsync(input);
+    router.replace(`/sermons/${saved.sermonId}/edit`);
+    return saved;
   };
 
   return (
@@ -61,7 +56,7 @@ export default function NewSermonPage() {
           </Button>
         }
       />
-      <SermonForm onSubmit={handleSubmit} submitLabel="Create Sermon" />
+      <SermonForm onSubmit={handleSubmit} />
     </div>
   );
 }

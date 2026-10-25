@@ -1,249 +1,159 @@
 "use client";
 
-import { LoadingIndicator } from "@/components/shared/loading-indicator";
-
-import * as React from "react";
-import { getToastErrorMessage, toast } from "@/lib/toast";
-import { Upload, Link, X, FileAudio, FileVideo, Loader2 } from "lucide-react";
+import { useId, useRef } from "react";
+import { Upload, Link, X, FileAudio, FileVideo } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUploadMediaFile } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
-import { mediaPlaybackUrl } from "@/lib/media-playback";
 import { mediaUploadPermissions } from "@/lib/media-upload-policy";
+import type { SermonRecordingDraft } from "@/lib/sermon-recording";
 
-interface MediaUploadFieldProps {
-  label: string;
-  accept: string;
-  /** "audio" or "video" — used when pasting a URL to tag the type */
-  mediaType: "audio" | "video";
-  value?: string;
-  onChange: (url: string | undefined) => void;
-  branchId?: string;
-  onUploadingChange?: (uploading: boolean) => void;
-  onPendingChange?: (pending: boolean) => void;
-}
-
-type Mode = "upload" | "url";
-
+/** Files and links stay in the form draft until its single Save action. */
 export function MediaUploadField({
   label,
   accept,
   mediaType,
   value,
   onChange,
-  branchId,
-  onUploadingChange,
-  onPendingChange,
-}: MediaUploadFieldProps) {
-  const upload = useUploadMediaFile();
-  const [mode, setMode] = React.useState<Mode>("upload");
-  const [urlInput, setUrlInput] = React.useState("");
-  const [uploading, setUploading] = React.useState(false);
-  const fileRef = React.useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-
+  disabled = false,
+  error,
+}: {
+  label: string;
+  accept: string;
+  mediaType: "audio" | "video";
+  value: SermonRecordingDraft;
+  onChange: (draft: SermonRecordingDraft) => void;
+  disabled?: boolean;
+  error?: string;
+}) {
+  const id = useId();
+  const fileRef = useRef<HTMLInputElement>(null);
   const { canAny } = usePermissions();
   const canUpload = canAny(...mediaUploadPermissions("sermons"));
-  const effectiveMode: Mode = canUpload ? mode : "url";
+  const mode = canUpload ? value.mode : "url";
   const Icon = mediaType === "audio" ? FileAudio : FileVideo;
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSelectedFile(file);
-    onPendingChange?.(true);
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-    setUploading(true);
-    onUploadingChange?.(true);
-    try {
-      const res = await upload.mutateAsync({ file: selectedFile, folder: "sermons", branchId });
-
-      onChange(res.url);
-      setSelectedFile(null);
-      onPendingChange?.(false);
-      toast.success(`${label} uploaded`);
-    } catch (err) {
-      toast.error(`Failed to upload ${label.toLowerCase()}`, {
-        description: getToastErrorMessage(err, "Please try again."),
-      });
-    } finally {
-      setUploading(false);
-      onUploadingChange?.(false);
-    }
-  };
-
-  const handleUrlSubmit = () => {
-    const trimmed = urlInput.trim();
-    if (!trimmed) return;
-    if (!/^https?:\/\//i.test(trimmed) || !mediaPlaybackUrl(trimmed)) {
-      toast.error("Enter a valid http or https recording link");
-      return;
-    }
-    onChange(trimmed);
-    setUrlInput("");
-    onPendingChange?.(false);
-    toast.success(`${label} link saved`);
-  };
-
-  const handleRemove = () => {
-    onChange(undefined);
-    setSelectedFile(null);
-    setUrlInput("");
-    onPendingChange?.(false);
-  };
-
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
-
-  // If a value is already set, show it with a remove button
-  if (value) {
-    return (
-      <div className="space-y-2">
-        <Label>{label}</Label>
-        <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
-          <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="text-sm truncate flex-1">{value}</span>
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap gap-2" aria-label={`${label} source`}>
+        {canUpload && (
           <Button
             type="button"
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0"
-            onClick={handleRemove}
-            aria-label="Remove media"
+            variant={mode === "upload" ? "default" : "outline"}
+            disabled={disabled}
+            aria-pressed={mode === "upload"}
+            onClick={() => onChange({ ...value, mode: "upload" })}
           >
-            <X className="h-3 w-3" />
+            <Upload className="h-4 w-4" /> Choose File
           </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-
-      {/* Mode toggle */}
-      <div className="flex gap-1 rounded-md border p-0.5 w-fit">
-        {canUpload && (
-          <button
-            type="button"
-            className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-              effectiveMode === "upload"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => { setMode("upload"); setSelectedFile(null); setUrlInput(""); onPendingChange?.(false); }}
-          >
-            <Upload className="h-3 w-3" />
-            Upload File
-          </button>
         )}
-        <button
+        <Button
           type="button"
-          className={`flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors ${
-            effectiveMode === "url"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-          onClick={() => { setMode("url"); setSelectedFile(null); setUrlInput(""); onPendingChange?.(false); }}
+          variant={mode === "url" ? "default" : "outline"}
+          disabled={disabled}
+          aria-pressed={mode === "url"}
+          onClick={() => onChange({ ...value, file: null, mode: "url" })}
         >
-          <Link className="h-3 w-3" />
-          Paste Link
-        </button>
+          <Link className="h-4 w-4" /> Paste Link
+        </Button>
       </div>
-
-      {effectiveMode === "upload" ? (
-        <div className="space-y-2">
+      {mode === "upload" ? (
+        <div className="space-y-3">
           <input
             ref={fileRef}
             type="file"
             accept={accept}
+            aria-label={`${label} file`}
             className="hidden"
-            onChange={handleFileSelect}
+            disabled={disabled}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) onChange({ ...value, file });
+              event.target.value = "";
+            }}
           />
-          {selectedFile ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
-                <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-sm truncate flex-1">{selectedFile.name}</span>
-                <span className="text-xs text-muted-foreground shrink-0">
-                  {formatSize(selectedFile.size)}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0"
-                  onClick={() => { setSelectedFile(null); onPendingChange?.(false); }}
-                  aria-label="Remove selected media"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-              {uploading && <LoadingIndicator label="Uploading file" size="sm" />}
+          {value.file ? (
+            <div className="flex min-w-0 items-center gap-2 rounded-md border bg-muted/50 p-3">
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="min-w-0 flex-1 truncate text-sm">
+                {value.file.name}
+              </span>
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {(value.file.size / 1024 / 1024).toFixed(1)} MB
+              </span>
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleUpload}
-                disabled={uploading}
+                variant="ghost"
+                size="icon"
+                aria-label={`Remove selected ${mediaType}`}
+                disabled={disabled}
+                onClick={() => onChange({ ...value, file: null })}
               >
-                {uploading ? (
-                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                ) : (
-                  <Upload className="mr-2 h-3 w-3" />
-                )}
-                {uploading ? "Uploading..." : "Upload"}
+                <X className="h-4 w-4" />
               </Button>
             </div>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload className="mr-2 h-3 w-3" />
-              Choose {mediaType === "audio" ? "Audio" : "Video"} File
-            </Button>
-          )}
+          ) : value.url ? (
+            <div className="flex min-w-0 items-center gap-2 rounded-md border bg-muted/50 p-3">
+              <Icon className="h-4 w-4 shrink-0" />
+              <span
+                className="min-w-0 flex-1 truncate text-sm"
+                title={value.url}
+              >
+                {value.url}
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label={`Remove ${mediaType} recording`}
+                disabled={disabled}
+                onClick={() => onChange({ ...value, url: "" })}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={disabled}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload className="h-4 w-4" />{" "}
+            {value.file || value.url ? "Replace" : "Choose"} {label} File
+          </Button>
+          <p className="text-sm text-muted-foreground">
+            The selected file uploads when you save {mediaType}. Maximum size:
+            50 MB.
+          </p>
         </div>
       ) : (
         <div className="space-y-2">
+          <Label htmlFor={id}>{label} link</Label>
           <Input
+            id={id}
+            value={value.url}
+            disabled={disabled}
+            aria-invalid={!!error}
+            aria-describedby={error ? `${id}-error` : undefined}
             placeholder={
               mediaType === "audio"
                 ? "https://soundcloud.com/..."
                 : "https://youtube.com/watch?v=..."
             }
-            value={urlInput}
-            onChange={(e) => { setUrlInput(e.target.value); onPendingChange?.(!!e.target.value.trim()); }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleUrlSubmit();
-              }
-            }}
+            onChange={(event) =>
+              onChange({ ...value, file: null, url: event.target.value })
+            }
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleUrlSubmit}
-            disabled={!urlInput.trim()}
-          >
-            <Link className="mr-2 h-3 w-3" />
-            Save Link
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            This link is saved when you save {mediaType}.
+          </p>
         </div>
+      )}
+      {error && (
+        <p id={`${id}-error`} role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
       )}
     </div>
   );

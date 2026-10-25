@@ -282,7 +282,10 @@ for (const [path, label] of [
     await page.goto(path);
     await chooseEast(page);
     await page
-      .getByRole("button", { name: "Save Changes", exact: true })
+      .getByRole("button", {
+        name: label === "sermon" ? "Save Details" : "Save Changes",
+        exact: true,
+      })
       .click();
     await expect
       .poll(async () => (await writes(page))[0]?.body.branchId)
@@ -338,7 +341,7 @@ test("branch staff edit a sermon without changing its assignment", async ({
     "readonly",
     "",
   );
-  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
+  await page.getByRole("button", { name: "Save Details", exact: true }).click();
   await expect.poll(async () => (await writes(page)).length).toBe(1);
   expect((await writes(page))[0].body).not.toHaveProperty("branchId");
 });
@@ -348,9 +351,7 @@ test("new sermon sends its branch", async ({ context, page }) => {
   await chooseEast(page);
   await page.getByLabel("Title", { exact: false }).fill("Faith");
   await page.getByLabel("Date", { exact: false }).fill("2026-10-24");
-  await page
-    .getByRole("button", { name: "Create Sermon", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Save Details", exact: true }).click();
   await expect
     .poll(async () => (await writes(page))[0]?.body.branchId)
     .toBe("east");
@@ -460,9 +461,7 @@ test("new sermons default to the staff member's fixed branch", async ({
   );
   await page.getByLabel("Title", { exact: false }).fill("Faith");
   await page.getByLabel("Date", { exact: false }).fill("2026-10-24");
-  await page
-    .getByRole("button", { name: "Create Sermon", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Save Details", exact: true }).click();
   await expect
     .poll(async () => (await writes(page))[0]?.body.branchId)
     .toBe("west");
