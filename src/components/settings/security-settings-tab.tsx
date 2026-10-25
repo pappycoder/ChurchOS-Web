@@ -8,6 +8,7 @@
  */
 
 import * as React from "react";
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { KeyRound, MailCheck, ShieldCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +90,7 @@ export function SecuritySettingsTab() {
             description="Enabling and disabling 2FA is self-service on your own profile page."
             action={
               <Button asChild variant="outline" size="sm">
-                <a href="/profile">Manage on Profile</a>
+                <Link href="/profile">Manage on Profile</Link>
               </Button>
             }
           />

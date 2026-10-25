@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   LockKeyhole,
@@ -382,7 +383,7 @@ export function OfflineWorkspace() {
               workspace.
             </p>
             <Button asChild>
-              <a href="/dashboard">Back to ChurchOS</a>
+              <Link href="/dashboard" prefetch={false}>Back to ChurchOS</Link>
             </Button>
           </CardContent>
         </Card>
@@ -410,7 +411,7 @@ export function OfflineWorkspace() {
               {online ? "Connected" : "Offline"}
             </span>
             <Button variant="outline" asChild>
-              <a href="/dashboard">Back to ChurchOS</a>
+              <Link href="/dashboard" prefetch={false}>Back to ChurchOS</Link>
             </Button>
             {workspace && (
               <Button variant="outline" onClick={lock}>
