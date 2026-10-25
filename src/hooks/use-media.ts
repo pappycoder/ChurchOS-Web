@@ -1,5 +1,7 @@
 "use client";
 
+import { directMediaUpload } from "@/lib/direct-media-upload";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -207,6 +209,9 @@ export function useUploadMediaFile() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ file, folder, branchId }: { file: File; folder: string; branchId?: string }) => {
+      // Keep large file bytes outside the web/API function request limits.
+      if (!file.type.startsWith("image/"))
+        return directMediaUpload(file, folder, branchId);
       const form = new FormData();
       form.append("file", file);
       form.append("folder", folder);

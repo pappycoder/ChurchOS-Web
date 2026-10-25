@@ -62,7 +62,9 @@ async function fixture(
     videoUrl: withRecordings ? video.url : undefined,
   };
   const writes: { path: string; body: Record<string, unknown> }[] = [];
-  const uploads: string[] = [];
+  const uploads: Record<string, unknown>[] = [];
+  const grants = new Map<string, Record<string, unknown>>();
+  const transferBytes: number[] = [];
   let releaseUpload!: () => void;
   const uploadGate = new Promise<void>((resolve) => {
     releaseUpload = resolve;
@@ -80,6 +82,33 @@ async function fixture(
   await context.route("**/api/session", (route) =>
     route.fulfill({ json: { hasSession: true } }),
   );
+  await context.route("https://storage.example/**", async (route) => {
+    const headers = {
+      "Access-Control-Allow-Origin": "http://127.0.0.1:3107",
+      "Access-Control-Allow-Methods": "PUT,OPTIONS",
+      "Access-Control-Allow-Headers": "content-type,x-upsert",
+    };
+    if (route.request().method() === "OPTIONS")
+      return route.fulfill({ status: 204, headers });
+    const key = new URL(route.request().url()).pathname.slice(1);
+    const metadata = grants.get(key)!;
+    uploads.push(metadata);
+    transferBytes.push(route.request().postDataBuffer()?.length ?? 0);
+    await uploadGate;
+    if (
+      metadata.contentType === "video/mp4" &&
+      options.failVideoOnce &&
+      !failedVideo
+    ) {
+      failedVideo = true;
+      return route.fulfill({
+        status: 503,
+        headers,
+        body: "Upload unavailable",
+      });
+    }
+    return route.fulfill({ status: 200, headers, json: { Key: key } });
+  });
   await context.route("**/api/backend/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -161,28 +190,21 @@ async function fixture(
       data = assets.length ? [{ folder: "sermons", count: assets.length }] : [];
     else if (path.endsWith("/media/library"))
       data = { data: assets, total: assets.length };
-    else if (path.endsWith("/media/upload")) {
-      const body = request.postDataBuffer()?.toString("latin1") ?? "";
-      uploads.push(body);
-      await uploadGate;
-      const asset = body.includes("Sunday Message.mp4") ? video : audio;
-      if (asset === video && options.failVideoOnce && !failedVideo) {
-        failedVideo = true;
-        return route.fulfill({
-          status: 503,
-          json: {
-            success: false,
-            error: { message: "Video upload temporarily failed" },
-          },
-        });
-      }
+    else if (path.endsWith("/media/upload/prepare")) {
+      const metadata = request.postDataJSON();
+      const key = `grant-${grants.size + 1}`;
+      grants.set(key, metadata);
+      data = { ticket: key, uploadUrl: `https://storage.example/${key}` };
+    } else if (path.endsWith("/media/upload/complete")) {
+      const metadata = grants.get(request.postDataJSON().ticket)!;
+      const asset = metadata.contentType === "video/mp4" ? video : audio;
       assets.push(asset);
       data = {
         assetId: asset.assetId,
         url: asset.url,
         path: `sermons/church-a/${asset.assetId}`,
-        size: asset.sizeBytes,
-        contentType: asset.mimeType,
+        size: metadata.size,
+        contentType: metadata.contentType,
       };
     } else if (path.endsWith("/unread-count")) data = { count: 0 };
     else if (path.endsWith("/notifications") || path.endsWith("/auth/sessions"))
@@ -190,7 +212,7 @@ async function fixture(
     else if (path.endsWith("/bookmark")) data = { bookmarked: false };
     return route.fulfill({ json: { success: true, data } });
   });
-  return { writes, uploads, releaseUpload };
+  return { writes, uploads, releaseUpload, transferBytes };
 }
 
 test("sermon readers can play uploaded audio and open both recordings with their current session", async ({
@@ -275,7 +297,7 @@ test("section saves isolate details and both files while preserving unsaved draf
   await page.getByLabel("Video file", { exact: true }).setInputFiles({
     name: "Sunday Message.mp4",
     mimeType: "video/mp4",
-    buffer: Buffer.from("video"),
+    buffer: Buffer.alloc(5 * 1024 * 1024),
   });
   await page.getByRole("tab", { name: "1. Details", exact: true }).click();
   await page.getByRole("button", { name: "Save Details", exact: true }).click();
@@ -319,8 +341,9 @@ test("section saves isolate details and both files while preserving unsaved draf
   expect(state.writes[2].body).toEqual({
     videoUrl: "https://old-api.example/api/v1/media/files/video-a",
   });
+  expect(Math.max(...state.transferBytes)).toBe(5 * 1024 * 1024);
   for (const body of state.uploads)
-    expect(body).toContain('name="branchId"\r\n\r\nbranch-a');
+    expect(body).toMatchObject({ branchId: "branch-a", folder: "sermons" });
   await page.getByRole("tab", { name: "1. Details", exact: true }).click();
   await expect(page.getByLabel("Title *", { exact: true })).toHaveValue("");
   await page.reload();
@@ -408,7 +431,10 @@ for (const failure of ["upload", "save"] as const) {
     await page.getByRole("button", { name: "Save Video", exact: true }).click();
     await expect(
       page.getByRole("alert").filter({
-        hasText: "Service temporarily unavailable. Please try again later.",
+        hasText:
+          failure === "upload"
+            ? "Storage upload failed (503)"
+            : "Service temporarily unavailable. Please try again later.",
       }),
     ).toBeVisible();
     await expect(
@@ -524,18 +550,16 @@ test("media uses the saved branch and preserves an unsaved HQ branch selection",
   await page.getByLabel("Branch", { exact: true }).click();
   await page.getByRole("option", { name: "East Branch", exact: true }).click();
   await page.getByRole("tab", { name: "2. Audio", exact: true }).click();
-  await page
-    .getByLabel("Audio file", { exact: true })
-    .setInputFiles({
-      name: "Sunday Message.wav",
-      mimeType: "audio/wav",
-      buffer: recording(),
-    });
+  await page.getByLabel("Audio file", { exact: true }).setInputFiles({
+    name: "Sunday Message.wav",
+    mimeType: "audio/wav",
+    buffer: recording(),
+  });
   await page.getByRole("button", { name: "Save Audio", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Save Audio", exact: true }),
   ).toBeEnabled();
-  expect(state.uploads[0]).toContain('name="branchId"\r\n\r\nbranch-a');
+  expect(state.uploads[0]).toMatchObject({ branchId: "branch-a" });
   await page.getByRole("tab", { name: "1. Details", exact: true }).click();
   await expect(page.getByLabel("Branch", { exact: true })).toContainText(
     "East Branch",
@@ -546,16 +570,44 @@ test("media uses the saved branch and preserves an unsaved HQ branch selection",
   ).toBeEnabled();
   expect(state.writes[1].body.branchId).toBe("branch-b");
   await page.getByRole("tab", { name: "3. Video", exact: true }).click();
+  await page.getByLabel("Video file", { exact: true }).setInputFiles({
+    name: "Sunday Message.mp4",
+    mimeType: "video/mp4",
+    buffer: Buffer.from("video"),
+  });
+  await page.getByRole("button", { name: "Save Video", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Save Video", exact: true }),
+  ).toBeEnabled();
+  expect(state.uploads[1]).toMatchObject({ branchId: "branch-b" });
+});
+
+test("a 1.9 MB video uploads directly to storage and saves its recording URL", async ({
+  page,
+  context,
+}) => {
+  const state = await fixture(context, true);
+  state.releaseUpload();
+  await page.goto("/sermons/sermon-a/edit");
+  await page.getByRole("tab", { name: "3. Video", exact: true }).click();
   await page
     .getByLabel("Video file", { exact: true })
     .setInputFiles({
       name: "Sunday Message.mp4",
       mimeType: "video/mp4",
-      buffer: Buffer.from("video"),
+      buffer: Buffer.alloc(1_900_000),
     });
   await page.getByRole("button", { name: "Save Video", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Save Video", exact: true }),
   ).toBeEnabled();
-  expect(state.uploads[1]).toContain('name="branchId"\r\n\r\nbranch-b');
+  expect(state.transferBytes).toEqual([1_900_000]);
+  expect(state.uploads[0]).toMatchObject({
+    size: 1_900_000,
+    folder: "sermons",
+    contentType: "video/mp4",
+  });
+  expect(state.writes[0].body).toEqual({
+    videoUrl: "https://old-api.example/api/v1/media/files/video-a",
+  });
 });
