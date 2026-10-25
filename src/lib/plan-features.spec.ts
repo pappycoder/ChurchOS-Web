@@ -31,9 +31,11 @@ it('includes giving and financial reports in Essentials alongside member and att
   expect(planAllowsPath(['giving'], '/analytics/giving')).toBe(false);
 });
 
- it('includes Community event check-in without enabling ticket management or Essentials events', () => {
+ it('includes Community registration and check-in without enabling ticket management or Essentials events', () => {
    const community = ['giving', 'reports', 'events'];
    for (const action of ['read', 'create', 'update']) {
+     expect(planAllowsPermission(community, `events:registrations:${action}`)).toBe(true);
+     expect(planAllowsPermission(['giving', 'reports'], `events:registrations:${action}`)).toBe(false);
      expect(planAllowsPermission(community, `events:checkin:${action}`)).toBe(true);
      expect(planAllowsPermission(['giving', 'reports'], `events:checkin:${action}`)).toBe(false);
      expect(planAllowsPermission(community, `events:tickets:${action}`)).toBe(false);

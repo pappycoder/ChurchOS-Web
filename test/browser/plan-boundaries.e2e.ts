@@ -65,7 +65,7 @@ test('Community creates free events while paid-event controls require Network',a
   await expect(page.getByText('Paid events require Network or above and ticket management access.')).toBeVisible();
 });
 
-test('Community opens check-in from registrations and records roster and walk-in attendance', async ({page,context}) => {
+test('Community keeps check-in separate from registrations and records roster and walk-in attendance', async ({page,context}) => {
   await fixture(context,['giving','events','groups','forms','reports','email','media']);
   await context.addInitScript(() => {
     const previous = window.fetch.bind(window);
@@ -99,8 +99,9 @@ test('Community opens check-in from registrations and records roster and walk-in
   await page.goto('/events/registrations');
   await page.getByRole('combobox',{name:'Select Event',exact:true}).click();
   await page.getByRole('option',{name:/Community Gathering/}).click();
-  await page.getByRole('link',{name:'Check In Attendees',exact:true}).click();
-  await expect(page).toHaveURL(/\/events\/check-in\?eventId=community-event$/);
+  await expect(page.getByRole('link',{name:'Check In Attendees',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Check In Attendees',exact:true})).toHaveCount(0);
+  await page.goto('/events/check-in?eventId=community-event');
   const roster = page.getByLabel('Attendance roster',{exact:true});
   await expect(roster).toBeVisible();
   await page.getByLabel('Attendance Date',{exact:true}).fill('2026-10-24');

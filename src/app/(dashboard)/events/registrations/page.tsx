@@ -1,6 +1,5 @@
 "use client";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { RegisterAttendeeButton } from "@/components/events/register-attendee-button";
 import { LoadingState } from "@/components/shared/loading-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
@@ -162,12 +161,8 @@ export default function EventRegistrationsPage() {
                 {selectedEvent.registrationCount} registration{selectedEvent.registrationCount !== 1 ? "s" : ""}
               </Badge>
             )}
-            {selectedEvent && !selectedEvent.archivedAt && can("events:checkin", "create") && (
-              <Button asChild>
-                <Link href={`/events/check-in?eventId=${encodeURIComponent(selectedEventId)}`}>
-                  Check In Attendees
-                </Link>
-              </Button>
+            {selectedEvent && (
+              <RegisterAttendeeButton key={selectedEvent.eventId} event={selectedEvent} />
             )}
           </div>
         </CardContent>
@@ -247,7 +242,7 @@ export default function EventRegistrationsPage() {
                 <Table exportable>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Member ID</TableHead>
+                      <TableHead>Member</TableHead>
                       <TableHead>Tier</TableHead>
                       <TableHead>Qty</TableHead>
                       <TableHead>Payment Status</TableHead>
@@ -259,9 +254,9 @@ export default function EventRegistrationsPage() {
                   <TableBody>
                     {pagedRegistrations.map((reg) => (
                       <TableRow key={reg.registrationId}>
-                        <TableCell className="font-mono text-xs">
+                        <TableCell className="font-medium">
                           <span title={reg.memberId}>
-                            {reg.memberId.slice(0, 8)}...
+                            {reg.memberName || reg.memberId}
                           </span>
                         </TableCell>
                         <TableCell>{reg.tierName || "-"}</TableCell>

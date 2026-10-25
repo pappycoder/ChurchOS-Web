@@ -1,6 +1,7 @@
 "use client";
 import { BranchDetail } from "@/components/shared/branch-assignment";
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
+import { RegisterAttendeeButton } from "@/components/events/register-attendee-button";
 
 import { ErrorState } from "@/components/shared/error-state";
 
@@ -81,6 +82,7 @@ export default function EventDetailPage({
   const canReadTiers = can("events:tickets", "read");
   const canDelete = can("events", "delete");
   const canCheckIn = can("events:checkin", "create");
+  const canRegister = can("events:registrations", "create");
 
   const eventQuery = useEvent(eventId);
   const registrationsQuery = useEventRegistrations(eventId);
@@ -208,8 +210,9 @@ export default function EventDetailPage({
                 : `${event.registrationCount} registered`}
             </span>
           </p>
-          {(canUpdate || canDelete || canReadTiers || canCheckIn) && !event.archivedAt && (
+          {(canUpdate || canDelete || canReadTiers || canCheckIn || canRegister) && !event.archivedAt && (
             <div className="flex flex-wrap items-center gap-2 mt-4">
+              <RegisterAttendeeButton event={event} />
               {canCheckIn && (
                 <Button size="sm" onClick={() => router.push(`/events/check-in?eventId=${encodeURIComponent(eventId)}`)}>
                   <UserCheck className="h-4 w-4 mr-2" />

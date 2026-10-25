@@ -63,7 +63,7 @@ export interface EventRegistration {
   authorizationUrl?: string;
   paymentReference?: string;
   createdAt: string;
-  /** Client-resolved member name (enriched in hooks). */
+  /** Display name returned with the scoped registration. */
   memberName?: string;
 }
 
@@ -291,6 +291,7 @@ export function useRegisterForEvent(eventId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["events-registrations", eventId] });
       qc.invalidateQueries({ queryKey: ["events-detail", eventId] });
+      invalidateEventCaches(qc);
     },
   });
 }
