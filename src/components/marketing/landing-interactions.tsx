@@ -63,6 +63,7 @@ export function MarketingNavigation() {
           <a href="#enterprise">For your network</a>
           <a href="#pricing">Pricing</a>
           <a href="#questions">FAQs</a>
+          <a href="#legal">Legal &amp; Privacy</a>
         </div>
         <div className={styles.navActions}>
           <Link href="/login" className={styles.signIn}>
@@ -91,6 +92,7 @@ export function MarketingNavigation() {
             ["#enterprise", "For your network"],
             ["#pricing", "Pricing"],
             ["#questions", "FAQs"],
+            ["#legal", "Legal & Privacy"],
             ["/login", "Sign in"],
             ["/register", "Get started"],
           ].map(([href, label]) => (

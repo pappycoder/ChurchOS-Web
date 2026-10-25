@@ -78,3 +78,20 @@ test("registration requires an explicit agreement before any signup request", as
   await page.getByRole("button", { name: "Create account & continue", exact: true }).click();
   await expect.poll(() => registrations).toBe(1);
 });
+
+for (const width of [390, 1440]) {
+  test(`landing legal navigation opens the policies at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    if (width === 390) await page.getByRole("button", { name: "Open navigation", exact: true }).click();
+    await page.getByRole("link", { name: "Legal & Privacy", exact: true }).click();
+    await expect(page).toHaveURL(/\/#legal$/);
+    await expect(page.getByRole("heading", { name: "Legal & Privacy", exact: true })).toBeInViewport();
+    const navigation = page.locator("#legal").getByRole("navigation", { name: "Legal information" });
+    for (const [path] of documents) await expect(navigation.locator(`a[href="${path}"]`)).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await navigation.getByRole("link", { name: "Privacy Policy", exact: true }).click();
+    await expect(page).toHaveURL(/\/privacy-policy$/);
+    await expect(page.getByRole("heading", { name: "Privacy Policy", exact: true })).toBeVisible();
+  });
+}

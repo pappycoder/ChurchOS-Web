@@ -530,7 +530,11 @@ export function LandingPage() {
             </Link>
           </nav>
         </div>
-        <LegalNavigation className="py-6" />
+        <section id="legal" aria-labelledby="landing-legal-title" className={styles.legalSection}>
+          <h2 id="landing-legal-title">Legal &amp; Privacy</h2>
+          <p>Read how we handle your information and the terms for using ChurchOS.</p>
+          <LegalNavigation className={styles.legalLinks} />
+        </section>
         <div className={styles.footerBottom}>
           <span>
             © {new Date().getFullYear()} {LEGAL_COMPANY.name}. ChurchOS, built for the people behind

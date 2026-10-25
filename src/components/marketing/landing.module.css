@@ -2518,3 +2518,43 @@
   .faqList summary { font-size:13px; }
   .faqList details > p { font-size:12px; }
 }
+
+
+.legalSection {
+  scroll-margin-top: 110px;
+  margin-top: 30px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #f0f3e9;
+}
+.legalSection h2 {
+  margin: 0;
+  color: #183b40;
+  font-size: 18px;
+  font-weight: 600;
+}
+.legalSection > p {
+  margin: 10px 0 14px;
+  color: #4b6155;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.legalLinks {
+  font-size: 14px;
+  color: #183b40;
+}
+.legalLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.legalLinks a:hover {
+  color: #355d34;
+}
+.legalLinks a:focus-visible {
+  outline: 2px solid #183b40;
+  outline-offset: 4px;
+}
