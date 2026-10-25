@@ -106,9 +106,9 @@ test("visitors have an import entry and a preview before creating records", asyn
 }) => {
   const state = await fixture(context);
   await page.goto("/visitors");
-  await page
-    .getByRole("button", { name: "Import Visitors", exact: true })
-    .click();
+  await expect(page.getByRole("link", { name: "Import Visitors", exact: true })).toHaveAttribute("href", "/visitors/import");
+  await expect(page.getByRole("button", { name: "Import Visitors", exact: true })).toHaveCount(0);
+  await page.getByRole("link", { name: "Import Visitors", exact: true }).click();
   await expect(page).toHaveURL(/\/visitors\/import$/);
   await expect(
     page.getByText("First Visit Date", { exact: true }),
@@ -226,6 +226,7 @@ test("read-only visitors cannot access importing", async ({
   await expect(
     page.getByRole("button", { name: "Import Visitors", exact: true }),
   ).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Import Visitors", exact: true })).toHaveCount(0);
   await page.goto("/visitors/import");
   await expect(
     page.getByRole("heading", { name: "Access denied", exact: true }),

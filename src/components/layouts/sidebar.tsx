@@ -292,6 +292,11 @@ const navItems: { section: string; items: NavItem[] }[] = [
             permission: "visitors:new:create",
           },
           {
+            title: "Import Visitors",
+            href: "/visitors/import",
+            permission: "visitors:new:create",
+          },
+          {
             title: "Follow-Up",
             href: "/visitors/follow-up",
             permission: "visitors:list:read",
@@ -527,6 +532,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   "All Members": Users,
   "Add Member": UserPlus,
   "Import Members": Download,
+  "Import Visitors": Download,
   "All Events": Calendar,
   "All Sermons": BookOpen,
   "Add Sermon": BookOpen,

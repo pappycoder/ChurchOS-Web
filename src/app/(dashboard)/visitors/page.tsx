@@ -6,7 +6,6 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   UserPlus,
-  Upload,
   Plus,
   ArrowUpDown,
   SortAsc,
@@ -283,7 +282,6 @@ export default function VisitorsPage() {
           <div className="flex items-center gap-2">
             {canCreateVisitors && (
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" onClick={() => router.push("/visitors/import")}><Upload className="h-4 w-4 mr-2" />Import Visitors</Button>
                 <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Quick Add
