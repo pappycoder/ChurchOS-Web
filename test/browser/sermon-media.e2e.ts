@@ -92,6 +92,8 @@ test("sermon uploads persist both URLs, block early save and show the files in t
   await expect(page.getByRole("heading",{name:"No files found",exact:true})).toBeVisible();
   await page.goto("/sermons/sermon-a/edit");
   await page.locator('input[type="file"][accept="audio/*"]').setInputFiles({name:"Sunday Message.wav",mimeType:"audio/wav",buffer:recording()});
+  await expect(page.getByRole("button",{name:"Save Changes",exact:true})).toBeDisabled();
+  await expect(page.getByText("Upload the selected recording or save its link before saving the sermon.",{exact:true})).toBeVisible();
   await page.getByRole("button",{name:"Upload",exact:true}).click();
   await expect(page.getByRole("button",{name:"Save Changes",exact:true})).toBeDisabled();
   state.releaseUpload();
@@ -112,4 +114,33 @@ test("sermon uploads persist both URLs, block early save and show the files in t
   await page.goto("/media?folder=sermons");
   await expect(page.getByText("Sunday Message.wav",{exact:true})).toBeVisible();
   await expect(page.getByText("Sunday Message.mp4",{exact:true})).toBeVisible();
+});
+
+test("pasted sermon links persist, reject invalid schemes and can be removed", async ({page,context}) => {
+  const state = await fixture(context,true);
+  await context.route("https://podcasts.example/**", route => route.abort());
+  await context.route("https://player.vimeo.com/**", route => route.fulfill({body:""}));
+  await page.goto("/sermons/sermon-a/edit");
+  await page.getByRole("button",{name:"Paste Link",exact:true}).first().click();
+  await page.getByPlaceholder("https://soundcloud.com/...").fill("javascript:alert(1)");
+  await expect(page.getByRole("button",{name:"Save Changes",exact:true})).toBeDisabled();
+  await page.getByRole("button",{name:"Save Link",exact:true}).click();
+  await expect(page.getByText("Enter a valid http or https recording link",{exact:true})).toBeVisible();
+  await page.getByPlaceholder("https://soundcloud.com/...").fill("https://podcasts.example/message.mp3");
+  await page.getByRole("button",{name:"Save Link",exact:true}).click();
+  await page.getByRole("button",{name:"Paste Link",exact:true}).click();
+  await page.getByPlaceholder("https://youtube.com/watch?v=...").fill("https://vimeo.com/12345");
+  await page.getByRole("button",{name:"Save Link",exact:true}).click();
+  await page.getByRole("button",{name:"Save Changes",exact:true}).click();
+  await expect(page).toHaveURL(/\/sermons\/sermon-a$/);
+  await expect(page.locator("audio")).toHaveAttribute("src","https://podcasts.example/message.mp3");
+  await expect(page.locator("iframe[title='Sunday Message — video']")).toHaveAttribute("src","https://player.vimeo.com/video/12345");
+  expect(state.writes[0].body).toMatchObject({audioUrl:"https://podcasts.example/message.mp3",videoUrl:"https://vimeo.com/12345"});
+  await page.getByRole("button",{name:"Edit",exact:true}).click();
+  await page.getByRole("button",{name:"Remove media",exact:true}).first().click();
+  await page.getByRole("button",{name:"Remove media",exact:true}).click();
+  await page.getByRole("button",{name:"Save Changes",exact:true}).click();
+  await expect(page).toHaveURL(/\/sermons\/sermon-a$/);
+  expect(state.writes[1].body).toMatchObject({audioUrl:null,videoUrl:null});
+  await expect(page.locator("audio,video,iframe[title='Sunday Message — video']")).toHaveCount(0);
 });

@@ -17,8 +17,8 @@ export interface Sermon {
   scriptureReference?: string;
   seriesName?: string;
   tags: string[];
-  audioUrl?: string;
-  videoUrl?: string;
+  audioUrl?: string | null;
+  videoUrl?: string | null;
   durationSeconds?: number;
   description?: string;
   archivedAt?: string;
@@ -60,8 +60,8 @@ export interface CreateSermonInput {
   scriptureReference?: string;
   seriesName?: string;
   tags?: string[];
-  audioUrl?: string;
-  videoUrl?: string;
+  audioUrl?: string | null;
+  videoUrl?: string | null;
   durationSeconds?: number;
   description?: string;
 }

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUploadMediaFile } from "@/hooks/use-media";
 import { usePermissions } from "@/hooks/use-permissions";
+import { mediaPlaybackUrl } from "@/lib/media-playback";
 import { mediaUploadPermissions } from "@/lib/media-upload-policy";
 
 interface MediaUploadFieldProps {
@@ -21,6 +22,7 @@ interface MediaUploadFieldProps {
   onChange: (url: string | undefined) => void;
   branchId?: string;
   onUploadingChange?: (uploading: boolean) => void;
+  onPendingChange?: (pending: boolean) => void;
 }
 
 type Mode = "upload" | "url";
@@ -33,6 +35,7 @@ export function MediaUploadField({
   onChange,
   branchId,
   onUploadingChange,
+  onPendingChange,
 }: MediaUploadFieldProps) {
   const upload = useUploadMediaFile();
   const [mode, setMode] = React.useState<Mode>("upload");
@@ -50,6 +53,7 @@ export function MediaUploadField({
     const file = e.target.files?.[0];
     if (!file) return;
     setSelectedFile(file);
+    onPendingChange?.(true);
   };
 
   const handleUpload = async () => {
@@ -61,6 +65,7 @@ export function MediaUploadField({
 
       onChange(res.url);
       setSelectedFile(null);
+      onPendingChange?.(false);
       toast.success(`${label} uploaded`);
     } catch (err) {
       toast.error(`Failed to upload ${label.toLowerCase()}`, {
@@ -75,8 +80,13 @@ export function MediaUploadField({
   const handleUrlSubmit = () => {
     const trimmed = urlInput.trim();
     if (!trimmed) return;
+    if (!/^https?:\/\//i.test(trimmed) || !mediaPlaybackUrl(trimmed)) {
+      toast.error("Enter a valid http or https recording link");
+      return;
+    }
     onChange(trimmed);
     setUrlInput("");
+    onPendingChange?.(false);
     toast.success(`${label} link saved`);
   };
 
@@ -84,6 +94,7 @@ export function MediaUploadField({
     onChange(undefined);
     setSelectedFile(null);
     setUrlInput("");
+    onPendingChange?.(false);
   };
 
   const formatSize = (bytes: number) => {
@@ -129,7 +140,7 @@ export function MediaUploadField({
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
-            onClick={() => setMode("upload")}
+            onClick={() => { setMode("upload"); setSelectedFile(null); setUrlInput(""); onPendingChange?.(false); }}
           >
             <Upload className="h-3 w-3" />
             Upload File
@@ -142,7 +153,7 @@ export function MediaUploadField({
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground"
           }`}
-          onClick={() => setMode("url")}
+          onClick={() => { setMode("url"); setSelectedFile(null); setUrlInput(""); onPendingChange?.(false); }}
         >
           <Link className="h-3 w-3" />
           Paste Link
@@ -171,7 +182,7 @@ export function MediaUploadField({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6 shrink-0"
-                  onClick={() => setSelectedFile(null)}
+                  onClick={() => { setSelectedFile(null); onPendingChange?.(false); }}
                   aria-label="Remove selected media"
                 >
                   <X className="h-3 w-3" />
@@ -214,7 +225,7 @@ export function MediaUploadField({
                 : "https://youtube.com/watch?v=..."
             }
             value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
+            onChange={(e) => { setUrlInput(e.target.value); onPendingChange?.(!!e.target.value.trim()); }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 e.preventDefault();

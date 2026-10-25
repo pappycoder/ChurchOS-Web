@@ -48,11 +48,14 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
   const [saving, setSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(sermon?.tags ?? []);
-  const [audioUrl, setAudioUrl] = useState<string | undefined>(sermon?.audioUrl);
-  const [videoUrl, setVideoUrl] = useState<string | undefined>(sermon?.videoUrl);
+  const [audioUrl, setAudioUrl] = useState<string | undefined>(sermon?.audioUrl ?? undefined);
+  const [videoUrl, setVideoUrl] = useState<string | undefined>(sermon?.videoUrl ?? undefined);
   const [audioUploading, setAudioUploading] = useState(false);
   const [videoUploading, setVideoUploading] = useState(false);
+  const [audioPending, setAudioPending] = useState(false);
+  const [videoPending, setVideoPending] = useState(false);
   const uploading = audioUploading || videoUploading;
+  const mediaPending = uploading || audioPending || videoPending;
 
   const form = useForm<SermonFormValues>({
     resolver: zodResolver(sermonSchema),
@@ -86,8 +89,8 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
         description: sermon.description ?? "",
       });
       setTags(sermon.tags);
-      setAudioUrl(sermon.audioUrl);
-      setVideoUrl(sermon.videoUrl);
+      setAudioUrl(sermon.audioUrl ?? undefined);
+      setVideoUrl(sermon.videoUrl ?? undefined);
     }
   }, [sermon, form]);
 
@@ -108,7 +111,7 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
   };
 
   const handleSubmit = async (values: SermonFormValues) => {
-    if (uploading) return;
+    if (mediaPending) return;
     const branchPayload = branchAssignment.payload();
     if (!branchPayload) return;
     setSaving(true);
@@ -125,8 +128,8 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
         scriptureReference: values.scriptureReference || undefined,
         seriesName: values.seriesName || undefined,
         tags: tags.length > 0 ? tags : undefined,
-        audioUrl: audioUrl || undefined,
-        videoUrl: videoUrl || undefined,
+        audioUrl: audioUrl || (sermon ? null : undefined),
+        videoUrl: videoUrl || (sermon ? null : undefined),
         durationSeconds,
         description: values.description || undefined,
       };
@@ -286,6 +289,7 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
                   onChange={setAudioUrl}
                   branchId={branchAssignment.isHq ? branchAssignment.value || undefined : branchAssignment.profile?.branchId}
                   onUploadingChange={setAudioUploading}
+                  onPendingChange={setAudioPending}
                 />
               </div>
               <div className="space-y-1.5">
@@ -304,6 +308,7 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
                   onChange={setVideoUrl}
                   branchId={branchAssignment.isHq ? branchAssignment.value || undefined : branchAssignment.profile?.branchId}
                   onUploadingChange={setVideoUploading}
+                  onPendingChange={setVideoPending}
                 />
               </div>
             </div>
@@ -364,11 +369,11 @@ export function SermonForm({ sermon, onSubmit, submitLabel }: SermonFormProps) {
         </Card>
 
         <div className="flex justify-end gap-3">
-          <Button type="submit" disabled={saving || uploading}>
+          <Button type="submit" disabled={saving || mediaPending}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {submitLabel}
           </Button>
-          {uploading && <p role="status" className="text-sm text-muted-foreground">Wait for the recording upload to finish before saving.</p>}
+          {mediaPending && <p role="status" className="text-sm text-muted-foreground">{uploading ? "Wait for the recording upload to finish before saving." : "Upload the selected recording or save its link before saving the sermon."}</p>}
         </div>
       </form>
     </Form>
