@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import { ChurchAttendanceRoster } from "@/components/attendance/church-attendance-roster";
@@ -166,6 +167,7 @@ export default function EventsCheckInPage() {
       />
 
       {/* Event picker */}
+      {eventsQuery.isError && <ErrorState title="Unable to load events" />}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold">Event</CardTitle>

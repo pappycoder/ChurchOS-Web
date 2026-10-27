@@ -1,4 +1,14 @@
 "use client";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
@@ -19,7 +29,13 @@ import { format } from "date-fns";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ChartContainer,
@@ -36,9 +52,7 @@ import {
   SERVICE_CATEGORIES,
   type ChurchService,
 } from "@/hooks/use-attendance";
-import {
-  useGivingTransactionsAll,
-} from "@/hooks/use-giving";
+import { useGivingTransactionsAll } from "@/hooks/use-giving";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   ArchiveConfirmDialog,
@@ -83,10 +97,20 @@ export default function ServiceDetailPage({
 
   // Giving tagged to this service — paged fetch of all successful gifts.
   const givingQuery = useGivingTransactionsAll({ serviceId });
-  const givingRows = React.useMemo(() => givingQuery.data ?? [], [givingQuery.data]);
+  const [currencyFilter, setCurrencyFilter] = React.useState("");
+  const currencies = [
+    ...new Set((givingQuery.data ?? []).map((row) => row.currency)),
+  ].sort();
+  const currency = currencies.includes(currencyFilter)
+    ? currencyFilter
+    : (currencies[0] ?? "NGN");
+  const givingRows = React.useMemo(
+    () => (givingQuery.data ?? []).filter((row) => row.currency === currency),
+    [givingQuery.data, currency],
+  );
   const givingTotal = React.useMemo(
     () => givingRows.reduce((sum, t) => sum + t.amount, 0),
-    [givingRows]
+    [givingRows],
   );
   const givingByCategory = React.useMemo(() => {
     const map = new Map<string, number>();
@@ -101,8 +125,12 @@ export default function ServiceDetailPage({
   const attendance = attendanceQuery.data?.data ?? [];
   const totalCheckIns = attendanceQuery.data?.total ?? 0;
 
-  const adultCount = attendance.filter((r) => (r.category ?? "adult") === "adult").length;
-  const childrenCount = attendance.filter((r) => r.category === "children").length;
+  const adultCount = attendance.filter(
+    (r) => (r.category ?? "adult") === "adult",
+  ).length;
+  const childrenCount = attendance.filter(
+    (r) => r.category === "children",
+  ).length;
   const memberCount = attendance.filter((r) => !!r.memberId).length;
   const visitorCount = attendance.length - memberCount;
 
@@ -127,7 +155,12 @@ export default function ServiceDetailPage({
   if (!service) {
     return (
       <div>
-        <Button variant="ghost" onClick={() => router.push("/attendance/services")}>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            if (confirmDiscardChanges()) router.push("/attendance/services");
+          }}
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Services
         </Button>
@@ -142,7 +175,9 @@ export default function ServiceDetailPage({
         variant="ghost"
         size="sm"
         className="-ms-2"
-        onClick={() => router.push("/attendance/services")}
+        onClick={() => {
+          if (confirmDiscardChanges()) router.push("/attendance/services");
+        }}
       >
         <ArrowLeft className="h-4 w-4 mr-1.5" />
         Services
@@ -152,10 +187,11 @@ export default function ServiceDetailPage({
       <Card>
         <CardContent className="p-6">
           <div className="flex items-start gap-3 flex-wrap">
-            <h2 className="text-xl font-semibold">{service.name}</h2>
+            <h1 className="text-xl font-semibold">{service.name}</h1>
             <Badge variant="outline">
-              {SERVICE_CATEGORIES.find((c) => c.value === (service.category ?? "adult"))
-                ?.label ?? "Adult"}
+              {SERVICE_CATEGORIES.find(
+                (c) => c.value === (service.category ?? "adult"),
+              )?.label ?? "Adult"}
             </Badge>
             {!service.isActive && <Badge variant="secondary">Inactive</Badge>}
             {service.archivedAt && (
@@ -168,9 +204,15 @@ export default function ServiceDetailPage({
           <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
             <span>
               {service.dayOfWeek !== undefined
-                ? ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][
-                    service.dayOfWeek
-                  ]
+                ? [
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                  ][service.dayOfWeek]
                 : "Any day"}
               {service.startTime && service.endTime
                 ? ` · ${service.startTime}–${service.endTime}`
@@ -178,7 +220,8 @@ export default function ServiceDetailPage({
             </span>
             {latest && (
               <span>
-                Last check-in {format(new Date(latest.checkInAt), "MMM d, yyyy · HH:mm")}
+                Last check-in{" "}
+                {format(new Date(latest.checkInAt), "MMM d, yyyy · HH:mm")}
               </span>
             )}
           </p>
@@ -224,95 +267,186 @@ export default function ServiceDetailPage({
         </CardContent>
       </Card>
 
-      <GeneralAttendancePanel service={service} />
+      <UrlTabs
+        defaultValue="attendance"
+        values={["attendance", ...(canReadGiving ? ["giving"] : [])]}
+      >
+        <TabsList aria-label="Service workspace">
+          <TabsTrigger value="attendance">Attendance</TabsTrigger>
+          {canReadGiving && <TabsTrigger value="giving">Giving</TabsTrigger>}
+        </TabsList>
+        <TabsContent
+          value="attendance"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
+        >
+          <GeneralAttendancePanel service={service} />
 
-      {/* Totals */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold">{totalCheckIns.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total Check-Ins</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              {memberCount.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Member Check-Ins</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <Baby className="h-5 w-5 text-muted-foreground" />
-              {childrenCount.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Children Check-Ins</p>
-          </CardContent>
-        </Card>
-        {canReadGiving && <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <HandCoins className="h-5 w-5 text-muted-foreground" />
-              {givingQuery.isLoading ? "..." : givingTotal.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Total Giving (₦)</p>
-          </CardContent>
-        </Card>}
-      </div>
-
-      {/* Breakdowns */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Attendance Breakdown</CardTitle>
-            <CardDescription>Who checked in for this service.</CardDescription>
-          </CardHeader>
-          <CardContent className="divide-y">
-            <DataRow label="Adults" value={adultCount.toLocaleString()} />
-            <DataRow label="Children" value={childrenCount.toLocaleString()} />
-            <DataRow label="Members" value={memberCount.toLocaleString()} />
-            <DataRow label="Visitors / Walk-ins" value={visitorCount.toLocaleString()} />
-          </CardContent>
-        </Card>
-
-        {canReadGiving && <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <HandCoins className="h-4 w-4" />
-              Giving Breakdown
-            </CardTitle>
-            <CardDescription>
-              Successful gifts recorded against this service.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {givingQuery.isLoading ? (
-              <Skeleton className="h-64 w-full aspect-auto" />
-            ) : givingByCategory.length === 0 ? (
-              <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
-                No gifts recorded against this service yet.
+          {attendanceQuery.isError ? (
+            <ErrorState title="Unable to load named service attendance" />
+          ) : (
+            <>
+              {/* Totals */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-semibold">
+                      {totalCheckIns.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Total Check-Ins
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-semibold flex items-center gap-2">
+                      <Users className="h-5 w-5 text-muted-foreground" />
+                      {memberCount.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Member Check-Ins
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-semibold flex items-center gap-2">
+                      <Baby className="h-5 w-5 text-muted-foreground" />
+                      {childrenCount.toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Children Check-Ins
+                    </p>
+                  </CardContent>
+                </Card>
               </div>
+
+              {/* Breakdowns */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-semibold">
+                      Attendance Breakdown
+                    </CardTitle>
+                    <CardDescription>
+                      Who checked in for this service.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="divide-y">
+                    <DataRow
+                      label="Adults"
+                      value={adultCount.toLocaleString()}
+                    />
+                    <DataRow
+                      label="Children"
+                      value={childrenCount.toLocaleString()}
+                    />
+                    <DataRow
+                      label="Members"
+                      value={memberCount.toLocaleString()}
+                    />
+                    <DataRow
+                      label="Visitors / Walk-ins"
+                      value={visitorCount.toLocaleString()}
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          )}
+        </TabsContent>
+        {canReadGiving && (
+          <TabsContent
+            value="giving"
+            forceMount
+            className="space-y-4 data-[state=inactive]:hidden"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold">Service giving</h2>
+                <p className="text-sm text-muted-foreground">
+                  Successful gifts tagged to this service.
+                </p>
+              </div>
+              <Select value={currency} onValueChange={setCurrencyFilter}>
+                <SelectTrigger className="w-40" aria-label="Giving currency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(currencies.length ? currencies : ["NGN"]).map((code) => (
+                    <SelectItem key={code} value={code}>
+                      {code}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {givingQuery.isError ? (
+              <ErrorState title="Unable to load service giving" />
             ) : (
-              <ChartContainer config={givingConfig} className="h-64 w-full aspect-auto">
-                <BarChart data={givingByCategory} layout="vertical" margin={{ left: 32 }}>
-                  <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                  <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar
-                    dataKey="amount"
-                    fill="var(--color-amount)"
-                    radius={[0, 3, 3, 0]}
-                    barSize={16}
-                  />
-                </BarChart>
-              </ChartContainer>
+              <p className="text-2xl font-semibold tabular-nums">
+                {currency}{" "}
+                {givingQuery.isLoading ? "..." : givingTotal.toLocaleString()}
+              </p>
             )}
-          </CardContent>
-        </Card>}
-      </div>
+            {canReadGiving && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <HandCoins className="h-4 w-4" />
+                    Giving Breakdown
+                  </CardTitle>
+                  <CardDescription>
+                    Successful gifts recorded against this service, in the
+                    selected currency.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {givingQuery.isError ? (
+                    <ErrorState title="Unable to load giving breakdown" />
+                  ) : givingQuery.isLoading ? (
+                    <Skeleton className="h-64 w-full aspect-auto" />
+                  ) : givingByCategory.length === 0 ? (
+                    <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
+                      No gifts recorded against this service yet.
+                    </div>
+                  ) : (
+                    <ChartContainer
+                      config={givingConfig}
+                      className="h-64 w-full aspect-auto"
+                    >
+                      <BarChart
+                        data={givingByCategory}
+                        layout="vertical"
+                        margin={{ left: 32 }}
+                      >
+                        <CartesianGrid
+                          horizontal={false}
+                          strokeDasharray="3 3"
+                        />
+                        <XAxis
+                          type="number"
+                          tickLine={false}
+                          axisLine={false}
+                          allowDecimals={false}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar
+                          dataKey="amount"
+                          fill="var(--color-amount)"
+                          radius={[0, 3, 3, 0]}
+                          barSize={16}
+                        />
+                      </BarChart>
+                    </ChartContainer>
+                  )}
+                </CardContent>
+              </Card>
+            )}{" "}
+          </TabsContent>
+        )}
+      </UrlTabs>
 
       {/* Archive / Restore / Delete Forever confirmation */}
       <ArchiveConfirmDialog

@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { useRouter, useParams } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
@@ -76,7 +77,7 @@ export default function EditFormPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <AlertTriangle className="h-10 w-10 text-destructive" />
           <p className="text-sm text-muted-foreground">Failed to load this form.</p>
-          <Button variant="outline" onClick={() => router.push("/forms")}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
             Back to Forms
           </Button>
         </div>
@@ -108,7 +109,7 @@ export default function EditFormPage() {
           { label: "Edit" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.back(); }}>
             Back
           </Button>
         }

@@ -1,4 +1,6 @@
 "use client";
+import { UrlTabs } from "@/components/shared/url-tabs";
+
 
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -12,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -568,7 +570,7 @@ interface UserDetailContentProps {
 
 export function UserDetailContent({ user }: UserDetailContentProps) {
   return (
-    <Tabs defaultValue="account" className="w-full">
+    <UrlTabs defaultValue="account" values={["account", "role", "security"]} className="w-full">
       <TabsList>
         <TabsTrigger value="account">
           <User className="h-4 w-4 mr-1.5" />
@@ -584,15 +586,15 @@ export function UserDetailContent({ user }: UserDetailContentProps) {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="account" className="mt-4">
+      <TabsContent value="account" forceMount className="mt-4 data-[state=inactive]:hidden">
         <AccountInfoTab user={user} />
       </TabsContent>
 
-      <TabsContent value="role" className="mt-4">
+      <TabsContent value="role" forceMount className="mt-4 data-[state=inactive]:hidden">
         <RolePermissionsTab user={user} />
       </TabsContent>
 
-      <TabsContent value="security" className="mt-4">
+      <TabsContent value="security" forceMount className="mt-4 data-[state=inactive]:hidden">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Security</CardTitle>
@@ -610,6 +612,6 @@ export function UserDetailContent({ user }: UserDetailContentProps) {
           </CardContent>
         </Card>
       </TabsContent>
-    </Tabs>
+    </UrlTabs>
   );
 }

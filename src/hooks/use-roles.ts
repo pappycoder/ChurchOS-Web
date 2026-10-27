@@ -24,6 +24,7 @@ export interface RoleWithPermissions {
   isCustomized: boolean;
   /** Whether the role is owned by this church rather than a global template. */
   isChurchOwned?: boolean;
+  defaultPermissionIds?: string[];
 }
 
 export interface CreateRoleInput {

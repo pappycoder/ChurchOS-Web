@@ -21,6 +21,7 @@ interface ConfirmDeleteDialogProps {
   description: string;
   confirmLabel?: string;
   pending?: boolean;
+  pendingLabel?: string;
   onConfirm: () => void;
 }
 
@@ -32,6 +33,7 @@ export function ConfirmDeleteDialog({
   description,
   confirmLabel = "Delete",
   pending = false,
+  pendingLabel = "Deleting...",
   onConfirm,
 }: ConfirmDeleteDialogProps) {
   return (
@@ -69,7 +71,7 @@ export function ConfirmDeleteDialog({
             onClick={onConfirm}
             disabled={pending}
           >
-            {pending ? "Deleting..." : confirmLabel}
+            {pending ? pendingLabel : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

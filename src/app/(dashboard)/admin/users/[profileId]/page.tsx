@@ -1,4 +1,6 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
@@ -40,14 +42,14 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Not Found</BreadcrumbPage>
+              <BreadcrumbPage>Unavailable</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">User not found.</p>
-          <Button variant="outline" onClick={() => router.push("/admin/users")}>
+          <ErrorState title="Unable to load user" description="The record may be unavailable, or access may have changed. Retry before assuming it has been deleted." />
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/users"); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Users
           </Button>
@@ -59,7 +61,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ profileId
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/users")} aria-label="Back to users">
+        <Button variant="ghost" size="icon" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/users"); }} aria-label="Back to users">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <Breadcrumb>

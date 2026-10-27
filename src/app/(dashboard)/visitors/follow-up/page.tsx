@@ -29,6 +29,7 @@ import { format } from "date-fns";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchInput } from "@/components/shared/search-input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -151,7 +152,8 @@ export default function FollowUpBoardPage() {
   const { can } = usePermissions();
   const canUpdateVisitors = can("visitors:list", "update");
 
-  const { data, isLoading, error } = useVisitorsList({ limit: 200 });
+  const [page, setPage] = React.useState(1);
+  const { data, isLoading, error } = useVisitorsList({ page, limit: 100 });
   const usersQuery = useUsers({ limit: 100, status: "active" });
 
   const [searchInput, setSearchInput] = React.useState("");
@@ -291,11 +293,12 @@ export default function FollowUpBoardPage() {
               className="w-full sm:w-64"
             />
           </div><VisibleDataExport includeTables={false} />      <p className="text-sm text-muted-foreground">
-        Track every visitor through the follow-up pipeline.
+        This board shows page {page} of the visitor directory, up to 100 visitors. Search filters this loaded page.
         {canUpdateVisitors &&
           " Drag cards by the grip handle between columns, or use each card's dropdown."}
       </p>
 
+      <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>Previous page</Button><span className="text-sm">{data?.meta.total ?? "—"} visitors in directory</span><Button variant="outline" disabled={!data || page * 100 >= data.meta.total} onClick={() => setPage(page + 1)}>Next page</Button></div>
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
           {[1, 2, 3, 4, 5].map((i) => (

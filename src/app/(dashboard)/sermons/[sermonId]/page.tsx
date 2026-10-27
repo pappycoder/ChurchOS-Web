@@ -1,4 +1,6 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { MediaPlayback } from "@/components/shared/media-playback";
 import { BranchDetail } from "@/components/shared/branch-assignment";
 
@@ -103,13 +105,13 @@ export default function SermonDetailPage() {
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Sermons", href: "/sermons" },
-            { label: "Not Found" },
+            { label: "Unavailable" },
           ]}
         />
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Sermon not found.</p>
-          <Button variant="outline" onClick={() => router.push("/sermons")}>
+          <ErrorState title="Unable to load sermon" />
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/sermons"); }}>
             Back to Sermons
           </Button>
         </div>
@@ -134,7 +136,7 @@ export default function SermonDetailPage() {
                 Archived
               </Badge>
             )}
-            <Button variant="outline" size="sm" onClick={() => router.back()}>
+            <Button variant="outline" size="sm" onClick={() => { if (confirmDiscardChanges()) router.back(); }}>
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back
             </Button>
@@ -178,7 +180,7 @@ export default function SermonDetailPage() {
             ) : (
               <>
                 {canUpdate && (
-                  <Button size="sm" onClick={() => router.push(`/sermons/${sermonId}/edit`)}>
+                  <Button size="sm" onClick={() => { if (confirmDiscardChanges()) router.push(`/sermons/${sermonId}/edit`); }}>
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
                   </Button>

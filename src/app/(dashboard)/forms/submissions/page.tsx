@@ -1,4 +1,6 @@
 "use client";
+import { useUrlQueryState } from "@/hooks/use-url-query-state";
+import { ErrorState } from "@/components/shared/error-state";
 import { SubmissionsTable } from "@/components/forms/submissions-table";
 
 import * as React from "react";
@@ -29,15 +31,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
-export default function SubmissionsPage() {
+function SubmissionsPageContent() {
   const { can } = usePermissions();
   const canUpdate = can("forms:submissions", "update");
   const canRead = can("forms:submissions", "read");
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<SubmissionStatus | undefined>(undefined);
-  const [selectedFormId, setSelectedFormId] = React.useState<string>("");
+  const [statusValue, setStatusValue] = useUrlQueryState<SubmissionStatus | "">("status", "", ["pending", "approved", "rejected", ""]);
+  const statusFilter = statusValue || undefined;
+  const setStatusFilter = (status: SubmissionStatus | undefined) => setStatusValue(status ?? "");
+  const [selectedFormId, setSelectedFormId] = useUrlQueryState("formId");
   const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -48,7 +52,7 @@ export default function SubmissionsPage() {
     undefined,
   );
 
-  const { data: formsData, isLoading: formsLoading } = useFormsList({
+  const { data: formsData, isLoading: formsLoading, error: formsError } = useFormsList({
     limit: 200,
     search: search || undefined,
     branchId: branchId || undefined,
@@ -79,7 +83,7 @@ export default function SubmissionsPage() {
     [page, perPage, statusFilter],
   );
 
-  const { data: submissionsData, isLoading: submissionsLoading } = useFormSubmissions(
+  const { data: submissionsData, isLoading: submissionsLoading, error: submissionsError } = useFormSubmissions(
     selectedFormId || undefined,
     queryParams,
   );
@@ -202,14 +206,14 @@ export default function SubmissionsPage() {
               </SelectContent>
             </Select>
             <SearchInput
-              placeholder="Search forms..."
+              aria-label="Search available forms" placeholder="Search available forms..."
               value={searchInput}
               onChange={setSearchInput}
             />
           </div>
         }
       >
-        {formsLoading ? (
+        {formsError ? <ErrorState title="Unable to load forms" /> : formsLoading ? (
           <div className="px-4 py-4">
             <Skeleton className="h-24 w-full" />
           </div>
@@ -234,7 +238,7 @@ export default function SubmissionsPage() {
               description="Choose a form above to view its submissions."
             />
           </div>
-        ) : submissionsLoading ? (
+        ) : submissionsError ? <ErrorState title="Unable to load submissions" /> : submissionsLoading ? (
           <SubmissionsTable
             key={selectedForm.id}
             form={selectedForm}
@@ -282,3 +286,5 @@ export default function SubmissionsPage() {
     </div>
   );
 }
+
+export default function SubmissionsPage() { return <React.Suspense fallback={<p role="status">Loading workspace…</p>}><SubmissionsPageContent /></React.Suspense>; }

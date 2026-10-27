@@ -1,4 +1,7 @@
 "use client";
+import { RecordActions } from "@/components/shared/record-actions";
+import { ErrorState } from "@/components/shared/error-state";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -96,14 +99,14 @@ export default function BranchDetailPage({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Not Found</BreadcrumbPage>
+              <BreadcrumbPage>Unavailable</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Branch not found.</p>
-          <Button variant="outline" onClick={() => router.push("/admin/branches")}>
+          <ErrorState title="Unable to load branch" description="The record may be unavailable, or access may have changed. Retry before assuming it has been deleted." />
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/branches"); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Branches
           </Button>
@@ -115,7 +118,7 @@ export default function BranchDetailPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/branches")} aria-label="Back to branches">
+        <Button variant="ghost" size="icon" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/branches"); }} aria-label="Back to branches">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <Breadcrumb>
@@ -160,7 +163,7 @@ export default function BranchDetailPage({
               </Avatar>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-semibold">{display?.name}</h2>
+                  <h1 className="text-2xl font-semibold">{display?.name}</h1>
                   {display?.isHeadquarters && (
                     <Badge variant="secondary">Headquarters</Badge>
                   )}
@@ -178,7 +181,7 @@ export default function BranchDetailPage({
               </div>
             </div>
             {(canUpdateBranches || canDeleteBranches) && display && (
-              <div className="flex flex-wrap items-center gap-2">
+              <RecordActions>
                 {display.archivedAt ? (
                   <>
                     {canUpdateBranches && (
@@ -230,7 +233,7 @@ export default function BranchDetailPage({
                     )}
                   </>
                 )}
-              </div>
+              </RecordActions>
             )}
           </div>
 

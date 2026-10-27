@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
@@ -61,7 +62,7 @@ export default function NewFormPage() {
           { label: "New Form" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.push("/forms")}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
             Back
           </Button>
         }

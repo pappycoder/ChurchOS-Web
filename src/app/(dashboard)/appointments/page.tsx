@@ -1,4 +1,6 @@
 "use client";
+import { ReportDateRange, type ReportRange } from "@/components/reports/report-date-range";
+import { ErrorState } from "@/components/shared/error-state";
 
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
@@ -83,6 +85,7 @@ function AppointmentsContent() {
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
+  const [range, setRange] = React.useState<ReportRange>({startDate:"",endDate:""});
   const [branchId, setBranchId] = React.useState("");
 
   const [formOpen, setFormOpen] = React.useState(false);
@@ -99,9 +102,11 @@ function AppointmentsContent() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data: list, isLoading } = useAppointments({
+  const { data: list, isLoading, error } = useAppointments({
     page,
     limit: 15,
+    startDate: range.startDate || undefined,
+    endDate: range.endDate || undefined,
     archived: archived === "archived",
     status: status === "all" ? undefined : status,
     search: debouncedSearch || undefined,
@@ -159,39 +164,40 @@ function AppointmentsContent() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Pending"
-          value={summary.pending ?? 0}
+          value={error ? "—" : summary.pending ?? 0}
           icon={<CalendarClock className="size-5" />}
           variant="warning"
         />
         <StatsCard
           title="Confirmed"
-          value={summary.confirmed ?? 0}
+          value={error ? "—" : summary.confirmed ?? 0}
           icon={<CalendarClock className="size-5" />}
           variant="primary"
         />
         <StatsCard
           title="Completed"
-          value={summary.completed ?? 0}
+          value={error ? "—" : summary.completed ?? 0}
           icon={<CalendarClock className="size-5" />}
           variant="success"
         />
         <StatsCard
           title="Cancelled"
-          value={summary.cancelled ?? 0}
+          value={error ? "—" : summary.cancelled ?? 0}
           icon={<CalendarClock className="size-5" />}
         />
       </div>
 
+      <ReportDateRange value={range} onChange={next=>{setRange(next);setPage(1);}} />
       <TableCard
         title="Appointments"
-        description={`${list?.total ?? 0} total ${archived === "archived" ? "archived" : "active"} appointment${(list?.total ?? 0) === 1 ? "" : "s"}`}
+        description={error ? "Appointment count unavailable" : `${list?.total ?? 0} total ${archived === "archived" ? "archived" : "active"} appointment${(list?.total ?? 0) === 1 ? "" : "s"}`}
         itemName="appointments"
         page={page}
         perPage={15}
         total={list?.total ?? 0}
         onPageChange={setPage}
         toolbar={
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(archived !== "all") + Number(status !== "all") + Number(search !== "") + Number(branchId !== "")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setRange({startDate:"",endDate:""});setArchived("all");setStatus("all");setSearch("");setDebouncedSearch("");setBranchId("");setPage(1);}}>Reset filters</Button></div><div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archived}
@@ -207,7 +213,7 @@ function AppointmentsContent() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full xl:w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -227,10 +233,10 @@ function AppointmentsContent() {
                 className="w-full sm:max-w-xs"
               />
             </div>
-          </div>
+          </div></div>
         }
       >
-        {isLoading ? (
+        {error ? <ErrorState title="Unable to load appointments" /> : isLoading ? (
           <div className="space-y-3 p-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -262,8 +268,8 @@ function AppointmentsContent() {
             <TableHeader>
               <TableRow className="border-b bg-muted/50">
                 <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Appointment</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">With</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Who</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Staff host</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Attendee</TableHead>
                 <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Scheduled</TableHead>
                 <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Status</TableHead>
                 {(canUpdate || canDelete) && (

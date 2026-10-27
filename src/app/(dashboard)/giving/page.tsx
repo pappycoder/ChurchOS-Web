@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
 import { PermissionLink as Link } from "@/components/shared/permission-link";
@@ -79,7 +80,7 @@ export default function GivingDashboardPage() {
             {canCreate && (
               <Button onClick={() => setRecordOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Record Cash
+                Record Giving
               </Button>
             )}
           </div>
@@ -116,22 +117,22 @@ export default function GivingDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="This Month"
-          value={summary ? `${summary.monthTotal.toLocaleString()}` : "..."}
+          value={summaryQuery.isError ? "—" : summary ? `${summary.monthTotal.toLocaleString()}` : "..."}
           icon={<HandCoins className="h-4 w-4" />}
         />
         <StatsCard
           title="All-Time Total"
-          value={summary ? `${summary.allTimeTotal.toLocaleString()}` : "..."}
+          value={summaryQuery.isError ? "—" : summary ? `${summary.allTimeTotal.toLocaleString()}` : "..."}
           icon={<Banknote className="h-4 w-4" />}
         />
         <StatsCard
           title="Gifts This Month"
-          value={summary?.monthCount ?? 0}
+          value={summaryQuery.isError ? "—" : summary?.monthCount ?? "..."}
           icon={<CalendarRange className="h-4 w-4" />}
         />
         <StatsCard
           title="Successful Gifts"
-          value={summary?.count ?? 0}
+          value={summaryQuery.isError ? "—" : summary?.count ?? "..."}
           icon={<Wallet className="h-4 w-4" />}
         />
       </div>
@@ -144,7 +145,7 @@ export default function GivingDashboardPage() {
             <CardDescription>Successful gifts over the last 30 days.</CardDescription>
           </CardHeader>
           <CardContent>
-            {!summary ? (
+            {summaryQuery.isError ? <ErrorState title="Unable to load giving summary" /> : !summary ? (
               <Skeleton className="h-64 w-full aspect-auto" />
             ) : !hasTrend ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
@@ -200,7 +201,7 @@ export default function GivingDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {recentQuery.isLoading ? (
+            {recentQuery.isError ? <ErrorState title="Unable to load recent gifts" /> : recentQuery.isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-10 w-full" />

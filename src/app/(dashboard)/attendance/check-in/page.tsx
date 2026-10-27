@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
@@ -196,6 +197,7 @@ export default function CheckInPage() {
       />
 
       {/* Service picker */}
+      {servicesQuery.isError && <ErrorState title="Unable to load services" />}
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-semibold">Service</CardTitle>
@@ -244,7 +246,7 @@ export default function CheckInPage() {
         </CardContent>
       </Card>
 
-      <GeneralAttendancePanel service={selectedService} requireService />
+      <details className="rounded-lg border p-4"><summary className="cursor-pointer font-medium">Record reported headcounts (optional)</summary><p className="my-3 text-sm text-muted-foreground">Reported totals are separate from the named check-ins below.</p><GeneralAttendancePanel service={selectedService} requireService /></details>
 
       {/* Mode tabs */}
       <div className="flex gap-2">

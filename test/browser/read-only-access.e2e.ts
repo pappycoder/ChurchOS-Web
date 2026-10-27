@@ -31,7 +31,7 @@ async function installReadOnlySession(context: BrowserContext, grants: string[],
       let data: unknown = { data: [], total: 0, meta: { total: 0, page: 1, limit: 20, totalPages: 1 } };
       if (path.endsWith("/auth/session")) data = { userId: "user-a", email: "test@example.com" };
       else if (path.endsWith("/attendance-sessions")) data={data:[],meta:{total:0,page:1,limit:20,totalPages:0}};
-      else if (path.endsWith("/profiles/me")) data = { profileId: "profile-a", userId: "user-a", churchId: "church-a", branchId: "branch-a", role: ["custom_readonly"], status: "active", isAdminHq: hq, firstName: "Read", lastName: "Only", permissions: grants, branch: { branchId: "branch-a", name: "Branch A" } };
+      else if (path.endsWith("/profiles/me")) data = { profileId: "profile-a", userId: "user-a", churchId: "church-a", branchId: "branch-a", role: ["custom_readonly"], status: "active", isAdminHq: hq, firstName: "Read", lastName: "Only", permissions: grants, planFeatures: ["giving","assets","forms","tickets","events","staff_roles","custom_roles"], branch: { branchId: "branch-a", name: "Branch A" } };
       else if (path.endsWith("/profiles/profile-b")) data = user;
       else if (path.endsWith("/forms/form-a")) data = form;
       else if (path.endsWith("/services/service-a")) data = { serviceId: "service-a", name: "Read-only Service", isActive: true, category: "adult" };
@@ -79,8 +79,12 @@ for (const giving of [false, true]) test(`service details load with independentl
   await page.goto("/attendance/services/service-a");
   await expect(page.getByRole("heading", { name: "Read-only Service", exact: true })).toBeVisible();
   await expect(page.getByText("Attendance Breakdown", { exact: true })).toBeVisible();
-  await expect(page.getByText("Giving Breakdown", { exact: true })).toHaveCount(giving ? 1 : 0);
-  await expect(page.getByText("Total Giving (₦)", { exact: true })).toHaveCount(giving ? 1 : 0);
+  await expect(page.getByRole("tab", { name: "Giving", exact: true })).toHaveCount(giving ? 1 : 0);
+  if (giving) {
+    await page.getByRole("tab", {name:"Giving",exact:true}).click();
+    await expect(page.getByText("Giving Breakdown", {exact:true})).toBeVisible();
+    await expect(page.getByRole("combobox", {name:"Giving currency"})).toBeVisible();
+  }
   await expect(page.getByRole("button", { name: "Archive", exact: true })).toHaveCount(0);
   const calls = await page.evaluate(() => (window as unknown as { auditCalls: string[] }).auditCalls);
   expect(calls.some((call) => call.includes("/attendance/by-service/service-a"))).toBe(true);

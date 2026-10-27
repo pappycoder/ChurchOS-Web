@@ -39,7 +39,7 @@ export function PageHeader({ title, breadcrumbs, action, description }: PageHead
                 <Home className="h-4 w-4" /><span className="sr-only">Dashboard</span>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            {breadcrumbs.map((item, i) => (
+            {breadcrumbs.filter((item) => !(item.href === "/dashboard" || /^(home|dashboard)$/i.test(item.label))).map((item, i) => (
               <React.Fragment key={i}>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
@@ -54,7 +54,7 @@ export function PageHeader({ title, breadcrumbs, action, description }: PageHead
           </BreadcrumbList>
         </Breadcrumb>
       </div>
-      {action && <div className="flex max-w-full flex-wrap items-center gap-2 sm:justify-end">{action}</div>}
+      {action && <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 sm:justify-end [&>div]:flex-wrap">{action}</div>}
     </div>
   );
 }

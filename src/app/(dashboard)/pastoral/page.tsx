@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -72,6 +73,7 @@ const CONFIDENTIALITY_OPTIONS: Array<{ value: ConfidentialityLevel | "all"; labe
 
 export default function PastoralNotesPage() {
   const { can } = usePermissions();
+  const [viewNote, setViewNote] = React.useState<{content:string; memberFirstName?:string; memberLastName?:string} | null>(null);
   const canCreate = can("pastoral:notes", "create");
   const canUpdate = can("pastoral:notes", "update");
   const canDelete = can("pastoral:notes", "delete");
@@ -150,7 +152,7 @@ export default function PastoralNotesPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2 flex-wrap">
-              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
               <Select
                 value={confidentiality}
                 onValueChange={(v) => {
@@ -258,6 +260,7 @@ export default function PastoralNotesPage() {
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {note.content}
                         </p>
+                        <Button size="sm" variant="link" onClick={() => setViewNote(note)}>Read full note</Button>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {note.authorFirstName} {note.authorLastName}
@@ -347,6 +350,7 @@ export default function PastoralNotesPage() {
           )}
       </TableCard>
 
+      <Dialog open={!!viewNote} onOpenChange={open => { if (!open) setViewNote(null); }}><DialogContent className="max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>Pastoral note</DialogTitle><DialogDescription>{viewNote?.memberFirstName} {viewNote?.memberLastName}</DialogDescription></DialogHeader><p className="whitespace-pre-wrap break-words text-sm">{viewNote?.content}</p></DialogContent></Dialog>
       <NoteFormDialog open={createOpen} onOpenChange={setCreateOpen} />
       <NoteFormDialog
         open={!!editNote}

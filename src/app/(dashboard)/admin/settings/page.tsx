@@ -1,88 +1,47 @@
 "use client";
-
-/** Church settings with shared Shadcn navigation and forms. */
-
-import * as React from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import {
-  getSettingsSections,
-  SettingsSideNav,
-  SettingsTabsNav,
-  useScrollSpy,
-  type SettingsTabId,
-} from "@/components/settings/settings-nav";
-import { IntegrationSettingsTab } from "@/components/settings/integration-settings-tab";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { GeneralSettingsTab } from "@/components/settings/general-settings-tab";
-import { SecuritySettingsTab } from "@/components/settings/security-settings-tab";
-import { useChurch } from "@/hooks/use-church";
 import { usePermissions } from "@/hooks/use-permissions";
 
 export default function ChurchSettingsPage() {
-  const [activeTabId, setActiveTabId] =
-    React.useState<SettingsTabId>("general");
-  const churchQuery = useChurch();
-  // Editing church settings requires the church_settings:update permission.
   const { can } = usePermissions();
-  const canManage = can("church_settings", "update");
-  const canReadMessaging = can("integrations", "read");
-
-  const sections = getSettingsSections(activeTabId);
-  const activeSection = useScrollSpy();
-
+  const router = useRouter();
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab === "security") router.replace("/profile?tab=security");
+    else if (tab === "messaging") router.replace("/admin/integrations");
+  }, [router]);
   return (
-    <Tabs
-      value={activeTabId}
-      onValueChange={(value) => setActiveTabId(value as SettingsTabId)}
-      className="space-y-4"
-    >
-      <PageHeader title="Settings" breadcrumbs={[{ label: "Settings" }]} />
-
-      <SettingsTabsNav showMessaging={canReadMessaging} />
-
-      {churchQuery.data && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Badge variant="secondary">
-            {churchQuery.data.memberCount} members
-          </Badge>
-          <Badge variant="secondary">
-            {churchQuery.data.branchCount} branches
-          </Badge>
-          {!canManage && (
-            <span className="text-xs">
-              (read-only — only admins can make changes)
-            </span>
-          )}
-        </div>
-      )}
-
-      <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
-          <Card>
-            <CardContent className="py-3">
-              <SettingsSideNav sections={sections} activeId={activeSection} />
-            </CardContent>
-          </Card>
-        </aside>
-
-        <Card>
-          <CardContent className="p-6">
-            <TabsContent value="general">
-              <GeneralSettingsTab />
-            </TabsContent>
-            <TabsContent value="security">
-              <SecuritySettingsTab />
-            </TabsContent>
-            {canReadMessaging && (
-              <TabsContent value="messaging">
-                <IntegrationSettingsTab />
-              </TabsContent>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </Tabs>
+    <div className="space-y-6">
+      <PageHeader
+        title="Church settings"
+        breadcrumbs={[{ label: "Settings" }]}
+      />
+      <nav aria-label="Related settings" className="flex flex-wrap gap-3">
+        <Button variant="outline" asChild>
+          <Link href="/profile?tab=security">Personal security</Link>
+        </Button>
+        {can("integrations", "read") && (
+          <Button variant="outline" asChild>
+            <Link href="/admin/integrations">
+              Provider accounts and services
+            </Link>
+          </Button>
+        )}
+      </nav>
+      <Card>
+        <CardHeader>
+          <CardTitle>Church details and preferences</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <GeneralSettingsTab />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

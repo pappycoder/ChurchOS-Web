@@ -1,10 +1,12 @@
 "use client";
+import { useUrlQueryState } from "@/hooks/use-url-query-state";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
@@ -103,9 +105,8 @@ function SermonsListContent() {
     sermon: Sermon;
   } | null>(null);
 
-  const searchParams = useSearchParams();
-  const [speaker, setSpeaker] = React.useState(searchParams.get("speaker") ?? "");
-  const [series, setSeries] = React.useState(searchParams.get("series") ?? "");
+  const [speaker, setSpeaker] = useUrlQueryState("speaker");
+  const [series, setSeries] = useUrlQueryState("series");
 
   const clearDeepLinkFilters = () => {
     setSpeaker("");
@@ -185,7 +186,7 @@ function SermonsListContent() {
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
-              <Button onClick={() => router.push("/sermons/new")}>
+              <Button onClick={() => { if (confirmDiscardChanges()) router.push("/sermons/new"); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Sermon
               </Button>
@@ -209,11 +210,11 @@ function SermonsListContent() {
 
       <TableCard
         toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(searchInput !== "") + Number(sortBy !== "sermonDate") + Number(sortOrder !== "desc") + Number(branchId !== "") + Number(archivedFilter !== "all")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setSortBy("sermonDate");setSortOrder("desc");setBranchId("");setArchivedFilter("all");setPage(1);setSpeaker("");setSeries("");}}>Reset filters</Button></div><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
               {canManage && (
-                <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+                <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
               )}
             {(speaker || series) && (
               <div className="flex flex-wrap items-center gap-2">
@@ -269,7 +270,7 @@ function SermonsListContent() {
                 {sortOrder === "asc" ? "Asc" : "Desc"}
               </Button>
             </div>
-          </div>
+          </div></div>
         }
         itemName="sermons"
         page={page}
@@ -314,7 +315,7 @@ function SermonsListContent() {
                     <TableRow
                       key={sermon.sermonId}
                       className="cursor-pointer"
-                      onClick={() => router.push(`/sermons/${sermon.sermonId}`)}
+                      onClick={() => { if (confirmDiscardChanges()) router.push(`/sermons/${sermon.sermonId}`); }}
                     >
                       <TableCell className="font-medium">{sermon.title}</TableCell>
                       <TableCell className="text-muted-foreground">
@@ -355,7 +356,7 @@ function SermonsListContent() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() =>
-                                  router.push(`/sermons/${sermon.sermonId}`)
+                                  { if (confirmDiscardChanges()) router.push(`/sermons/${sermon.sermonId}`); }
                                 }
                               >
                                 <Eye className="mr-2 h-4 w-4" />
@@ -364,7 +365,7 @@ function SermonsListContent() {
                               {canUpdate && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    router.push(`/sermons/${sermon.sermonId}/edit`)
+                                    { if (confirmDiscardChanges()) router.push(`/sermons/${sermon.sermonId}/edit`); }
                                   }
                                 >
                                   <Pencil className="mr-2 h-4 w-4" />

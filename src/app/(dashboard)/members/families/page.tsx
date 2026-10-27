@@ -228,6 +228,8 @@ export default function FamiliesPage() {
         }
       />
 
+      <p className="text-sm text-muted-foreground">Total families uses the directory count. Head and linked-member metrics cover {statsQuery.data?.data.length ?? 0} loaded active families (up to {STATS_FETCH_LIMIT}); use the directory and its export for complete records.</p>
+      {statsQuery.error && <ErrorState title="Unable to load family metrics" />}
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard
@@ -236,13 +238,13 @@ export default function FamiliesPage() {
           icon={<Home className="h-4 w-4" />}
         />
         <StatsCard
-          title="With Head of Family"
-          value={stats.withHead}
+          title="With head (loaded families)"
+          value={statsQuery.error ? "—" : stats.withHead}
           icon={<Home className="h-4 w-4" />}
         />
         <StatsCard
-          title="Members Linked"
-          value={stats.membersLinked}
+          title="Members linked (loaded families)"
+          value={statsQuery.error ? "—" : stats.membersLinked}
           icon={<Home className="h-4 w-4" />}
         />
       </div>
@@ -263,7 +265,7 @@ export default function FamiliesPage() {
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
-              onChange={setArchivedFilter}
+              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
               onClearSelection={() => setSelectedIds(new Set())}
             />
             <SearchInput

@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -193,7 +194,7 @@ export default function RolesPage() {
                       key={role.roleName}
                       className="cursor-pointer"
                       onClick={() =>
-                        router.push(`/admin/roles/${role.roleName}`)
+                        { if (confirmDiscardChanges()) router.push(`/admin/roles/${role.roleName}`); }
                       }
                     >
                       <TableCell className="font-medium">

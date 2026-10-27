@@ -19,7 +19,7 @@ interface TablePaginationProps {
   /** Plural noun for the count line, e.g. "members". */
   itemName?: string;
   onPageChange: (page: number) => void;
-  onPerPageChange: (perPage: number) => void;
+  onPerPageChange?: (perPage: number) => void;
 }
 
 export function TablePagination({
@@ -42,7 +42,7 @@ export function TablePagination({
         Showing {from}–{to} of {total} {itemName}
       </p>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex items-center gap-2">
+        {onPerPageChange && <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             Rows per page
           </span>
@@ -61,7 +61,7 @@ export function TablePagination({
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div>}
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             Page {page} of {totalPages}

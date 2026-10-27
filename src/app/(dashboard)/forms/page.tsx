@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { ErrorState } from "@/components/shared/error-state";
 
@@ -220,7 +221,7 @@ export default function FormsPage() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Forms" }]}
         action={
           canCreate ? (
-            <Button onClick={() => router.push("/forms/new")}>
+            <Button onClick={() => { if (confirmDiscardChanges()) router.push("/forms/new"); }}>
               <Plus className="mr-1 h-4 w-4" />
               Add Form
             </Button>
@@ -372,7 +373,7 @@ export default function FormsPage() {
                 <TableRow
                   key={form.id}
                   className="cursor-pointer"
-                  onClick={() => router.push(`/forms/${form.id}`)}
+                  onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${form.id}`); }}
                 >
                   <TableCell>
                     <div className="font-medium">{form.title}</div>

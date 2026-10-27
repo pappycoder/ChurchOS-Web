@@ -156,6 +156,14 @@ export default function GivingReportsPage() {
 
       {error ? <ErrorState title="Failed to load giving reports." description={getToastErrorMessage(error, "Please try again or narrow the date range.")} /> : <>
       {/* Stats */}
+      <div className="flex justify-end"><ExportDropdown
+            columns={givingExportColumns}
+            data={exportData}
+            fetchAllRows={async () => exportData}
+            title={`Giving Report — ${currency}${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
+            filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
+            disabled={!rows || rows.length === 0}
+          /></div>
       <div className="grid gap-4 sm:grid-cols-3">
         <StatsCard
           title="Total Given"
@@ -173,14 +181,7 @@ export default function GivingReportsPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* By category */}
         <Card className="lg:col-span-2">
-          <CardHeader className="pb-2"><ExportDropdown
-            columns={givingExportColumns}
-            data={exportData}
-            fetchAllRows={async () => exportData}
-            title={`Giving Report — ${currency}${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
-            filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
-            disabled={!rows || rows.length === 0}
-          />
+          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">By Category</CardTitle>
             <CardDescription>Amount per giving category in range.</CardDescription>
           </CardHeader>

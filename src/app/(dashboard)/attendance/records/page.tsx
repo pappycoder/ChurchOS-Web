@@ -1,4 +1,7 @@
 "use client";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
@@ -166,8 +169,9 @@ export default function AttendanceRecordsPage() {
 
       />
 
-      <GeneralAttendancePanel readOnly />
-
+      <UrlTabs defaultValue="named" values={["named", "totals"]}>
+      <TabsList aria-label="Attendance records"><TabsTrigger value="named">Named check-ins</TabsTrigger><TabsTrigger value="totals">Reported headcounts</TabsTrigger></TabsList>
+<TabsContent value="named" forceMount className="space-y-4 data-[state=inactive]:hidden">
       <TableCard
         title="Attendance Records"
         itemName="records"
@@ -348,6 +352,11 @@ export default function AttendanceRecordsPage() {
             </div>
           )}
       </TableCard>
+</TabsContent><TabsContent value="totals" forceMount className="space-y-4 data-[state=inactive]:hidden">
+<p className="text-sm text-muted-foreground">Meeting headcounts are reported separately from named check-ins. Filters and export below apply only to these totals.</p><GeneralAttendancePanel readOnly />
+</TabsContent>
+</UrlTabs>
+
 
       {/* Delete confirmation */}
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

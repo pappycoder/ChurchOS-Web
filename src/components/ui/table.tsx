@@ -6,8 +6,7 @@ import { TableExportScope } from "@/contexts/table-export-scope";
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 import * as React from "react";
 
-import { TableColumnActions, TableViewControls } from "@/components/shared/table-view-controls";
-import { ColumnSelector } from "@/components/shared/column-selector";
+import { TableOptions } from "@/components/shared/table-options";
 import { useTableColumns, type TableColumn } from "@/contexts/table-columns-context";
 
 import { cn } from "@/lib/utils";
@@ -150,30 +149,12 @@ function Table({
                 </div>
               )}
               {exportable && <VisibleDataExport getRoot={() => exportRoot.current} />}
-              <TableViewControls
-                compactRows={compactRows}
-                compactColumns={compactColumns}
-                onRowsChange={setCompactRows}
-                onColumnsChange={(compact) => {
-                  setCompactColumns(compact);
-                  setWidths({});
-                }}
-              />
-              <TableColumnActions
+              <TableOptions
+                view={{ compactRows, compactColumns, onRowsChange: setCompactRows, onColumnsChange: (compact) => { setCompactColumns(compact); setWidths({}); } }}
                 columns={state.columns}
                 hidden={state.hidden}
                 onHiddenChange={state.setHidden}
-                onWidthChange={(ids, size) =>
-                  setWidths((previous) => ({
-                    ...previous,
-                    ...Object.fromEntries(ids.map((id) => [id, size])),
-                  }))
-                }
-              />
-              <ColumnSelector
-                columns={state.columns}
-                hidden={state.hidden}
-                onChange={state.setHidden}
+                onWidthChange={(ids, size) => setWidths((previous) => ({ ...previous, ...Object.fromEntries(ids.map((id) => [id, size])) }))}
               />
             </div>
           }

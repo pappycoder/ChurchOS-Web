@@ -375,6 +375,7 @@ export function useAssetQr(assetId: string | undefined) {
 // ─── Mutations ───────────────────────────────────────────
 
 function invalidateAssetQueries(client: ReturnType<typeof useQueryClient>) {
+  client.invalidateQueries({ queryKey: ["assets-worklist"] });
   client.invalidateQueries({ queryKey: ["assets-list"] });
   client.invalidateQueries({ queryKey: ["assets-categories"] });
   client.invalidateQueries({ queryKey: ["assets-stats"] });
@@ -522,4 +523,11 @@ export function useGenerateAssetQr(assetId: string) {
       client.invalidateQueries({ queryKey: ["assets", assetId, "qr"] });
     },
   });
+}
+
+export type AssetWorklistRecord = (AssetLoan | AssetMaintenance) & { assetName: string; assetTag: string; assetArchived: boolean };
+export function useAssetWorklist(kind: "loans" | "maintenance", params: { page: number; limit: number; search: string; status?: string }) {
+  const { can } = usePermissions();
+  return useQuery({ queryKey: ["assets-worklist", kind, params], enabled: can(`assets:${kind}`, "read"),
+    queryFn: ({ signal }) => api.get<{ data: AssetWorklistRecord[]; meta: AssetsListMeta }>(`/assets/worklists/${kind}${buildQuery(params)}`, { signal }) });
 }

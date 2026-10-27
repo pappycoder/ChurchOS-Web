@@ -1,4 +1,5 @@
 "use client";
+import { useId } from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +39,7 @@ export function FormSettingsCard({
   fields,
   disabled,
 }: FormSettingsCardProps) {
+  const id = useId();
   const selectableFields = fields.filter((f) =>
     ["email", "phone", "text", "dropdown"].includes(f.type),
   );
@@ -45,13 +47,13 @@ export function FormSettingsCard({
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <Label className="text-xs">Status</Label>
+        <Label htmlFor={`${id}-status`} className="text-xs">Status</Label>
         <Select
           value={values.status ?? "draft"}
           onValueChange={(value) => { if (value) onChange({ ...values, status: value as FormStatus }); }}
           disabled={disabled}
         >
-          <SelectTrigger className="w-full sm:max-w-[260px]">
+          <SelectTrigger id={`${id}-status`} className="w-full sm:max-w-[260px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -69,7 +71,7 @@ export function FormSettingsCard({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label className="text-xs">Unique Field (dedupe)</Label>
+          <Label htmlFor={`${id}-unique`} className="text-xs">Unique Field (dedupe)</Label>
           <Select
             value={values.uniqueField ?? "none"}
             onValueChange={(value) =>
@@ -77,7 +79,7 @@ export function FormSettingsCard({
             }
             disabled={disabled}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger id={`${id}-unique`} className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -95,8 +97,8 @@ export function FormSettingsCard({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs">Submission Limit (0 = unlimited)</Label>
-          <Input
+          <Label htmlFor={`${id}-limit`} className="text-xs">Submission Limit (0 = unlimited)</Label>
+          <Input id={`${id}-limit`}
             type="number"
             min={0}
             value={values.submissionLimit ?? 0}
@@ -111,12 +113,12 @@ export function FormSettingsCard({
       <div className="space-y-3 border-t pt-3">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <Label className="text-xs">Reusable Template</Label>
+            <Label htmlFor={`${id}-template`} className="text-xs">Reusable Template</Label>
             <p className="text-xs text-muted-foreground">
               Save this form as a template for cloning.
             </p>
           </div>
-          <Switch
+          <Switch id={`${id}-template`}
             checked={!!values.isTemplate}
             onCheckedChange={(checked) => onChange({ ...values, isTemplate: checked })}
             disabled={disabled}
@@ -125,12 +127,12 @@ export function FormSettingsCard({
 
         <div className="flex items-center justify-between gap-3">
           <div>
-            <Label className="text-xs">Public Submissions</Label>
+            <Label htmlFor={`${id}-public`} className="text-xs">Public Submissions</Label>
             <p className="text-xs text-muted-foreground">
               Allow anyone with the share link to submit without signing in.
             </p>
           </div>
-          <Switch
+          <Switch id={`${id}-public`}
             checked={!!values.isPublic}
             onCheckedChange={(checked) => onChange({ ...values, isPublic: checked })}
             disabled={disabled}

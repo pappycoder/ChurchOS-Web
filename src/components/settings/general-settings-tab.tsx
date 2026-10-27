@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 
 import { ContentImage } from "@/components/shared/content-image";
 
@@ -204,7 +205,7 @@ function ChurchSection({ church }: { church: ChurchProfile }) {
   });
 
   React.useEffect(() => {
-    form.reset(churchDefaults(church));
+    if (!form.formState.isDirty) form.reset(churchDefaults(church));
   }, [church, form]);
 
   const handleSave = (values: ChurchFormValues) => {
@@ -463,6 +464,7 @@ function PreferencesSection() {
   const isDirty =
     initial !== null && (timezone !== initial.timezone || currency !== initial.currency);
 
+  useUnsavedChanges(isDirty);
   const handleSave = () => {
     updateMutation.mutate(
       { timezone, currency },

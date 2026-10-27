@@ -96,7 +96,7 @@ export default function AssetCategoriesPage() {
         }
         toolbar={
           <div className="flex items-center gap-2">
-            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
           </div>
         }
         itemName="categories"

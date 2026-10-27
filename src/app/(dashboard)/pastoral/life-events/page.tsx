@@ -167,7 +167,7 @@ export default function LifeEventsPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3 flex-wrap">
-              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
               <Select
                 value={typeFilter}
                 onValueChange={(v) => {

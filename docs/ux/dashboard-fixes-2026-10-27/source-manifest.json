@@ -1,0 +1,503 @@
+{
+  "scope": "All 84 dashboard page sources and changed/new frontend source files. Evidence uses mocked reads and selected populated fixtures.",
+  "files": [
+    {
+      "file": "src/app/(dashboard)/admin/branches/[branchId]/page.tsx",
+      "sha256": "53db42d473ad0f43e42b6c0e670a7de2a485af3062b52feefa9435eff57b6834"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/branches/page.tsx",
+      "sha256": "74c80e6d23205df285ffc31e360af51a0364b5a855c592dbcbb0fafda43efc68"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/integrations/page.tsx",
+      "sha256": "869d4326dc53858dee7042112d5f89d1384fc0f9a270ea0eb09b2ca68be9eecd"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/roles/[roleName]/page.tsx",
+      "sha256": "ff3466d1a40f8d603a4f95b60703766af3be6a974a0f04f97d6263e8216b69bf"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/roles/page.tsx",
+      "sha256": "8591e849432de471a5e0a8a8ebf318747300bf33c61339a45ec5754b05950075"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/settings/page.tsx",
+      "sha256": "0ba1816edb781dbae79bf048c85ed1edc5b2839aa8a2909a47a0c9b7c65e9b43"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/users/[profileId]/page.tsx",
+      "sha256": "9cb657cced835276267c78195323a514326fb0d1748be9cb946dcf987c30734a"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/users/page.tsx",
+      "sha256": "d048e9b84d08762055f89ef5bf2caa810ca053ecbd195b09ab28a0279ed75d85"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/attendance/page.tsx",
+      "sha256": "857b365b62e3a225f279978fec31d9fc1199076822a8e51e80b1c28c5af26c56"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/giving/page.tsx",
+      "sha256": "885b8b8599875f800f0da65eafdfc40666b960bdf5ade34685ab2079911918e9"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/members/page.tsx",
+      "sha256": "8cd63a8e646542eb7d61122280fa3456950bae881480c29e0b6eb4fd2040d946"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/page.tsx",
+      "sha256": "50306bb1c5d9aee6eb35db07eeeb10c323c6d4d71f7072f162252f89c041c55e"
+    },
+    {
+      "file": "src/app/(dashboard)/appointments/page.tsx",
+      "sha256": "4bf6aec3ec037f0c88c82e7eed18754f1b1aa8bea8b6a78a0825153456a9f595"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/[assetId]/edit/page.tsx",
+      "sha256": "073957a2e3312fc3af015522613535dc799eec9b735489348e532940a1085589"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/[assetId]/page.tsx",
+      "sha256": "0f4b09e81a9d9d6eec53654e24804d69f28c9572415a218a705937175a65e6a3"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/categories/page.tsx",
+      "sha256": "aa8b8836d2cf86707e78514781d192e3ed56ece131d5ad1c3f28b28a7aede4b5"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/loans/page.tsx",
+      "sha256": "06ff6070597e2e6a359599ab12b46a54a0a72eaef14f46a002a097f59ccd5e96"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/maintenance/page.tsx",
+      "sha256": "2411b93d8ebf6a3d13d5af8d70257d90755c16c8e12a6718c8ae4bdd5b60751b"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/new/page.tsx",
+      "sha256": "58b2b9a68b041bbb3e6586703fc1dd30e210b2b0d7be25ec92f36d74d33e2484"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/page.tsx",
+      "sha256": "22e2dd93228b4adf176b722bdcb754860bd3bc6bd03b2602ca842bb9f683265e"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/check-in/page.tsx",
+      "sha256": "8848030b1c90855620415030e73725f52e18989233470ae445599a57904e9f25"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/page.tsx",
+      "sha256": "9841269d5f69727ead493c9e71fc30b086ad001403aa6715d9ea484545edc047"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/records/page.tsx",
+      "sha256": "1aa41e6eabf4825cda00eadab218bb16e37d9dce328077aa2250b16506dfeb61"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/reports/page.tsx",
+      "sha256": "6620f7497be646faff773ee8a715dc03b9fc69244dc8a6362a663f8c51c6e43c"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/services/[serviceId]/page.tsx",
+      "sha256": "6f68a41a560fb6f9775c069024473603c498c6949d21494d596b1ab0315b2537"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/services/page.tsx",
+      "sha256": "47727db8b41e49a02170234b6364c96b32cb9fb8493ea25dfb19e859a79e89cb"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/broadcasts/new/page.tsx",
+      "sha256": "1de1c0c518625153f785ac0971d32d5c892ce21942e3195952b51088ce5d1e9f"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/broadcasts/page.tsx",
+      "sha256": "258aec3dda63f99b55cac797979b7b728f8a2613ff9058a4fe1f4b89ebdee6de"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/inbox/page.tsx",
+      "sha256": "c7d21d47662ada21394da5cf56d9931c86556add1d30ceb53b62d5293c8dc1f1"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/messages/page.tsx",
+      "sha256": "513bc1b10815cd33def9b25ad64e859b5f7bb929a0265af5bcb917006daeca0b"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/templates/page.tsx",
+      "sha256": "8ae02ba50b4f4879059de091c4cf70d1abe45ba4f969c44c3a4fd311e0387759"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/page.tsx",
+      "sha256": "1cc110b060deda3893c550cfbe07bd0bb14e935ce5a3526fd3f7cfad83012bfd"
+    },
+    {
+      "file": "src/app/(dashboard)/debug/sentry/page.tsx",
+      "sha256": "a9978484df311bdef0970aa815a6d6ad2fa5845cdfa7a63a402416f2130ff84c"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/[departmentId]/page.tsx",
+      "sha256": "c79af3da6f6440b187d9cbf3a17f6c6520445bd293eb5512d17eae02b50504f3"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/cell-groups/[groupId]/page.tsx",
+      "sha256": "4d3a6083ba6401c1d4a62448b774444f13bea07e8e407d2463bbfdc1b87e7a87"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/cell-groups/page.tsx",
+      "sha256": "10a7b1132a730719bc4cffbfe3295b21c651e39f92cbe4dc3046391510dc63db"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/page.tsx",
+      "sha256": "c1fc11ea286c892220448d3227139515cb8dcbab8c2b86d2198e47c088dde3f1"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/edit/page.tsx",
+      "sha256": "3d68ed3940a7f5125e1ccf44364b6b55e627d0a48fa68a15c06d4f63a3e79e93"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/page.tsx",
+      "sha256": "6d6073cf58ce18055f225390027845ee8040966f2df724728f2ec3684828b213"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/tiers/page.tsx",
+      "sha256": "52562147bcf7b70e5a57791088366b73311758c2912cbae7a7f9c0cf237b6c88"
+    },
+    {
+      "file": "src/app/(dashboard)/events/check-in/page.tsx",
+      "sha256": "67fb4bed6bdd789b3c809f117d042552b382d88ffb74cc9d30dcf0c1de970492"
+    },
+    {
+      "file": "src/app/(dashboard)/events/list/page.tsx",
+      "sha256": "96595e925adff433d27cfe3583b2b5efc05f0d20952896fc4e6b494f28821acf"
+    },
+    {
+      "file": "src/app/(dashboard)/events/management/page.tsx",
+      "sha256": "5dba11e3d7eb6b2c96d04eebb51b5881efdf2bcc861515c072f75d6161f460f9"
+    },
+    {
+      "file": "src/app/(dashboard)/events/new/page.tsx",
+      "sha256": "00e31dc065fdb67e144b2ca3c0bc0492d4ef01d021e0d9b2d148a25dcf8fd2e8"
+    },
+    {
+      "file": "src/app/(dashboard)/events/page.tsx",
+      "sha256": "673a54d6fc52022a36744901e490a8981e9544986a4194dfe3c5d379642f1738"
+    },
+    {
+      "file": "src/app/(dashboard)/events/registrations/page.tsx",
+      "sha256": "4c36bea6acaa4311c8cdf4b3d1b100ceaa431f0861d41671d6de02e72ff09954"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/edit/page.tsx",
+      "sha256": "3a5784ef0208f1c4dad88b1939c52e667d79ed8b75da6a5ed27bf757eb918489"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/fill/page.tsx",
+      "sha256": "53bf11aaed2cf39be8bc827607e4dfa660470fa7867c95d08c032ef49b0e4b01"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/page.tsx",
+      "sha256": "32320d254e8c29599d4253a4dd7eedcb8b65976d6686afaf18369f850833bc11"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/new/page.tsx",
+      "sha256": "dd7a6054d805bb89a57a34421fd2632c9640bfe7753df6487f226973fbf7be27"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/page.tsx",
+      "sha256": "928df66ac18e6727b12ee9fee8de96c0cabb1d62f7284a01cc94d267ee31ed56"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/submissions/page.tsx",
+      "sha256": "6103dda7ebca13742dde2c2784a9fde8370d8ca34e9277dc449b8e8a92befeb4"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/categories/page.tsx",
+      "sha256": "d2f326a6c1541ad7b7c59a17e6c1e3bd7da3152568a323f3048e2566fbca115f"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/page.tsx",
+      "sha256": "148153775492235fe20b570b5a893fa1a97b2b9a86e8079f0952e832678a1064"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/records/page.tsx",
+      "sha256": "d850b13f5281a926d399eb5e6b9a0b1c14e00dece6b6a4e4e71237eced31eb85"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/recurring/page.tsx",
+      "sha256": "ecc4f6380195269dbdabdb4070bc896c0496195ca285a2fee76f87e516597bcc"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/reports/page.tsx",
+      "sha256": "788111ec7d581fc441de69eb16af1b1ffbd9c03d79e8089f3c8e48581612a7dd"
+    },
+    {
+      "file": "src/app/(dashboard)/media/folders/page.tsx",
+      "sha256": "01b902fd5ae44cbf93213b6d24ed58c08d325d77b030067dc3ce8c71ac7026a6"
+    },
+    {
+      "file": "src/app/(dashboard)/media/page.tsx",
+      "sha256": "62103aed79c20962695599b2d3b7b842da8b0f16e4c9187b6ac8cf175d0eb347"
+    },
+    {
+      "file": "src/app/(dashboard)/media/upload/page.tsx",
+      "sha256": "2e6b73aba2e6f380dac8f928a7da59d65e9519068814b8cc1ad2dab7caeae313"
+    },
+    {
+      "file": "src/app/(dashboard)/members/[memberId]/page.tsx",
+      "sha256": "d8ddba097e115e7ec3b042ead11e79045807fddecbdb6f399718a58772278ce3"
+    },
+    {
+      "file": "src/app/(dashboard)/members/families/[familyId]/page.tsx",
+      "sha256": "50bc7e2518035b3bb32cd795c8ac5d223df80ae13115d5d8318295e0f367e13b"
+    },
+    {
+      "file": "src/app/(dashboard)/members/families/page.tsx",
+      "sha256": "7051bd112ac420ee86bdc3c525035c504e6e03347546d76a6953bf70af05d97a"
+    },
+    {
+      "file": "src/app/(dashboard)/members/import/page.tsx",
+      "sha256": "ed38eb4674a57077f38e4343935039b59f243c8370173fde0fd96449249d6aac"
+    },
+    {
+      "file": "src/app/(dashboard)/members/new/page.tsx",
+      "sha256": "d89225426820e7bfd0341eddfd375056a9db40ac65ddfcd26441158f93c9e1ac"
+    },
+    {
+      "file": "src/app/(dashboard)/members/page.tsx",
+      "sha256": "927b6a442d910747f3654e78c5cf33e84e65ab192b49ff235e1cec984fc8b7cc"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/engagement/page.tsx",
+      "sha256": "3a3b52ba0b71d9117582c31fcb1f84014263e362bd107a1fafc2890084cd1a67"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/life-events/page.tsx",
+      "sha256": "60697586e95ba2c618b93affb69e1c596f8d8024f5f1a747a891ebcaf197d70c"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/page.tsx",
+      "sha256": "2601b6954f75d3a280a884c18e20b676c229939e8322ea277e29f905d8688206"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/risk-scores/page.tsx",
+      "sha256": "a99b414e387b1c8d9c3d669f5d7f8754951d44a84406475133bfcf36a462cc3b"
+    },
+    {
+      "file": "src/app/(dashboard)/profile/page.tsx",
+      "sha256": "fec39d6ffbe489b773c7b1494c9e43c04063cc77b66934c0c2236978fb15df44"
+    },
+    {
+      "file": "src/app/(dashboard)/reports/page.tsx",
+      "sha256": "4def70a9f3c3b23150cadf6cb53a0a0d66ea4dcd0c6e825bd3d461a3e2f7d0ae"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/[sermonId]/edit/page.tsx",
+      "sha256": "98922a1529d24241c96151868d798d8f80ae593df8cd6c6c03028e19ed7a60b0"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/[sermonId]/page.tsx",
+      "sha256": "01db3616a00dbad0d282003ad5f1af9c2f21d9dec9b35cfb02f9543042c6e2d3"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/new/page.tsx",
+      "sha256": "2618557168a7375dcba5dc07cfa8d6cfcb45a0b9e6776b7b5cb3ab8a33d028d4"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/page.tsx",
+      "sha256": "de593cf66caf803a33d2520b1333ed7ef7bf8fed943b60b83174aa2eef4f898d"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/series/page.tsx",
+      "sha256": "e1af80214c64bf311237905a5963576589e90c0225c5c4925d88319ea5e8859f"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/speakers/page.tsx",
+      "sha256": "6ffb27ff198f10765082429685bf13c1e1ee34fb2b583816625b3c37048e07db"
+    },
+    {
+      "file": "src/app/(dashboard)/support/page.tsx",
+      "sha256": "3ea51ffe8903cf060e94e5b2d98a4c1f610a5cfba853a106b4c12fa4cccaa24c"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/[visitorId]/page.tsx",
+      "sha256": "625bfd3855e2fa5dd3c7af2495de8a07c6e6661ade68a968061aa8259244d653"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/follow-up/page.tsx",
+      "sha256": "b12632aa11bab2b00841f0c9c3f8db90f0a49600b6e111b321ffbe671c081221"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/import/page.tsx",
+      "sha256": "88e976e422d467d2ba5e539f71f3fc445e1820e35d61af26a48e39490c3ec851"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/new/page.tsx",
+      "sha256": "913ca63bb48af89bf327b9c674892e12eeb8cffeb797367f5a3ac416964b06ce"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/page.tsx",
+      "sha256": "a50443ffb0172ded210c53454dd3422bce403ee9e0c39cc494547f7650373d36"
+    },
+    {
+      "file": "src/components/analytics/analytics-scope.tsx",
+      "sha256": "ff28815315a3caaedb4f689afb5af2420bb07a77cd778f60318200f1609eb53a"
+    },
+    {
+      "file": "src/components/assets/asset-detail-drawer.tsx",
+      "sha256": "2c81663e67c210eb416312123568467b84eebb35206689e26f8e52f562de6cba"
+    },
+    {
+      "file": "src/components/assets/asset-form-dialog.tsx",
+      "sha256": "4b2c7f0d3f30ea7650a161a061fc5b69886d03498316a64738aea637e0284fe2"
+    },
+    {
+      "file": "src/components/assets/asset-worklist.tsx",
+      "sha256": "c16feec7969e468091cd20044faa2ef00e6850462ecdc3c2e128ebb8e952ad8d"
+    },
+    {
+      "file": "src/components/communication/template-form-dialog.tsx",
+      "sha256": "f98c2cee3cef2b13c3f1db02eff97951184819a77b87272c38a925123b33bf8a"
+    },
+    {
+      "file": "src/components/dashboard/my-dashboard.tsx",
+      "sha256": "4d53e67473316522db13d8aa256e740dfdd12ed3acef472ec4189460b892e664"
+    },
+    {
+      "file": "src/components/departments/department-detail-content.tsx",
+      "sha256": "2e7e971b79fc1f1eaeff266b6c8505a80c2b8d2b1b1e6a6384c6239dd543b423"
+    },
+    {
+      "file": "src/components/forms/form-fields-editor.tsx",
+      "sha256": "8a00a6e388e9b67b4d25af0d26f859ad819647140e2dc243257f701173c41307"
+    },
+    {
+      "file": "src/components/forms/form-form.tsx",
+      "sha256": "81f917aa57b415247598be379dad92971a97fafe5a8eefee173788f66d8ed6d6"
+    },
+    {
+      "file": "src/components/forms/form-settings-card.tsx",
+      "sha256": "5b2700e0153992035297bbe3eca62f4a670d6b47c2c45ab8ee824eca2fcc26ad"
+    },
+    {
+      "file": "src/components/pastoral/confirm-delete-dialog.tsx",
+      "sha256": "6b8c2f3ef335951c6346aab624829e8bb9e7f882cd7777f95edb25ef81b1ced4"
+    },
+    {
+      "file": "src/components/pastoral/member-scoring-dialog.tsx",
+      "sha256": "57bc8c1c099e85a72eced21516618126302ede94035eeaf9bd4cdc8ecd05fbdc"
+    },
+    {
+      "file": "src/components/roles/permission-matrix-editor.tsx",
+      "sha256": "a0004c9e6cf3dd4fcf2bba1cb0ce16b358458dbc8fdcbac512eb49d39a44a90b"
+    },
+    {
+      "file": "src/components/settings/general-settings-tab.tsx",
+      "sha256": "d2f178cbfa88e19f055f1067674cc1048e7f9d7cd16e0090b13676547445774c"
+    },
+    {
+      "file": "src/components/settings/integration-settings-tab.tsx",
+      "sha256": "d1edbb578e1374a9096d3a0c127e89847ea53e766691d05edfa460f8424199a6"
+    },
+    {
+      "file": "src/components/shared/archived-filter.tsx",
+      "sha256": "34bca58c0fc3fa543afdc1807060a175d5453563f58477f1f9367e81b28d6dcb"
+    },
+    {
+      "file": "src/components/shared/page-header.tsx",
+      "sha256": "677bf0a493164d207df80bb8616dd7d7bba4f46a4c4142ca56c13e6422f63957"
+    },
+    {
+      "file": "src/components/shared/people-import-page.tsx",
+      "sha256": "e5c2e7155da41265ba3f3b583eee85c7cc32cd313ff1755a638479bf4ff9435c"
+    },
+    {
+      "file": "src/components/shared/record-actions.tsx",
+      "sha256": "fd5b014cb55ceed5eddf31d007071dff426ead33777f9b16fb98513dd7064544"
+    },
+    {
+      "file": "src/components/shared/table-card.tsx",
+      "sha256": "c87b319b1ae98f102117f6e17875e4950811c4c1090f6764436110463802c10c"
+    },
+    {
+      "file": "src/components/shared/table-options.tsx",
+      "sha256": "69847acd672ab088abcf0b285a2541acc44dfc7ac50fc7edd913d1036a04fe0e"
+    },
+    {
+      "file": "src/components/shared/table-pagination.tsx",
+      "sha256": "c237fdd2ee788a93b66cfd5b511e714a86717ca8965f5d6190d9dbc0ef0483d4"
+    },
+    {
+      "file": "src/components/ui/card.tsx",
+      "sha256": "4dc051c0c6a97c417f7e3163dd5ae959c84bea4fb7632ce092cdeebe6aa14357"
+    },
+    {
+      "file": "src/components/ui/table.tsx",
+      "sha256": "db6320cb0991498898a1ce09dbc87a0a7d7c0de7f44cca4681c6fe31c405e3bf"
+    },
+    {
+      "file": "src/components/users/user-detail-content.tsx",
+      "sha256": "b0afcdf9f8d3d4a8be80d34997baab614e5e60690699879af7319d02b630a6a2"
+    },
+    {
+      "file": "src/components/users/user-detail-sidebar.tsx",
+      "sha256": "4aed55e619dd700547baddb766498defd0d809f6f66f2a20056bdce9f70ad8e4"
+    },
+    {
+      "file": "src/hooks/use-analytics.ts",
+      "sha256": "f5d0baa2e3d8c7d6e93eec5085b823b35534b0c63ab77363a664adb693c76d6e"
+    },
+    {
+      "file": "src/hooks/use-assets.ts",
+      "sha256": "3e1558a551becfb07cb4f621a2473ca8918eb4c8eec91d36dee953f9c0c2bd49"
+    },
+    {
+      "file": "src/hooks/use-roles.ts",
+      "sha256": "46b3a1c25973e86c51aa9f8a74f15cf87be13c3639bf8793636cb524fa09d9fa"
+    },
+    {
+      "file": "src/hooks/use-unsaved-changes.ts",
+      "sha256": "06daff8b7ac3a49c2bf7d9f00d2afadcff39bf7042a1d2fbe605215d215cb93a"
+    },
+    {
+      "file": "src/hooks/use-url-query-state.ts",
+      "sha256": "cf16fa11d977dc0e6fa4d40f990a236bfc7a284671ecdf2b376fae1085897e3c"
+    },
+    {
+      "file": "src/lib/route-permissions.ts",
+      "sha256": "1dc43df8b410d50e2b56b511d6294f92de4492b81a7d6f15b7156c9891e9bf00"
+    }
+  ],
+  "apiFiles": [
+    {
+      "file": "src/analytics/analytics.service.ts",
+      "sha256": "3befeb4d337c062042de08d64d4258bd029e72971d608298ed1cbea2fb17eb84"
+    },
+    {
+      "file": "src/analytics/dto/analytics-date-range.dto.ts",
+      "sha256": "e746c7008f8bdabd0ff0811db20f601a366c153a674d6de2695974b9f0135c0c"
+    },
+    {
+      "file": "src/assets/assets.controller.ts",
+      "sha256": "f8c9bca25d23077af8d670925d667457f1f6c752622337ef743ce0c1701e769e"
+    },
+    {
+      "file": "src/assets/assets.service.ts",
+      "sha256": "881b7064820cbf8d6a524c4dacce65bf1a2f08b05a6929ceb330ea6a31731087"
+    },
+    {
+      "file": "src/assets/dto/list-asset-worklist.dto.ts",
+      "sha256": "53ef2d4711529346ba692d967be4dc2bf121e26a41dac5a2a6c95454fe3e2b91"
+    },
+    {
+      "file": "src/assistant/knowledge.generated.ts",
+      "sha256": "95ce53942bc74b3c3d467253e9460dd217ecbc5f0a76d406fccdbd027d02ccd0"
+    },
+    {
+      "file": "src/assistant/routes.generated.ts",
+      "sha256": "89015ffae79ab2fee330084ec13a8d42b3431e9733562e8f862a5a3d6d136af1"
+    },
+    {
+      "file": "src/auth/services/permissions.service.ts",
+      "sha256": "12525090d5f2388f105d7542a3d45acca7652fa318afae5457ef0e83d521986b"
+    }
+  ]
+}

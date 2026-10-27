@@ -1,4 +1,6 @@
 "use client";
+import { RecordActions } from "@/components/shared/record-actions";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { ErrorState } from "@/components/shared/error-state";
 
@@ -96,7 +98,7 @@ export default function FamilyDetailPage({
   if (error || !display) {
     return (
       <div>
-        <Button variant="ghost" onClick={() => router.push("/members/families")}>
+        <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/members/families"); }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Families
         </Button>
@@ -110,7 +112,7 @@ export default function FamilyDetailPage({
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" onClick={() => router.push("/members/families")}>
+      <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/members/families"); }}>
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Families
       </Button>
@@ -145,7 +147,7 @@ export default function FamilyDetailPage({
             </div>
           </div>
           {(canUpdateFamilies || canDeleteFamilies) && (
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <RecordActions>
               {display.archivedAt ? (
                 <>
                   {canUpdateFamilies && (
@@ -193,7 +195,7 @@ export default function FamilyDetailPage({
                   )}
                 </>
               )}
-            </div>
+            </RecordActions>
           )}
         </CardContent>
       </Card>

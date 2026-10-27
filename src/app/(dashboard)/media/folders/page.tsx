@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,7 @@ function FolderRow({ folder }: { folder: MediaFolderSummary }) {
     <TableRow
       className="cursor-pointer"
       onClick={() =>
-        router.push(`/media?folder=${encodeURIComponent(folder.folder)}`)
+        { if (confirmDiscardChanges()) router.push(`/media?folder=${encodeURIComponent(folder.folder)}`); }
       }
     >
       <TableCell className="font-medium">

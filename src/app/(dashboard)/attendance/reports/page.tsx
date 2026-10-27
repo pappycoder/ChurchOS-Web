@@ -1,4 +1,7 @@
 "use client";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 import { GeneralAttendanceReportSummary } from "@/components/attendance/general-attendance-summary";
 
@@ -71,7 +74,7 @@ export default function AttendanceReportsPage() {
 
   const summary = summaryQuery.data;
 
-  // Per-service counts derived client-side over the fetched window.
+  // Per-service counts are explicitly labelled with their loaded window.
   const byService = React.useMemo(() => {
     const rows = recordsQuery.data?.data ?? [];
     const map = new Map<string, number>();
@@ -120,21 +123,6 @@ export default function AttendanceReportsPage() {
     return buildExportRows(rows);
   }, [startDate, endDate, buildExportRows]);
 
-  if (summaryQuery.error || trendsQuery.error) {
-    return (
-      <div>
-        <PageHeader
-          title="Reports"
-          breadcrumbs={[
-            { label: "Home", href: "/dashboard" },
-            { label: "Attendance", href: "/attendance" },
-            { label: "Reports" },
-          ]}
-        />
-        <ErrorState title="Failed to load reports." />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -189,20 +177,23 @@ export default function AttendanceReportsPage() {
         </CardContent>
       </Card>
 
-      <GeneralAttendanceReportSummary filters={{startDate: startDate || undefined, endDate: endDate || undefined, branchId: branchId || undefined}} />
-      <GeneralAttendancePanel readOnly filters={{startDate: startDate || undefined, endDate: endDate || undefined, branchId: branchId || undefined}} />
-
+      <UrlTabs defaultValue="named" values={["named", "totals"]}>
+      <TabsList aria-label="Attendance report"><TabsTrigger value="named">Named check-ins</TabsTrigger><TabsTrigger value="totals">Reported headcounts</TabsTrigger></TabsList>
+<TabsContent value="named" forceMount className="space-y-4 data-[state=inactive]:hidden">
+{(summaryQuery.error || trendsQuery.error) && <ErrorState title="Unable to load named attendance reporting" description="The selected dates and branch are preserved. Retry or adjust the filters." />}
+<p className="text-sm text-muted-foreground">Named totals use the summary endpoint. The service breakdown covers {recordsQuery.data?.data.length ?? 0} loaded check-ins (up to 200); export retrieves all matching records.</p>
+{recordsQuery.error && <ErrorState title="Unable to load service breakdown" />}
       {/* Summary stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatsCard
           title="Total Check-Ins"
-          value={summary?.totalCheckIns ?? 0}
+          value={summaryQuery.error ? "—" : summaryQuery.isLoading ? "..." : summary?.totalCheckIns ?? 0}
           icon={<PieChart className="h-4 w-4" />}
         />
-        <StatsCard title="Members" value={summary?.memberCheckIns ?? 0} icon={<PieChart className="h-4 w-4" />} />
-        <StatsCard title="Visitors" value={summary?.visitorCheckIns ?? 0} icon={<PieChart className="h-4 w-4" />} />
-        <StatsCard title="Adults" value={summary?.byCategory?.adult ?? 0} icon={<PieChart className="h-4 w-4" />} />
-        <StatsCard title="Children" value={summary?.byCategory?.children ?? 0} icon={<PieChart className="h-4 w-4" />} />
+        <StatsCard title="Members" value={summaryQuery.error ? "—" : summaryQuery.isLoading ? "..." : summary?.memberCheckIns ?? 0} icon={<PieChart className="h-4 w-4" />} />
+        <StatsCard title="Visitors" value={summaryQuery.error ? "—" : summaryQuery.isLoading ? "..." : summary?.visitorCheckIns ?? 0} icon={<PieChart className="h-4 w-4" />} />
+        <StatsCard title="Adults" value={summaryQuery.error ? "—" : summaryQuery.isLoading ? "..." : summary?.byCategory?.adult ?? 0} icon={<PieChart className="h-4 w-4" />} />
+        <StatsCard title="Children" value={summaryQuery.error ? "—" : summaryQuery.isLoading ? "..." : summary?.byCategory?.children ?? 0} icon={<PieChart className="h-4 w-4" />} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -265,7 +256,7 @@ export default function AttendanceReportsPage() {
         {/* By service */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">By Service</CardTitle>
+            <CardTitle className="text-sm font-semibold">By service (loaded check-ins)</CardTitle>
             <CardDescription>Top services in the selected range.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -331,6 +322,14 @@ export default function AttendanceReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+</TabsContent><TabsContent value="totals" forceMount className="space-y-4 data-[state=inactive]:hidden">
+      <GeneralAttendanceReportSummary filters={{startDate: startDate || undefined, endDate: endDate || undefined, branchId: branchId || undefined}} />
+      <GeneralAttendancePanel readOnly filters={{startDate: startDate || undefined, endDate: endDate || undefined, branchId: branchId || undefined}} />
+
+
+</TabsContent>
+</UrlTabs>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
@@ -6,10 +7,7 @@ import { Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  useEventsList,
-  type EventItem,
-} from "@/hooks/use-events";
+import { useEventsList, type EventItem } from "@/hooks/use-events";
 import { useAttendanceServices } from "@/hooks/use-attendance";
 import { usePermissions } from "@/hooks/use-permissions";
 import { CalendarView } from "@/components/events/calendar-view";
@@ -26,25 +24,28 @@ export default function EventsDashboardPage() {
   const [addModalOpen, setAddModalOpen] = React.useState(false);
   const [addModalDate, setAddModalDate] = React.useState<Date | undefined>();
   const [detailModalOpen, setDetailModalOpen] = React.useState(false);
-  const [selectedEvent, setSelectedEvent] = React.useState<EventItem | null>(null);
+  const [selectedEvent, setSelectedEvent] = React.useState<EventItem | null>(
+    null,
+  );
 
-  const eventsQuery = useEventsList({ branchId: branchId || undefined, limit: 100, sortBy: "startDate", sortOrder: "asc" });
-  const servicesQuery = useAttendanceServices({ branchId: branchId || undefined, limit: 100 });
+  const eventsQuery = useEventsList({
+    branchId: branchId || undefined,
+    limit: 100,
+    sortBy: "startDate",
+    sortOrder: "asc",
+  });
+  const servicesQuery = useAttendanceServices({
+    branchId: branchId || undefined,
+    limit: 100,
+  });
 
   const allEvents = eventsQuery.data?.data ?? [];
   const listEvents = eventsQuery.data?.data ?? [];
   const services = servicesQuery.data?.data ?? [];
 
-  const handleDateClick = React.useCallback(
-    (date: Date) => {
-      setSelectedDate(date);
-      if (canCreate) {
-        setAddModalDate(date);
-        setAddModalOpen(true);
-      }
-    },
-    [canCreate],
-  );
+  const handleDateClick = React.useCallback((date: Date) => {
+    setSelectedDate(date);
+  }, []);
 
   const handleEventClick = React.useCallback((event: EventItem) => {
     setSelectedEvent(event);
@@ -52,15 +53,18 @@ export default function EventsDashboardPage() {
   }, []);
 
   const handleCreateClick = React.useCallback(() => {
-    setAddModalDate(undefined);
+    setAddModalDate(selectedDate);
     setAddModalOpen(true);
-  }, []);
+  }, [selectedDate]);
 
   return (
     <div className="space-y-4">
       <PageHeader
         title="Events"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Events" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Events" },
+        ]}
         action={
           <div className="flex flex-wrap items-center gap-2">
             {canCreate && (
@@ -72,7 +76,15 @@ export default function EventsDashboardPage() {
           </div>
         }
       />
+      <p className="text-sm text-muted-foreground">
+        Calendar coverage: {allEvents.length} loaded events and{" "}
+        {services.length} services (up to 100 of each). Open the event or
+        service directory to search the complete collection.
+      </p>
 
+      {(eventsQuery.isError || servicesQuery.isError) && (
+        <ErrorState title="Unable to load calendar data" />
+      )}
       <BranchFilter value={branchId} onChange={setBranchId} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
@@ -87,7 +99,7 @@ export default function EventsDashboardPage() {
         </div>
 
         {/* Calendar */}
-        <div className="min-w-0">
+        <div className="order-1 min-w-0 lg:order-none">
           <Card className="p-0 overflow-hidden">
             <CalendarView
               events={listEvents}

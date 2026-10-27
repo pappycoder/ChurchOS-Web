@@ -1,0 +1,142 @@
+[
+  {
+    "route": "/assets/loans",
+    "width": 1440,
+    "filename": "-assets-loans-1440.png",
+    "layout": {
+      "viewport": 1440,
+      "document": 1440,
+      "h1": [
+        "Asset loans"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/assets/loans",
+    "width": 768,
+    "filename": "-assets-loans-768.png",
+    "layout": {
+      "viewport": 768,
+      "document": 768,
+      "h1": [
+        "Asset loans"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/assets/loans",
+    "width": 390,
+    "filename": "-assets-loans-390.png",
+    "layout": {
+      "viewport": 390,
+      "document": 390,
+      "h1": [
+        "Asset loans"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/assets/maintenance",
+    "width": 1440,
+    "filename": "-assets-maintenance-1440.png",
+    "layout": {
+      "viewport": 1440,
+      "document": 1440,
+      "h1": [
+        "Asset maintenance"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/assets/new",
+    "width": 1440,
+    "filename": "-assets-new-1440.png",
+    "layout": {
+      "viewport": 1440,
+      "document": 1440,
+      "h1": [
+        "Register asset"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/assets/new",
+    "width": 390,
+    "filename": "-assets-new-390.png",
+    "layout": {
+      "viewport": 390,
+      "document": 390,
+      "h1": [
+        "Register asset"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/forms/form-a/edit",
+    "width": 1440,
+    "filename": "-forms-form-a-edit-1440.png",
+    "layout": {
+      "viewport": 1440,
+      "document": 1440,
+      "h1": [
+        "Edit: Volunteer application"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/forms/form-a/edit",
+    "width": 390,
+    "filename": "-forms-form-a-edit-390.png",
+    "layout": {
+      "viewport": 390,
+      "document": 390,
+      "h1": [
+        "Edit: Volunteer application"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/admin/roles/usher",
+    "width": 1440,
+    "filename": "-admin-roles-usher-1440.png",
+    "layout": {
+      "viewport": 1440,
+      "document": 1440,
+      "h1": [
+        "Usher"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  },
+  {
+    "route": "/forms/form-a?tab=details",
+    "width": 1440,
+    "filename": "-forms-form-a-tab-details-1440.png",
+    "layout": {
+      "viewport": 1440,
+      "document": 1440,
+      "h1": [
+        "Volunteer application"
+      ],
+      "boundary": false
+    },
+    "errors": []
+  }
+]

@@ -1,4 +1,6 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -69,6 +71,7 @@ function MediaUploadPage() {
   const [uploaded, setUploaded] = React.useState<QueueItem[]>([]);
   const [uploadingAll, setUploadingAll] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
+  useUnsavedChanges(queue.some(item => item.status !== "done") || uploadingAll);
   const fileRef = React.useRef<HTMLInputElement>(null);
 
   const effectiveFolder = newFolderMode ? newFolderName.trim() || "uploads" : folder;
@@ -158,7 +161,7 @@ function MediaUploadPage() {
         title="Media Upload"
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Media", href: "/media" }, { label: "Upload" }]}
         action={
-          <Button variant="outline" onClick={() => router.push("/media")}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/media"); }}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Library
           </Button>
@@ -345,7 +348,7 @@ function MediaUploadPage() {
 
           {uploaded.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" onClick={() => router.push("/media")}>
+              <Button type="button" variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/media"); }}>
                 View in Library
               </Button>
               <Button

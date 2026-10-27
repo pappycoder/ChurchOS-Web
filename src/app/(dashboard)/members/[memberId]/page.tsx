@@ -1,4 +1,10 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { RecordActions } from "@/components/shared/record-actions";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LiveCallButton } from "@/components/members/live-call-button";
 import { ErrorState } from "@/components/shared/error-state";
@@ -108,6 +114,7 @@ export default function MemberDetailPage({
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
   const [noteDraft, setNoteDraft] = React.useState("");
+  useUnsavedChanges(!!noteDraft.trim());
 
   const [givePage, setGivePage] = React.useState(1);
   const [givePerPage, setGivePerPage] = React.useState(15);
@@ -153,7 +160,7 @@ export default function MemberDetailPage({
   if (error || !display) {
     return (
       <div>
-        <Button variant="ghost" onClick={() => router.push("/members")}>
+        <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/members"); }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Members
         </Button>
@@ -187,7 +194,7 @@ export default function MemberDetailPage({
         variant="ghost"
         size="sm"
         className="-ms-2"
-        onClick={() => router.push("/members")}
+        onClick={() => { if (confirmDiscardChanges()) router.push("/members"); }}
       >
         <ArrowLeft className="h-4 w-4 mr-1.5" />
         Members
@@ -205,9 +212,9 @@ export default function MemberDetailPage({
             </Avatar>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl font-semibold">
+                <h1 className="text-xl font-semibold">
                   {display.firstName} {display.lastName}
-                </h2>
+                </h1>
                 <Badge variant={statusBadge.variant}>
                   <span className={`mr-1 h-1.5 w-1.5 rounded-full ${statusBadge.dot}`} />
                   {display.status.charAt(0).toUpperCase() + display.status.slice(1)}
@@ -231,7 +238,7 @@ export default function MemberDetailPage({
           </div>
           <LiveCallButton memberId={display.memberId} memberName={`${display.firstName} ${display.lastName}`} disabled={!display.phone || !!display.archivedAt} />
           {(canUpdateMembers || canDeleteMembers) && (
-            <div className="flex flex-wrap items-center gap-2">
+            <RecordActions>
               {display.archivedAt ? (
                 <>
                   {canUpdateMembers && (
@@ -280,11 +287,14 @@ export default function MemberDetailPage({
                   )}
                 </>
               )}
-            </div>
+            </RecordActions>
           )}
         </CardContent>
       </Card>
 
+      <UrlTabs defaultValue="overview" values={["overview", "attendance", ...(canAny("giving:records:read") ? ["giving"] : [])]}>
+        <TabsList aria-label="Member workspace"><TabsTrigger value="overview">Overview & notes</TabsTrigger><TabsTrigger value="attendance">Attendance</TabsTrigger>{canAny("giving:records:read") && <TabsTrigger value="giving">Giving</TabsTrigger>}</TabsList>
+<TabsContent value="overview" forceMount className="space-y-4 data-[state=inactive]:hidden">
       {/* Info cards */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -341,114 +351,6 @@ export default function MemberDetailPage({
         </Card>
       )}
 
-      {/* Giving history */}
-      {canAny("giving:records:read") && <TableCard
-        title={
-          <span className="flex items-center gap-2">
-            <HandCoins className="h-4 w-4" />
-            Giving History
-          </span>
-        }
-        action={<span className="text-xs text-muted-foreground">{givingRows.length} record(s)</span>}
-        itemName="records"
-        page={givePage}
-        perPage={givePerPage}
-        total={givingRows.length}
-        onPageChange={setGivePage}
-        onPerPageChange={(n) => {
-          setGivePerPage(n);
-          setGivePage(1);
-        }}
-      >
-        {givingQuery.isLoading ? (
-          <div className="px-6 space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : givingRows.length === 0 ? (
-          <p className="px-6 text-sm text-muted-foreground">No giving records yet.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pagedGiving.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell className="text-muted-foreground">
-                    {format(parseISO(tx.givingDate ?? tx.createdAt), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {tx.currency} {Number(tx.amount).toLocaleString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={tx.status === "success" ? "default" : "secondary"}>
-                      {tx.status}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </TableCard>}
-
-      {/* Attendance history */}
-      <TableCard
-        title={
-          <span className="flex items-center gap-2">
-            <CalendarCheck className="h-4 w-4" />
-            Attendance History
-          </span>
-        }
-        action={<span className="text-xs text-muted-foreground">{attendanceRows.length} check-in(s)</span>}
-        itemName="records"
-        page={attPage}
-        perPage={attPerPage}
-        total={attendanceRows.length}
-        onPageChange={setAttPage}
-        onPerPageChange={(n) => {
-          setAttPerPage(n);
-          setAttPage(1);
-        }}
-      >
-        {attendanceQuery.isLoading ? (
-          <div className="px-6 space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : attendanceRows.length === 0 ? (
-          <p className="px-6 text-sm text-muted-foreground">No attendance records yet.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Service</TableHead>
-                <TableHead>Checked In</TableHead>
-                <TableHead>Source</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pagedAttendance.map((rec) => (
-                <TableRow key={rec.id}>
-                  <TableCell className="font-medium">{rec.serviceName}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {format(new Date(rec.checkInAt), "MMM d, yyyy h:mm a")}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground capitalize">
-                    {rec.source}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </TableCard>
-
       {/* Admin notes */}
       <Card>
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
@@ -485,6 +387,121 @@ export default function MemberDetailPage({
         </CardContent>
       </Card>
 
+
+</TabsContent><TabsContent value="attendance" forceMount className="space-y-4 data-[state=inactive]:hidden">
+      {/* Attendance history */}
+      <TableCard
+        title={
+          <span className="flex items-center gap-2">
+            <CalendarCheck className="h-4 w-4" />
+            Attendance History
+          </span>
+        }
+        action={<span className="text-xs text-muted-foreground">{attendanceRows.length} check-in(s)</span>}
+        itemName="records"
+        page={attPage}
+        perPage={attPerPage}
+        total={attendanceRows.length}
+        onPageChange={setAttPage}
+        onPerPageChange={(n) => {
+          setAttPerPage(n);
+          setAttPage(1);
+        }}
+      >
+        {attendanceQuery.isError ? <ErrorState title="Unable to load attendance history" /> : attendanceQuery.isLoading ? (
+          <div className="px-6 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : attendanceRows.length === 0 ? (
+          <p className="px-6 text-sm text-muted-foreground">No attendance records yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service</TableHead>
+                <TableHead>Checked In</TableHead>
+                <TableHead>Source</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedAttendance.map((rec) => (
+                <TableRow key={rec.id}>
+                  <TableCell className="font-medium">{rec.serviceName}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(rec.checkInAt), "MMM d, yyyy h:mm a")}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground capitalize">
+                    {rec.source}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>
+
+
+</TabsContent><TabsContent value="giving" forceMount className="space-y-4 data-[state=inactive]:hidden">
+      {/* Giving history */}
+      {canAny("giving:records:read") && <TableCard
+        title={
+          <span className="flex items-center gap-2">
+            <HandCoins className="h-4 w-4" />
+            Giving History
+          </span>
+        }
+        action={<span className="text-xs text-muted-foreground">{givingRows.length} record(s)</span>}
+        itemName="records"
+        page={givePage}
+        perPage={givePerPage}
+        total={givingRows.length}
+        onPageChange={setGivePage}
+        onPerPageChange={(n) => {
+          setGivePerPage(n);
+          setGivePage(1);
+        }}
+      >
+        {givingQuery.isError ? <ErrorState title="Unable to load giving history" /> : givingQuery.isLoading ? (
+          <div className="px-6 space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : givingRows.length === 0 ? (
+          <p className="px-6 text-sm text-muted-foreground">No giving records yet.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedGiving.map((tx) => (
+                <TableRow key={tx.id}>
+                  <TableCell className="text-muted-foreground">
+                    {format(parseISO(tx.givingDate ?? tx.createdAt), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {tx.currency} {Number(tx.amount).toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={tx.status === "success" ? "default" : "secondary"}>
+                      {tx.status}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TableCard>}
+
+
+</TabsContent>
+</UrlTabs>
       <MemberFormDialog
         open={editOpen}
         onOpenChange={(open) => {

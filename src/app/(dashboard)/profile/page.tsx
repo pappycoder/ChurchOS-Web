@@ -1,5 +1,7 @@
 "use client";
 
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -588,11 +590,11 @@ export default function ProfilePage() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <IdentityCard profile={profile} />
-          <div className="lg:col-span-2 space-y-6">
-            <BasicInfoCard profile={profile} />
-            <PhotoCard profile={profile} />
-            <SecurityCard />
-          </div>
+          <UrlTabs className="lg:col-span-2 space-y-6" defaultValue="account" values={["account", "security"]}>
+            <TabsList aria-label="Profile views"><TabsTrigger value="account">Account</TabsTrigger><TabsTrigger value="security">Security</TabsTrigger></TabsList>
+            <TabsContent value="account" forceMount className="space-y-6 data-[state=inactive]:hidden"><BasicInfoCard profile={profile} /><PhotoCard profile={profile} /></TabsContent>
+            <TabsContent value="security" forceMount className="data-[state=inactive]:hidden"><SecurityCard /></TabsContent>
+          </UrlTabs>
         </div>
       )}
     </div>

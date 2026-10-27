@@ -45,6 +45,8 @@ export default function AnalyticsMembersPage() {
         }
       />
 
+      <p className="text-sm text-muted-foreground">Current membership and demographics in your permitted branch scope. Growth uses the reporting window supplied by the service. Refresh updates cached results; these demographics do not support a historical date filter.</p>
+
       {query.error ? (
         <ErrorState title="Failed to load member analytics." />
       ) : (

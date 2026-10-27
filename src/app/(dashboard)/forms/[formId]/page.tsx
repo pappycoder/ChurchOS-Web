@@ -1,4 +1,10 @@
 "use client";
+import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
+import { ErrorState } from "@/components/shared/error-state";
 import { BranchDetail } from "@/components/shared/branch-assignment";
 import { SubmissionsTable } from "@/components/forms/submissions-table";
 
@@ -92,6 +98,7 @@ export default function FormDetailPage() {
   const canDelete = can("forms:list", "delete");
 
   const { data: form, isLoading, error } = useForm(formId);
+  const [regenerateOpen, setRegenerateOpen] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<SubmissionStatus | undefined>(undefined);
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -115,7 +122,7 @@ export default function FormDetailPage() {
     [page, perPage, statusFilter],
   );
 
-  const { data: submissionsData, isLoading: submissionsLoading } = useFormSubmissions(
+  const { data: submissionsData, isLoading: submissionsLoading, error: submissionsError } = useFormSubmissions(
     formId,
     queryParams,
   );
@@ -149,6 +156,7 @@ export default function FormDetailPage() {
   const handleRegenerate = async () => {
     try {
       await regenerateMutation.mutateAsync(formId);
+      setRegenerateOpen(false);
       toast.success("Share link regenerated. The old link no longer works.");
     } catch (err) {
       toast.error("Failed to regenerate link", {
@@ -203,7 +211,7 @@ export default function FormDetailPage() {
               { label: "Form" },
             ]}
             action={
-              <Button variant="outline" onClick={() => router.push("/forms")}>
+              <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
                 <ArrowLeft className="mr-1 h-4 w-4" />
                 Back
               </Button>
@@ -211,8 +219,8 @@ export default function FormDetailPage() {
           />
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <AlertTriangle className="h-10 w-10 text-destructive" />
-            <p className="text-sm text-muted-foreground">Failed to load this form.</p>
-            <Button variant="outline" onClick={() => router.push("/forms")}>
+            <ErrorState title="Unable to load this form" />
+            <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
               Back to Forms
             </Button>
           </div>
@@ -242,18 +250,18 @@ export default function FormDetailPage() {
 
   const headerAction = (
     <div className="flex flex-wrap items-center gap-2">
-      <Button variant="ghost" onClick={() => router.push("/forms")}>
+      <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
         <ArrowLeft className="size-4" />
         All forms
       </Button>
       {!form.archivedAt && canRead && form.status === "published" && (
-        <Button onClick={() => router.push(`/forms/${form.id}/fill`)}>
+        <Button onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${form.id}/fill`); }}>
           <PlayCircle className="size-4" />
           Open form
         </Button>
       )}
       {!form.archivedAt && canUpdate && (
-        <Button variant="outline" onClick={() => router.push(`/forms/${form.id}/edit`)}>
+        <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${form.id}/edit`); }}>
           <Pencil className="size-4" />
           Edit form
         </Button>
@@ -388,6 +396,84 @@ export default function FormDetailPage() {
         </div>
       </section>
 
+      <UrlTabs defaultValue={canReadSubmissions ? "responses" : "details"} values={["details", ...(canReadSubmissions ? ["responses"] : [])]}>
+      <TabsList aria-label="Form workspace">{canReadSubmissions && <TabsTrigger value="responses">Responses</TabsTrigger>}<TabsTrigger value="details">Questions & access</TabsTrigger></TabsList>
+<TabsContent value="responses" forceMount className="space-y-4 data-[state=inactive]:hidden">
+      {canReadSubmissions && (
+        <TableCard
+          title="Submissions"
+          description={`${submissionsMeta?.total ?? 0} total`}
+          itemName="submissions"
+          page={page}
+          perPage={perPage}
+          total={submissionsMeta?.total ?? 0}
+          onPageChange={setPage}
+          onPerPageChange={(p) => {
+            setPerPage(p);
+            setPage(1);
+          }}
+          toolbar={
+            <Select
+              value={statusFilter ?? "all"}
+              onValueChange={(v) => {
+                setStatusFilter(v === "all" ? undefined : (v as SubmissionStatus));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        >
+          {submissionsError ? <ErrorState title="Unable to load submissions" /> : submissionsLoading ? (
+            <div className="px-4 py-4">
+              <Skeleton className="h-24 w-full" />
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="px-4 py-12">
+              <EmptyState
+                icon={<CheckCircle2 className="h-8 w-8" />}
+                title="No submissions yet"
+                description={
+                  form.isPublic && form.status === "published"
+                    ? "Share the link to start collecting responses."
+                    : "Submit the form to collect your first response."
+                }
+              />
+            </div>
+          ) : (
+            <SubmissionsTable
+            key={form.id}
+              form={form}
+              submissions={submissions}
+              canReview={canReview}
+              busy={statusMutation.isPending}
+              onOpen={setSelectedSubmission}
+              onReject={setReviewSubmission}
+              onApprove={(submission) =>
+                statusMutation.mutate(
+                  { submissionId: submission.id, input: { status: "approved" } },
+                  {
+                    onSuccess: () => toast.success("Submission approved"),
+                    onError: (err) =>
+                      toast.error(getToastErrorMessage(err, "Failed to approve submission")),
+                  },
+                )
+              }
+            />
+          )}
+        </TableCard>
+      )}
+
+
+</TabsContent><TabsContent value="details" forceMount className="space-y-4 data-[state=inactive]:hidden">
       <div className="mb-6 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
         <section
           className="min-w-0 rounded-2xl border bg-card p-5 sm:p-6"
@@ -474,7 +560,7 @@ export default function FormDetailPage() {
                   variant="ghost"
                   size="sm"
                   disabled={regenerateMutation.isPending}
-                  onClick={handleRegenerate}
+                  onClick={() => setRegenerateOpen(true)}
                 >
                   <RefreshCw className="size-3.5" />
                   Regenerate
@@ -491,79 +577,10 @@ export default function FormDetailPage() {
         </section>
       </div>
 
-      {canReadSubmissions && (
-        <TableCard
-          title="Submissions"
-          description={`${submissionsMeta?.total ?? 0} total`}
-          itemName="submissions"
-          page={page}
-          perPage={perPage}
-          total={submissionsMeta?.total ?? 0}
-          onPageChange={setPage}
-          onPerPageChange={(p) => {
-            setPerPage(p);
-            setPage(1);
-          }}
-          toolbar={
-            <Select
-              value={statusFilter ?? "all"}
-              onValueChange={(v) => {
-                setStatusFilter(v === "all" ? undefined : (v as SubmissionStatus));
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          }
-        >
-          {submissionsLoading ? (
-            <div className="px-4 py-4">
-              <Skeleton className="h-24 w-full" />
-            </div>
-          ) : submissions.length === 0 ? (
-            <div className="px-4 py-12">
-              <EmptyState
-                icon={<CheckCircle2 className="h-8 w-8" />}
-                title="No submissions yet"
-                description={
-                  form.isPublic && form.status === "published"
-                    ? "Share the link to start collecting responses."
-                    : "Submit the form to collect your first response."
-                }
-              />
-            </div>
-          ) : (
-            <SubmissionsTable
-            key={form.id}
-              form={form}
-              submissions={submissions}
-              canReview={canReview}
-              busy={statusMutation.isPending}
-              onOpen={setSelectedSubmission}
-              onReject={setReviewSubmission}
-              onApprove={(submission) =>
-                statusMutation.mutate(
-                  { submissionId: submission.id, input: { status: "approved" } },
-                  {
-                    onSuccess: () => toast.success("Submission approved"),
-                    onError: (err) =>
-                      toast.error(getToastErrorMessage(err, "Failed to approve submission")),
-                  },
-                )
-              }
-            />
-          )}
-        </TableCard>
-      )}
 
+</TabsContent>
+</UrlTabs>
+      <ConfirmDeleteDialog open={regenerateOpen} onOpenChange={setRegenerateOpen} title="Replace the public share link?" description={`The existing link for "${form.title}" will stop accepting responses. Share the new link with anyone who still needs to respond. Existing submissions are kept.`} confirmLabel="Regenerate link" pendingLabel="Regenerating..." pending={regenerateMutation.isPending} onConfirm={() => void handleRegenerate()} />
       <SubmissionDetailDialog
         form={form}
         submission={selectedSubmission}

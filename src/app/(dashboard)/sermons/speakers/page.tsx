@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -104,7 +105,7 @@ export default function SermonsSpeakersPage() {
                   key={s.name}
                   className="cursor-pointer"
                   onClick={() =>
-                    router.push(`/sermons?speaker=${encodeURIComponent(s.name)}`)
+                    { if (confirmDiscardChanges()) router.push(`/sermons?speaker=${encodeURIComponent(s.name)}`); }
                   }
                 >
                   <TableCell className="font-medium">{s.name}</TableCell>

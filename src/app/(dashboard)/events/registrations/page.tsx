@@ -1,4 +1,6 @@
 "use client";
+import { useUrlQueryState } from "@/hooks/use-url-query-state";
+import { ErrorState } from "@/components/shared/error-state";
 import { RegisterAttendeeButton } from "@/components/events/register-attendee-button";
 import { LoadingState } from "@/components/shared/loading-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
@@ -30,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  useEvent,
   useEventsList,
   useEventRegistrations,
 } from "@/hooks/use-events";
@@ -42,11 +45,11 @@ const PAYMENT_BADGE: Record<string, "default" | "secondary" | "destructive"> = {
   refunded: "secondary",
 };
 
-export default function EventRegistrationsPage() {
+function EventRegistrationsPageContent() {
   const { can } = usePermissions();
   const canRead = can("events:registrations", "read");
 
-  const [selectedEventId, setSelectedEventId] = React.useState<string>("");
+  const [selectedEventId, setSelectedEventId] = useUrlQueryState("eventId");
   const [branchId, setBranchId] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
@@ -84,10 +87,9 @@ export default function EventRegistrationsPage() {
     [registrations, page, perPage]
   );
 
-  const selectedEvent = React.useMemo(
-    () => events.find((e) => e.eventId === selectedEventId) ?? null,
-    [events, selectedEventId]
-  );
+  const listedEvent = events.find(event => event.eventId === selectedEventId);
+  const selectedEventQuery = useEvent(selectedEventId && !listedEvent ? selectedEventId : "");
+  const selectedEvent = listedEvent ?? selectedEventQuery.data ?? null;
 
   const stats = React.useMemo(() => {
     const total = allRegistrations.length;
@@ -126,10 +128,12 @@ export default function EventRegistrationsPage() {
         ]}
       />
 
+      {eventsQuery.isError && <ErrorState title="Unable to load the event selector" />}
+      {selectedEventQuery.isError && <ErrorState title="Unable to load the selected event" />}
       {/* Event selector */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-col gap-2 xl:flex-row xl:items-center">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setSelectedEventId(""); setPage(1); }} />
             <label htmlFor="event-select" className="text-sm font-medium shrink-0">
               Select Event
@@ -144,10 +148,11 @@ export default function EventRegistrationsPage() {
                   setSearch("");
                 }}
               >
-                <SelectTrigger id="event-select" className="w-full sm:w-72">
+                <SelectTrigger id="event-select" className="w-full min-w-0 max-w-full sm:w-72">
                   <SelectValue placeholder="Choose an event to view registrations" />
                 </SelectTrigger>
                 <SelectContent>
+                  {selectedEvent && !listedEvent && <SelectItem value={selectedEvent.eventId}>{selectedEvent.title}</SelectItem>}
                   {events.map((e) => (
                     <SelectItem key={e.eventId} value={e.eventId}>
                       {e.title} ({format(new Date(e.startDate), "MMM d, yyyy")})
@@ -227,7 +232,7 @@ export default function EventRegistrationsPage() {
                     description="Select an event above to view its registrations."
                   />
                 </div>
-              ) : registrationsQuery.isLoading ? (
+              ) : registrationsQuery.isError ? <ErrorState title="Unable to load registrations" /> : registrationsQuery.isLoading ? (
                 <LoadingState variant="table" />
               ) : registrations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 gap-4">
@@ -288,3 +293,5 @@ export default function EventRegistrationsPage() {
     </div>
   );
 }
+
+export default function EventRegistrationsPage() { return <React.Suspense fallback={<p role="status">Loading workspace…</p>}><EventRegistrationsPageContent /></React.Suspense>; }

@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
@@ -79,7 +80,7 @@ export default function CellGroupsPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: groups, isLoading } = useCellGroupsList({
+  const { data: groups, isLoading, error } = useCellGroupsList({
     archived: archivedView ? true : undefined,
     branchId: branchId || undefined,
   });
@@ -141,18 +142,18 @@ export default function CellGroupsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <StatsCard
           title="Total Cell Groups"
-          value={(groups ?? []).length}
+          value={error ? "—" : (groups ?? []).length}
           icon={<UsersRound className="h-4 w-4" />}
         />
         <StatsCard
           title="Branches Covered"
-          value={branchesWithGroups}
+          value={error ? "—" : branchesWithGroups}
           subtitle="With at least one group"
           icon={<MapPin className="h-4 w-4" />}
         />
         <StatsCard
           title="Unassigned Groups"
-          value={(groups ?? []).filter((g) => !g.branchId).length}
+          value={error ? "—" : (groups ?? []).filter((g) => !g.branchId).length}
           icon={<Users className="h-4 w-4" />}
         />
       </div>
@@ -172,7 +173,7 @@ export default function CellGroupsPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             {!isCellLeader && (
-              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
             )}
             <div className="relative sm:w-72">
               <input
@@ -201,7 +202,7 @@ export default function CellGroupsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {error ? <TableRow><TableCell colSpan={20}><ErrorState title="Unable to load cell groups" /></TableCell></TableRow> : isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={canUpdate || canDelete ? 6 : 5}>

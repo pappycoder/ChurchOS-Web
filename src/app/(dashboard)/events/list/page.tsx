@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
 import { LoadingState } from "@/components/shared/loading-state";
@@ -183,7 +184,7 @@ export default function EventsListPage() {
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
-              <Button onClick={() => router.push("/events/new")}>
+              <Button onClick={() => { if (confirmDiscardChanges()) router.push("/events/new"); }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Event
               </Button>
@@ -223,10 +224,10 @@ export default function EventsListPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(searchInput !== "") + Number(archivedFilter !== "all") + Number(sortBy !== "startDate") + Number(sortOrder !== "desc") + Number(branchId !== "")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setArchivedFilter("all");setSortBy("startDate");setSortOrder("desc");setBranchId("");setPage(1);}}>Reset filters</Button></div><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+            <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
             <SearchInput
               value={searchInput}
               onChange={(v) => setSearchInput(v)}
@@ -286,7 +287,7 @@ export default function EventsListPage() {
               {sortOrder === "asc" ? "Asc" : "Desc"}
             </Button>
           </div>
-          </div>
+          </div></div>
         }
       >
           {isLoading ? (
@@ -323,7 +324,7 @@ export default function EventsListPage() {
                     <TableRow
                       key={event.eventId}
                       className="cursor-pointer"
-                      onClick={() => router.push(`/events/${event.eventId}`)}
+                      onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${event.eventId}`); }}
                     >
                       <TableCell className="font-medium">{event.title}</TableCell>
                       <TableCell>
@@ -357,7 +358,7 @@ export default function EventsListPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() =>
-                                  router.push(`/events/${event.eventId}`)
+                                  { if (confirmDiscardChanges()) router.push(`/events/${event.eventId}`); }
                                 }
                               >
                                 <Eye className="mr-2 h-4 w-4" />
@@ -366,7 +367,7 @@ export default function EventsListPage() {
                               {canUpdate && (
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    router.push(`/events/${event.eventId}/edit`)
+                                    { if (confirmDiscardChanges()) router.push(`/events/${event.eventId}/edit`); }
                                   }
                                 >
                                   <Pencil className="mr-2 h-4 w-4" />

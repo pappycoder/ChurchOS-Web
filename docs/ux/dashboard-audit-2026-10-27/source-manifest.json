@@ -1,0 +1,1981 @@
+{
+  "gitHead": "b45f6e3ed0ad667436477eeffe038e720c08a109",
+  "pages": [
+    {
+      "route": "/admin/branches/[branchId]",
+      "file": "src/app/(dashboard)/admin/branches/[branchId]/page.tsx",
+      "lines": 319,
+      "localComponents": [
+        "@/components/ui/button",
+        "@/components/shared/loading-indicator",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/avatar",
+        "@/components/ui/breadcrumb",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/branches/branch-form-dialog",
+        "@/components/branches/delete-branch-dialog"
+      ]
+    },
+    {
+      "route": "/admin/branches",
+      "file": "src/app/(dashboard)/admin/branches/page.tsx",
+      "lines": 577,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-card",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/checkbox",
+        "@/components/ui/skeleton",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/branches/branch-form-dialog",
+        "@/components/branches/delete-branch-dialog"
+      ]
+    },
+    {
+      "route": "/admin/integrations",
+      "file": "src/app/(dashboard)/admin/integrations/page.tsx",
+      "lines": 21,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/settings/integration-settings-tab"
+      ]
+    },
+    {
+      "route": "/admin/roles/[roleName]",
+      "file": "src/app/(dashboard)/admin/roles/[roleName]/page.tsx",
+      "lines": 354,
+      "localComponents": [
+        "@/components/ui/button",
+        "@/components/shared/loading-indicator",
+        "@/components/ui/skeleton",
+        "@/components/ui/badge",
+        "@/components/ui/breadcrumb",
+        "@/components/ui/alert",
+        "@/components/roles/permission-matrix-editor",
+        "@/components/roles/reset-role-dialog"
+      ]
+    },
+    {
+      "route": "/admin/roles",
+      "file": "src/app/(dashboard)/admin/roles/page.tsx",
+      "lines": 240,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/table-card",
+        "@/components/ui/table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/roles/create-role-dialog"
+      ]
+    },
+    {
+      "route": "/admin/settings",
+      "file": "src/app/(dashboard)/admin/settings/page.tsx",
+      "lines": 88,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/tabs",
+        "@/components/ui/badge",
+        "@/components/settings/settings-nav",
+        "@/components/settings/integration-settings-tab",
+        "@/components/settings/general-settings-tab",
+        "@/components/settings/security-settings-tab"
+      ]
+    },
+    {
+      "route": "/admin/users/[profileId]",
+      "file": "src/app/(dashboard)/admin/users/[profileId]/page.tsx",
+      "lines": 116,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/ui/button",
+        "@/components/shared/loading-indicator",
+        "@/components/ui/skeleton",
+        "@/components/ui/breadcrumb",
+        "@/components/users/delete-user-dialog",
+        "@/components/users/user-detail-sidebar",
+        "@/components/users/user-detail-content"
+      ]
+    },
+    {
+      "route": "/admin/users",
+      "file": "src/app/(dashboard)/admin/users/page.tsx",
+      "lines": 498,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-card",
+        "@/components/ui/card",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/select",
+        "@/components/users/user-columns",
+        "@/components/users/user-form-dialog",
+        "@/components/users/delete-user-dialog"
+      ]
+    },
+    {
+      "route": "/analytics/attendance",
+      "file": "src/app/(dashboard)/analytics/attendance/page.tsx",
+      "lines": 152,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/reports/breakdown-bars",
+        "@/components/analytics/analytics-charts",
+        "@/components/shared/loading-indicator"
+      ]
+    },
+    {
+      "route": "/analytics/giving",
+      "file": "src/app/(dashboard)/analytics/giving/page.tsx",
+      "lines": 272,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/reports/report-date-range",
+        "@/components/reports/breakdown-bars",
+        "@/components/analytics/analytics-charts",
+        "@/components/analytics/bars-chart"
+      ]
+    },
+    {
+      "route": "/analytics/members",
+      "file": "src/app/(dashboard)/analytics/members/page.tsx",
+      "lines": 133,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/analytics/analytics-charts",
+        "@/components/analytics/pie-chart",
+        "@/components/analytics/histogram-chart"
+      ]
+    },
+    {
+      "route": "/analytics",
+      "file": "src/app/(dashboard)/analytics/page.tsx",
+      "lines": 131,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/shared/loading-indicator"
+      ]
+    },
+    {
+      "route": "/appointments",
+      "file": "src/app/(dashboard)/appointments/page.tsx",
+      "lines": 441,
+      "localComponents": [
+        "@/components/ui/table",
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/input",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/stats-card",
+        "@/components/shared/table-card",
+        "@/components/shared/archived-filter",
+        "@/components/shared/branch-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/appointments/appointment-form-dialog",
+        "@/components/appointments/appointment-detail-dialog"
+      ]
+    },
+    {
+      "route": "/assets/categories",
+      "file": "src/app/(dashboard)/assets/categories/page.tsx",
+      "lines": 289,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/pastoral/confirm-delete-dialog",
+        "@/components/shared/table-card",
+        "@/components/assets/category-form-dialog"
+      ]
+    },
+    {
+      "route": "/assets/loans",
+      "file": "src/app/(dashboard)/assets/loans/page.tsx",
+      "lines": 219,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/assets/asset-detail-drawer",
+        "@/components/assets/loan-form-dialog",
+        "@/components/assets/return-loan-dialog",
+        "@/components/assets/status-badge"
+      ]
+    },
+    {
+      "route": "/assets/maintenance",
+      "file": "src/app/(dashboard)/assets/maintenance/page.tsx",
+      "lines": 208,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/assets/asset-detail-drawer",
+        "@/components/assets/maintenance-form-dialog",
+        "@/components/assets/status-badge"
+      ]
+    },
+    {
+      "route": "/assets",
+      "file": "src/app/(dashboard)/assets/page.tsx",
+      "lines": 546,
+      "localComponents": [
+        "@/components/shared/content-image",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-pagination",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/select",
+        "@/components/ui/table",
+        "@/components/ui/skeleton",
+        "@/components/pastoral/confirm-delete-dialog",
+        "@/components/assets/asset-form-dialog",
+        "@/components/assets/asset-detail-drawer",
+        "@/components/assets/status-badge",
+        "@/components/shared/export-dropdown"
+      ]
+    },
+    {
+      "route": "/attendance/check-in",
+      "file": "src/app/(dashboard)/attendance/check-in/page.tsx",
+      "lines": 466,
+      "localComponents": [
+        "@/components/attendance/general-attendance-panel",
+        "@/components/attendance/church-attendance-roster",
+        "@/components/shared/permission-link",
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/skeleton",
+        "@/components/ui/select",
+        "@/components/ui/form",
+        "@/components/members/custom-fields-editor"
+      ]
+    },
+    {
+      "route": "/attendance",
+      "file": "src/app/(dashboard)/attendance/page.tsx",
+      "lines": 307,
+      "localComponents": [
+        "@/components/attendance/general-attendance-summary",
+        "@/components/shared/permission-link",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/chart",
+        "@/components/shared/branch-filter"
+      ]
+    },
+    {
+      "route": "/attendance/records",
+      "file": "src/app/(dashboard)/attendance/records/page.tsx",
+      "lines": 392,
+      "localComponents": [
+        "@/components/attendance/general-attendance-panel",
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/shared/export-dropdown",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/select",
+        "@/components/ui/input",
+        "@/components/ui/dropdown-menu"
+      ]
+    },
+    {
+      "route": "/attendance/reports",
+      "file": "src/app/(dashboard)/attendance/reports/page.tsx",
+      "lines": 336,
+      "localComponents": [
+        "@/components/attendance/general-attendance-panel",
+        "@/components/attendance/general-attendance-summary",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/export-dropdown",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/shared/branch-filter",
+        "@/components/ui/skeleton",
+        "@/components/ui/chart"
+      ]
+    },
+    {
+      "route": "/attendance/services/[serviceId]",
+      "file": "src/app/(dashboard)/attendance/services/[serviceId]/page.tsx",
+      "lines": 335,
+      "localComponents": [
+        "@/components/attendance/general-attendance-panel",
+        "@/components/shared/error-state",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/card",
+        "@/components/ui/skeleton",
+        "@/components/ui/chart",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/attendance/services",
+      "file": "src/app/(dashboard)/attendance/services/page.tsx",
+      "lines": 792,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/form",
+        "@/components/ui/input",
+        "@/components/ui/switch",
+        "@/components/ui/select",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/branch-filter",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/communication/broadcasts/new",
+      "file": "src/app/(dashboard)/communication/broadcasts/new/page.tsx",
+      "lines": 369,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/form",
+        "@/components/ui/select",
+        "@/components/ui/input",
+        "@/components/shared/branch-assignment"
+      ]
+    },
+    {
+      "route": "/communication/broadcasts",
+      "file": "src/app/(dashboard)/communication/broadcasts/page.tsx",
+      "lines": 440,
+      "localComponents": [
+        "@/components/communication/broadcast-branch-dialog",
+        "@/components/shared/branch-filter",
+        "@/components/shared/branch-assignment",
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/dropdown-menu"
+      ]
+    },
+    {
+      "route": "/communication/inbox",
+      "file": "src/app/(dashboard)/communication/inbox/page.tsx",
+      "lines": 330,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/page-header",
+        "@/components/ui/avatar",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/email/compose-email-dialog"
+      ]
+    },
+    {
+      "route": "/communication/messages",
+      "file": "src/app/(dashboard)/communication/messages/page.tsx",
+      "lines": 412,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/input",
+        "@/components/ui/textarea"
+      ]
+    },
+    {
+      "route": "/communication/templates",
+      "file": "src/app/(dashboard)/communication/templates/page.tsx",
+      "lines": 557,
+      "localComponents": [
+        "@/components/shared/branch-assignment",
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/branch-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/communication/template-form-dialog"
+      ]
+    },
+    {
+      "route": "/dashboard",
+      "file": "src/app/(dashboard)/dashboard/page.tsx",
+      "lines": 11,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/dashboard/my-dashboard"
+      ]
+    },
+    {
+      "route": "/debug/sentry",
+      "file": "src/app/(dashboard)/debug/sentry/page.tsx",
+      "lines": 184,
+      "localComponents": [
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton"
+      ]
+    },
+    {
+      "route": "/departments/[departmentId]",
+      "file": "src/app/(dashboard)/departments/[departmentId]/page.tsx",
+      "lines": 8,
+      "localComponents": [
+        "@/components/departments/department-detail-content"
+      ]
+    },
+    {
+      "route": "/departments/cell-groups/[groupId]",
+      "file": "src/app/(dashboard)/departments/cell-groups/[groupId]/page.tsx",
+      "lines": 497,
+      "localComponents": [
+        "@/components/attendance/general-attendance-panel",
+        "@/components/departments/meeting-attendance-table",
+        "@/components/giving/cell-group-giving-panel",
+        "@/components/shared/permission-link",
+        "@/components/ui/button",
+        "@/components/shared/loading-indicator",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/breadcrumb",
+        "@/components/departments/cell-group-form-dialog",
+        "@/components/departments/delete-cell-group-dialog",
+        "@/components/departments/cell-group-member-dialog",
+        "@/components/departments/cell-group-attendance-dialog",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/departments/cell-groups",
+      "file": "src/app/(dashboard)/departments/cell-groups/page.tsx",
+      "lines": 388,
+      "localComponents": [
+        "@/components/shared/empty-state",
+        "@/components/shared/permission-link",
+        "@/components/shared/branch-filter",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/departments/cell-group-form-dialog",
+        "@/components/departments/delete-cell-group-dialog"
+      ]
+    },
+    {
+      "route": "/departments",
+      "file": "src/app/(dashboard)/departments/page.tsx",
+      "lines": 379,
+      "localComponents": [
+        "@/components/shared/empty-state",
+        "@/components/shared/permission-link",
+        "@/components/shared/branch-filter",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/badge",
+        "@/components/ui/table",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/departments/department-form-dialog",
+        "@/components/departments/delete-department-dialog"
+      ]
+    },
+    {
+      "route": "/events/[eventId]/edit",
+      "file": "src/app/(dashboard)/events/[eventId]/edit/page.tsx",
+      "lines": 416,
+      "localComponents": [
+        "@/components/shared/branch-assignment",
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/switch",
+        "@/components/ui/skeleton",
+        "@/components/ui/form",
+        "@/components/ui/select"
+      ]
+    },
+    {
+      "route": "/events/[eventId]",
+      "file": "src/app/(dashboard)/events/[eventId]/page.tsx",
+      "lines": 392,
+      "localComponents": [
+        "@/components/shared/branch-assignment",
+        "@/components/attendance/general-attendance-panel",
+        "@/components/events/register-attendee-button",
+        "@/components/shared/error-state",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/shared/url-tabs",
+        "@/components/ui/tabs",
+        "@/components/pastoral/confirm-delete-dialog",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/table-card",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/shared/page-header",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/events/[eventId]/tiers",
+      "file": "src/app/(dashboard)/events/[eventId]/tiers/page.tsx",
+      "lines": 411,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/label",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/dialog",
+        "@/components/ui/table"
+      ]
+    },
+    {
+      "route": "/events/check-in",
+      "file": "src/app/(dashboard)/events/check-in/page.tsx",
+      "lines": 477,
+      "localComponents": [
+        "@/components/attendance/general-attendance-panel",
+        "@/components/attendance/church-attendance-roster",
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/select",
+        "@/components/ui/form"
+      ]
+    },
+    {
+      "route": "/events/list",
+      "file": "src/app/(dashboard)/events/list/page.tsx",
+      "lines": 506,
+      "localComponents": [
+        "@/components/shared/branch-filter",
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/events/management",
+      "file": "src/app/(dashboard)/events/management/page.tsx",
+      "lines": 1269,
+      "localComponents": [
+        "@/components/shared/available-select",
+        "@/components/shared/branch-filter",
+        "@/components/shared/url-tabs",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/label",
+        "@/components/ui/select",
+        "@/components/ui/table",
+        "@/components/ui/skeleton",
+        "@/components/ui/dialog",
+        "@/components/ui/tabs",
+        "@/components/members/member-combobox",
+        "@/components/visitors/visitor-combobox"
+      ]
+    },
+    {
+      "route": "/events/new",
+      "file": "src/app/(dashboard)/events/new/page.tsx",
+      "lines": 358,
+      "localComponents": [
+        "@/components/shared/branch-assignment",
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/switch",
+        "@/components/ui/form",
+        "@/components/ui/select"
+      ]
+    },
+    {
+      "route": "/events",
+      "file": "src/app/(dashboard)/events/page.tsx",
+      "lines": 116,
+      "localComponents": [
+        "@/components/shared/branch-filter",
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/events/calendar-view",
+        "@/components/events/calendar-sidebar",
+        "@/components/events/add-event-modal",
+        "@/components/events/event-detail-modal"
+      ]
+    },
+    {
+      "route": "/events/registrations",
+      "file": "src/app/(dashboard)/events/registrations/page.tsx",
+      "lines": 290,
+      "localComponents": [
+        "@/components/events/register-attendee-button",
+        "@/components/shared/loading-state",
+        "@/components/shared/branch-filter",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/table-card",
+        "@/components/shared/search-input",
+        "@/components/ui/card",
+        "@/components/ui/table",
+        "@/components/ui/select",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton"
+      ]
+    },
+    {
+      "route": "/forms/[formId]/edit",
+      "file": "src/app/(dashboard)/forms/[formId]/edit/page.tsx",
+      "lines": 119,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/forms/form-form",
+        "@/components/ui/button",
+        "@/components/ui/skeleton"
+      ]
+    },
+    {
+      "route": "/forms/[formId]/fill",
+      "file": "src/app/(dashboard)/forms/[formId]/fill/page.tsx",
+      "lines": 252,
+      "localComponents": [
+        "@/components/forms/form-fields-renderer",
+        "@/components/forms/submission-attachments",
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/skeleton"
+      ]
+    },
+    {
+      "route": "/forms/[formId]",
+      "file": "src/app/(dashboard)/forms/[formId]/page.tsx",
+      "lines": 605,
+      "localComponents": [
+        "@/components/shared/branch-assignment",
+        "@/components/forms/submissions-table",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/forms/submission-detail-dialog",
+        "@/components/forms/submission-status-dialog",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/select",
+        "@/components/ui/skeleton",
+        "@/components/shared/empty-state"
+      ]
+    },
+    {
+      "route": "/forms/new",
+      "file": "src/app/(dashboard)/forms/new/page.tsx",
+      "lines": 72,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/forms/form-form",
+        "@/components/ui/button"
+      ]
+    },
+    {
+      "route": "/forms",
+      "file": "src/app/(dashboard)/forms/page.tsx",
+      "lines": 586,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/archived-filter",
+        "@/components/shared/branch-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/ui/button",
+        "@/components/ui/table",
+        "@/components/ui/badge",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/ui/skeleton",
+        "@/components/shared/empty-state",
+        "@/components/ui/dialog"
+      ]
+    },
+    {
+      "route": "/forms/submissions",
+      "file": "src/app/(dashboard)/forms/submissions/page.tsx",
+      "lines": 284,
+      "localComponents": [
+        "@/components/forms/submissions-table",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/forms/submission-detail-dialog",
+        "@/components/forms/submission-status-dialog",
+        "@/components/shared/search-input",
+        "@/components/ui/select",
+        "@/components/ui/skeleton",
+        "@/components/shared/empty-state",
+        "@/components/shared/branch-filter"
+      ]
+    },
+    {
+      "route": "/giving/categories",
+      "file": "src/app/(dashboard)/giving/categories/page.tsx",
+      "lines": 558,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/form",
+        "@/components/ui/table",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/switch",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/giving",
+      "file": "src/app/(dashboard)/giving/page.tsx",
+      "lines": 255,
+      "localComponents": [
+        "@/components/shared/permission-link",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/ui/chart",
+        "@/components/giving/record-cash-dialog",
+        "@/components/ui/select",
+        "@/components/ui/label"
+      ]
+    },
+    {
+      "route": "/giving/records",
+      "file": "src/app/(dashboard)/giving/records/page.tsx",
+      "lines": 450,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/shared/export-dropdown",
+        "@/components/ui/dialog",
+        "@/components/ui/dropdown-menu",
+        "@/components/ui/table",
+        "@/components/ui/select",
+        "@/components/ui/input",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/giving/record-cash-dialog"
+      ]
+    },
+    {
+      "route": "/giving/recurring",
+      "file": "src/app/(dashboard)/giving/recurring/page.tsx",
+      "lines": 332,
+      "localComponents": [
+        "@/components/giving/recurring-giving-dialog",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/select"
+      ]
+    },
+    {
+      "route": "/giving/reports",
+      "file": "src/app/(dashboard)/giving/reports/page.tsx",
+      "lines": 230,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/export-dropdown",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/skeleton",
+        "@/components/ui/chart",
+        "@/components/ui/select"
+      ]
+    },
+    {
+      "route": "/media/folders",
+      "file": "src/app/(dashboard)/media/folders/page.tsx",
+      "lines": 163,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/table"
+      ]
+    },
+    {
+      "route": "/media",
+      "file": "src/app/(dashboard)/media/page.tsx",
+      "lines": 687,
+      "localComponents": [
+        "@/components/shared/content-image",
+        "@/components/shared/media-playback",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-pagination",
+        "@/components/ui/dialog",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/branch-filter"
+      ]
+    },
+    {
+      "route": "/media/upload",
+      "file": "src/app/(dashboard)/media/upload/page.tsx",
+      "lines": 369,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/shared/branch-filter"
+      ]
+    },
+    {
+      "route": "/members/[memberId]",
+      "file": "src/app/(dashboard)/members/[memberId]/page.tsx",
+      "lines": 520,
+      "localComponents": [
+        "@/components/members/live-call-button",
+        "@/components/shared/error-state",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/card",
+        "@/components/shared/table-card",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/members/member-form-dialog",
+        "@/components/members/delete-member-dialog"
+      ]
+    },
+    {
+      "route": "/members/families/[familyId]",
+      "file": "src/app/(dashboard)/members/families/[familyId]/page.tsx",
+      "lines": 331,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/permission-link",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/card",
+        "@/components/shared/table-card",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/families/family-form-dialog",
+        "@/components/families/delete-family-dialog",
+        "@/components/families/add-family-member-dialog",
+        "@/components/families/remove-family-member-dialog"
+      ]
+    },
+    {
+      "route": "/members/families",
+      "file": "src/app/(dashboard)/members/families/page.tsx",
+      "lines": 510,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/export-dropdown",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/avatar",
+        "@/components/ui/badge",
+        "@/components/ui/checkbox",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/families/family-form-dialog",
+        "@/components/shared/table-card",
+        "@/components/families/delete-family-dialog",
+        "@/components/shared/branch-filter"
+      ]
+    },
+    {
+      "route": "/members/import",
+      "file": "src/app/(dashboard)/members/import/page.tsx",
+      "lines": 5,
+      "localComponents": [
+        "@/components/shared/people-import-page"
+      ]
+    },
+    {
+      "route": "/members/new",
+      "file": "src/app/(dashboard)/members/new/page.tsx",
+      "lines": 650,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/switch",
+        "@/components/ui/avatar",
+        "@/components/ui/form",
+        "@/components/ui/select",
+        "@/components/members/family-combobox",
+        "@/components/members/custom-fields-editor"
+      ]
+    },
+    {
+      "route": "/members",
+      "file": "src/app/(dashboard)/members/page.tsx",
+      "lines": 774,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/export-dropdown",
+        "@/components/shared/table-card",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/checkbox",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/members/member-form-dialog",
+        "@/components/members/delete-member-dialog"
+      ]
+    },
+    {
+      "route": "/pastoral/engagement",
+      "file": "src/app/(dashboard)/pastoral/engagement/page.tsx",
+      "lines": 319,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/loading-state",
+        "@/components/shared/page-header",
+        "@/components/shared/loading-indicator",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/table",
+        "@/components/ui/select",
+        "@/components/shared/empty-state",
+        "@/components/shared/search-input",
+        "@/components/shared/stats-card",
+        "@/components/pastoral/member-scoring-dialog"
+      ]
+    },
+    {
+      "route": "/pastoral/life-events",
+      "file": "src/app/(dashboard)/pastoral/life-events/page.tsx",
+      "lines": 419,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/loading-state",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/ui/button",
+        "@/components/ui/table",
+        "@/components/ui/badge",
+        "@/components/ui/switch",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/empty-state",
+        "@/components/pastoral/life-event-form-dialog",
+        "@/components/pastoral/confirm-delete-dialog"
+      ]
+    },
+    {
+      "route": "/pastoral",
+      "file": "src/app/(dashboard)/pastoral/page.tsx",
+      "lines": 398,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/loading-state",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/ui/button",
+        "@/components/ui/table",
+        "@/components/ui/badge",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/empty-state",
+        "@/components/pastoral/note-form-dialog",
+        "@/components/pastoral/confirm-delete-dialog"
+      ]
+    },
+    {
+      "route": "/pastoral/risk-scores",
+      "file": "src/app/(dashboard)/pastoral/risk-scores/page.tsx",
+      "lines": 317,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/loading-state",
+        "@/components/shared/page-header",
+        "@/components/shared/table-card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/table",
+        "@/components/ui/select",
+        "@/components/shared/empty-state",
+        "@/components/shared/search-input",
+        "@/components/pastoral/member-scoring-dialog"
+      ]
+    },
+    {
+      "route": "/profile",
+      "file": "src/app/(dashboard)/profile/page.tsx",
+      "lines": 600,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/shared/recovery-codes-panel",
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/avatar",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/separator",
+        "@/components/ui/skeleton",
+        "@/components/ui/form",
+        "@/components/settings/change-password-dialog"
+      ]
+    },
+    {
+      "route": "/reports",
+      "file": "src/app/(dashboard)/reports/page.tsx",
+      "lines": 536,
+      "localComponents": [
+        "@/components/attendance/general-attendance-summary",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/stats-card",
+        "@/components/ui/card",
+        "@/components/ui/input",
+        "@/components/ui/button",
+        "@/components/ui/label",
+        "@/components/ui/checkbox",
+        "@/components/ui/select",
+        "@/components/reports/report-date-range",
+        "@/components/reports/breakdown-bars",
+        "@/components/shared/loading-indicator"
+      ]
+    },
+    {
+      "route": "/sermons/[sermonId]/edit",
+      "file": "src/app/(dashboard)/sermons/[sermonId]/edit/page.tsx",
+      "lines": 106,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/ui/skeleton",
+        "@/components/sermons/sermon-form"
+      ]
+    },
+    {
+      "route": "/sermons/[sermonId]",
+      "file": "src/app/(dashboard)/sermons/[sermonId]/page.tsx",
+      "lines": 288,
+      "localComponents": [
+        "@/components/shared/media-playback",
+        "@/components/shared/branch-assignment",
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/skeleton",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/sermons/new",
+      "file": "src/app/(dashboard)/sermons/new/page.tsx",
+      "lines": 62,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/button",
+        "@/components/sermons/sermon-form"
+      ]
+    },
+    {
+      "route": "/sermons",
+      "file": "src/app/(dashboard)/sermons/page.tsx",
+      "lines": 510,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/table-card",
+        "@/components/ui/dialog",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/branch-filter",
+        "@/components/shared/archive-confirm-dialog"
+      ]
+    },
+    {
+      "route": "/sermons/series",
+      "file": "src/app/(dashboard)/sermons/series/page.tsx",
+      "lines": 133,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/ui/table",
+        "@/components/ui/badge"
+      ]
+    },
+    {
+      "route": "/sermons/speakers",
+      "file": "src/app/(dashboard)/sermons/speakers/page.tsx",
+      "lines": 134,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/ui/table",
+        "@/components/ui/badge"
+      ]
+    },
+    {
+      "route": "/support",
+      "file": "src/app/(dashboard)/support/page.tsx",
+      "lines": 5,
+      "localComponents": [
+        "@/components/support/support-contact"
+      ]
+    },
+    {
+      "route": "/visitors/[visitorId]",
+      "file": "src/app/(dashboard)/visitors/[visitorId]/page.tsx",
+      "lines": 540,
+      "localComponents": [
+        "@/components/shared/error-state",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/card",
+        "@/components/shared/table-card",
+        "@/components/ui/skeleton",
+        "@/components/ui/table",
+        "@/components/ui/select",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/visitors/visitor-form-dialog",
+        "@/components/visitors/delete-visitor-dialog",
+        "@/components/visitors/convert-visitor-dialog"
+      ]
+    },
+    {
+      "route": "/visitors/follow-up",
+      "file": "src/app/(dashboard)/visitors/follow-up/page.tsx",
+      "lines": 467,
+      "localComponents": [
+        "@/components/shared/visible-data-export",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/search-input",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/skeleton",
+        "@/components/ui/select"
+      ]
+    },
+    {
+      "route": "/visitors/import",
+      "file": "src/app/(dashboard)/visitors/import/page.tsx",
+      "lines": 5,
+      "localComponents": [
+        "@/components/shared/people-import-page"
+      ]
+    },
+    {
+      "route": "/visitors/new",
+      "file": "src/app/(dashboard)/visitors/new/page.tsx",
+      "lines": 434,
+      "localComponents": [
+        "@/components/shared/page-header",
+        "@/components/ui/card",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/textarea",
+        "@/components/ui/form",
+        "@/components/ui/select",
+        "@/components/members/custom-fields-editor"
+      ]
+    },
+    {
+      "route": "/visitors",
+      "file": "src/app/(dashboard)/visitors/page.tsx",
+      "lines": 666,
+      "localComponents": [
+        "@/components/shared/loading-state",
+        "@/components/shared/error-state",
+        "@/components/shared/page-header",
+        "@/components/shared/empty-state",
+        "@/components/shared/table-card",
+        "@/components/shared/stats-card",
+        "@/components/shared/search-input",
+        "@/components/shared/export-dropdown",
+        "@/components/ui/table",
+        "@/components/ui/button",
+        "@/components/ui/badge",
+        "@/components/ui/avatar",
+        "@/components/ui/checkbox",
+        "@/components/ui/select",
+        "@/components/ui/dropdown-menu",
+        "@/components/shared/archived-filter",
+        "@/components/shared/archive-confirm-dialog",
+        "@/components/visitors/visitor-form-dialog",
+        "@/components/visitors/delete-visitor-dialog",
+        "@/components/visitors/convert-visitor-dialog"
+      ]
+    }
+  ],
+  "reviewedSources": [
+    {
+      "file": "src/app/(dashboard)/admin/branches/[branchId]/page.tsx",
+      "lines": 319,
+      "sha256": "f61886aff0fdadf1f21c7208c0de098773ecd9ebcb8f978ea1cd2b5146b8c022"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/branches/page.tsx",
+      "lines": 577,
+      "sha256": "d1dd41fcc0c7d25da7104f1d9b92e659f5ef73756f4e7775b53518cf0859c1e5"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/integrations/page.tsx",
+      "lines": 21,
+      "sha256": "869d4326dc53858dee7042112d5f89d1384fc0f9a270ea0eb09b2ca68be9eecd"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/roles/[roleName]/page.tsx",
+      "lines": 354,
+      "sha256": "037fb0c62be7a31ee4f10be1ef736e2d81c510ad414e7e9bfd195b5032b0742c"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/roles/page.tsx",
+      "lines": 240,
+      "sha256": "eb8fd31674513df49cab138c2938cf5ef8912c6e89b5b54b0c1fc8fbc5e6600d"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/settings/page.tsx",
+      "lines": 88,
+      "sha256": "780168a67978a0d7ed88e1d697d6401c541f9a73de9a5d388f94e24aa7b1e8a3"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/users/[profileId]/page.tsx",
+      "lines": 116,
+      "sha256": "67e4fdc13a4195a4408b637bc8e938c9e05057d4cba5addfdeccdbdc9af7ea89"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/users/page.tsx",
+      "lines": 498,
+      "sha256": "4eac4cbd7415b84bf125255da33ab61c1f7bb06d82f1234bbb67dfcdb5231436"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/attendance/page.tsx",
+      "lines": 152,
+      "sha256": "d1f74d7bf6d7a568a9bc3acd756cb645d2e1106e0c56313b4d7d4fecc61d6401"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/giving/page.tsx",
+      "lines": 272,
+      "sha256": "34acffce13e98b29abe91aa7883009b82d90cf8641dc2957429e97fdf4cf7e79"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/members/page.tsx",
+      "lines": 133,
+      "sha256": "672fe5d55f4e139bd7c7dac09ce629f1152d2652488811d122be916c81727213"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/page.tsx",
+      "lines": 131,
+      "sha256": "50306bb1c5d9aee6eb35db07eeeb10c323c6d4d71f7072f162252f89c041c55e"
+    },
+    {
+      "file": "src/app/(dashboard)/appointments/page.tsx",
+      "lines": 441,
+      "sha256": "09c1b845aa65adf3c98589b1a55dddcedcf439ef305c508c89b81c5a124f6395"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/categories/page.tsx",
+      "lines": 289,
+      "sha256": "04a22e1ea5d484bc7a2e5d0516d4b64e191095d9fa5a0a891ec50966e1887c11"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/loans/page.tsx",
+      "lines": 219,
+      "sha256": "a22978a9f6690690a4262cb8922dad536b166aca9b51a6af4b71d2b53db2c87e"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/maintenance/page.tsx",
+      "lines": 208,
+      "sha256": "0fb1ff2af008f1f7ff772b8a20bd6e2306ff0ca9fefa9d5ffface15ad4938b37"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/page.tsx",
+      "lines": 546,
+      "sha256": "c7335470d20f9280952f985b27cfdb23f39a725eade3b3836d57260381fe137d"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/check-in/page.tsx",
+      "lines": 466,
+      "sha256": "b82376b4a2b4e2bceec11a942501862112b81d3a3a140634462165761cda9c6f"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/page.tsx",
+      "lines": 307,
+      "sha256": "a16a8f8f079a00a6f2cb1d83a60253451297b478f2ba8bcdf3116591f21fa0cd"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/records/page.tsx",
+      "lines": 392,
+      "sha256": "be5c01203864e8882595e3bd758d00a4e11f553adce7b333c6608c69f0de34b4"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/reports/page.tsx",
+      "lines": 336,
+      "sha256": "2afb17d9dc1459415cd2effdb47fb838b1eb8e93e77625046deb378443f6285e"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/services/[serviceId]/page.tsx",
+      "lines": 335,
+      "sha256": "f8c1e5476c54c5530252fd6e32b3512865f7c4c4d888847f4281a602d583708f"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/services/page.tsx",
+      "lines": 792,
+      "sha256": "48fc4d075418bf728d23cb3851c1edebf08d7a41d1ecfb03fa489fe87726774a"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/broadcasts/new/page.tsx",
+      "lines": 369,
+      "sha256": "fc838ef067b2470866a74de82faf336610f3194ab3f1bcf4e24e5d513ef1d2d1"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/broadcasts/page.tsx",
+      "lines": 440,
+      "sha256": "9dbceaad4464f056a65b8e9c7d8c8085ac8a864e1ac24b85b806996b57e1e0a0"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/inbox/page.tsx",
+      "lines": 330,
+      "sha256": "35783c93575b894b0835f896ccd182e042b9ce847bcb3a87fdad44d2a1c3ef35"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/messages/page.tsx",
+      "lines": 412,
+      "sha256": "513bc1b10815cd33def9b25ad64e859b5f7bb929a0265af5bcb917006daeca0b"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/templates/page.tsx",
+      "lines": 557,
+      "sha256": "82daa76e2055ccd14669d16a1b2db60d2620ae378f81962ca0da368de1adca52"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/page.tsx",
+      "lines": 11,
+      "sha256": "1cc110b060deda3893c550cfbe07bd0bb14e935ce5a3526fd3f7cfad83012bfd"
+    },
+    {
+      "file": "src/app/(dashboard)/debug/sentry/page.tsx",
+      "lines": 184,
+      "sha256": "a9978484df311bdef0970aa815a6d6ad2fa5845cdfa7a63a402416f2130ff84c"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/[departmentId]/page.tsx",
+      "lines": 8,
+      "sha256": "c79af3da6f6440b187d9cbf3a17f6c6520445bd293eb5512d17eae02b50504f3"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/cell-groups/[groupId]/page.tsx",
+      "lines": 497,
+      "sha256": "f6a479b101dc058c3c5ffe3ef34b7ffa528d3f723b49f86976f9ed774b71b875"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/cell-groups/page.tsx",
+      "lines": 388,
+      "sha256": "a5d6f9b1fefd886f28f88829f702ef62f7fd617e385c61980d70ce3bcb6c90a6"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/page.tsx",
+      "lines": 379,
+      "sha256": "7c1720d57c284c344e1ddb653c606dec6000201112708290f94e5a680c536041"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/edit/page.tsx",
+      "lines": 416,
+      "sha256": "5b5c6265d5d1b90c9c347b489dfcf2f56f64509299dc96e80cfb244fdc6cd74b"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/page.tsx",
+      "lines": 392,
+      "sha256": "15f9825b0670750fa61a92a6e3020932d7912d260760d979ac7052383c02db02"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/tiers/page.tsx",
+      "lines": 411,
+      "sha256": "15d7ce59724646b28db9dd9175101c937615c6b241a12bda1cabe8c79c76669d"
+    },
+    {
+      "file": "src/app/(dashboard)/events/check-in/page.tsx",
+      "lines": 477,
+      "sha256": "a48c7ea1dddeff05712c4b3d082cf2031c95aca0c1535c3864ea38ddb9e1ff17"
+    },
+    {
+      "file": "src/app/(dashboard)/events/list/page.tsx",
+      "lines": 506,
+      "sha256": "46b9409a1dbc4a8dd95ed6bd11bfb13b302d9f47545198151e448e0aa0ebc3ba"
+    },
+    {
+      "file": "src/app/(dashboard)/events/management/page.tsx",
+      "lines": 1269,
+      "sha256": "89e09ab01e2a050dcdce3898abe5486fe39fea556acd27d9f98f48c298f88572"
+    },
+    {
+      "file": "src/app/(dashboard)/events/new/page.tsx",
+      "lines": 358,
+      "sha256": "ac4844e5891e4408a2ecfaefeb9066f674ad12b40066ae8b83abd6a4c2502ad9"
+    },
+    {
+      "file": "src/app/(dashboard)/events/page.tsx",
+      "lines": 116,
+      "sha256": "23ddb16c30c6f80b4c531f5f9fd0c8f8526eed02a7f85aea26a49183064a8240"
+    },
+    {
+      "file": "src/app/(dashboard)/events/registrations/page.tsx",
+      "lines": 290,
+      "sha256": "b02bcdb3a14ba9f188c834cbfc6dea716f7b81070d31f90aaa8004adf568fa55"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/edit/page.tsx",
+      "lines": 119,
+      "sha256": "250838c91d3efc41e86bfe1102c12002a0da363d85b38891dab0b3ee664220b3"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/fill/page.tsx",
+      "lines": 252,
+      "sha256": "6c14f30a9e87e9256977aaaffaf9987c377c935a2a18cb940b97bcac426d269b"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/page.tsx",
+      "lines": 605,
+      "sha256": "17599a03b25fc1ff900d9e0bbf56adcc275a682abcddde2fc4b49f925963ea8e"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/new/page.tsx",
+      "lines": 72,
+      "sha256": "9200bf3909ddf0fdf0c37994307b321ce8f67e1395495dd8927153754421d8a0"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/page.tsx",
+      "lines": 586,
+      "sha256": "478bfc099baaee7588954030a0017f446161e3a1b776c6612e3e208ef6227242"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/submissions/page.tsx",
+      "lines": 284,
+      "sha256": "d584a9dddd5b559a1607716f29e06cc3a6f2e811f0e975837fe90ef090c0670b"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/categories/page.tsx",
+      "lines": 558,
+      "sha256": "e90d8f1266ec67a3f5259fd322b4d5c8c6ff5ffeb6373f156dd4d3991e30075f"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/page.tsx",
+      "lines": 255,
+      "sha256": "91d632bc4987e20e44a4069d7146fbba796a6c232edb3b18eb1c50970b4cff20"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/records/page.tsx",
+      "lines": 450,
+      "sha256": "fc141776bb480380757aff055279e85ebb931677264b0d7bdf9fda4f8fae3eb6"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/recurring/page.tsx",
+      "lines": 332,
+      "sha256": "ecc4f6380195269dbdabdb4070bc896c0496195ca285a2fee76f87e516597bcc"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/reports/page.tsx",
+      "lines": 230,
+      "sha256": "e980ab82357377721f24cca29b2b71c18c0dbbf0ad46563026d98e8f43430ce7"
+    },
+    {
+      "file": "src/app/(dashboard)/media/folders/page.tsx",
+      "lines": 163,
+      "sha256": "1be581f616975abd136705d5c92f0288c85ffdf6a342871183c4cb9738368095"
+    },
+    {
+      "file": "src/app/(dashboard)/media/page.tsx",
+      "lines": 687,
+      "sha256": "c05abb9cc12f292ced1bd63f76f57913fecf3d599f8821ad234e7d1b1e7b1793"
+    },
+    {
+      "file": "src/app/(dashboard)/media/upload/page.tsx",
+      "lines": 369,
+      "sha256": "de09ba7eb4997516daa4f164d93fb0b4253de355fe032170b1569f7df882d64d"
+    },
+    {
+      "file": "src/app/(dashboard)/members/[memberId]/page.tsx",
+      "lines": 520,
+      "sha256": "fbd16692073b9b47867636dc25a82d796598c4f68a9d105eec5ec8420c909bb6"
+    },
+    {
+      "file": "src/app/(dashboard)/members/families/[familyId]/page.tsx",
+      "lines": 331,
+      "sha256": "7a50d52b49ef0058ddbeae36caf4827ff8be200d18e66a673ab8d703b6f09d13"
+    },
+    {
+      "file": "src/app/(dashboard)/members/families/page.tsx",
+      "lines": 510,
+      "sha256": "bc4a7014f373a3a4441434a4cb3cfa4916ed0b5ace1a885b75c8581018e9fa9a"
+    },
+    {
+      "file": "src/app/(dashboard)/members/import/page.tsx",
+      "lines": 5,
+      "sha256": "ed38eb4674a57077f38e4343935039b59f243c8370173fde0fd96449249d6aac"
+    },
+    {
+      "file": "src/app/(dashboard)/members/new/page.tsx",
+      "lines": 650,
+      "sha256": "49e53165089ba94b7a43bc7827317d5a55cc39b0b4c89fec62cc53e37a53c59a"
+    },
+    {
+      "file": "src/app/(dashboard)/members/page.tsx",
+      "lines": 774,
+      "sha256": "3b5f63555a42759c6bd95099bc1aa816553aa083b0c3435ffc9732e7193bb94d"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/engagement/page.tsx",
+      "lines": 319,
+      "sha256": "64f60e5a50d3f3e934c5710a8ca96e4d80ca99c427715306f7a23cd06a8e3fed"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/life-events/page.tsx",
+      "lines": 419,
+      "sha256": "1e9caab563c45eb2f9b95960195e73c2c443f538b563896394365c3a5d97758a"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/page.tsx",
+      "lines": 398,
+      "sha256": "ddc616a20006be137f952e0d25d7d238a74b1860261c6236cbaf96ea5a8962a7"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/risk-scores/page.tsx",
+      "lines": 317,
+      "sha256": "273a82814b6f256f482c6d7dca2feb56efeb17e271e3434957845319e11f6178"
+    },
+    {
+      "file": "src/app/(dashboard)/profile/page.tsx",
+      "lines": 600,
+      "sha256": "5a67f86041483b2f2d01cca77647faec1c575ca98eb23a9cb08606fcc0296792"
+    },
+    {
+      "file": "src/app/(dashboard)/reports/page.tsx",
+      "lines": 536,
+      "sha256": "39a94ae4f99d493ef7bc272813d892b490c8b5c987670d4792061a8a52d945a0"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/[sermonId]/edit/page.tsx",
+      "lines": 106,
+      "sha256": "d43368970afa6abb5b9667fb77720cad1a769f0b0b11b17cfa98140e208c94ed"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/[sermonId]/page.tsx",
+      "lines": 288,
+      "sha256": "029c4c01a8c58cbabcf4ecde95e482d8a107f5711ff7b6487d74bb29950fd825"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/new/page.tsx",
+      "lines": 62,
+      "sha256": "44d9943777b1c7d7bca92abee8e7957092c060dcb1cac11138a2c8c2a22144c3"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/page.tsx",
+      "lines": 510,
+      "sha256": "e0aa26a6bf417fa749279ed0ab4b2980529fc13ffb4c961983e64dbb20c50c85"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/series/page.tsx",
+      "lines": 133,
+      "sha256": "3efa8ed10a13c69854b54eb0b77c9ed86127b93a639fa447de7778b59ca3c015"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/speakers/page.tsx",
+      "lines": 134,
+      "sha256": "a4f77558773b3e5d238a692f8d9c9c7931ddcd5b7bf47684eb89a40e44666312"
+    },
+    {
+      "file": "src/app/(dashboard)/support/page.tsx",
+      "lines": 5,
+      "sha256": "3ea51ffe8903cf060e94e5b2d98a4c1f610a5cfba853a106b4c12fa4cccaa24c"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/[visitorId]/page.tsx",
+      "lines": 540,
+      "sha256": "d14dac990051d0a7e92ae436a6409224438c993d5526cd6a1b06d7e2cae238a1"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/follow-up/page.tsx",
+      "lines": 467,
+      "sha256": "05c5ddfaa096a2fd979d30509d5289cf9c5738f636a4441abee259f70fb7008a"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/import/page.tsx",
+      "lines": 5,
+      "sha256": "88e976e422d467d2ba5e539f71f3fc445e1820e35d61af26a48e39490c3ec851"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/new/page.tsx",
+      "lines": 434,
+      "sha256": "1cc9a57e8d1212e651a944f9431c5ef306953fc1e0254f2702085ec23fc0507e"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/page.tsx",
+      "lines": 666,
+      "sha256": "89690f3b56b218c57357fdadade539211175caaf127333c07acabea9dfbbf344"
+    },
+    {
+      "file": "src/components/assets/asset-detail-drawer.tsx",
+      "lines": 359,
+      "sha256": "d0836253dd4b0f91dc1591503c3987aec8728c1053a5be5e01db8203f57de439"
+    },
+    {
+      "file": "src/components/assets/asset-form-dialog.tsx",
+      "lines": 647,
+      "sha256": "9c1e61a836788be72154b1d55c5738068a6b00c8e29d4e3b5b7db992a3a5d7ea"
+    },
+    {
+      "file": "src/components/communication/template-form-dialog.tsx",
+      "lines": 319,
+      "sha256": "a148988f914b6d1ee31374bc63acd13b5094e1b46ff57d6244d9d11412d9cbc2"
+    },
+    {
+      "file": "src/components/dashboard/my-dashboard.tsx",
+      "lines": 288,
+      "sha256": "d43281cd40f05f41d2fa0d1ac614870cfc3753c75f75e69dbf4301b91bee4cb4"
+    },
+    {
+      "file": "src/components/departments/department-detail-content.tsx",
+      "lines": 196,
+      "sha256": "b1adccdfbd3a909dddc856d6cc5ac7fda0ee5a1b3f08d92ae97053cd5a169d6c"
+    },
+    {
+      "file": "src/components/forms/form-fields-editor.tsx",
+      "lines": 180,
+      "sha256": "5d295f5a30e74ad74902b2d1560fc521f21567d72110ad557776e66d921a0c7b"
+    },
+    {
+      "file": "src/components/forms/form-form.tsx",
+      "lines": 270,
+      "sha256": "cd50a8827bc52a7a8222218322ce8ec8075b944cf42462c8d91ce522cb941a73"
+    },
+    {
+      "file": "src/components/forms/form-settings-card.tsx",
+      "lines": 142,
+      "sha256": "2113159c010d2d5387830823e91e61db018b687d9530ae60f77357d3d762b6ce"
+    },
+    {
+      "file": "src/components/giving/cell-group-giving-panel.tsx",
+      "lines": 72,
+      "sha256": "9c3e5d30375a3d1d80ef20bd8b9121ff4b5cabf9d7ec57d1fbed5b8e3e3abc95"
+    },
+    {
+      "file": "src/components/layouts/sidebar.tsx",
+      "lines": 639,
+      "sha256": "7a042b61a6636546b66fb06e669dd377cd186833b14e8ebb8b1f37b878a3b8ad"
+    },
+    {
+      "file": "src/components/layouts/workspace-frame.tsx",
+      "lines": 43,
+      "sha256": "2229da62b6168a991283275b8e1a3eac9f7a0eab01fdd5bd3726eddb760b3290"
+    },
+    {
+      "file": "src/components/pastoral/member-scoring-dialog.tsx",
+      "lines": 182,
+      "sha256": "d744e3550b7bcaad2487a7cad443ec9e7af1854eafd29fc0ad75141f6afcc37e"
+    },
+    {
+      "file": "src/components/roles/permission-matrix-editor.tsx",
+      "lines": 142,
+      "sha256": "d46ed924c03b7f9cc7ee2d2e2c2085561e1fd08f70f507d0c76c838429b800c0"
+    },
+    {
+      "file": "src/components/sermons/sermon-form.tsx",
+      "lines": 561,
+      "sha256": "1e66ae9fca5fae2cabf21da757b970ae1db925f93d9d443a29c42e954c2d3bf8"
+    },
+    {
+      "file": "src/components/settings/general-settings-tab.tsx",
+      "lines": 585,
+      "sha256": "d1dc5da1753ff153702cc716dc9ee8b7a2bb39b67a853264aa639ada46d789d1"
+    },
+    {
+      "file": "src/components/settings/integration-settings-tab.tsx",
+      "lines": 121,
+      "sha256": "f548ef629ad0b984bc0cc5afcdc756ada8ea2f0696e1240700fdf9ab7361ca5f"
+    },
+    {
+      "file": "src/components/settings/security-settings-tab.tsx",
+      "lines": 119,
+      "sha256": "9e4207541d0b5b7520bbb818d3d8a026976169087bc44e245252474e771d3e42"
+    },
+    {
+      "file": "src/components/settings/settings-nav.tsx",
+      "lines": 128,
+      "sha256": "93f5edb2b39bed73acc7998440c1a5a302e2983a739e240d588223ed964d4965"
+    },
+    {
+      "file": "src/components/shared/archived-filter.tsx",
+      "lines": 53,
+      "sha256": "19dd9009e78d602b1f8b7f24ad01322c6373880267a30e0c42eaf0fd440deaf1"
+    },
+    {
+      "file": "src/components/shared/page-header.tsx",
+      "lines": 60,
+      "sha256": "72c2600556d24d7eee5b3c10a448f19b24f6357980ffaa6a99d7b6a15bcb9882"
+    },
+    {
+      "file": "src/components/shared/people-import-page.tsx",
+      "lines": 858,
+      "sha256": "6e9b672b758e0ece209007e8d32b8fba8ce6a70cef28709c559c24d0c36ab049"
+    },
+    {
+      "file": "src/components/shared/table-card.tsx",
+      "lines": 89,
+      "sha256": "13577e1d4b0b924cd86f23460ce5753419bcd878838f62b648b84fd0c06dcf5e"
+    },
+    {
+      "file": "src/components/support/support-chat-provider.tsx",
+      "lines": 139,
+      "sha256": "8c87b14f45f6920714aa18e7467d3b52517d2cd3d6557da2f5f1fba7229ba462"
+    },
+    {
+      "file": "src/components/support/support-contact.tsx",
+      "lines": 68,
+      "sha256": "b5b9cffa5571dc95b4a8808f25dc1b39b9d028b8134216f27ddbcefb321b99d5"
+    },
+    {
+      "file": "src/components/ui/card.tsx",
+      "lines": 93,
+      "sha256": "a4e046e96a00f601cc825107d5da370427d729d32d2fc27a1ebd1c2527cfe2dd"
+    },
+    {
+      "file": "src/components/ui/form.tsx",
+      "lines": 185,
+      "sha256": "0f810fec6fa9b39aaa9a0553dde207895ae5d9658caeb16bc1d753a1e9c3165a"
+    },
+    {
+      "file": "src/components/ui/table.tsx",
+      "lines": 392,
+      "sha256": "8b6ac5d19480405966dd8d0d092de46879217f40e8c65a6f558b81152ca98c6a"
+    },
+    {
+      "file": "src/components/users/user-detail-content.tsx",
+      "lines": 615,
+      "sha256": "f9d129f4b0f0c034044c7a69448d9f7debaed9f16d7dc04c2bfc41682d8fb971"
+    },
+    {
+      "file": "src/hooks/use-unsaved-changes.ts",
+      "lines": 23,
+      "sha256": "06ac7e91669e79f329c124a83f1e675535ffcc8d8b47afbcaf239618d585674e"
+    },
+    {
+      "file": "src/lib/plan-features.ts",
+      "lines": 54,
+      "sha256": "4cbccbda7e7e26495cc13171cbc30370ed902396143b284848116fcbbf2fb16e"
+    },
+    {
+      "file": "src/lib/route-permissions.ts",
+      "lines": 168,
+      "sha256": "cc0de003b759b96a103296e28fe9da03b9972e53aabacaf35fbbcd482cd95126"
+    }
+  ]
+}

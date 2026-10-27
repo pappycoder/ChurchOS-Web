@@ -1,4 +1,6 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
@@ -130,6 +132,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
   );
 
   // Branch name → id resolution for the mapped "branch" column.
+  useUnsavedChanges(step !== "upload" && step !== "done");
   const branchIdByName = React.useMemo(() => {
     const map = new Map<string, string>();
     if (currentProfile?.branchId && currentProfile.branch?.name)
@@ -449,7 +452,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
           { label: "Import" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.push(`/${kind}`)}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/${kind}`); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to {plural}
           </Button>
@@ -846,7 +849,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
               <Button variant="outline" onClick={resetAll}>
                 Import Another File
               </Button>
-              <Button onClick={() => router.push(`/${kind}`)}>
+              <Button onClick={() => { if (confirmDiscardChanges()) router.push(`/${kind}`); }}>
                 Go to {plural}
               </Button>
             </div>

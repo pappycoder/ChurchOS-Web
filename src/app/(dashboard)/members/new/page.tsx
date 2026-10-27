@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -231,7 +232,7 @@ export default function AddMemberPage() {
           { label: "Add" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.push("/members")}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/members"); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Members
           </Button>
@@ -624,7 +625,7 @@ export default function AddMemberPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/members")}
+              onClick={() => { if (confirmDiscardChanges()) router.push("/members"); }}
               disabled={saving}
             >
               Cancel

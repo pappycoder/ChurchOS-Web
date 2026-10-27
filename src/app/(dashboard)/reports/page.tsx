@@ -268,21 +268,6 @@ export default function ReportsGeneratorPage() {
     );
   };
 
-  if (anyError) {
-    return (
-      <div>
-        <PageHeader
-          title="Reports"
-          breadcrumbs={[
-            { label: "Home", href: "/dashboard" },
-            { label: "Reports" },
-          ]}
-        />
-        <ErrorState title="Failed to load report data." />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <PageHeader
@@ -295,13 +280,15 @@ export default function ReportsGeneratorPage() {
           <Button
             size="sm"
             onClick={handleGenerate}
-            disabled={blocks.length === 0 || loading || exporting}
+            disabled={blocks.length === 0 || loading || exporting || anyError}
           >
             <Download className="h-4 w-4 mr-2" />
             {exporting ? "Generating…" : `Download ${outputFormat.toUpperCase()}`}
           </Button>
         }
       />
+
+      {anyError && <ErrorState title="Some report data could not be loaded" description="Your report setup is preserved. Retry or change the selected data, branch or dates. Download is available when every selected block has loaded." />}
 
       {/* Step 1 — Choose data blocks */}
       <Card>

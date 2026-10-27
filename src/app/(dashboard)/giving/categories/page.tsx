@@ -246,7 +246,7 @@ export default function GivingCategoriesPage() {
           <div className="flex flex-wrap items-center gap-2">
             <ArchivedFilter
               value={archivedFilter}
-              onChange={setArchivedFilter}
+              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
             />
           </div>
         }

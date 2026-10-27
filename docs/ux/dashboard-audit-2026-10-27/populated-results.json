@@ -1,0 +1,478 @@
+{
+  "scenario": "Synthetic repository fixtures, explicit plan entitlements in the form and read-only fixtures; views may include empty/restricted related panels. No live business mutations.",
+  "results": [
+    {
+      "route": "/forms/form-a",
+      "fixture": "test/browser/forms-tables.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Volunteer application",
+            "Questions in this form",
+            "Access & collection"
+          ],
+          "text": "Volunteer application\nDashboard\nHome\nForms\nVolunteer application\nAll forms\nOpen form\nEdit form\nMore\n\nBranch\n\nChurch-wide\n\nPublished\nWorkspace access only\n\nChoose where you would like to serve on Sundays.\n\nResponses received\n\n2\n\nFor this form\n\nQuestions\n\n4\n\n2 required\n\nResponse capacity\n\n20\n\n18 spaces remaining\n\nLast updated\n\nOct 19, 2026\n\nCreated Oct 19, 2026\n\nQuestions in this form\n\nThe information respondents are asked to provide.\n\n1\n\nFull nameRequired\n\nText\n\n2\n\nEmail addressRequired\n\nEmail\n\n3\n\nPreferred teamsOptional\n\nCheckbox \u00b7 Welcome / Music\n\n4\n\nExperienceOptional\n\nText Area\n\nAccess & collection\nAccepting replies\nOpen\nAudience\nSigned-in workspace users\nUnique answer\nNo unique answer required\n\nA public link is not available for this form.\n\nSubmissions\n2 total\nAll Statuses\nExport\nTable view\nColumn actions\nColumns\n8/8\n\tSubmission reference\tFull name*\tEmail address*\tPreferred teams\tExperience\tStatus\tSource\tSubmitted\tAttachments\tActions\n\n\t\n11111111-1111-4111-8111-111111111111\n\t\nGrace Adeyemi\n\t\ngrace@example.test\n\t\nWelcome, Music\n\t\nI have served on the welcome team for three years.\n\t\nPending\n\t\nPublic\n\t\nOct 19, 2026 11:00 AM\n\t\n0\n\t\n\n\n\t\n22222222-2222-4222-8222-222222222222\n\t\nDavid Okoro\n\t\ndavid@example.test\n\t\nMusic\n\t\nPiano and singing.\n\t\nPending\n\t\nPublic\n\t\nOct 19, 2026 11:00 AM\n\t\n0\n\t\n\nShowing 1\u20132 of 2 submissions\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Volunteer application",
+            "Questions in this form",
+            "Access & collection"
+          ],
+          "text": "Volunteer application\nDashboard\nHome\nForms\nVolunteer application\nAll forms\nOpen form\nEdit form\nMore\n\nBranch\n\nChurch-wide\n\nPublished\nWorkspace access only\n\nChoose where you would like to serve on Sundays.\n\nResponses received\n\n2\n\nFor this form\n\nQuestions\n\n4\n\n2 required\n\nResponse capacity\n\n20\n\n18 spaces remaining\n\nLast updated\n\nOct 19, 2026\n\nCreated Oct 19, 2026\n\nQuestions in this form\n\nThe information respondents are asked to provide.\n\n1\n\nFull nameRequired\n\nText\n\n2\n\nEmail addressRequired\n\nEmail\n\n3\n\nPreferred teamsOptional\n\nCheckbox \u00b7 Welcome / Music\n\n4\n\nExperienceOptional\n\nText Area\n\nAccess & collection\nAccepting replies\nOpen\nAudience\nSigned-in workspace users\nUnique answer\nNo unique answer required\n\nA public link is not available for this form.\n\nSubmissions\n2 total\nAll Statuses\nExport\nTable view\nColumn actions\nColumns\n8/8\n\tSubmission reference\tFull name*\tEmail address*\tPreferred teams\tExperience\tStatus\tSource\tSubmitted\tAttachments\tActions\n\n\t\n11111111-1111-4111-8111-111111111111\n\t\nGrace Adeyemi\n\t\ngrace@example.test\n\t\nWelcome, Music\n\t\nI have served on the welcome team for three years.\n\t\nPending\n\t\nPublic\n\t\nOct 19, 2026 11:00 AM\n\t\n0\n\t\n\n\n\t\n22222222-2222-4222-8222-222222222222\n\t\nDavid Okoro\n\t\ndavid@example.test\n\t\nMusic\n\t\nPiano and singing.\n\t\nPending\n\t\nPublic\n\t\nOct 19, 2026 11:00 AM\n\t\n0\n\t\n\nShowing 1\u20132 of 2 submissions\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Volunteer application",
+            "Questions in this form",
+            "Access & collection"
+          ],
+          "text": "Volunteer application\nDashboard\nHome\nForms\nVolunteer application\nAll forms\nOpen form\nEdit form\nMore\n\nBranch\n\nChurch-wide\n\nPublished\nWorkspace access only\n\nChoose where you would like to serve on Sundays.\n\nResponses received\n\n2\n\nFor this form\n\nQuestions\n\n4\n\n2 required\n\nResponse capacity\n\n20\n\n18 spaces remaining\n\nLast updated\n\nOct 19, 2026\n\nCreated Oct 19, 2026\n\nQuestions in this form\n\nThe information respondents are asked to provide.\n\n1\n\nFull nameRequired\n\nText\n\n2\n\nEmail addressRequired\n\nEmail\n\n3\n\nPreferred teamsOptional\n\nCheckbox \u00b7 Welcome / Music\n\n4\n\nExperienceOptional\n\nText Area\n\nAccess & collection\nAccepting replies\nOpen\nAudience\nSigned-in workspace users\nUnique answer\nNo unique answer required\n\nA public link is not available for this form.\n\nSubmissions\n2 total\nAll Statuses\nExport\nTable view\nColumn actions\nColumns\n8/8\n\tSubmission reference\tFull name*\tEmail address*\tPreferred teams\tExperience\tStatus\tSource\tSubmitted\tAttachments\tActions\n\n\t\n11111111-1111-4111-8111-111111111111\n\t\nGrace Adeyemi\n\t\ngrace@example.test\n\t\nWelcome, Music\n\t\nI have served on the welcome team for three years.\n\t\nPending\n\t\nPublic\n\t\nOct 19, 2026 11:00 AM\n\t\n0\n\t\n\n\n\t\n22222222-2222-4222-8222-222222222222\n\t\nDavid Okoro\n\t\ndavid@example.test\n\t\nMusic\n\t\nPiano and singing.\n\t\nPending\n\t\nPublic\n\t\nOct 19, 2026 11:00 AM\n\t\n0\n\t\n\nShowing 1\u20132 of 2 submissions\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/forms/form-a/edit",
+      "fixture": "test/browser/forms-tables.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Edit: Volunteer application"
+          ],
+          "text": "Edit: Volunteer application\nDashboard\nHome\nForms\nVolunteer application\nEdit\nBack\nForm Details\nName and describe this form.\nBranch\nTitle\nDescription\nFields\nDefine what you want to collect.\nField 1\nLabel\nField Key\nType\nText\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nField 2\nLabel\nField Key\nType\nEmail\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nField 3\nLabel\nField Key\nType\nCheckbox\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nOptions (one per line)\nField 4\nLabel\nField Key\nType\nText Area\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nAdd Field\nSettings\nControl publishing, public sharing, and duplicate-submission protection.\nStatus\nPublished\nDraft\nPublished\nClosed\n\nPublished forms are open to submissions; closed forms reject new submissions.\n\nUnique Field (dedupe)\nNone\nNone\nFull name\nEmail address\n\nWhen set, public submissions with a duplicate value for this field are rejected.\n\nSubmission Limit (0 = unlimited)\nReusable Template\n\nSave this form as a template for cloning.\n\nPublic Submissions\n\nAllow anyone with the share link to submit without signing in.\n\nSave Changes"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Edit: Volunteer application"
+          ],
+          "text": "Edit: Volunteer application\nDashboard\nHome\nForms\nVolunteer application\nEdit\nBack\nForm Details\nName and describe this form.\nBranch\nTitle\nDescription\nFields\nDefine what you want to collect.\nField 1\nLabel\nField Key\nType\nText\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nField 2\nLabel\nField Key\nType\nEmail\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nField 3\nLabel\nField Key\nType\nCheckbox\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nOptions (one per line)\nField 4\nLabel\nField Key\nType\nText Area\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nAdd Field\nSettings\nControl publishing, public sharing, and duplicate-submission protection.\nStatus\nPublished\nDraft\nPublished\nClosed\n\nPublished forms are open to submissions; closed forms reject new submissions.\n\nUnique Field (dedupe)\nNone\nNone\nFull name\nEmail address\n\nWhen set, public submissions with a duplicate value for this field are rejected.\n\nSubmission Limit (0 = unlimited)\nReusable Template\n\nSave this form as a template for cloning.\n\nPublic Submissions\n\nAllow anyone with the share link to submit without signing in.\n\nSave Changes"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Edit: Volunteer application"
+          ],
+          "text": "Edit: Volunteer application\nDashboard\nHome\nForms\nVolunteer application\nEdit\nBack\nForm Details\nName and describe this form.\nBranch\nTitle\nDescription\nFields\nDefine what you want to collect.\nField 1\nLabel\nField Key\nType\nText\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nField 2\nLabel\nField Key\nType\nEmail\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nField 3\nLabel\nField Key\nType\nCheckbox\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nOptions (one per line)\nField 4\nLabel\nField Key\nType\nText Area\nText\nText Area\nNumber\nDate\nDropdown\nCheckbox\nEmail\nPhone\nRequired\nAdd Field\nSettings\nControl publishing, public sharing, and duplicate-submission protection.\nStatus\nPublished\nDraft\nPublished\nClosed\n\nPublished forms are open to submissions; closed forms reject new submissions.\n\nUnique Field (dedupe)\nNone\nNone\nFull name\nEmail address\n\nWhen set, public submissions with a duplicate value for this field are rejected.\n\nSubmission Limit (0 = unlimited)\nReusable Template\n\nSave this form as a template for cloning.\n\nPublic Submissions\n\nAllow anyone with the share link to submit without signing in.\n\nSave Changes"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/forms/form-a/fill",
+      "fixture": "test/browser/forms-tables.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Fill in form",
+            "Volunteer application"
+          ],
+          "text": "Fill in form\nDashboard\nHome\nForms\nVolunteer application\nBack\nVolunteer application\n4 questions\n2 required\nWorkspace form\n\nChoose where you would like to serve on Sundays.\n\nFull name\n*\nEmail address\n*\nPreferred teams\nWelcome\nMusic\nExperience\nAttachments\n(optional)\nAdd files\n\nYour response is linked to your signed-in church account.\n\nSubmit"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Fill in form",
+            "Volunteer application"
+          ],
+          "text": "Fill in form\nDashboard\nHome\nForms\nVolunteer application\nBack\nVolunteer application\n4 questions\n2 required\nWorkspace form\n\nChoose where you would like to serve on Sundays.\n\nFull name\n*\nEmail address\n*\nPreferred teams\nWelcome\nMusic\nExperience\nAttachments\n(optional)\nAdd files\n\nYour response is linked to your signed-in church account.\n\nSubmit"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Fill in form",
+            "Volunteer application"
+          ],
+          "text": "Fill in form\nDashboard\nHome\nForms\nVolunteer application\nBack\nVolunteer application\n4 questions\n2 required\nWorkspace form\n\nChoose where you would like to serve on Sundays.\n\nFull name\n*\nEmail address\n*\nPreferred teams\nWelcome\nMusic\nExperience\nAttachments\n(optional)\nAdd files\n\nYour response is linked to your signed-in church account.\n\nSubmit"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/forms/submissions",
+      "fixture": "test/browser/forms-tables.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Submissions",
+            "Select a form"
+          ],
+          "text": "Submissions\nDashboard\nHome\nForms\nSubmissions\nForm Submissions\nSelect a form to view its submissions\nYour branch\nSelect a form\nAll Statuses\nSelect a form\n\nChoose a form above to view its submissions."
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Submissions",
+            "Select a form"
+          ],
+          "text": "Submissions\nDashboard\nHome\nForms\nSubmissions\nForm Submissions\nSelect a form to view its submissions\nYour branch\nSelect a form\nAll Statuses\nSelect a form\n\nChoose a form above to view its submissions."
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Submissions",
+            "Select a form"
+          ],
+          "text": "Submissions\nDashboard\nHome\nForms\nSubmissions\nForm Submissions\nSelect a form to view its submissions\nYour branch\nSelect a form\nAll Statuses\nSelect a form\n\nChoose a form above to view its submissions."
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/assets",
+      "fixture": "test/browser/read-only-access.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Asset Register",
+            "0",
+            "\u2014",
+            "\u20a6100"
+          ],
+          "text": "Asset Register\nDashboard\nHome\nOperations\nAssets\n\nTotal Assets\n\n0\n\nPurchase Value\n\n\u2014\n\nCurrent Value\n\n\u20a6100\nExport\nAll Assets\nActive\nArchived\nAll Statuses\nAll Conditions\nAll Branches\nTable view\nColumn actions\nColumns\n5/5\n\tAsset\tCategory\tCondition\tStatus\tCurrent Value\tCustodian\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\n\u2014\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\n\u2014\n\t\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Asset Register",
+            "0",
+            "\u2014",
+            "\u20a6100"
+          ],
+          "text": "Asset Register\nDashboard\nHome\nOperations\nAssets\n\nTotal Assets\n\n0\n\nPurchase Value\n\n\u2014\n\nCurrent Value\n\n\u20a6100\nExport\nAll Assets\nActive\nArchived\nAll Statuses\nAll Conditions\nAll Branches\nTable view\nColumn actions\nColumns\n5/5\n\tAsset\tCategory\tCondition\tStatus\tCurrent Value\tCustodian\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\n\u2014\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\n\u2014\n\t\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Asset Register",
+            "0",
+            "\u2014",
+            "\u20a6100"
+          ],
+          "text": "Asset Register\nDashboard\nHome\nOperations\nAssets\n\nTotal Assets\n\n0\n\nPurchase Value\n\n\u2014\n\nCurrent Value\n\n\u20a6100\nExport\nAll Assets\nActive\nArchived\nAll Statuses\nAll Conditions\nAll Branches\nTable view\nColumn actions\nColumns\n5/5\n\tAsset\tCategory\tCondition\tStatus\tCurrent Value\tCustodian\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\n\u2014\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\n\u2014\n\t\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/assets/loans",
+      "fixture": "test/browser/read-only-access.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Asset Loans"
+          ],
+          "text": "Asset Loans\nDashboard\nHome\nOperations\nLoans\nLoan Management\nExport\nTable view\nColumn actions\nColumns\n3/3\n\tAsset\tCondition\tStatus\tCurrent Value\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\nLoan Out\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Asset Loans"
+          ],
+          "text": "Asset Loans\nDashboard\nHome\nOperations\nLoans\nLoan Management\nExport\nTable view\nColumn actions\nColumns\n3/3\n\tAsset\tCondition\tStatus\tCurrent Value\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\nLoan Out\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Asset Loans"
+          ],
+          "text": "Asset Loans\nDashboard\nHome\nOperations\nLoans\nLoan Management\nExport\nTable view\nColumn actions\nColumns\n3/3\n\tAsset\tCondition\tStatus\tCurrent Value\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\nLoan Out\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/assets/maintenance",
+      "fixture": "test/browser/read-only-access.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Asset Maintenance"
+          ],
+          "text": "Asset Maintenance\nDashboard\nHome\nOperations\nMaintenance\nAssets in Maintenance\nExport\nTable view\nColumn actions\nColumns\n3/3\n\tAsset\tCondition\tStatus\tCurrent Value\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\nSchedule\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Asset Maintenance"
+          ],
+          "text": "Asset Maintenance\nDashboard\nHome\nOperations\nMaintenance\nAssets in Maintenance\nExport\nTable view\nColumn actions\nColumns\n3/3\n\tAsset\tCondition\tStatus\tCurrent Value\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\nSchedule\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Asset Maintenance"
+          ],
+          "text": "Asset Maintenance\nDashboard\nHome\nOperations\nMaintenance\nAssets in Maintenance\nExport\nTable view\nColumn actions\nColumns\n3/3\n\tAsset\tCondition\tStatus\tCurrent Value\tActions\n\n\t\n\nRead-only Asset\n\nTEST-001\n\n\t\nGood\n\t\nActive\n\t\n\u20a6100\n\t\nSchedule\n\nShowing 1\u20131 of 1 assets\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/attendance/services/service-a",
+      "fixture": "test/browser/read-only-access.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Read-only Service"
+          ],
+          "text": "Services\nRead-only Service\nAdult\n\nAny day\n\nGeneral Attendance\nExport\nMeeting totals with optional breakdowns. Named attendees are optional details. These are reported separately from individual check-ins. A dash means a breakdown was not supplied.\nFrom\nTo\nAll branches\nTable view\nColumn actions\nColumns\n6/6\n\tDate\tMeeting\tBranch\tTotal attendance\tAdults\tChildren\tMale\tFemale\n\n\t\nNo general attendance recorded for this period.\n0 records \u00b7 Page 1\nPrevious\nNext\n0\n\nTotal Check-Ins\n\n0\n\nMember Check-Ins\n\n0\n\nChildren Check-Ins\n\n0\n\nTotal Giving (\u20a6)\n\nAttendance Breakdown\nWho checked in for this service.\nAdults\n0\nChildren\n0\nMembers\n0\nVisitors / Walk-ins\n0\nGiving Breakdown\nSuccessful gifts recorded against this service.\nNo gifts recorded against this service yet."
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Read-only Service"
+          ],
+          "text": "Services\nRead-only Service\nAdult\n\nAny day\n\nGeneral Attendance\nExport\nMeeting totals with optional breakdowns. Named attendees are optional details. These are reported separately from individual check-ins. A dash means a breakdown was not supplied.\nFrom\nTo\nAll branches\nTable view\nColumn actions\nColumns\n6/6\n\tDate\tMeeting\tBranch\tTotal attendance\tAdults\tChildren\tMale\tFemale\n\n\t\nNo general attendance recorded for this period.\n0 records \u00b7 Page 1\nPrevious\nNext\n0\n\nTotal Check-Ins\n\n0\n\nMember Check-Ins\n\n0\n\nChildren Check-Ins\n\n0\n\nTotal Giving (\u20a6)\n\nAttendance Breakdown\nWho checked in for this service.\nAdults\n0\nChildren\n0\nMembers\n0\nVisitors / Walk-ins\n0\nGiving Breakdown\nSuccessful gifts recorded against this service.\nNo gifts recorded against this service yet."
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Read-only Service"
+          ],
+          "text": "Services\nRead-only Service\nAdult\n\nAny day\n\nGeneral Attendance\nExport\nMeeting totals with optional breakdowns. Named attendees are optional details. These are reported separately from individual check-ins. A dash means a breakdown was not supplied.\nFrom\nTo\nAll branches\nTable view\nColumn actions\nColumns\n6/6\n\tDate\tMeeting\tBranch\tTotal attendance\tAdults\tChildren\tMale\tFemale\n\n\t\nNo general attendance recorded for this period.\n0 records \u00b7 Page 1\nPrevious\nNext\n0\n\nTotal Check-Ins\n\n0\n\nMember Check-Ins\n\n0\n\nChildren Check-Ins\n\n0\n\nTotal Giving (\u20a6)\n\nAttendance Breakdown\nWho checked in for this service.\nAdults\n0\nChildren\n0\nMembers\n0\nVisitors / Walk-ins\n0\nGiving Breakdown\nSuccessful gifts recorded against this service.\nNo gifts recorded against this service yet."
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/admin/users/profile-b",
+      "fixture": "test/browser/read-only-access.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [],
+          "text": "Users\nOther User\nOU\nOther User\nactive\n\nRoles\n\nSecretary\n\nJoined\n\nOctober 1, 2026\n\nAccount Info\nRole & Permissions\nSecurity\nAccount Information\nProfile ID\nprofile-b\nUser ID\nuser-b\nFirst Name\nOther\nLast Name\nUser\nEmail\nNot set\nPhone\nNot set\nBranch\nNone\nStatus\nActive\nCreated\nOct 1, 2026, 01:00 AM\nLast Updated\nOct 1, 2026, 01:00 AM"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [],
+          "text": "Users\nOther User\nOU\nOther User\nactive\n\nRoles\n\nSecretary\n\nJoined\n\nOctober 1, 2026\n\nAccount Info\nRole & Permissions\nSecurity\nAccount Information\nProfile ID\nprofile-b\nUser ID\nuser-b\nFirst Name\nOther\nLast Name\nUser\nEmail\nNot set\nPhone\nNot set\nBranch\nNone\nStatus\nActive\nCreated\nOct 1, 2026, 01:00 AM\nLast Updated\nOct 1, 2026, 01:00 AM"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [],
+          "text": "Users\nOther User\nOU\nOther User\nactive\n\nRoles\n\nSecretary\n\nJoined\n\nOctober 1, 2026\n\nAccount Info\nRole & Permissions\nSecurity\nAccount Information\nProfile ID\nprofile-b\nUser ID\nuser-b\nFirst Name\nOther\nLast Name\nUser\nEmail\nNot set\nPhone\nNot set\nBranch\nNone\nStatus\nActive\nCreated\nOct 1, 2026, 01:00 AM\nLast Updated\nOct 1, 2026, 01:00 AM"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/communication/templates",
+      "fixture": "test/browser/content-branches.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Templates",
+            "1",
+            "1",
+            "0"
+          ],
+          "text": "Templates\nDashboard\nHome\nTemplates\nAdd Template\n\nTotal Templates\n\n1\n\nPublished\n\n1\n\nDrafts\n\n0\nAll branches\nActive\nArchived\nAll Channels\nWhatsApp\nSMS\nEmail\nAll Statuses\nDraft\nPublished\nTable view\nColumn actions\nColumns\n5/5\nName\tChannel\tStatus\tCategory\tVariables\tLanguage\tActions\n\nWelcome Message\n\t\nEmail\n\t\nPublished\n\t\n-\n\t\n-\n\t\nen\n\t\nMore actions\n\nShowing 1\u20131 of 1 templates\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Templates",
+            "1",
+            "1",
+            "0"
+          ],
+          "text": "Templates\nDashboard\nHome\nTemplates\nAdd Template\n\nTotal Templates\n\n1\n\nPublished\n\n1\n\nDrafts\n\n0\nAll branches\nActive\nArchived\nAll Channels\nWhatsApp\nSMS\nEmail\nAll Statuses\nDraft\nPublished\nTable view\nColumn actions\nColumns\n5/5\nName\tChannel\tStatus\tCategory\tVariables\tLanguage\tActions\n\nWelcome Message\n\t\nEmail\n\t\nPublished\n\t\n-\n\t\n-\n\t\nen\n\t\nMore actions\n\nShowing 1\u20131 of 1 templates\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Templates",
+            "1",
+            "1",
+            "0"
+          ],
+          "text": "Templates\nDashboard\nHome\nTemplates\nAdd Template\n\nTotal Templates\n\n1\n\nPublished\n\n1\n\nDrafts\n\n0\nAll branches\nActive\nArchived\nAll Channels\nWhatsApp\nSMS\nEmail\nAll Statuses\nDraft\nPublished\nTable view\nColumn actions\nColumns\n5/5\nName\tChannel\tStatus\tCategory\tVariables\tLanguage\tActions\n\nWelcome Message\n\t\nEmail\n\t\nPublished\n\t\n-\n\t\n-\n\t\nen\n\t\nMore actions\n\nShowing 1\u20131 of 1 templates\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/communication/broadcasts",
+      "fixture": "test/browser/content-branches.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Broadcasts",
+            "1",
+            "0",
+            "1",
+            "0"
+          ],
+          "text": "Broadcasts\nDashboard\nHome\nBroadcasts\nNew Broadcast\n\nTotal Broadcasts\n\n1\n\nSent\n\n0\n\nScheduled\n\n1\n\nFailed\n\n0\nAll branches\nAll Statuses\nDraft\nScheduled\nSending\nSent\nCancelled\nFailed\nAll Channels\nWhatsApp\nSMS\nEmail\nTable view\nColumn actions\nColumns\n5/5\nName\tTemplate\tChannel\tStatus\tSchedule\tRecipients\tActions\n\nSunday Message\n\t\nWelcome Message\n\t\nEmail\n\t\nScheduled\n\t\nOct 24, 2099\n\t\n2\n\t\nMore actions\n\nShowing 1\u20131 of 1 broadcasts\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Broadcasts",
+            "1",
+            "0",
+            "1",
+            "0"
+          ],
+          "text": "Broadcasts\nDashboard\nHome\nBroadcasts\nNew Broadcast\n\nTotal Broadcasts\n\n1\n\nSent\n\n0\n\nScheduled\n\n1\n\nFailed\n\n0\nAll branches\nAll Statuses\nDraft\nScheduled\nSending\nSent\nCancelled\nFailed\nAll Channels\nWhatsApp\nSMS\nEmail\nTable view\nColumn actions\nColumns\n5/5\nName\tTemplate\tChannel\tStatus\tSchedule\tRecipients\tActions\n\nSunday Message\n\t\nWelcome Message\n\t\nEmail\n\t\nScheduled\n\t\nOct 24, 2099\n\t\n2\n\t\nMore actions\n\nShowing 1\u20131 of 1 broadcasts\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Broadcasts",
+            "1",
+            "0",
+            "1",
+            "0"
+          ],
+          "text": "Broadcasts\nDashboard\nHome\nBroadcasts\nNew Broadcast\n\nTotal Broadcasts\n\n1\n\nSent\n\n0\n\nScheduled\n\n1\n\nFailed\n\n0\nAll branches\nAll Statuses\nDraft\nScheduled\nSending\nSent\nCancelled\nFailed\nAll Channels\nWhatsApp\nSMS\nEmail\nTable view\nColumn actions\nColumns\n5/5\nName\tTemplate\tChannel\tStatus\tSchedule\tRecipients\tActions\n\nSunday Message\n\t\nWelcome Message\n\t\nEmail\n\t\nScheduled\n\t\nOct 24, 2099\n\t\n2\n\t\nMore actions\n\nShowing 1\u20131 of 1 broadcasts\n\nRows per page\n15\nPage 1 of 1\nPrevious\nNext"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/communication/broadcasts/new",
+      "fixture": "test/browser/content-branches.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "New Broadcast"
+          ],
+          "text": "New Broadcast\nDashboard\nHome\nBroadcasts\nNew Broadcast\nBack\nBroadcast Details\nBroadcast Name *\n\nA label you use to identify this broadcast.\n\nChannel *\nEmail\nWhatsApp\nSMS\nEmail\nTemplate *\nSelect template\nWelcome Message\n\nOnly published templates for the selected channel are available.\n\nAudience\nMember Status\nAll statuses\nActive\nInactive\nSuspended\nTransferred\nBranch *\nWest Branch\nWest Branch\nEast Branch\nGender\nAll\nMale\nFemale\n\nLeave all filters empty to reach every member with a valid contact for this channel.\n\nSchedule\nSend At (optional)\n\nLeave empty to send immediately.\n\nCancel\nSend Broadcast"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "New Broadcast"
+          ],
+          "text": "New Broadcast\nDashboard\nHome\nBroadcasts\nNew Broadcast\nBack\nBroadcast Details\nBroadcast Name *\n\nA label you use to identify this broadcast.\n\nChannel *\nEmail\nWhatsApp\nSMS\nEmail\nTemplate *\nSelect template\nWelcome Message\n\nOnly published templates for the selected channel are available.\n\nAudience\nMember Status\nAll statuses\nActive\nInactive\nSuspended\nTransferred\nBranch *\nWest Branch\nWest Branch\nEast Branch\nGender\nAll\nMale\nFemale\n\nLeave all filters empty to reach every member with a valid contact for this channel.\n\nSchedule\nSend At (optional)\n\nLeave empty to send immediately.\n\nCancel\nSend Broadcast"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "New Broadcast"
+          ],
+          "text": "New Broadcast\nDashboard\nHome\nBroadcasts\nNew Broadcast\nBack\nBroadcast Details\nBroadcast Name *\n\nA label you use to identify this broadcast.\n\nChannel *\nEmail\nWhatsApp\nSMS\nEmail\nTemplate *\nSelect template\nWelcome Message\n\nOnly published templates for the selected channel are available.\n\nAudience\nMember Status\nAll statuses\nActive\nInactive\nSuspended\nTransferred\nBranch *\nWest Branch\nWest Branch\nEast Branch\nGender\nAll\nMale\nFemale\n\nLeave all filters empty to reach every member with a valid contact for this channel.\n\nSchedule\nSend At (optional)\n\nLeave empty to send immediately.\n\nCancel\nSend Broadcast"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/events",
+      "fixture": "test/browser/content-branches.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Events",
+            "October 2026"
+          ],
+          "text": "Events\nDashboard\nHome\nEvents\nCreate Event\nAll branches\n\nDatepicker\n\nOctober 2026\nSu\nMo\nTu\nWe\nTh\nFr\nSa\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nEvent Types\n\nService\nConference\nLifecycle\nTraining\nSocial\nAttendance Service\n\nUpcoming Events\n\nNo upcoming events.\n\nOctober 2026\nMonth\nWeek\nDay\nToday\nSUN\nMON\nTUE\nWED\nTHU\nFRI\nSAT\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\nCommunity Gathering\n25\n26\n27\n28\n29\n30\n31"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Events",
+            "October 2026"
+          ],
+          "text": "Events\nDashboard\nHome\nEvents\nCreate Event\nAll branches\n\nDatepicker\n\nOctober 2026\nSu\nMo\nTu\nWe\nTh\nFr\nSa\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nEvent Types\n\nService\nConference\nLifecycle\nTraining\nSocial\nAttendance Service\n\nUpcoming Events\n\nNo upcoming events.\n\nOctober 2026\nMonth\nWeek\nDay\nToday\nSUN\nMON\nTUE\nWED\nTHU\nFRI\nSAT\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\nCommunity Gathering\n25\n26\n27\n28\n29\n30\n31"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Events",
+            "October 2026"
+          ],
+          "text": "Events\nDashboard\nHome\nEvents\nCreate Event\nAll branches\n\nDatepicker\n\nOctober 2026\nSu\nMo\nTu\nWe\nTh\nFr\nSa\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nEvent Types\n\nService\nConference\nLifecycle\nTraining\nSocial\nAttendance Service\n\nUpcoming Events\n\nNo upcoming events.\n\nOctober 2026\nMonth\nWeek\nDay\nToday\n24\nSAT\nAdd\n11:00 AM\nCommunity Gathering"
+        }
+      ],
+      "runtimeErrors": []
+    },
+    {
+      "route": "/sermons/sermon",
+      "fixture": "test/browser/content-branches.e2e.ts",
+      "views": [
+        {
+          "width": 1440,
+          "overflow": false,
+          "headings": [
+            "Faith Today"
+          ],
+          "text": "Faith Today\nDashboard\nHome\nSermons\nFaith Today\nBack\nBookmark\nEdit\nArchive\nDetails\n\nBranch\n\nWest Branch\n\nDate\nOctober 24, 2026"
+        },
+        {
+          "width": 768,
+          "overflow": false,
+          "headings": [
+            "Faith Today"
+          ],
+          "text": "Faith Today\nDashboard\nHome\nSermons\nFaith Today\nBack\nBookmark\nEdit\nArchive\nDetails\n\nBranch\n\nWest Branch\n\nDate\nOctober 24, 2026"
+        },
+        {
+          "width": 390,
+          "overflow": false,
+          "headings": [
+            "Faith Today"
+          ],
+          "text": "Faith Today\nDashboard\nHome\nSermons\nFaith Today\nBack\nBookmark\nEdit\nArchive\nDetails\n\nBranch\n\nWest Branch\n\nDate\nOctober 24, 2026"
+        }
+      ],
+      "runtimeErrors": []
+    }
+  ]
+}

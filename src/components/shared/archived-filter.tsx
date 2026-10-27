@@ -25,9 +25,10 @@ export function ArchivedFilter({ value, onChange, onClearSelection }: ArchivedFi
   };
 
   return (
-    <div className="flex items-center rounded-md border bg-muted p-0.5 text-sm">
+    <div role="group" aria-label="Record view" className="flex items-center rounded-md border bg-muted p-0.5 text-sm">
       <button
         type="button"
+        aria-pressed={value === "all"}
         onClick={() => handleChange("all")}
         className={`rounded-sm px-3 py-1.5 font-medium transition-colors ${
           value === "all"
@@ -39,6 +40,7 @@ export function ArchivedFilter({ value, onChange, onClearSelection }: ArchivedFi
       </button>
       <button
         type="button"
+        aria-pressed={value === "archived"}
         onClick={() => handleChange("archived")}
         className={`rounded-sm px-3 py-1.5 font-medium transition-colors ${
           value === "archived"

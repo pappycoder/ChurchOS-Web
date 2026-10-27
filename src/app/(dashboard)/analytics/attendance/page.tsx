@@ -1,6 +1,9 @@
 "use client";
 
 
+import { AnalyticsScope } from "@/components/analytics/analytics-scope";
+import type { ReportRange } from "@/components/reports/report-date-range";
+import { useCurrentProfile } from "@/hooks/use-profile";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { CalendarCheck, UserCheck, UserRound, Users } from "lucide-react";
@@ -14,7 +17,10 @@ import { LoadingIndicator } from "@/components/shared/loading-indicator";
 import { useAnalyticsAttendance } from "@/hooks/use-analytics";
 
 export default function AnalyticsAttendancePage() {
-  const query = useAnalyticsAttendance();
+  const {data:profile} = useCurrentProfile();
+  const [range,setRange] = React.useState<ReportRange>({startDate:"",endDate:""});
+  const [branchId,setBranchId] = React.useState("");
+  const query = useAnalyticsAttendance({startDate:range.startDate || undefined,endDate:range.endDate || undefined,branchId:(profile?.isAdminHq ? branchId : profile?.branchId) || undefined}, {enabled:!!profile});
   const data = query.data;
 
   return (
@@ -34,6 +40,8 @@ export default function AnalyticsAttendancePage() {
           </div>
         }
       />
+
+      <AnalyticsScope range={range} onRangeChange={setRange} branchId={branchId} onBranchChange={setBranchId} />
 
       {query.error ? (
         <ErrorState title="Failed to load attendance analytics." />

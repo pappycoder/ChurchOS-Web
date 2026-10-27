@@ -1,5 +1,7 @@
 "use client";
 
+import { useId, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,170 +13,267 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
-import { FIELD_TYPES, FIELD_TYPE_LABELS, type FormField, type FieldType } from "@/hooks/use-forms";
+import {
+  FIELD_TYPES,
+  FIELD_TYPE_LABELS,
+  type FormField,
+  type FieldType,
+} from "@/hooks/use-forms";
 
 export interface FormFieldsEditorProps {
   fields: FormField[];
   onChange: (fields: FormField[]) => void;
   disabled?: boolean;
+  showErrors?: boolean;
 }
 
-function blankField(): FormField {
-  return {
-    key: "",
-    label: "",
-    type: "text",
-    required: false,
-    options: [],
-  };
-}
-
-export function FormFieldsEditor({ fields, onChange, disabled }: FormFieldsEditorProps) {
-  const updateField = (index: number, patch: Partial<FormField>) => {
-    onChange(fields.map((f, i) => (i === index ? { ...f, ...patch } : f)));
-  };
-
-  const addField = () => {
-    onChange([...fields, blankField()]);
-  };
-
-  const removeField = (index: number) => {
-    onChange(fields.filter((_, i) => i !== index));
+export function FormFieldsEditor({
+  fields,
+  onChange,
+  disabled,
+  showErrors = false,
+}: FormFieldsEditorProps) {
+  const id = useId();
+  const [active, setActive] = useState(0);
+  const update = (index: number, patch: Partial<FormField>) =>
+    onChange(
+      fields.map((field, i) => (i === index ? { ...field, ...patch } : field)),
+    );
+  const move = (index: number, offset: number) => {
+    const next = [...fields];
+    [next[index], next[index + offset]] = [next[index + offset], next[index]];
+    onChange(next);
+    setActive(index + offset);
   };
 
   return (
     <div className="space-y-3">
-      {fields.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          No fields yet. Add at least one field to collect responses.
+      <p className="text-sm text-muted-foreground">
+        Choose a question to edit. Use Move up or Move down to change the order.
+      </p>
+      {!fields.length && (
+        <p className="text-sm">
+          Add your first question to start collecting responses.
         </p>
       )}
-
-      {fields.map((field, index) => (
-        <div
-          key={index}
-          className="rounded-md border p-4 space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <GripVertical className="h-4 w-4" />
-              Field {index + 1}
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive"
-              onClick={() => removeField(index)}
-              disabled={disabled}
-              aria-label={`Remove field ${index + 1}`}
-              title="Remove field"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Label</Label>
-              <Input
-                value={field.label}
-                placeholder="e.g. Full Name"
-                onChange={(e) => {
-                  const label = e.target.value;
-                  const nextKey = field.key || makeKey(label);
-                  updateField(index, { label, key: field.key ? field.key : nextKey });
-                }}
-                disabled={disabled}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Field Key</Label>
-              <Input
-                value={field.key}
-                placeholder="e.g. full_name"
-                onChange={(e) => updateField(index, { key: e.target.value })}
-                disabled={disabled}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs">Type</Label>
-              <Select
-                value={field.type}
-                onValueChange={(value) => updateField(index, { type: value as FieldType })}
-                disabled={disabled}
+      {fields.map((field, index) => {
+        const prefix = `${id}-${index}`;
+        const expanded = active === index || showErrors;
+        const duplicate = fields.some(
+          (other, i) => i !== index && other.key === field.key,
+        );
+        const message = !field.label.trim()
+          ? "Label is required"
+          : !field.key
+            ? "Field key is required"
+            : duplicate
+              ? `Duplicate field key "${field.key}"`
+              : (field.type === "dropdown" || field.type === "checkbox") &&
+                  !field.options?.length
+                ? `"${field.label}" needs at least one option`
+                : "";
+        return (
+          <section
+            key={index}
+            className="rounded-lg border"
+            aria-label={`Question ${index + 1}`}
+          >
+            <div className="flex flex-wrap items-center gap-2 p-3">
+              <button
+                type="button"
+                className="flex min-w-0 flex-1 items-center gap-2 rounded-sm text-left text-sm focus-visible:outline-2 focus-visible:outline-ring"
+                aria-expanded={expanded}
+                aria-controls={`${prefix}-editor`}
+                onClick={() => setActive(active === index ? -1 : index)}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FIELD_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {FIELD_TYPE_LABELS[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Required</Label>
-              <div className="flex h-9 items-center">
-                <Switch
-                  checked={!!field.required}
-                  onCheckedChange={(checked) => updateField(index, { required: checked })}
+                <span className="text-muted-foreground">{index + 1}.</span>
+                <span className="min-w-0 flex-1 break-words font-medium">
+                  {field.label || "New question"}
+                </span>
+                <ChevronDown className="size-4 shrink-0" />
+              </button>
+              <span className="text-xs text-muted-foreground">
+                {FIELD_TYPE_LABELS[field.type]}
+                {field.required ? " · Required" : ""}
+              </span>
+              <div className="flex items-center">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Move question ${index + 1} up`}
+                  disabled={disabled || index === 0}
+                  onClick={() => move(index, -1)}
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  aria-label={`Move question ${index + 1} down`}
+                  disabled={disabled || index === fields.length - 1}
+                  onClick={() => move(index, 1)}
+                >
+                  <ArrowDown className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="text-destructive"
+                  aria-label={`Remove field ${index + 1}`}
                   disabled={disabled}
-                />
+                  onClick={() => {
+                    onChange(fields.filter((_, i) => i !== index));
+                    setActive(Math.max(0, index - 1));
+                  }}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
               </div>
             </div>
-          </div>
-
-          {(field.type === "dropdown" || field.type === "checkbox") && (
-            <div className="space-y-1.5">
-              <Label className="text-xs">
-                Options (one per line)
-              </Label>
-              <textarea
-                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                value={(field.options ?? []).join("\n")}
-                placeholder={"Option 1\nOption 2"}
-                onChange={(e) =>
-                  updateField(index, {
-                    options: e.target.value
-                      .split("\n")
-                      .map((o) => o.trim())
-                      .filter(Boolean),
-                  })
-                }
-                disabled={disabled}
-              />
-            </div>
-          )}
-        </div>
-      ))}
-
+            {expanded && (
+              <div id={`${prefix}-editor`} className="space-y-4 border-t p-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`${prefix}-label`}>Question label</Label>
+                  <Input
+                    id={`${prefix}-label`}
+                    value={field.label}
+                    disabled={disabled}
+                    aria-invalid={showErrors && !field.label.trim()}
+                    onChange={(event) =>
+                      update(index, {
+                        label: event.target.value,
+                        key: field.key || makeKey(event.target.value),
+                      })
+                    }
+                    placeholder="e.g. Full name"
+                  />
+                </div>
+                <div className="grid items-start gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${prefix}-type`}>Answer type</Label>
+                    <Select
+                      value={field.type}
+                      onValueChange={(value) =>
+                        update(index, { type: value as FieldType })
+                      }
+                      disabled={disabled}
+                    >
+                      <SelectTrigger id={`${prefix}-type`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FIELD_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {FIELD_TYPE_LABELS[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${prefix}-required`}>
+                      Required answer
+                    </Label>
+                    <div className="flex h-9 items-center">
+                      <Switch
+                        id={`${prefix}-required`}
+                        checked={!!field.required}
+                        disabled={disabled}
+                        onCheckedChange={(required) =>
+                          update(index, { required })
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+                {(field.type === "dropdown" || field.type === "checkbox") && (
+                  <div className="space-y-2">
+                    <Label htmlFor={`${prefix}-options`}>
+                      Options (one per line)
+                    </Label>
+                    <textarea
+                      id={`${prefix}-options`}
+                      className="min-h-24 w-full rounded-md border bg-background p-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+                      disabled={disabled}
+                      value={(field.options ?? []).join("\n")}
+                      onChange={(event) =>
+                        update(index, {
+                          options: event.target.value
+                            .split("\n")
+                            .map((option) => option.trim())
+                            .filter(Boolean),
+                        })
+                      }
+                    />
+                  </div>
+                )}
+                <details
+                  open={
+                    showErrors && (!field.key || duplicate) ? true : undefined
+                  }
+                  className="text-sm"
+                >
+                  <summary className="cursor-pointer font-medium">
+                    Advanced: answer identifier
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    <Label htmlFor={`${prefix}-key`}>Field Key</Label>
+                    <Input
+                      id={`${prefix}-key`}
+                      value={field.key}
+                      disabled={disabled}
+                      onChange={(event) =>
+                        update(index, { key: event.target.value })
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Used to identify saved answers. Keep existing identifiers
+                      unchanged when editing a live form.
+                    </p>
+                  </div>
+                </details>
+                {showErrors && message && (
+                  <p role="alert" className="text-sm text-destructive">
+                    {message}
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        );
+      })}
       <Button
         type="button"
         variant="outline"
-        size="sm"
-        onClick={addField}
         disabled={disabled}
+        onClick={() => {
+          onChange([
+            ...fields,
+            {
+              key: `field_${crypto.randomUUID().replaceAll("-", "")}`,
+              label: "",
+              type: "text",
+              required: false,
+              options: [],
+            },
+          ]);
+          setActive(fields.length);
+        }}
       >
-        <Plus className="mr-1 h-4 w-4" />
+        <Plus className="size-4" />
         Add Field
       </Button>
     </div>
   );
 }
 
-function makeKey(label: string): string {
-  const slug = label
+function makeKey(label: string) {
+  return label
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_+|_+$/g, "");
-  return slug || "";
 }

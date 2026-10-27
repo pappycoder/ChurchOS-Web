@@ -229,7 +229,7 @@ function TemplatesListContent() {
               <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
               <ArchivedFilter
                 value={archivedFilter}
-                onChange={setArchivedFilter}
+                onChange={(value) => { setArchivedFilter(value); setPage(1); }}
               />
               <select
                 value={channel}

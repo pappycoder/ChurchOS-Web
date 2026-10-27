@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
@@ -53,7 +53,7 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
           <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
           <AvatarFallback className="text-xl">{getInitials(user.firstName, user.lastName)}</AvatarFallback>
         </Avatar>
-        <CardTitle className="mt-2">{user.firstName} {user.lastName}</CardTitle>
+        <h1 className="mt-2 text-xl font-semibold">{user.firstName} {user.lastName}</h1>
         <div className="flex justify-center gap-2 mt-1">
           <Badge variant={user.status === "active" ? "default" : "destructive"}>
             {user.status}

@@ -14,10 +14,10 @@ import {
   ReportDateRange,
   type ReportRange,
 } from "@/components/reports/report-date-range";
+import { BarsChart } from "@/components/analytics/bars-chart";
 import { BreakdownBars } from "@/components/reports/breakdown-bars";
 import { AnalyticsTrendChart, AnalyticsBars } from "@/components/analytics/analytics-charts";
-import { BarsChart } from "@/components/analytics/bars-chart";
-import { useAnalyticsGiving, formatNaira } from "@/hooks/use-analytics";
+import { useAnalyticsGiving } from "@/hooks/use-analytics";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useCurrentProfile } from "@/hooks/use-profile";
 
@@ -31,6 +31,8 @@ export default function AnalyticsGivingPage() {
   const myBranchName = profile?.branch?.name;
 
   const [range, setRange] = React.useState<ReportRange>({ startDate: "", endDate: "" });
+  const [currency, setCurrency] = React.useState("NGN");
+  const formatNaira = (amount: number) => `${currency} ${amount.toLocaleString("en-NG", {maximumFractionDigits:2})}`;
   const [branchId, setBranchId] = React.useState<string>("");
 
   // For HQ the selected branch (or "" = all) drives the query; for a branch
@@ -39,6 +41,7 @@ export default function AnalyticsGivingPage() {
 
   const query = useAnalyticsGiving(
     {
+      currency,
       startDate: range.startDate || undefined,
       endDate: range.endDate || undefined,
       branchId: effectiveBranchId || undefined,
@@ -74,14 +77,11 @@ export default function AnalyticsGivingPage() {
         }
       />
 
-      {query.error ? (
-        <ErrorState title="Failed to load giving analytics." />
-      ) : (
-        <>
           {/* Filters */}
           <Card>
             <CardContent className="flex flex-wrap items-end gap-4 py-4">
               <ReportDateRange value={range} onChange={setRange} />
+              <label className="space-y-2 text-sm font-medium">Currency<select aria-label="Analytics currency" className="ml-2 h-9 rounded-md border bg-background px-3" value={currency} onChange={event=>setCurrency(event.target.value)}>{["NGN","USD","GBP","EUR","GHS","KES","ZAR","CAD","AUD"].map(code=><option key={code}>{code}</option>)}</select></label>
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium">Branch</Label>
                 {isHq ? (
@@ -117,6 +117,11 @@ export default function AnalyticsGivingPage() {
               </div>
             </CardContent>
           </Card>
+      {query.error ? (
+        <ErrorState title="Failed to load giving analytics." />
+      ) : (
+        <>
+
 
           {/* Stats */}
           <div className="grid gap-4 sm:grid-cols-3">
@@ -153,19 +158,9 @@ export default function AnalyticsGivingPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold">By Category</CardTitle>
-                <CardDescription>Total giving per category (₦).</CardDescription>
+                <CardDescription>Total giving per category ({currency}).</CardDescription>
               </CardHeader>
               <CardContent>
-                <BarsChart
-                  data={(data?.byCategory ?? []).map((c) => ({
-                    label: c.categoryName,
-                    value: c.total,
-                  }))}
-                  loading={loading}
-                  formatValue={formatNaira}
-                  color="var(--chart-1)"
-                  height={240}
-                />
                 <BreakdownBars
                   items={(data?.byCategory ?? []).map((c) => ({
                     name: c.categoryName,

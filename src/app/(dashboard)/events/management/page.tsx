@@ -121,12 +121,12 @@ export default function ManagementPage() {
         )}
 
         {canManageTypes && (
-          <TabsContent value="types">
+          <TabsContent value="types" forceMount className="data-[state=inactive]:hidden">
             <TicketTypesTab />
           </TabsContent>
         )}
 
-        <TabsContent value="assigned">
+        <TabsContent value="assigned" forceMount className="data-[state=inactive]:hidden">
           <AssignedTicketsTab />
         </TabsContent>
       </UrlTabs>

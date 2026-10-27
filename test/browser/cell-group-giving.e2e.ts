@@ -25,7 +25,7 @@ test.beforeEach(async ({ context }, testInfo) => {
       else if (path.endsWith("/attendance-sessions")) data={data:[],meta:{total:0,page:1,limit:20,totalPages:0}};
       else if (path.endsWith("/profiles/me")) data = {
         profileId: "11111111-1111-4111-8111-111111111111", churchId: "22222222-2222-4222-8222-222222222222", branchId, memberId,
-        status: "active", firstName: "Test", lastName: "User", role: [role], isAdminHq: hq, branch: { branchId, name: "Lekki" },
+        planFeatures: ["groups", "giving", "staff_roles", "custom_roles"], status: "active", firstName: "Test", lastName: "User", role: [role], isAdminHq: hq, branch: { branchId, name: "Lekki" },
         permissions: ["cell_groups:read", "cell_groups:giving:read", ...(role === "treasurer" ? [] : ["cell_groups:details:read"]), ...(role === "cell_leader" ? ["cell_groups:own:read", "cell_groups:giving:create", ...(hq ? ["cell_groups:create"] : [])] : [])],
       };
       else if (path.endsWith(`/giving/cell-groups/${groupId}`)) {
@@ -56,7 +56,7 @@ test.beforeEach(async ({ context }, testInfo) => {
 });
 
 test("treasurer sees group giving without requesting members or attendance", async ({ page }) => {
-  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.goto(`/departments/cell-groups/${groupId}?tab=giving`);
   await expect(page.getByText("Meeting Giving", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Record Meeting Giving" })).toHaveCount(0);
   await expect(page.getByText("Members (0)", { exact: true })).toHaveCount(0);
@@ -65,16 +65,18 @@ test("treasurer sees group giving without requesting members or attendance", asy
 });
 
 test("usher sees full cell group data with read-only giving", async ({ page }) => {
-  await page.goto(`/departments/cell-groups/${groupId}`);
-  await expect(page.getByText("Meeting Giving", { exact: true })).toBeVisible();
+  await page.goto(`/departments/cell-groups/${groupId}?tab=giving`);
+  await page.getByRole("tab", {name:"Members",exact:true}).click();
   await expect(page.getByText("Members (0)", { exact: true })).toBeVisible();
+  await page.getByRole("tab", {name:"Giving",exact:true}).click();
+  await expect(page.getByText("Meeting Giving", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Record Meeting Giving" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Add Member" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Record Attendance" })).toHaveCount(0);
 });
 
 test("leader records a combined meeting total and receives duplicate feedback", async ({ page }) => {
-  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.goto(`/departments/cell-groups/${groupId}?tab=giving`);
   const record = async () => {
     await page.getByRole("button", { name: "Record Meeting Giving" }).click();
     const dialog = page.getByRole("dialog");
@@ -100,12 +102,12 @@ test("leader records a combined meeting total and receives duplicate feedback", 
 });
 
 test("hq leader cannot record giving for another group", async ({ page }) => {
-  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.goto(`/departments/cell-groups/${groupId}?tab=giving`);
   await expect(page.getByText("Meeting Giving", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Record Meeting Giving" })).toHaveCount(0);
 });
 test("hq leader can record giving for the group they lead", async ({ page }) => {
-  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.goto(`/departments/cell-groups/${groupId}?tab=giving`);
   await expect(page.getByRole("button", { name: "Record Meeting Giving" })).toBeVisible();
 });
 
@@ -114,7 +116,7 @@ test("hq leader can create cell groups", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Add Cell Group", exact: true })).toBeVisible();
 });
 test("leader attendance filters and exports respect the selected records", async ({ page }) => {
-  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.goto(`/departments/cell-groups/${groupId}?tab=attendance`);
   await page.getByLabel("Cell group attendance status", { exact: true }).selectOption("present");
   await page.getByLabel("Cell group attendance search", { exact: true }).fill("Alice");
   const table = page.getByRole("table", { name: "Cell group attendance", exact: true });
@@ -137,6 +139,6 @@ test("leader giving appears only on the individual cell group page", async ({ pa
     expect(calls.some(path => path.includes("/giving/cell-groups/"))).toBe(false);
     if (path === "/dashboard") expect(calls.some(path => path.includes("/admin/cell-groups"))).toBe(false);
   }
-  await page.goto(`/departments/cell-groups/${groupId}`);
+  await page.goto(`/departments/cell-groups/${groupId}?tab=giving`);
   await expect(page.getByRole("button", { name: "Record Meeting Giving", exact: true })).toBeVisible();
 });

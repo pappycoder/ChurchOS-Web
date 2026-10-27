@@ -221,7 +221,7 @@ export default function GivingRecordsPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
+          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(branchId !== "") + Number(categoryId !== "all") + Number(status !== "all") + Number(type !== "all") + Number(serviceId !== "all") + Number(startDate !== "") + Number(endDate !== "")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setBranchId("");setCategoryId("all");setStatus("all");setType("all");setServiceId("all");setStartDate("");setEndDate("");setPage(1);}}>Reset filters</Button></div><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
           {isAdminHq ? (
           <Select value={branchId || "all"} onValueChange={(v) => { setBranchId(v === "all" ? "" : v); setServiceId("all"); setPage(1); }}>
               <SelectTrigger className="w-full sm:w-44" aria-label="Branch filter"><SelectValue placeholder="All branches" /></SelectTrigger>
@@ -302,7 +302,7 @@ export default function GivingRecordsPage() {
               aria-label="To date"
             />
           </div>
-        </div>
+        </div></div>
         } exportAction={
           <ExportDropdown
               tableId="giving-records"

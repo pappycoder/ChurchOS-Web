@@ -1,4 +1,6 @@
 "use client";
+import { useUrlQueryState } from "@/hooks/use-url-query-state";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { ContentImage } from "@/components/shared/content-image";
 import { MediaPlayback } from "@/components/shared/media-playback";
@@ -6,7 +8,7 @@ import { mediaPlaybackUrl } from "@/lib/media-playback";
 
 import * as React from "react";
 import { Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
@@ -218,11 +220,10 @@ function MediaLibraryContent() {
   const canDelete = can("media:library", "delete");
   const canManage = canUpdate || canDelete;
 
-  const searchParams = useSearchParams();
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [folder, setFolder] = React.useState(searchParams.get("folder") ?? "");
+  const [folder, setFolder] = useUrlQueryState("folder");
   const [kind, setKind] = React.useState<(typeof KIND_FILTERS)[number]["value"]>("all");
   const [permissions, setPermissions] = React.useState<MediaAsset["permissions"] | "">("");
   const [sortBy, setSortBy] = React.useState<MediaSortBy>("created_at");
@@ -352,7 +353,7 @@ function MediaLibraryContent() {
         action={
           <div className="flex flex-wrap items-center gap-2">
             {canCreate && (
-              <Button onClick={() => router.push("/media/upload")}>
+              <Button onClick={() => { if (confirmDiscardChanges()) router.push("/media/upload"); }}>
                 <Plus className="mr-2 h-4 w-4" />
                 Upload File
               </Button>
@@ -455,6 +456,7 @@ function MediaLibraryContent() {
               {sortOrder === "asc" ? "Asc" : "Desc"}
             </Button>
           </div>
+<Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setFolder("");setKind("all");setPermissions("");setBranchId("");setPage(1);}}>Reset filters</Button>
         </CardHeader>
         <CardContent className="p-4">
           {isLoading ? (

@@ -271,7 +271,7 @@ export default function BranchesPage() {
               <div className="flex items-center gap-2 flex-wrap">
                 <ArchivedFilter
                   value={archivedFilter}
-                  onChange={setArchivedFilter}
+                  onChange={(value) => { setArchivedFilter(value); setPage(1); }}
                   onClearSelection={() => setSelectedIds(new Set())}
                 />
                 <SearchInput

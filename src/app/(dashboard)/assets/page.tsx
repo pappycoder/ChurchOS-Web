@@ -36,7 +36,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
 import { toast } from "@/lib/toast";
-import { AssetFormDialog } from "@/components/assets/asset-form-dialog";
+import Link from "next/link";
 import { AssetDetailDrawer } from "@/components/assets/asset-detail-drawer";
 import { StatusBadge } from "@/components/assets/status-badge";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
@@ -88,8 +88,6 @@ export default function AssetsPage() {
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
-  const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
-  const [editAsset, setEditAsset] = React.useState<Asset | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Asset | null>(null);
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -183,29 +181,30 @@ export default function AssetsPage() {
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
-              <Button onClick={() => setCreateDialogOpen(true)}>
+              <Button asChild><Link href="/assets/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Register Asset
-              </Button>
+              </Link></Button>
             )}
           </div>
         }
       />
 
+      {statsQuery.isError && <ErrorState title="Unable to load asset summary" />}
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatsCard
           title="Total Assets"
-          value={statsQuery.isLoading ? "..." : (stats?.totalAssets ?? 0)}
+          value={statsQuery.isError ? "—" : statsQuery.isLoading ? "..." : (stats?.totalAssets ?? 0)}
           icon={<Boxes className="h-4 w-4" />}
         />
         <StatsCard
           title="Purchase Value"
-          value={statsQuery.isLoading ? "..." : formatCurrency(stats?.totalPurchaseValue)}
+          value={statsQuery.isError ? "—" : statsQuery.isLoading ? "..." : formatCurrency(stats?.totalPurchaseValue)}
           icon={<Boxes className="h-4 w-4" />}
         />
         <StatsCard
           title="Current Value"
-          value={statsQuery.isLoading ? "..." : formatCurrency(stats?.totalCurrentValue)}
+          value={statsQuery.isError ? "—" : statsQuery.isLoading ? "..." : formatCurrency(stats?.totalCurrentValue)}
           icon={<Boxes className="h-4 w-4" />}
         />
       </div>
@@ -215,9 +214,9 @@ export default function AssetsPage() {
           <CardTitle>All Assets</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between"><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setConditionFilter("all");setCategoryFilter("all");setBranchFilter("all");setPage(1);}}>Reset filters</Button>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
               <SearchInput
                 value={searchInput}
                 onChange={setSearchInput}
@@ -225,7 +224,7 @@ export default function AssetsPage() {
                 className="sm:w-72"
               />
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <Select
                 value={statusFilter}
                 onValueChange={(v) => {
@@ -429,9 +428,10 @@ export default function AssetsPage() {
                                     size="icon"
                                     variant="ghost"
                                     title="Edit"
-                                    onClick={() => setEditAsset(asset)}
+                                    aria-label={`Edit ${asset.name}`}
+                                    asChild
                                   >
-                                    <Pencil className="h-4 w-4" />
+                                    <Link href={`/assets/${asset.id}/edit`}><Pencil className="h-4 w-4" /></Link>
                                   </Button>
                                 )}
                                 {(canUpdate || canDelete) && (
@@ -482,22 +482,6 @@ export default function AssetsPage() {
         </CardContent>
       </Card>
 
-      {createDialogOpen && (
-        <AssetFormDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          onSaved={(saved) => openDetail(saved)}
-        />
-      )}
-      {editAsset && (
-        <AssetFormDialog
-          open={!!editAsset}
-          onOpenChange={(open) => {
-            if (!open) setEditAsset(null);
-          }}
-          asset={editAsset}
-        />
-      )}
       <ConfirmDeleteDialog
         open={!!deleteTarget}
         onOpenChange={(open) => {

@@ -100,6 +100,7 @@ export interface MemberAnalytics {
 }
 
 export interface AnalyticsDateRangeParams {
+  currency?: string;
   startDate?: string;
   endDate?: string;
   branchId?: string;
@@ -162,11 +163,11 @@ export function useAnalyticsGiving(
   });
 }
 
-export function useAnalyticsAttendance(params: AnalyticsDateRangeParams = {}) {
+export function useAnalyticsAttendance(params: AnalyticsDateRangeParams = {}, options: {enabled?: boolean} = {}) {
   const { can } = usePermissions();
   return useQuery({
     queryKey: ["analytics", "attendance", params],
-    enabled: can("analytics:attendance", "read"),
+    enabled: can("analytics:attendance", "read") && (options.enabled ?? true),
     queryFn: ({ signal }) =>
       api.get<AttendanceAnalytics>(
         `/analytics/attendance${buildQuery(params)}`,

@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -171,11 +172,11 @@ export default function EventTiersPage() {
     return (
       <div className="space-y-4">
         <PageHeader
-          title="Event Not Found"
+          title="Event unavailable"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Events", href: "/events" },
-            { label: "Not Found" },
+            { label: "Unavailable" },
           ]}
         />
       </div>
@@ -194,7 +195,7 @@ export default function EventTiersPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => router.push(`/events/${eventId}`)}>
+            <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${eventId}`); }}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>

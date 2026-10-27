@@ -1,0 +1,52 @@
+{
+  "dashboardRoutes": 84,
+  "viewports": [
+    1440,
+    768,
+    390
+  ],
+  "recoveryObservations": 252,
+  "documentOverflowObservations": 0,
+  "runtimeExceptions": 0,
+  "renderBoundaryFailures": 0,
+  "attemptedDomainWritesDuringRecovery": 0,
+  "populatedObservations": 10,
+  "frontendUnitTests": 440,
+  "apiUnitTests": 102,
+  "browserScenarios": {
+    "completedDistinct": 66,
+    "runs": {
+      "dashboardTableEventReadOnlySuite": 56,
+      "groupFinancialAndAttendanceScenarios": 8,
+      "memberDraftRetention": 1,
+      "permissionReset": 1
+    },
+    "note": "Inherited-grant locking was also rerun with the final role-reset correction; duplicate passes are not added to this count."
+  },
+  "sourceContracts": {
+    "counts": {
+      "pages": 99,
+      "dashboardPages": 84,
+      "links": 502,
+      "controls": 874,
+      "navigation": 60,
+      "dynamicDestinations": 25
+    },
+    "issues": []
+  },
+  "limitations": [
+    "Synthetic domain read failures do not establish live-data correctness.",
+    "Populated views are selected examples, not exhaustive coverage of every role and record size.",
+    "Fixtures may show a subscription-renewal notice because no live billing state is used.",
+    "No live writes, messages, deployment or database migration."
+  ],
+  "builds": {
+    "webProduction": "passed",
+    "apiProduction": "passed",
+    "frontendTypeScript": "passed",
+    "frontendLint": "passed",
+    "targetedApiLint": "passed",
+    "diffChecks": "passed"
+  },
+  "verificationSequence": "The 84-route sweep and populated captures were followed by a targeted role-reset correction and browser recheck. The correction does not change the unavailable-record layout used by the sweep."
+}

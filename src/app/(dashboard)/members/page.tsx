@@ -1,4 +1,6 @@
 "use client";
+import Link from "next/link";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -315,9 +317,9 @@ export default function MembersPage() {
                   onClick={() => setCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Quick Add
+                  Quick Add (basic details)
                 </Button>
-                <Button onClick={() => router.push("/members/new")}>
+                <Button onClick={() => { if (confirmDiscardChanges()) router.push("/members/new"); }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Member
                 </Button>
@@ -362,10 +364,11 @@ export default function MembersPage() {
         }}
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div role="group" aria-label="Member filters" className="flex items-center gap-2 flex-wrap">
+              <Button variant="ghost" size="sm" onClick={() => {setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setBranchFilter("all");setSortBy("first_name");setSortOrder("asc");setPage(1);setSelectedIds(new Set());}}>Reset filters</Button>
               <ArchivedFilter
                 value={archivedFilter}
-                onChange={setArchivedFilter}
+                onChange={(value) => { setArchivedFilter(value); setPage(1); }}
                 onClearSelection={() => setSelectedIds(new Set())}
               />
               <SearchInput
@@ -566,9 +569,9 @@ export default function MembersPage() {
                           <AvatarFallback>{getInitials(member)}</AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="font-medium truncate">
+                          <Link href={`/members/${member.memberId}`} onClick={event => event.stopPropagation()} className="block font-medium underline underline-offset-4">
                             {member.firstName} {member.lastName}
-                          </p>
+                          </Link>
                           {member.email && (
                             <p className="text-xs text-muted-foreground truncate">
                               {member.email}

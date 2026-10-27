@@ -1,12 +1,14 @@
 "use client";
+import Link from "next/link";
+import { usePermissions } from "@/hooks/use-permissions";
+import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
-import { Bell, CalendarDays, ChevronRight, Church, History, Mail, MapPin, Phone, ShieldCheck, Sparkles } from "lucide-react";
+import { Bell, ChevronRight, History, Mail, ShieldCheck, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
 import { useMyAuditLogs, auditEntryLabel } from "@/hooks/use-audit-logs";
@@ -23,13 +25,6 @@ import { NotificationDetailDialog } from "@/components/notifications/notificatio
 
 function getInitials(firstName?: string, lastName?: string): string {
   return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
-}
-
-function formatDate(value?: string): string {
-  if (!value) return "—";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-NG", { year: "numeric", month: "long", day: "numeric" });
 }
 
 function InfoRow({
@@ -54,6 +49,7 @@ function InfoRow({
 
 export function MyDashboard() {
   const profile = useCurrentProfile();
+  const {canAny} = usePermissions();
   const labels = useRoleLabelMap();
   const auditLogs = useMyAuditLogs({ limit: 8 });
   const notifications = useNotificationsList({
@@ -72,6 +68,7 @@ export function MyDashboard() {
     setSelected(n);
   };
 
+  if (profile.error) return <ErrorState title="Unable to load your dashboard" />;
   if (profile.isLoading || !profile.data) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -96,8 +93,7 @@ export function MyDashboard() {
             Welcome back, {firstName}!
           </CardTitle>
           <CardDescription>
-            This is your personal dashboard. Here’s a snapshot of your account and church
-            information.
+            {p.church?.name} · {p.branch?.name ?? "Your permitted branches"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,44 +118,14 @@ export function MyDashboard() {
             </div>
           </div>
 
-          <Separator className="my-4" />
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={p.email} />
-            <InfoRow icon={<Phone className="h-4 w-4" />} label="Phone" value={p.phone} />
-            <InfoRow icon={<CalendarDays className="h-4 w-4" />} label="Member since" value={formatDate(p.createdAt)} />
-            <InfoRow icon={<Church className="h-4 w-4" />} label="Church" value={p.church?.name} />
-            <InfoRow
-              icon={<MapPin className="h-4 w-4" />}
-              label="Branch"
-              value={
-                p.branch ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    {p.branch.name}
-                    {p.branch.isHeadquarters && (
-                      <Badge variant="outline" className="text-[10px]">
-                        HQ
-                      </Badge>
-                    )}
-                  </span>
-                ) : (
-                  "—"
-                )
-              }
-            />
-            {p.isAdminHq ? (
-              <InfoRow
-                icon={<ShieldCheck className="h-4 w-4" />}
-                label="Access"
-                value={<Badge variant="outline">Admin HQ</Badge>}
-              />
-            ) : (
-              <InfoRow icon={<ShieldCheck className="h-4 w-4" />} label="Access" value="Branch-scoped" />
-            )}
-          </div>
+          <details className="mt-4"><summary className="cursor-pointer text-sm font-medium">Account and access details</summary><div className="grid gap-4 sm:grid-cols-2"><InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={p.email}/><InfoRow icon={<ShieldCheck className="h-4 w-4" />} label="Access" value={p.isAdminHq ? "HQ · permitted branches" : "Your branch"}/></div><Link className="text-sm underline" href="/profile">Open profile</Link></details>
         </CardContent>
       </Card>
 
+      <nav aria-label="Common tasks" className="flex flex-wrap gap-3 rounded-lg border p-4">
+        {[["members:all:read","/members","Find a member"],["attendance:checkin:read","/attendance/check-in","Check in attendees"],["visitors:list:read","/visitors","Follow up visitors"],["events:list:read","/events/list","View events"],["forms:read","/forms","Open forms"]].filter(([permission])=>canAny(permission)).map(([,href,label])=><Button key={href} asChild variant="outline"><Link href={href}>{label}</Link></Button>)}
+        <Button variant="ghost" asChild><Link href="/profile">My profile</Link></Button>
+      </nav>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
@@ -169,7 +135,7 @@ export function MyDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {auditLogs.isLoading ? (
+            {auditLogs.isError ? <ErrorState title="Unable to load account activity" /> : auditLogs.isLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
@@ -211,7 +177,7 @@ export function MyDashboard() {
             </div>
           </CardHeader>
           <CardContent className="flex-1">
-            {notifications.isLoading ? (
+            {notifications.isError ? <ErrorState title="Unable to load notifications" /> : notifications.isLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />

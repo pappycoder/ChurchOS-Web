@@ -1,4 +1,8 @@
 "use client";
+import { RecordActions } from "@/components/shared/record-actions";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import * as React from "react";
@@ -198,7 +202,7 @@ export default function CellGroupDetailPage({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-2xl font-semibold">{group.name}</h2>
+                  <h1 className="text-2xl font-semibold">{group.name}</h1>
                   {group.branchName && (
                     <Badge variant="secondary">{group.branchName}</Badge>
                   )}
@@ -242,7 +246,7 @@ export default function CellGroupDetailPage({
                   <span>Added {formatDate(group.createdAt)}</span>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <RecordActions>
                 {group.archivedAt ? (
                   <>
                     {canUpdate && (
@@ -279,13 +283,9 @@ export default function CellGroupDetailPage({
                     )}
                   </>
                 )}
-              </div>
+              </RecordActions>
             </div>
           </div>
-
-          {canAny("cell_groups:giving:read") && (
-            <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} />
-          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-lg border p-4 bg-muted/50">
@@ -302,8 +302,9 @@ export default function CellGroupDetailPage({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
+          <UrlTabs defaultValue="members" values={["members", "attendance", "location", ...(canAny("cell_groups:giving:read") ? ["giving"] : [])]}>
+            <TabsList aria-label="Cell group workspace"><TabsTrigger value="members">Members</TabsTrigger><TabsTrigger value="attendance">Attendance</TabsTrigger>{canAny("cell_groups:giving:read") && <TabsTrigger value="giving">Giving</TabsTrigger>}<TabsTrigger value="location">Location</TabsTrigger></TabsList>
+<TabsContent value="members" forceMount className="space-y-4 data-[state=inactive]:hidden">
               <section className="rounded-lg border">
                 <div className="flex items-center justify-between px-4 py-3 border-b">
                   <p className="text-sm font-medium flex items-center gap-2">
@@ -355,6 +356,8 @@ export default function CellGroupDetailPage({
                 )}
               </section>
 
+
+</TabsContent><TabsContent value="attendance" forceMount className="space-y-4 data-[state=inactive]:hidden">
               <GeneralAttendancePanel
                 context={{
                   type: "cell_group",
@@ -384,8 +387,14 @@ export default function CellGroupDetailPage({
                   ) : undefined
                 }
               />
-            </div>
 
+</TabsContent><TabsContent value="giving" forceMount className="space-y-4 data-[state=inactive]:hidden">
+          {canAny("cell_groups:giving:read") && (
+            <CellGroupGivingPanel groupId={groupId} archived={!!group.archivedAt} />
+          )}
+
+
+</TabsContent><TabsContent value="location" forceMount className="space-y-4 data-[state=inactive]:hidden">
             <div className="space-y-6">
               <section className="rounded-lg border">
                 <div className="flex items-center justify-between px-4 py-3 border-b">
@@ -437,7 +446,9 @@ export default function CellGroupDetailPage({
                 records.
               </div>
             </div>
-          </div>
+
+</TabsContent>
+</UrlTabs>
         </>
       )}
 

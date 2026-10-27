@@ -1,0 +1,38 @@
+{
+  "scope": "Dashboard routes only",
+  "expectedPageRoutes": 81,
+  "sourceReviewRows": 81,
+  "recoveryRoutePatternsVisited": 81,
+  "recoveryViewportObservations": 243,
+  "recoveryPageExceptions": 0,
+  "recoveryBlockedWriteAttempts": 0,
+  "expectedProduction404": [
+    "/debug/sentry"
+  ],
+  "overflowObservations": [
+    {
+      "route": "/assets",
+      "viewportWidth": 768,
+      "documentWidth": 775
+    },
+    {
+      "route": "/events/registrations",
+      "viewportWidth": 768,
+      "documentWidth": 823
+    }
+  ],
+  "selectedPopulatedRouteExamples": 14,
+  "selectedPopulatedViewportObservations": 42,
+  "sourceContractAuditIssues": [],
+  "notes": [
+    "Read-only controlled local browser audits, not assertions of correct live business data or every interaction.",
+    "No application implementation, build or unit-test changes in this audit pass."
+  ],
+  "reviewPriorityCounts": {
+    "P2": 30,
+    "P1": 44,
+    "P3": 7
+  },
+  "reviewedSourceFileCount": 112,
+  "completenessValidation": "PASS: exact 81-route agreement across source census, Markdown, CSV and JSON; anchors, source hashes and linked artifacts verified."
+}

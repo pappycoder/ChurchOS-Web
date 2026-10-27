@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext } from "@playwright/test";
+import { expect, test, type Page, type BrowserContext } from "@playwright/test";
 
 async function session(
   context: BrowserContext,
@@ -128,6 +128,7 @@ async function session(
             status: "active",
             firstName: "Grace",
             lastName: "Reader",
+            planFeatures: ["forms", "assets", "staff_roles", "custom_roles"],
             permissions: [
               "forms:list:read",
               "members:all:read",
@@ -189,6 +190,12 @@ async function session(
   );
 }
 
+async function openTableOption(page: Page, name: string) {
+  const option = page.getByRole("button", { name, exact: true });
+  if (!(await option.isVisible())) await page.getByRole("button", { name: "Table options", exact: true }).click();
+  await option.click();
+}
+
 const responseId = "11111111-1111-4111-8111-111111111111";
 
 test("form detail shows its own questions, metadata and distinct answer columns", async ({
@@ -201,7 +208,9 @@ test("form detail shows its own questions, metadata and distinct answer columns"
     page.getByRole("heading", { name: "Volunteer application", exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Choose where you would like to serve on Sundays.")).toBeVisible();
+  await page.getByRole("tab", { name: "Questions & access" }).click();
   await expect(page.getByRole("heading", { name: "Questions in this form" })).toBeVisible();
+  await page.getByRole("tab", { name: "Responses", exact: true }).click();
   const table = page.getByRole("table", { name: "Volunteer application submissions" });
   await expect(
     table.getByRole("columnheader", { name: "Submission reference", exact: true }),
@@ -243,7 +252,7 @@ test("the first two identifiers remain aligned when scrolling, resizing and hidi
       ),
     )
     .toEqual(before.map(Math.round));
-  await page.getByRole("button", { name: "Choose visible columns" }).click();
+  await openTableOption(page, "Choose visible columns");
   await page.getByRole("menuitemcheckbox", { name: "Source", exact: true }).click();
   await page.keyboard.press("Escape");
   await expect(table.getByRole("columnheader", { name: "Source", exact: true })).toBeHidden();
@@ -413,7 +422,7 @@ test("pinned separator appears only after horizontal scrolling and clears at the
     .poll(() => divider.evaluate((element) => getComputedStyle(element).boxShadow))
     .toBe("none");
   await page.setViewportSize({ width: 1600, height: 1000 });
-  await page.getByRole("button", { name: "Column actions", exact: true }).click();
+  await openTableOption(page, "Column actions");
   await page.getByRole("button", { name: "Select all columns", exact: true }).click();
   await page.getByRole("button", { name: "Hide selected", exact: true }).click();
   await page.keyboard.press("Escape");
@@ -444,7 +453,7 @@ test("row and column compaction preserve numeric/currency widths and full header
   const moneyWidth = (await amount.boundingBox())!.width;
   const firstRow = table.locator("tbody tr").first();
   const rowHeight = (await firstRow.boundingBox())!.height;
-  await page.getByRole("button", { name: "Table view", exact: true }).click();
+  await openTableOption(page, "Table view");
   await page.getByRole("button", { name: "Compact rows", exact: true }).click();
   await page.getByRole("button", { name: "Compact columns", exact: true }).click();
   await page.keyboard.press("Escape");
@@ -461,7 +470,7 @@ test("row and column compaction preserve numeric/currency widths and full header
   );
   expect((await quantity.boundingBox())!.height).toBe(initial.height);
   await expect(table.getByRole("cell", { name: "₦12,345.67", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Table view", exact: true }).click();
+  await openTableOption(page, "Table view");
   await page.getByRole("button", { name: "Comfortable rows", exact: true }).click();
   await page.getByRole("button", { name: "Expand columns", exact: true }).click();
   await page.keyboard.press("Escape");
@@ -476,7 +485,7 @@ test("multiple columns can be compacted, hidden, shown and expanded together", a
   await session(context);
   await page.goto("/forms/form-a");
   const table = page.getByRole("table", { name: "Volunteer application submissions" });
-  await page.getByRole("button", { name: "Column actions", exact: true }).click();
+  await openTableOption(page, "Column actions");
   await page.getByRole("checkbox", { name: "Select column Preferred teams", exact: true }).check();
   await page.getByRole("checkbox", { name: "Select column Experience", exact: true }).check();
   await page.getByRole("button", { name: "Compact selected", exact: true }).click();

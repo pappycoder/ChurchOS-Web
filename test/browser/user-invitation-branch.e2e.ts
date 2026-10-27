@@ -44,7 +44,7 @@ for (const hq of [true, false]) {
     if (!hq) await page.setViewportSize({ width: 390, height: 844 });
     await fixture(context, hq);
     await page.goto('/admin/users');
-    await page.getByRole('button', { name: 'Add User', exact: true }).click();
+    await page.getByRole('button', { name: 'Invite User', exact: true }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.getByText('Admin HQ Access', { exact: true })).toHaveCount(0);
     await expect(dialog.getByRole('switch')).toHaveCount(0);
@@ -90,7 +90,7 @@ for (const plan of ['essentials', 'community', 'network']) {
     await expect(page.getByRole('heading', { name: 'Roles & Permissions', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Add Role', exact: true })).toHaveCount(plan === 'network' ? 1 : 0);
     await page.goto('/admin/users');
-    await page.getByRole('button', { name: 'Add User', exact: true }).click();
+    await page.getByRole('button', { name: 'Invite User', exact: true }).click();
     await page.getByRole('dialog').getByRole('combobox', { name: 'Role', exact: true }).click();
     await expect(page.getByRole('option')).toHaveCount(plan === 'essentials' ? 3 : plan === 'community' ? 8 : 9);
     await expect(page.getByRole('option', { name: 'Secretary', exact: true })).toBeVisible();

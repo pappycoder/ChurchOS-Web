@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FormFieldsRenderer } from "./form-fields-renderer";
 import { FormFieldsEditor } from "./form-fields-editor";
 import { FormSettingsCard } from "./form-settings-card";
 import {
@@ -105,7 +106,7 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
   });
 
   useEffect(() => {
-    if (form) {
+    if (form && !formControl.formState.isDirty) {
       formControl.reset({
         title: form.title,
         description: form.description ?? "",
@@ -132,11 +133,11 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
     uniqueField?: string;
     submissionLimit?: number;
   }) => {
-    formControl.setValue("status", values.status ?? "draft");
-    formControl.setValue("isTemplate", values.isTemplate ?? false);
-    formControl.setValue("isPublic", values.isPublic ?? false);
-    formControl.setValue("uniqueField", values.uniqueField);
-    formControl.setValue("submissionLimit", values.submissionLimit ?? 0);
+    formControl.setValue("status", values.status ?? "draft", { shouldDirty: true });
+    formControl.setValue("isTemplate", values.isTemplate ?? false, { shouldDirty: true });
+    formControl.setValue("isPublic", values.isPublic ?? false, { shouldDirty: true });
+    formControl.setValue("uniqueField", values.uniqueField, { shouldDirty: true });
+    formControl.setValue("submissionLimit", values.submissionLimit ?? 0, { shouldDirty: true });
   };
 
   const handleSubmit = async (values: FormValues) => {
@@ -225,6 +226,7 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
                   <FormControl>
                     <FormFieldsEditor
                       fields={builderFields}
+                      showErrors={!!formControl.formState.errors.fields}
                       onChange={handleFormFieldsChange}
                       disabled={saving}
                     />
@@ -259,6 +261,7 @@ export function FormForm({ form, onSubmit, submitLabel }: FormFormProps) {
           </CardContent>
         </Card>
 
+        <details className="rounded-lg border p-4"><summary className="cursor-pointer font-medium">Preview questions</summary><div className="mt-4 max-w-2xl"><FormFieldsRenderer fields={builderFields} onChange={() => {}} /></div></details>
         <div className="flex items-center justify-end gap-2">
           <Button type="submit" disabled={saving} loading={saving}>
             {saving ? "Saving..." : submitLabel}

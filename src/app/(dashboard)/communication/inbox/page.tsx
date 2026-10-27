@@ -1,4 +1,7 @@
 "use client";
+import { useUrlQueryState } from "@/hooks/use-url-query-state";
+import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
+import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
@@ -67,9 +70,12 @@ function InboxContent() {
   const canUpdate = can("emails", "update");
   const canDelete = can("emails", "delete");
 
-  const [folder, setFolder] = React.useState<Folder>("inbox");
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [folder, setFolder] = useUrlQueryState<Folder>("folder", "inbox", ["inbox", "sent", "trash"]);
   const [page, setPage] = React.useState(1);
-  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [selectedMessage, setSelectedMessage] = useUrlQueryState("messageId");
+  const selectedId = selectedMessage || null;
+  const setSelectedId = (id: string | null) => setSelectedMessage(id ?? "");
   const [composeOpen, setComposeOpen] = React.useState(false);
   const [replyCtx, setReplyCtx] = React.useState<{
     id: string;
@@ -83,13 +89,13 @@ function InboxContent() {
   const includeTrashed = folder === "trash";
   const box: EmailBox = folder === "trash" ? "inbox" : folder;
 
-  const { data: list, isLoading: listLoading } = useEmails({
+  const { data: list, isLoading: listLoading, error: listError } = useEmails({
     page,
     limit: 30,
     box,
     includeTrashed,
   });
-  const { data: detail, isLoading: detailLoading } = useEmailDetail(selectedId);
+  const { data: detail, isLoading: detailLoading, refetch: retryDetail } = useEmailDetail(selectedId);
   const { data: unread } = useEmailUnread();
 
   const markRead = useMarkEmailRead();
@@ -150,6 +156,7 @@ function InboxContent() {
       onSuccess: () => {
         setSelectedId(null);
         backToList();
+        setDeleteOpen(false);
         toast.success("Message deleted forever");
       },
       onError: (e) =>
@@ -229,7 +236,7 @@ function InboxContent() {
               <div className="rounded-xl bg-muted p-2 text-muted-foreground"><Mail className="size-5" /></div>
             </div>
             <div className="min-h-[320px] flex-1 overflow-y-auto">
-              {listLoading ? (
+              {listError ? <ErrorState title="Unable to load messages" /> : listLoading ? (
                 <LoadingState label="Loading messages" variant="table" />
               ) : items.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 px-6 py-20 text-center">
@@ -284,10 +291,10 @@ function InboxContent() {
                   </>}
                   {detail && isTrashView && <>
                     {canUpdate && <Button variant="ghost" size="sm" disabled={restore.isPending} onClick={handleRestore} loading={restore.isPending}><ArchiveRestore className="size-4" /> Restore</Button>}
-                    {canDelete && <Button variant="ghost" size="sm" className="ml-auto text-destructive hover:text-destructive" disabled={deleteForever.isPending} onClick={handleDeleteForever} loading={deleteForever.isPending}><Trash2 className="size-4" /> Delete forever</Button>}
+                    {canDelete && <Button variant="ghost" size="sm" className="ml-auto text-destructive hover:text-destructive" disabled={deleteForever.isPending} onClick={() => setDeleteOpen(true)} loading={deleteForever.isPending}><Trash2 className="size-4" /> Delete forever</Button>}
                   </>}
                 </div>
-                {detailLoading ? <LoadingState label="Loading message" variant="detail" className="flex-1" /> : !detail ? <div className="p-8 text-sm text-muted-foreground">Unable to load this message. Select it again to retry.</div> : (
+                {detailLoading ? <LoadingState label="Loading message" variant="detail" className="flex-1" /> : !detail ? <ErrorState title="Unable to load this message" onRetry={() => void retryDetail()} /> : (
                   <article className="flex-1 overflow-y-auto p-6 sm:p-8 xl:p-10">
                     <h3 className="break-words text-xl font-semibold tracking-tight sm:text-2xl">{detail.subject || "(No subject)"}</h3>
                     <div className="mt-6 flex items-center gap-3 border-b pb-6">
@@ -304,6 +311,7 @@ function InboxContent() {
         </div>
       </div>
 
+      <ConfirmDeleteDialog open={deleteOpen} onOpenChange={setDeleteOpen} title="Delete message forever?" description={`Permanently delete "${detail?.subject || "this message"}"? This cannot be undone.`} confirmLabel="Delete forever" pending={deleteForever.isPending} onConfirm={handleDeleteForever} />
       <ComposeEmailDialog
         open={composeOpen}
         onOpenChange={setComposeOpen}
@@ -316,7 +324,7 @@ function InboxContent() {
   );
 }
 
-export default function InboxPage() {
+function InboxPageContent() {
   const { ready } = usePermissions();
   if (!ready) {
     return (
@@ -328,3 +336,5 @@ export default function InboxPage() {
   }
   return <InboxContent />;
 }
+
+export default function InboxPage() { return <React.Suspense fallback={<p role="status">Loading inbox…</p>}><InboxPageContent /></React.Suspense>; }

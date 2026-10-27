@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
@@ -76,7 +77,7 @@ export default function DepartmentsPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: departments, isLoading } = useDepartmentsList({
+  const { data: departments, isLoading, error } = useDepartmentsList({
     archived: archivedView ? true : undefined,
     branchId: branchId || undefined,
   });
@@ -141,12 +142,12 @@ export default function DepartmentsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <StatsCard
           title="Total Departments"
-          value={(departments ?? []).length}
+          value={error ? "—" : (departments ?? []).length}
           icon={<Building2 className="h-4 w-4" />}
         />
         <StatsCard
           title="Members Covered"
-          value={totalMembers}
+          value={error ? "—" : totalMembers}
           subtitle="Across all departments"
           icon={<Users className="h-4 w-4" />}
         />
@@ -167,7 +168,7 @@ export default function DepartmentsPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             {!isDepartmentHead && (
-              <ArchivedFilter value={archivedFilter} onChange={setArchivedFilter} />
+              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
             )}
             <div className="relative sm:w-72">
               <input
@@ -197,7 +198,7 @@ export default function DepartmentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {error ? <TableRow><TableCell colSpan={20}><ErrorState title="Unable to load departments" /></TableCell></TableRow> : isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={canUpdate || canDelete ? 7 : 6}>

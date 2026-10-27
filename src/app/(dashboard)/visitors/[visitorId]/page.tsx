@@ -1,4 +1,9 @@
 "use client";
+import { RecordActions } from "@/components/shared/record-actions";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { ErrorState } from "@/components/shared/error-state";
 
@@ -84,7 +89,7 @@ function DataRow({
   value?: string | null;
 }) {
   return (
-    <div className="flex items-start gap-3 py-2">
+    <div className="flex flex-col gap-1 py-2 sm:flex-row sm:gap-3">
       <div className="flex items-center gap-2 w-40 shrink-0 text-sm text-muted-foreground">
         {icon}
         <span>{label}</span>
@@ -159,7 +164,7 @@ export default function VisitorDetailPage({
   if (error || !display) {
     return (
       <div>
-        <Button variant="ghost" onClick={() => router.push("/visitors")}>
+        <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/visitors"); }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Visitors
         </Button>
@@ -203,7 +208,7 @@ export default function VisitorDetailPage({
         variant="ghost"
         size="sm"
         className="-ms-2"
-        onClick={() => router.push("/visitors")}
+        onClick={() => { if (confirmDiscardChanges()) router.push("/visitors"); }}
       >
         <ArrowLeft className="h-4 w-4 mr-1.5" />
         Visitors
@@ -218,7 +223,7 @@ export default function VisitorDetailPage({
             </Avatar>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-xl font-semibold">{fullName}</h2>
+                <h1 className="text-xl font-semibold">{fullName}</h1>
                 <Badge variant={statusBadge.variant}>
                   <span className={`mr-1 h-1.5 w-1.5 rounded-full ${statusBadge.dot}`} />
                   {FOLLOW_UP_STATUSES.find((s) => s.value === display.followUpStatus)
@@ -229,7 +234,7 @@ export default function VisitorDetailPage({
                     variant="outline"
                     className="cursor-pointer"
                     onClick={() =>
-                      router.push(`/members/${display.convertedMemberId}`)
+                      { if (confirmDiscardChanges()) router.push(`/members/${display.convertedMemberId}`); }
                     }
                   >
                     Member Profile
@@ -251,7 +256,7 @@ export default function VisitorDetailPage({
             </div>
           </div>
           {(canUpdateVisitors || canDeleteVisitors || canConvertVisitor) && (
-            <div className="flex flex-wrap items-center gap-2">
+            <RecordActions>
               {display.archivedAt ? (
                 <>
                   {canUpdateVisitors && (
@@ -313,11 +318,14 @@ export default function VisitorDetailPage({
                   )}
                 </>
               )}
-            </div>
+            </RecordActions>
           )}
         </CardContent>
       </Card>
 
+      <UrlTabs defaultValue="overview" values={["overview", "history"]}>
+      <TabsList aria-label="Visitor workspace"><TabsTrigger value="overview">Follow-up & details</TabsTrigger><TabsTrigger value="history">Visit history</TabsTrigger></TabsList>
+<TabsContent value="overview" forceMount className="space-y-4 data-[state=inactive]:hidden">
       {/* Info cards */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
@@ -398,6 +406,46 @@ export default function VisitorDetailPage({
       </div>
 
       {/* Visit history */}
+
+
+      {/* Custom fields */}
+      {display.customFields && Object.keys(display.customFields).length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <Tag className="h-4 w-4" />
+              Custom Fields
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="divide-y">
+            {Object.entries(display.customFields)
+              .filter(([, value]) => value !== null && value !== undefined)
+              .map(([key, value]) => (
+                <DataRow key={key} label={key} value={String(value)} />
+              ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Notes */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <StickyNote className="h-4 w-4" />
+            Notes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {display.notes ? (
+            <p className="text-sm whitespace-pre-wrap">{display.notes}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">No notes yet.</p>
+          )}
+        </CardContent>
+      </Card>
+
+
+</TabsContent><TabsContent value="history" forceMount className="space-y-4 data-[state=inactive]:hidden">
       <TableCard
         title="Visit History"
         action={
@@ -419,7 +467,7 @@ export default function VisitorDetailPage({
           setVisitPage(1);
         }}
       >
-        {visitsQuery.isLoading ? (
+        {visitsQuery.isError ? <ErrorState title="Unable to load visit history" /> : visitsQuery.isLoading ? (
           <div className="px-6 space-y-2">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
@@ -463,43 +511,8 @@ export default function VisitorDetailPage({
           </Table>
         )}
       </TableCard>
-
-      {/* Custom fields */}
-      {display.customFields && Object.keys(display.customFields).length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Tag className="h-4 w-4" />
-              Custom Fields
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y">
-            {Object.entries(display.customFields)
-              .filter(([, value]) => value !== null && value !== undefined)
-              .map(([key, value]) => (
-                <DataRow key={key} label={key} value={String(value)} />
-              ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Notes */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <StickyNote className="h-4 w-4" />
-            Notes
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {display.notes ? (
-            <p className="text-sm whitespace-pre-wrap">{display.notes}</p>
-          ) : (
-            <p className="text-sm text-muted-foreground">No notes yet.</p>
-          )}
-        </CardContent>
-      </Card>
-
+</TabsContent>
+</UrlTabs>
       <VisitorFormDialog
         open={editOpen}
         onOpenChange={(open) => !open && setEditOpen(false)}

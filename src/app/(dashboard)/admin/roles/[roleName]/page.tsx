@@ -1,4 +1,7 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { ErrorState } from "@/components/shared/error-state";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -56,8 +59,9 @@ export default function RoleDetailPage({
   const setPermissionsMutation = useSetRolePermissions(roleName);
   const resetMutation = useResetRoleToDefaults(roleName);
 
+  const draftRef = React.useRef(false);
   React.useEffect(() => {
-    if (role) {
+    if (role && !draftRef.current) {
       setSelectedIds(new Set(role.permissions.map((p) => p.id)));
     }
   }, [role]);
@@ -76,12 +80,13 @@ export default function RoleDetailPage({
   );
 
   const blockedFromRemovalIds = React.useMemo(() => {
-    if (roleName !== "church_admin") return undefined;
+    const inherited = role?.defaultPermissionIds ?? [];
+    if (roleName !== "church_admin") return new Set(inherited);
     const ids = PROTECTED_ADMIN_PERMISSIONS.map((name) =>
       permissionIdByName.get(name)
     ).filter((id): id is string => Boolean(id));
-    return ids.length > 0 ? new Set(ids) : undefined;
-  }, [roleName, permissionIdByName]);
+    return new Set([...inherited, ...ids]);
+  }, [roleName, permissionIdByName, role?.defaultPermissionIds]);
 
   const grantedIds = React.useMemo(
     () => new Set((role?.permissions ?? []).map((p) => p.id)),
@@ -92,15 +97,17 @@ export default function RoleDetailPage({
   const removedCount = [...grantedIds].filter((id) => !selectedIds.has(id)).length;
   const isDirty = addedCount > 0 || removedCount > 0;
 
+  React.useEffect(() => { draftRef.current = isDirty; }, [isDirty]);
+  useUnsavedChanges(isDirty);
   const handleToggle = (perm: Permission, next: boolean) => {
     if (!canManageRoles) return;
+    draftRef.current = true;
     setSelectedIds((prev) => {
       const nextSet = new Set(prev);
       if (next) {
         nextSet.add(perm.id);
       } else {
         if (
-          roleName === "church_admin" &&
           blockedFromRemovalIds?.has(perm.id)
         ) {
           toast.error(
@@ -117,6 +124,8 @@ export default function RoleDetailPage({
   const handleSave = () => {
     setPermissionsMutation.mutate([...selectedIds], {
       onSuccess: (updated) => {
+        draftRef.current = false;
+        setSelectedIds(new Set(updated.permissions.map(permission => permission.id)));
         const keptGranted = updated.permissions.filter(
           (p) => !selectedIds.has(p.id)
         );
@@ -139,12 +148,15 @@ export default function RoleDetailPage({
   };
 
   const handleDiscard = () => {
+    draftRef.current = false;
     setSelectedIds(new Set(grantedIds));
   };
 
   const handleResetConfirm = () => {
     resetMutation.mutate(undefined, {
-      onSuccess: () => {
+      onSuccess: (updated) => {
+        draftRef.current = false;
+        setSelectedIds(new Set(updated.permissions.map(permission => permission.id)));
         setResetDialogOpen(false);
         toast.success(`${displayLabel} has been reset to global defaults.`);
       },
@@ -162,14 +174,14 @@ export default function RoleDetailPage({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Not Found</BreadcrumbPage>
+              <BreadcrumbPage>Unavailable</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <p className="text-destructive">Role not found.</p>
-          <Button variant="outline" onClick={() => router.push("/admin/roles")}>
+          <ErrorState title="Unable to load role" description="The record may be unavailable, or access may have changed. Retry before assuming it has been deleted." />
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/roles"); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Roles
           </Button>
@@ -181,7 +193,7 @@ export default function RoleDetailPage({
   return (
     <div className="space-y-6 pb-24">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => router.push("/admin/roles")} aria-label="Back to roles">
+        <Button variant="ghost" size="icon" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/roles"); }} aria-label="Back to roles">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <Breadcrumb>
@@ -216,7 +228,7 @@ export default function RoleDetailPage({
             <div className="flex items-start justify-between flex-wrap gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold">{displayLabel}</h2>
+                  <h1 className="text-xl font-semibold">{displayLabel}</h1>
                   {isSuperAdmin && (
                     <Badge variant="outline" className="gap-1">
                       <Lock className="h-3 w-3" />
@@ -296,7 +308,8 @@ export default function RoleDetailPage({
                 </Alert>
               )}
 
-              <PermissionMatrixEditor
+              <p className="text-sm text-muted-foreground">Locked checked permissions are inherited defaults or protected administrator grants. They cannot be revoked here. Church-added permissions can be removed; custom roles are edited directly. Branch and HQ scope remain separate from these grants.</p>
+      <PermissionMatrixEditor
                 allPermissions={allPermissions ?? []}
                 grantedIds={grantedIds}
                 selectedIds={selectedIds}

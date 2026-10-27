@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
 
@@ -158,7 +159,7 @@ export default function CreateEventPage() {
           { label: "Create" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.push("/events")}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/events"); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Events
           </Button>
@@ -332,7 +333,7 @@ export default function CreateEventPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push("/events")}
+              onClick={() => { if (confirmDiscardChanges()) router.push("/events"); }}
               disabled={saving}
             >
               Cancel

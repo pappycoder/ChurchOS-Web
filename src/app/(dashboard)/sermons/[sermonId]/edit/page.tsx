@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -60,12 +61,12 @@ export default function EditSermonPage() {
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Sermons", href: "/sermons" },
-            { label: "Not Found" },
+            { label: "Unavailable" },
           ]}
         />
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-destructive">Sermon not found.</p>
-          <Button variant="outline" onClick={() => router.push("/sermons")}>
+          <p className="text-destructive">Unable to load this sermon. Retry or return to the sermon directory.</p>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/sermons"); }}>
             Back to Sermons
           </Button>
         </div>
@@ -89,7 +90,7 @@ export default function EditSermonPage() {
         action={
           <Button
             variant="outline"
-            onClick={() => router.push(`/sermons/${sermonId}`)}
+            onClick={() => { if (confirmDiscardChanges()) router.push(`/sermons/${sermonId}`); }}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             View Sermon

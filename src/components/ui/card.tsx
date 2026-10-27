@@ -29,13 +29,15 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+function CardTitle({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
+      role={React.Children.toArray(children).some(child => React.isValidElement(child) && typeof child.type === "string" && /^h[1-6]$/.test(child.type)) ? undefined : "heading"}
+      aria-level={2}
       className={cn("leading-snug font-semibold tracking-tight", className)}
       {...props}
-    />
+    >{children}</div>
   )
 }
 

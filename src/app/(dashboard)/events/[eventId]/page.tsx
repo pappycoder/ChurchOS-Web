@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { BranchDetail } from "@/components/shared/branch-assignment";
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 import { RegisterAttendeeButton } from "@/components/events/register-attendee-button";
@@ -126,7 +127,7 @@ export default function EventDetailPage({
   if (eventQuery.error || !event) {
     return (
       <div>
-        <Button variant="ghost" onClick={() => router.push("/events/list")}>
+        <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/events/list"); }}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Events
         </Button>
@@ -165,8 +166,8 @@ export default function EventDetailPage({
               <Button ref={eventActionsRef} variant="outline"><MoreHorizontal className="h-4 w-4" />Event actions</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {!event.archivedAt && canUpdate && <DropdownMenuItem onClick={() => router.push(`/events/${eventId}/edit`)}><Pencil className="h-4 w-4" />Edit</DropdownMenuItem>}
-              {!event.archivedAt && !event.isFree && canReadTiers && <DropdownMenuItem onClick={() => router.push(`/events/${eventId}/tiers`)}><Ticket className="h-4 w-4" />Manage Tiers</DropdownMenuItem>}
+              {!event.archivedAt && canUpdate && <DropdownMenuItem onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${eventId}/edit`); }}><Pencil className="h-4 w-4" />Edit</DropdownMenuItem>}
+              {!event.archivedAt && !event.isFree && canReadTiers && <DropdownMenuItem onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${eventId}/tiers`); }}><Ticket className="h-4 w-4" />Manage Tiers</DropdownMenuItem>}
               {canUpdate && <DropdownMenuItem onClick={() => setArchiveTarget({ kind: event.archivedAt ? "restore" : "archive", event })}>
                 {event.archivedAt ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}{event.archivedAt ? "Restore" : "Archive"}
               </DropdownMenuItem>}
@@ -290,7 +291,7 @@ export default function EventDetailPage({
       {showAttendance && <TabsContent value="attendance" forceMount className="space-y-4 data-[state=inactive]:hidden">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div><h2 className="text-lg font-semibold">Attendance</h2><p className="text-sm text-muted-foreground">Record aggregate totals or review individual check-ins for this event.</p></div>
-          {canCheckIn && !event.archivedAt && <Button size="sm" onClick={() => router.push(`/events/check-in?eventId=${encodeURIComponent(eventId)}`)}><UserCheck className="mr-2 h-4 w-4" />Check In Attendees</Button>}
+          {canCheckIn && !event.archivedAt && <Button size="sm" onClick={() => { if (confirmDiscardChanges()) router.push(`/events/check-in?eventId=${encodeURIComponent(eventId)}`); }}><UserCheck className="mr-2 h-4 w-4" />Check In Attendees</Button>}
         </div>
       <GeneralAttendancePanel context={{type:"event",id:eventId,name:event.title,branchId:event.branchId,active:!event.archivedAt}} />
 

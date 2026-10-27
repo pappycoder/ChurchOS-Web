@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
@@ -323,7 +324,7 @@ export default function AttendanceServicesPage() {
             <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
             <ArchivedFilter
               value={archivedFilter}
-              onChange={setArchivedFilter}
+              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
             />
           </div>
         }
@@ -370,7 +371,7 @@ export default function AttendanceServicesPage() {
                     key={service.serviceId}
                     className="cursor-pointer"
                     onClick={() =>
-                      router.push(`/attendance/services/${service.serviceId}`)
+                      { if (confirmDiscardChanges()) router.push(`/attendance/services/${service.serviceId}`); }
                     }
                   >
                     <TableCell className="font-medium">

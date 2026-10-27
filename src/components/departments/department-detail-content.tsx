@@ -1,4 +1,16 @@
 "use client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import * as React from "react";
@@ -20,7 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MemberCombobox } from "@/components/members/member-combobox";
-import { useDepartment, useAddDepartmentMember, useRemoveDepartmentMember } from "@/hooks/use-admin";
+import {
+  useDepartment,
+  useAddDepartmentMember,
+  useRemoveDepartmentMember,
+} from "@/hooks/use-admin";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
 
@@ -42,24 +58,33 @@ function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
   );
 }
 
-export function DepartmentDetailContent({ departmentId }: { departmentId: string }) {
+export function DepartmentDetailContent({
+  departmentId,
+}: {
+  departmentId: string;
+}) {
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Department heads manage members only in the department they head (the
   // backend rejects add/remove elsewhere), so the Add/Remove affordances are
   // also gated on ownership for any department head.
-  const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
+  const isDepartmentHead =
+    canAny("departments:own:read") && !canAny("departments:delete");
   const canUpdate = can("departments", "update");
   const query = useDepartment(departmentId);
   const { data: department, isLoading, error } = query;
   const isOwnDepartment =
-    isDepartmentHead && !!profile?.memberId && department?.headMemberId === profile.memberId;
+    isDepartmentHead &&
+    !!profile?.memberId &&
+    department?.headMemberId === profile.memberId;
   const addMember = useAddDepartmentMember(departmentId);
   const removeMember = useRemoveDepartmentMember(departmentId);
 
   const [memberId, setMemberId] = React.useState("");
   const [selectedMemberName, setSelectedMemberName] = React.useState("");
   const [role, setRole] = React.useState("member");
+  const [addOpen, setAddOpen] = React.useState(false);
+  useUnsavedChanges(!!memberId);
 
   const handleAdd = () => {
     if (!memberId) return;
@@ -68,6 +93,7 @@ export function DepartmentDetailContent({ departmentId }: { departmentId: string
       {
         onSuccess: () => {
           toast.success("Member added to department");
+          setAddOpen(false);
           setMemberId("");
           setSelectedMemberName("");
           setRole("member");
@@ -77,7 +103,7 @@ export function DepartmentDetailContent({ departmentId }: { departmentId: string
             description: err?.message || "Please try again.",
           });
         },
-      }
+      },
     );
   };
 
@@ -94,103 +120,199 @@ export function DepartmentDetailContent({ departmentId }: { departmentId: string
 
   return (
     <div className="space-y-6">
-      <PageHeader title={department?.name ?? "Department"} breadcrumbs={[
-        { label: "Departments", href: "/departments" },
-        { label: department?.name ?? "Department" },
-      ]} action={<Button variant="outline" asChild><PermissionLink href="/departments"><ArrowLeft className="h-4 w-4" /> Back to departments</PermissionLink></Button>} />
-        {error ? (
-          <ErrorState title="Could not load department" onRetry={() => void query.refetch()} />
-        ) : isLoading || !department ? (
-          <div className="space-y-4 mt-6">
-            <Skeleton className="h-6 w-3/4" />
-            <Skeleton className="h-40 w-full" />
-          </div>
-        ) : (
-          <div className="mt-6 space-y-6">
-            <GeneralAttendancePanel context={{type:"department",id:department.id,name:department.name,branchId:department.branchId,active:!department.archivedAt}} canManage={canUpdate && (!isDepartmentHead || !!isOwnDepartment)} />
-            <DepartmentAttendancePanel department={department} canManage={canUpdate && (!isDepartmentHead || !!isOwnDepartment)} />
-            <section>
-              <p className="text-sm font-medium mb-2">Details</p>
-              <div className="rounded-lg border px-4 py-1">
-                <InfoRow label="Description" value={department.description || "—"} />
-                <InfoRow label="Members" value={department.memberCount} />
-                <InfoRow label="Created" value={formatDate(department.createdAt)} />
-              </div>
-            </section>
-
-            <section>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium">Members ({department.memberCount})</p>
-                <ExportDropdown title="Department members" filename="department-members" columns={[{key:"firstName",label:"First name"},{key:"lastName",label:"Last name"},{key:"role",label:"Role"},{key:"joinedAt",label:"Joined"}]} data={department.members.map(member => ({...member}))} />
-              </div>
-              <div className="rounded-lg border divide-y">
-                {department.members.length === 0 ? (
-                  <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                    No members assigned yet.
-                  </p>
-                ) : (
-                  department.members.map((m) => (
-                    <div key={m.id} className="flex items-center gap-3 px-4 py-3">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {m.firstName} {m.lastName}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">{m.role}</p>
-                      </div>
-                      {canUpdate && (!isDepartmentHead || isOwnDepartment) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          disabled={removeMember.isPending}
-                          onClick={() => handleRemove(m.memberId)}
-                          aria-label={`Remove ${m.firstName} ${m.lastName}`}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {canUpdate && (!isDepartmentHead || isOwnDepartment) && (
-                <div className="mt-4 space-y-3 rounded-lg border p-4">
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <UserPlus className="h-4 w-4" /> Add Member
-                  </p>
-                  <MemberCombobox
-                    value={memberId}
-                    onChange={(id, member) => {
-                      setMemberId(id);
-                      setSelectedMemberName(
-                        member ? `${member.firstName} ${member.lastName}` : ""
-                      );
-                    }}
-                    selectedName={selectedMemberName}
-                    excludeIds={department.members.map((m) => m.memberId)}
-                    placeholder="Select a member..."
-                    branchId={department.branchId}
+      <PageHeader
+        title={department?.name ?? "Department"}
+        breadcrumbs={[
+          { label: "Departments", href: "/departments" },
+          { label: department?.name ?? "Department" },
+        ]}
+        action={
+          <Button variant="outline" asChild>
+            <PermissionLink href="/departments">
+              <ArrowLeft className="h-4 w-4" /> Back to departments
+            </PermissionLink>
+          </Button>
+        }
+      />
+      {error ? (
+        <ErrorState
+          title="Could not load department"
+          onRetry={() => void query.refetch()}
+        />
+      ) : isLoading || !department ? (
+        <div className="space-y-4 mt-6">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      ) : (
+        <div className="mt-6 space-y-6">
+          <UrlTabs defaultValue="members" values={["members", "attendance"]}>
+            <TabsList aria-label="Department workspace">
+              <TabsTrigger value="members">Members & details</TabsTrigger>
+              <TabsTrigger value="attendance">Attendance</TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="members"
+              forceMount
+              className="space-y-4 data-[state=inactive]:hidden"
+            >
+              <section>
+                <p className="text-sm font-medium mb-2">Details</p>
+                <div className="rounded-lg border px-4 py-1">
+                  <InfoRow
+                    label="Description"
+                    value={department.description || "—"}
                   />
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="member">Member</SelectItem>
-                      <SelectItem value="leader">Leader</SelectItem>
-                      <SelectItem value="assistant_leader">Assistant Leader</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button className="w-full" onClick={handleAdd} disabled={!memberId || addMember.isPending}>
-                    {addMember.isPending ? "Adding..." : "Add to Department"}
-                  </Button>
+                  <InfoRow label="Members" value={department.memberCount} />
+                  <InfoRow
+                    label="Created"
+                    value={formatDate(department.createdAt)}
+                  />
                 </div>
-              )}
-            </section>
-          </div>
-        )}
+              </section>
 
+              <section>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium">
+                    Members ({department.memberCount})
+                  </p>
+                  <ExportDropdown
+                    title="Department members"
+                    filename="department-members"
+                    columns={[
+                      { key: "firstName", label: "First name" },
+                      { key: "lastName", label: "Last name" },
+                      { key: "role", label: "Role" },
+                      { key: "joinedAt", label: "Joined" },
+                    ]}
+                    data={department.members.map((member) => ({ ...member }))}
+                  />
+                </div>
+                <div className="rounded-lg border divide-y">
+                  {department.members.length === 0 ? (
+                    <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                      No members assigned yet.
+                    </p>
+                  ) : (
+                    department.members.map((m) => (
+                      <div
+                        key={m.id}
+                        className="flex items-center gap-3 px-4 py-3"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {m.firstName} {m.lastName}
+                          </p>
+                          <p className="text-xs text-muted-foreground capitalize">
+                            {m.role}
+                          </p>
+                        </div>
+                        {canUpdate &&
+                          (!isDepartmentHead || isOwnDepartment) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              disabled={removeMember.isPending}
+                              onClick={() => handleRemove(m.memberId)}
+                              aria-label={`Remove ${m.firstName} ${m.lastName}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {canUpdate && (!isDepartmentHead || isOwnDepartment) && (
+                  <Dialog open={addOpen} onOpenChange={setAddOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="mt-4" variant="outline">
+                        <UserPlus className="size-4" />
+                        Add member
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Add department member</DialogTitle>
+                        <DialogDescription>
+                          Choose a member and their role in this department.
+                        </DialogDescription>
+                      </DialogHeader>{" "}
+                      <div className="mt-4 space-y-3 rounded-lg border p-4">
+                        <p className="text-sm font-medium flex items-center gap-2">
+                          <UserPlus className="h-4 w-4" /> Add Member
+                        </p>
+                        <MemberCombobox
+                          value={memberId}
+                          onChange={(id, member) => {
+                            setMemberId(id);
+                            setSelectedMemberName(
+                              member
+                                ? `${member.firstName} ${member.lastName}`
+                                : "",
+                            );
+                          }}
+                          selectedName={selectedMemberName}
+                          excludeIds={department.members.map((m) => m.memberId)}
+                          placeholder="Select a member..."
+                          branchId={department.branchId}
+                        />
+                        <Select value={role} onValueChange={setRole}>
+                          <SelectTrigger aria-label="Department membership role">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="member">Member</SelectItem>
+                            <SelectItem value="leader">Leader</SelectItem>
+                            <SelectItem value="assistant_leader">
+                              Assistant Leader
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          className="w-full"
+                          onClick={handleAdd}
+                          disabled={!memberId || addMember.isPending}
+                        >
+                          {addMember.isPending
+                            ? "Adding..."
+                            : "Add to Department"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+              </section>
+            </TabsContent>
+            <TabsContent
+              value="attendance"
+              forceMount
+              className="space-y-4 data-[state=inactive]:hidden"
+            >
+              <GeneralAttendancePanel
+                context={{
+                  type: "department",
+                  id: department.id,
+                  name: department.name,
+                  branchId: department.branchId,
+                  active: !department.archivedAt,
+                }}
+                canManage={
+                  canUpdate && (!isDepartmentHead || !!isOwnDepartment)
+                }
+              />
+              <DepartmentAttendancePanel
+                department={department}
+                canManage={
+                  canUpdate && (!isDepartmentHead || !!isOwnDepartment)
+                }
+              />
+            </TabsContent>
+          </UrlTabs>
+        </div>
+      )}
     </div>
   );
 }

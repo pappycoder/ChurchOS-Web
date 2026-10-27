@@ -1,4 +1,6 @@
 "use client";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -27,6 +29,7 @@ export default function FillFormPage() {
   const [submitted, setSubmitted] = React.useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = React.useState(false);
   const [failMsg, setFailMsg] = React.useState<string | null>(null);
+  useUnsavedChanges(!submitted && (assetIds.length > 0 || Object.values(data).some(value => Array.isArray(value) ? value.length > 0 : value !== "" && value != null)));
 
   const notFillable = form && (form.status === "closed" || !!form.archivedAt);
 
@@ -74,14 +77,14 @@ export default function FillFormPage() {
 
   const header = (
     <PageHeader
-      title="Fill in form"
+      title={form?.title ?? "Fill in form"}
       breadcrumbs={[
         { label: "Home", href: "/dashboard" },
         { label: "Forms", href: "/forms" },
         { label: form?.title ?? "Form" },
       ]}
       action={
-        <Button variant="outline" onClick={() => router.push(`/forms/${formId}`)}>
+        <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${formId}`); }}>
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
         </Button>
@@ -105,7 +108,7 @@ export default function FillFormPage() {
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <AlertTriangle className="h-10 w-10 text-destructive" />
           <p className="text-sm text-muted-foreground">You don&apos;t have access to forms.</p>
-          <Button variant="outline" onClick={() => router.push("/forms")}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
             Back to Forms
           </Button>
         </div>
@@ -121,7 +124,7 @@ export default function FillFormPage() {
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <AlertTriangle className="h-10 w-10 text-destructive" />
             <p className="text-sm text-muted-foreground">Failed to load this form.</p>
-            <Button variant="outline" onClick={() => router.push("/forms")}>
+            <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
               Back to Forms
             </Button>
           </div>
@@ -157,7 +160,7 @@ export default function FillFormPage() {
           <Button
             variant="outline"
             className="mt-2"
-            onClick={() => router.push(`/forms/${formId}`)}
+            onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${formId}`); }}
           >
             View form details
           </Button>
@@ -185,7 +188,7 @@ export default function FillFormPage() {
           <Button
             variant="outline"
             className="mt-2"
-            onClick={() => router.push(`/forms/${formId}`)}
+            onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${formId}`); }}
           >
             View form details
           </Button>
@@ -199,7 +202,7 @@ export default function FillFormPage() {
       {header}
       <div className="space-y-6 rounded-2xl border bg-card p-5 sm:p-8">
         <div className="rounded-xl border bg-accent/40 p-5">
-          <h1 className="text-2xl font-semibold">{form.title}</h1>
+          <p className="text-sm font-medium text-muted-foreground">Complete the questions below</p>
           <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
             <span className="rounded-full border bg-background px-3 py-1">
               {form.fields.length} questions

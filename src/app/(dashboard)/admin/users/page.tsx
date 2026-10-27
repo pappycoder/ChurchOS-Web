@@ -267,7 +267,7 @@ export default function UsersPage() {
             {canCreateUsers && (
               <Button onClick={() => setInviteDialogOpen(true)}>
                 <UserPlus className="h-4 w-4 mr-2" />
-                Add User
+                Invite User
               </Button>
             )}
           </div>

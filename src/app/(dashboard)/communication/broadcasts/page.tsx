@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { BroadcastBranchDialog } from "@/components/communication/broadcast-branch-dialog";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import { BranchDetail } from "@/components/shared/branch-assignment";
@@ -149,7 +150,7 @@ function BroadcastsListContent() {
         breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Broadcasts" }]}
         action={
           canCreate && (
-            <Button onClick={() => router.push("/communication/broadcasts/new")}>
+            <Button onClick={() => { if (confirmDiscardChanges()) router.push("/communication/broadcasts/new"); }}>
               <Plus className="h-4 w-4 mr-2" />
               New Broadcast
             </Button>
@@ -157,27 +158,29 @@ function BroadcastsListContent() {
         }
       />
 
+      <p className="text-sm text-muted-foreground">Status metrics cover {allBroadcasts.length} loaded broadcasts (up to 100) in the selected branch. The paginated table and export contain the matching records.</p>
+      {allQuery.error && <ErrorState title="Unable to load broadcast metrics" />}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Broadcasts"
-          value={allQuery.data?.meta?.total ?? allBroadcasts.length}
+          value={allQuery.error ? "—" : allQuery.data?.meta?.total ?? allBroadcasts.length}
           icon={<Megaphone className="h-4 w-4" />}
         />
         <StatsCard
           title="Sent"
-          value={sent}
+          value={allQuery.error ? "—" : sent}
           icon={<CheckCircle2 className="h-4 w-4" />}
           variant="success"
         />
         <StatsCard
           title="Scheduled"
-          value={scheduled}
+          value={allQuery.error ? "—" : scheduled}
           icon={<CalendarClock className="h-4 w-4" />}
           variant="warning"
         />
         <StatsCard
           title="Failed"
-          value={failed}
+          value={allQuery.error ? "—" : failed}
           icon={<XCircle className="h-4 w-4" />}
           variant="default"
         />

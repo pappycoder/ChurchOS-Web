@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -286,7 +287,7 @@ export default function VisitorsPage() {
                   <Plus className="h-4 w-4 mr-2" />
                   Quick Add
                 </Button>
-                <Button onClick={() => router.push("/visitors/new")}>
+                <Button onClick={() => { if (confirmDiscardChanges()) router.push("/visitors/new"); }}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Visitor
                 </Button>
@@ -332,11 +333,11 @@ export default function VisitorsPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(searchInput !== "") + Number(archivedFilter !== "all") + Number(statusFilter !== "all") + Number(sortBy !== "firstName") + Number(sortOrder !== "asc")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setSortBy("firstName");setSortOrder("asc");setPage(1);setSelectedIds(new Set());}}>Reset filters</Button></div><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <ArchivedFilter
               value={archivedFilter}
-              onChange={setArchivedFilter}
+              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
               onClearSelection={() => setSelectedIds(new Set())}
             />
             <SearchInput
@@ -354,7 +355,7 @@ export default function VisitorsPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-44" aria-label="Follow-up status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -394,7 +395,7 @@ export default function VisitorsPage() {
               )}
             </Button>
           </div>
-          </div>
+          </div></div>
         } exportAction={
           <ExportDropdown
               tableId="visitors"

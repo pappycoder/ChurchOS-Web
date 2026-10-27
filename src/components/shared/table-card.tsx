@@ -75,12 +75,7 @@ export function TableCard({
             total={total ?? 0}
             itemName={itemName}
             onPageChange={onPageChange}
-            onPerPageChange={
-              onPerPageChange ??
-              (() => {
-                /* no-op */
-              })
-            }
+            onPerPageChange={onPerPageChange}
           />
         )}
       </CardContent>

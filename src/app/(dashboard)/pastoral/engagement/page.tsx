@@ -158,6 +158,7 @@ export default function EngagementPage() {
         })}
       </div>
 
+      <p className="text-sm text-muted-foreground">Scores reflect the most recent calculation shown in each row. They are decision support for follow-up; review the factors and member context before taking action.</p>
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -270,7 +271,7 @@ export default function EngagementPage() {
                         <TableCell>
                           <p className="font-medium">
                             {row.memberFirstName} {row.memberLastName}
-                          </p>
+                          </p><Button variant="link" size="sm" onClick={event => {event.stopPropagation();setSelected(row);}}>View factors</Button>
                           {row.memberEmail && (
                             <p className="text-xs text-muted-foreground truncate">
                               {row.memberEmail}

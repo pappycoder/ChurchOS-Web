@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { ErrorState } from "@/components/shared/error-state";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -92,10 +93,14 @@ const STATUS_OPTIONS: Array<{ value: AssetStatus; label: string }> = [
 
 const METHOD_OPTIONS: Array<{ value: DepreciationMethod; label: string }> = [
   { value: "straight_line", label: DEPRECIATION_METHOD_LABELS.straight_line },
-  { value: "reducing_balance", label: DEPRECIATION_METHOD_LABELS.reducing_balance },
+  {
+    value: "reducing_balance",
+    label: DEPRECIATION_METHOD_LABELS.reducing_balance,
+  },
 ];
 
 interface AssetFormDialogProps {
+  presentation?: "dialog" | "page";
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** When provided the dialog edits this asset; otherwise it registers a new one. */
@@ -132,6 +137,7 @@ function toFormValues(asset?: Asset | null): AssetFormValues {
 
 export function AssetFormDialog({
   open,
+  presentation = "dialog",
   onOpenChange,
   asset,
   onSaved,
@@ -147,14 +153,17 @@ export function AssetFormDialog({
     resolver: zodResolver(assetSchema),
     defaultValues: toFormValues(asset),
   });
-  const selectedBranchId = useWatch({ control: form.control, name: "branchId" });
+  const selectedBranchId = useWatch({
+    control: form.control,
+    name: "branchId",
+  });
   const departmentsQuery = useDepartmentsList({
     branchId: selectedBranchId || undefined,
     enabled: open,
   });
 
   React.useEffect(() => {
-    if (open) {
+    if (open && !form.formState.isDirty) {
       form.reset(toFormValues(asset));
       if (!profile?.isAdminHq && profile?.branchId) {
         form.setValue("branchId", profile.branchId);
@@ -188,7 +197,8 @@ export function AssetFormDialog({
           : values.currentValue,
       salvageValue: values.salvageValue || undefined,
       usefulLifeYears: values.usefulLifeYears || undefined,
-      depreciationMethod: values.depreciationMethod as DepreciationMethod | undefined,
+      depreciationMethod: values.depreciationMethod as
+        DepreciationMethod | undefined,
       location: values.location?.trim() || undefined,
       notes: values.notes?.trim() || undefined,
     };
@@ -197,234 +207,299 @@ export function AssetFormDialog({
     mutation.mutate(payload as never, {
       onSuccess: (saved) => {
         toast.success(
-          isEdit ? "Asset updated successfully" : "Asset registered successfully"
+          isEdit
+            ? "Asset updated successfully"
+            : "Asset registered successfully",
         );
-        onOpenChange(false);
+        form.reset(values);
+        if (presentation === "dialog") onOpenChange(false);
         onSaved?.(saved);
       },
       onError: (error) => {
-        toast.error(isEdit ? "Failed to update asset" : "Failed to register asset", {
-          description: error?.message || "Please try again.",
-        });
+        toast.error(
+          isEdit ? "Failed to update asset" : "Failed to register asset",
+          {
+            description: error?.message || "Please try again.",
+          },
+        );
       },
     });
   };
 
   const pending = createMutation.isPending || updateMutation.isPending;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Asset" : "Register New Asset"}</DialogTitle>
-          <DialogDescription>
-            {isEdit
-              ? "Update this asset's register details."
-              : "Add an asset to your church's register."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Asset Name *</FormLabel>
+  const editor = (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {(categoriesQuery.error ||
+          branchesQuery.error ||
+          departmentsQuery.error) && (
+          <ErrorState
+            title="Some assignment options are unavailable"
+            description="Retry to load categories, branches and departments. Your entered asset details are preserved."
+          />
+        )}
+        <fieldset className="space-y-4 rounded-lg border p-5">
+          <legend className="px-2">
+            <h2 className="text-lg font-semibold">Identity and description</h2>
+          </legend>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Asset Name *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Yamaha Mixer" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="assetTag"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Asset Tag *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. AUD-001" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <Input placeholder="e.g. Yamaha Mixer" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <SelectContent>
+                      {(categoriesQuery.data ?? []).map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="brand"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Brand</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Yamaha" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Model</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. MG16XU" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="serialNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Serial Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. SN123456789" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="sm:col-span-2">
               <FormField
                 control={form.control}
-                name="assetTag"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Asset Tag *</FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. AUD-001" {...field} />
+                      <Textarea
+                        placeholder="Short description of the asset"
+                        rows={2}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="categoryId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(categoriesQuery.data ?? []).map((category) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="brand"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Brand</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Yamaha" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Model</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. MG16XU" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            <div className="sm:col-span-2">
+              <AssetImageField
+                value={form.watch("imageUrl")}
+                onChange={(url) =>
+                  form.setValue("imageUrl", url ?? "", {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
               />
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="serialNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Serial Number</FormLabel>
+          </div>
+        </fieldset>
+        <fieldset className="space-y-4 rounded-lg border p-5">
+          <legend className="px-2">
+            <h2 className="text-lg font-semibold">Assignment and location</h2>
+          </legend>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="branchId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Branch</FormLabel>
+                  <Select
+                    onValueChange={(value) => {
+                      const nextBranchId = value === "all" ? "" : value;
+                      if (nextBranchId !== field.value) {
+                        form.setValue("departmentId", "");
+                      }
+                      field.onChange(nextBranchId);
+                    }}
+                    value={
+                      field.value || (profile?.isAdminHq ? "all" : undefined)
+                    }
+                    disabled={!profile?.isAdminHq}
+                  >
                     <FormControl>
-                      <Input placeholder="e.g. SN123456789" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select branch" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Storage Location</FormLabel>
+                    <SelectContent>
+                      {profile?.isAdminHq && (
+                        <SelectItem value="all">All branches</SelectItem>
+                      )}
+                      {(branchesQuery.data?.data ?? []).map((branch) => (
+                        <SelectItem
+                          key={branch.branchId}
+                          value={branch.branchId}
+                        >
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="departmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <Input placeholder="e.g. Worship Hall store" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="departmentId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Department</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(departmentsQuery.data ?? []).map((dept) => (
-                          <SelectItem key={dept.id} value={dept.id}>
-                            {dept.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="branchId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Branch</FormLabel>
-                    <Select
-                      onValueChange={(value) => {
-                        const nextBranchId = value === "all" ? "" : value;
-                        if (nextBranchId !== field.value) {
-                          form.setValue("departmentId", "");
-                        }
-                        field.onChange(nextBranchId);
+                    <SelectContent>
+                      {(departmentsQuery.data ?? []).map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="custodianId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custodian</FormLabel>
+                  <FormControl>
+                    <MemberCombobox
+                      value={field.value ?? ""}
+                      onChange={(memberId, member) => {
+                        field.onChange(memberId || undefined);
+                        form.setValue(
+                          "custodianName",
+                          member
+                            ? `${member.firstName} ${member.lastName}`
+                            : "",
+                          { shouldDirty: false, shouldValidate: false },
+                        );
                       }}
-                      value={field.value || (profile?.isAdminHq ? "all" : undefined)}
-                      disabled={!profile?.isAdminHq}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select branch" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {profile?.isAdminHq && (
-                          <SelectItem value="all">All branches</SelectItem>
-                        )}
-                        {(branchesQuery.data?.data ?? []).map((branch) => (
-                          <SelectItem key={branch.branchId} value={branch.branchId}>
-                            {branch.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="condition"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Condition</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select condition" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CONDITION_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+                      selectedName={form.watch("custodianName") || undefined}
+                      placeholder="Select member..."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Storage Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Worship Hall store" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="condition"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Condition</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select condition" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {CONDITION_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             {isEdit && (
               <FormField
                 control={form.control}
@@ -451,78 +526,88 @@ export function AssetFormDialog({
                 )}
               />
             )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="purchaseDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Purchase Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="purchasePrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Purchase Price (₦)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} placeholder="250000" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="currentValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Value (₦)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} placeholder="200000" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="salvageValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Salvage Value (₦)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} placeholder="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="usefulLifeYears"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Useful Life (years)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={1} placeholder="5" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+          </div>
+        </fieldset>
+        <fieldset className="space-y-4 rounded-lg border p-5">
+          <legend className="px-2">
+            <h2 className="text-lg font-semibold">Purchase and valuation</h2>
+          </legend>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="purchaseDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Date</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="purchasePrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase Price (₦)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="250000"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="currentValue"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current Value (₦)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      placeholder="200000"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="salvageValue"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Salvage Value (₦)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={0} placeholder="0" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="usefulLifeYears"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Useful Life (years)</FormLabel>
+                  <FormControl>
+                    <Input type="number" min={1} placeholder="5" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="depreciationMethod"
@@ -547,100 +632,73 @@ export function AssetFormDialog({
                 </FormItem>
               )}
             />
+          </div>
+        </fieldset>
+        <fieldset className="space-y-4 rounded-lg border p-5">
+          <legend className="px-2">
+            <h2 className="text-lg font-semibold">Additional notes</h2>
+          </legend>
+          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any additional notes"
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+        </fieldset>
+        <DialogFooter className="pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={pending}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={pending}>
+            {pending
+              ? isEdit
+                ? "Saving..."
+                : "Registering..."
+              : isEdit
+                ? "Save Changes"
+                : "Register Asset"}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
+  );
+  if (presentation === "page") return editor;
 
-            <FormField
-              control={form.control}
-              name="custodianId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Custodian</FormLabel>
-                  <FormControl>
-                    <MemberCombobox
-                      value={field.value ?? ""}
-                      onChange={(memberId, member) => {
-                        field.onChange(memberId || undefined);
-                        form.setValue(
-                          "custodianName",
-                          member ? `${member.firstName} ${member.lastName}` : "",
-                          { shouldDirty: false, shouldValidate: false }
-                        );
-                      }}
-                      selectedName={form.watch("custodianName") || undefined}
-                      placeholder="Select member..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEdit ? "Edit Asset" : "Register New Asset"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? "Update this asset's register details."
+              : "Add an asset to your church's register."}
+          </DialogDescription>
+        </DialogHeader>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Short description of the asset"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <AssetImageField
-              value={form.watch("imageUrl")}
-              onChange={(url) =>
-                form.setValue("imageUrl", url ?? "", {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Any additional notes"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <DialogFooter className="pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={pending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={pending}>
-                {pending
-                  ? isEdit
-                    ? "Saving..."
-                    : "Registering..."
-                  : isEdit
-                    ? "Save Changes"
-                    : "Register Asset"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        {editor}
       </DialogContent>
     </Dialog>
   );

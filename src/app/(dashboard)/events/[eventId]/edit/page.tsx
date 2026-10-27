@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
 
@@ -107,7 +108,7 @@ export default function EditEventPage() {
   });
 
   React.useEffect(() => {
-    if (event) {
+    if (event && !form.formState.isDirty) {
       form.reset({
         title: event.title,
         description: event.description ?? "",
@@ -174,11 +175,11 @@ export default function EditEventPage() {
     return (
       <div className="space-y-4">
         <PageHeader
-          title="Event Not Found"
+          title="Event unavailable"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Events", href: "/events" },
-            { label: "Not Found" },
+            { label: "Unavailable" },
           ]}
         />
       </div>
@@ -216,7 +217,7 @@ export default function EditEventPage() {
           { label: "Edit" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.push(`/events/${eventId}`)}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${eventId}`); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -390,7 +391,7 @@ export default function EditEventPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push(`/events/${eventId}`)}
+              onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${eventId}`); }}
               disabled={saving}
             >
               Cancel

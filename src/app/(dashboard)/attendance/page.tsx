@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 import { GeneralAttendanceSummaryCard } from "@/components/attendance/general-attendance-summary";
 
 import * as React from "react";
@@ -124,26 +125,27 @@ export default function AttendanceDashboardPage() {
       />
       <div className="flex justify-end"><BranchFilter value={branchId} onChange={setBranchId} /></div>
 
+      {summaryQuery.isError && <ErrorState title="Unable to load attendance summary" />}
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Check-Ins"
-          value={summary?.totalCheckIns ?? 0}
+          value={summaryQuery.isError ? "—" : summary?.totalCheckIns ?? 0}
           icon={<CalendarCheck className="h-4 w-4" />}
         />
         <StatsCard
           title="This Month"
-          value={monthQuery.data?.totalCheckIns ?? 0}
+          value={monthQuery.isError ? "—" : monthQuery.data?.totalCheckIns ?? 0}
           icon={<CalendarCheck className="h-4 w-4" />}
         />
         <StatsCard
           title="Members"
-          value={summary?.memberCheckIns ?? 0}
+          value={summaryQuery.isError ? "—" : summary?.memberCheckIns ?? 0}
           icon={<Users className="h-4 w-4" />}
         />
         <StatsCard
           title="Visitors"
-          value={summary?.visitorCheckIns ?? 0}
+          value={summaryQuery.isError ? "—" : summary?.visitorCheckIns ?? 0}
           icon={<Users className="h-4 w-4" />}
         />
       </div>
@@ -168,7 +170,7 @@ export default function AttendanceDashboardPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {eventsQuery.isLoading ? (
+          {eventsQuery.isError ? <ErrorState title="Unable to load event activity" /> : eventsQuery.isLoading ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-10 w-full" />
@@ -217,7 +219,7 @@ export default function AttendanceDashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {trendsQuery.isLoading ? (
+            {trendsQuery.isError ? <ErrorState title="Unable to load attendance trend" /> : trendsQuery.isLoading ? (
               <Skeleton className="h-64 w-full aspect-auto" />
             ) : (trendsQuery.data ?? []).length === 0 ? (
               <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
@@ -284,7 +286,7 @@ export default function AttendanceDashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {recentQuery.isLoading ? (
+            {recentQuery.isError ? <ErrorState title="Unable to load recent check-ins" /> : recentQuery.isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-10 w-full" />

@@ -83,7 +83,7 @@ export function MemberScoringDialog({
       <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{memberName || "Member"}</DialogTitle>
-          <DialogDescription>Pastoral care scoring overview</DialogDescription>
+          <DialogDescription>Factors are normalised indicators from 0% to 100%, rather than the probability of a future outcome.</DialogDescription>
         </DialogHeader>
 
         {query.isLoading || query.isFetching ? (

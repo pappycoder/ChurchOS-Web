@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -158,7 +159,7 @@ export default function NewBroadcastPage() {
           { label: "New Broadcast" },
         ]}
         action={
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.back(); }}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -347,11 +348,12 @@ export default function NewBroadcastPage() {
             </CardContent>
           </Card>
 
+          <Card><CardHeader><CardTitle>Review before sending</CardTitle></CardHeader><CardContent className="space-y-2 text-sm"><p><strong>Channel:</strong> {channel}</p><p><strong>Audience:</strong> {form.watch("memberStatus") || "All member statuses"}; {form.watch("gender") || "all genders"}; {branchAssignment.value ? "selected branch" : "your permitted branch scope"}.</p><p><strong>Timing:</strong> {form.watch("scheduledAt") ? `Scheduled for ${form.watch("scheduledAt")} (local time)` : "Send immediately after confirmation"}.</p><p>Check the selected template and audience above. Delivery uses the saved provider settings.</p></CardContent></Card>
           <div className="flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.back()}
+              onClick={() => { if (confirmDiscardChanges()) router.back(); }}
               disabled={pending}
             >
               Cancel
