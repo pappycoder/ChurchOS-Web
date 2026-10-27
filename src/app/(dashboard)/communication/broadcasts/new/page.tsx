@@ -44,7 +44,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 const broadcastSchema = z.object({
   name: z.string().min(1, "Broadcast name is required"),
   channel: z.enum(BROADCAST_CHANNELS as [BroadcastChannel, ...BroadcastChannel[]], {
-    required_error: "Channel is required",
+    error: (issue) => issue.input === undefined ? "Channel is required" : undefined,
   }),
   templateId: z.string().min(1, "Select a template"),
   memberStatus: z.string().optional(),

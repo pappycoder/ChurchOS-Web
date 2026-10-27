@@ -624,3 +624,34 @@ test("permission reset replaces the matrix after a reverted local edit", async (
  await expect(page.getByRole("checkbox",{name:"giving:read",exact:true})).not.toBeChecked();
  await expect(page.getByRole("checkbox",{name:"members:read",exact:true})).toBeChecked();
 });
+
+test("validation upgrade preserves numeric asset payloads", async ({page,context})=>{
+ await fixture(context);let saved:Record<string,unknown> | undefined;
+ await context.route("**/api/backend/assets",route=>{
+  if(route.request().method()!=="POST") return route.fallback();
+  saved=route.request().postDataJSON();
+  return route.fulfill({json:{success:true,data:asset}});
+ });
+ await page.goto("/assets/new");
+ await page.getByLabel("Asset Name").fill("Updated sound desk");
+ await page.getByLabel("Asset Tag").fill("AUD-002");
+ await page.getByLabel("Purchase Price").fill("1250");
+ await page.getByLabel("Useful Life").fill("5");
+ await page.getByRole("button",{name:"Register Asset",exact:true}).click();
+ await expect(page).toHaveURL(/\/assets\/asset-a$/);
+ expect(saved).toMatchObject({name:"Updated sound desk",assetTag:"AUD-002",purchasePrice:1250,usefulLifeYears:5});
+});
+
+test("validation upgrade preserves numeric maintenance costs", async ({page,context})=>{
+ await fixture(context);let saved:Record<string,unknown> | undefined;
+ await context.route("**/api/backend/assets/asset-a/maintenance/job-a",route=>{
+  saved=route.request().postDataJSON();
+  return route.fulfill({json:{success:true,data:{id:"job-a",assetId:"asset-a",type:"Repair",status:"scheduled",scheduledDate:stamp,cost:75}}});
+ });
+ await page.goto("/assets/maintenance");
+ await page.getByRole("button",{name:"Update job",exact:true}).click();
+ await page.getByRole("dialog").getByLabel("Cost").fill("75");
+ await page.getByRole("dialog").getByRole("button",{name:"Save Changes",exact:true}).click();
+ await expect(page.getByRole("dialog")).toHaveCount(0);
+ expect(saved).toMatchObject({cost:75});
+});

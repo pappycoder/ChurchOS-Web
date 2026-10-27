@@ -61,7 +61,7 @@ const maintenanceSchema = z.object({
   description: z.string().optional(),
   status: z.string().optional(),
   completedDate: z.string().optional(),
-  cost: z.coerce.number().min(0).optional(),
+  cost: z.coerce.number<number>().min(0).optional(),
   performedBy: z.string().optional(),
   notes: z.string().optional(),
 });

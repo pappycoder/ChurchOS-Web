@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-27",
+  "web": {
+    "auditAllDependencies": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "unitTests": 440,
+    "unitFiles": 29,
+    "lint": "passed",
+    "typecheck": "passed",
+    "standaloneInstall": "npm ci passed without a sibling API checkout or local .env files",
+    "standaloneTypecheck": "passed with incremental disabled",
+    "standaloneProductionBuild": "passed",
+    "secretaryFixtureGrants": 140,
+    "fixtureComparedToRealApiSeed": true,
+    "versions": {
+      "next": "15.5.28",
+      "zod": "4.6.7",
+      "dompurify": "3.4.17",
+      "fast-uri": "3.1.9",
+      "vitest": "4.1.12"
+    }
+  },
+  "api": {
+    "auditAllDependencies": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "unitTests": 2084,
+    "unitSuites": 110,
+    "productionBuild": "passed",
+    "lint": "passed; four pre-existing explicit-any warnings in billing.service.spec.ts",
+    "versions": {
+      "zod": "4.6.7",
+      "fast-uri": "3.1.9",
+      "multer": "2.5.0",
+      "body-parser": "2.4.0",
+      "qs": "6.17.0"
+    }
+  },
+  "browser": {
+    "passed": 6,
+    "environment": "Clean web-only production build, deterministic mocked API data",
+    "scenarios": [
+      "numeric asset submission",
+      "numeric maintenance submission",
+      "Secretary broadcast",
+      "Secretary message",
+      "Secretary event creation/editing with independent check-in access",
+      "Secretary Essentials plan restrictions"
+    ]
+  },
+  "notPerformed": [
+    "Remote GitHub Actions execution",
+    "Database migrations or live church writes",
+    "Deployment",
+    "Real provider messaging"
+  ]
+}

@@ -1,5 +1,5 @@
 import { test, expect, type BrowserContext } from "@playwright/test";
-import { DEFAULT_PERMISSION_MATRIX } from "../../../ChurchOS-Backend/prisma/seeds/shared/permissions.seed";
+import { roles as DEFAULT_PERMISSION_MATRIX } from "../fixtures/default-role-permissions.json";
 
 async function fixture(context: BrowserContext, essentials = false) {
   const writes: { path: string; body: Record<string, unknown> }[] = [];

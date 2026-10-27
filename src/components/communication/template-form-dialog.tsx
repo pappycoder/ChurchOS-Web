@@ -49,7 +49,7 @@ const templateSchema = z.object({
   name: z.string().min(1, "Template name is required"),
   content: z.string().min(1, "Content is required"),
   channel: z.enum(TEMPLATE_CHANNELS as [TemplateChannel, ...TemplateChannel[]], {
-    required_error: "Channel is required",
+    error: (issue) => issue.input === undefined ? "Channel is required" : undefined,
   }),
   language: z.string().optional(),
   category: z.string().optional(),
