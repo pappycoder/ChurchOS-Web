@@ -10,18 +10,11 @@ import { z } from "zod";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Form,
@@ -231,14 +224,11 @@ export default function EditEventPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Event Details</CardTitle>
-              <CardDescription>Basic information about the event.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <BranchAssignmentField assignment={branchAssignment} disabled={saving} />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-6">
+          <p className="text-sm text-muted-foreground">Fields marked * are required. Optional details can be added later.</p>
+          <fieldset className="min-w-0 space-y-5 border-b pb-6">
+            <legend className="mb-1 text-lg font-semibold">Event details</legend>
+            <div className="space-y-5">
               <FormField
                 control={form.control}
                 name="title"
@@ -252,6 +242,8 @@ export default function EditEventPage() {
                   </FormItem>
                 )}
               />
+              <div className="grid items-start gap-5 sm:grid-cols-2">
+              <BranchAssignmentField assignment={branchAssignment} disabled={saving} />
               <FormField
                 control={form.control}
                 name="type"
@@ -276,6 +268,29 @@ export default function EditEventPage() {
                   </FormItem>
                 )}
               />
+              </div>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe the event, agenda, speakers, etc."
+                        rows={4}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </fieldset>
+          <fieldset className="min-w-0 space-y-5 border-b pb-6">
+            <legend className="mb-1 text-lg font-semibold">Schedule and location</legend>
+            <div className="grid items-start gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="startDate"
@@ -303,15 +318,7 @@ export default function EditEventPage() {
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Location &amp; Capacity</CardTitle>
-              <CardDescription>Where and how many attendees the event can hold.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
+            </div>
               <FormField
                 control={form.control}
                 name="location"
@@ -325,6 +332,10 @@ export default function EditEventPage() {
                   </FormItem>
                 )}
               />
+          </fieldset>
+          <fieldset className="min-w-0 space-y-5 border-b pb-6">
+            <legend className="mb-1 text-lg font-semibold">Registration and pricing</legend>
+            <div className="max-w-sm">
               <FormField
                 control={form.control}
                 name="capacity"
@@ -334,32 +345,25 @@ export default function EditEventPage() {
                     <FormControl>
                       <Input type="number" placeholder="e.g. 500" min="1" {...field} />
                     </FormControl>
+                    <FormDescription>Leave blank for unlimited places.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Ticketing</CardTitle>
-              <CardDescription>Configure whether this event is free or paid.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            </div>
               <FormField
                 control={form.control}
                 name="isFree"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between rounded-md border p-3">
+                    <div className="flex items-start justify-between gap-4">
                       <div>
-                        <Label className="font-medium">Free Event</Label>
+                        <FormLabel>Free Event</FormLabel>
                         <p className="text-xs text-muted-foreground mt-0.5">
                           Toggle off to set a ticket price.
                         </p>
                       </div>
-                      <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      <FormControl><Switch checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
                     </div>
                     <FormMessage />
                   </FormItem>
@@ -380,35 +384,7 @@ export default function EditEventPage() {
                   )}
                 />
               )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Description</CardTitle>
-              <CardDescription>
-                Additional details about the event.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Describe the event, agenda, speakers, etc."
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
+          </fieldset>
 
           <div className="flex items-center justify-end gap-2 pb-2">
             <Button

@@ -17,7 +17,7 @@ import {
   UserCheck,
   UserX,
   Footprints,
-  AlertTriangle,
+  MoreHorizontal,
   Ticket,
   Archive,
   RotateCcw,
@@ -26,7 +26,10 @@ import { format } from "date-fns";
 import { toast } from "@/lib/toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { UrlTabs } from "@/components/shared/url-tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { TableCard } from "@/components/shared/table-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -37,7 +40,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PageHeader } from "@/components/shared/page-header";
 import {
   useEvent,
@@ -49,26 +51,12 @@ import {
   useRestoreArchiveEvent,
   EVENT_TYPE_MAP,
   type EventItem,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type EventRegistration,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type EventAttendanceRecord,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
 } from "@/components/shared/archive-confirm-dialog";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function DataRow({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="flex items-center justify-between py-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium">{value || "-"}</span>
-    </div>
-  );
-}
 
 export default function EventDetailPage({
   params,
@@ -83,6 +71,11 @@ export default function EventDetailPage({
   const canDelete = can("events", "delete");
   const canCheckIn = can("events:checkin", "create");
   const canRegister = can("events:registrations", "create");
+  const canReadRegistrations = can("events:registrations", "read");
+  const canReadAttendance = can("events:checkin", "read");
+
+  const showRegistrations = canReadRegistrations || canRegister;
+  const showAttendance = canReadAttendance || canCheckIn;
 
   const eventQuery = useEvent(eventId);
   const registrationsQuery = useEventRegistrations(eventId);
@@ -92,6 +85,7 @@ export default function EventDetailPage({
   const archiveMutation = useArchiveEvent();
   const restoreArchiveMutation = useRestoreArchiveEvent();
 
+  const eventActionsRef = React.useRef<HTMLButtonElement>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -112,7 +106,7 @@ export default function EventDetailPage({
     return rows.slice((attPage - 1) * attPerPage, attPage * attPerPage);
   }, [attendanceQuery.data, attPage, attPerPage]);
 
-  const isLoading = eventQuery.isLoading || statsQuery.isLoading;
+  const isLoading = eventQuery.isLoading;
   const event = eventQuery.data;
 
   if (isLoading) {
@@ -162,186 +156,69 @@ export default function EventDetailPage({
 
   return (
     <div className="space-y-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ms-2"
-        onClick={() => router.push("/events/list")}
-      >
-        <ArrowLeft className="h-4 w-4 mr-1.5" />
-        Events
-      </Button>
-
-      {/* Header card */}
-      <Card>
-        <CardContent className="p-6">
-          <BranchDetail record={event} />
-          <div className="flex items-start gap-3 flex-wrap">
-            <h2 className="text-xl font-semibold">{event.title}</h2>
-            <Badge variant="outline">{EVENT_TYPE_MAP[event.type] ?? event.type}</Badge>
-            <Badge variant={isPast ? "secondary" : "default"}>
-              {isPast ? "Past" : "Upcoming"}
-            </Badge>
-            {event.isFree && <Badge variant="secondary">Free</Badge>}
-            {event.archivedAt && (
-              <Badge variant="destructive">
-                <Archive className="mr-1 h-3 w-3" />
-                Archived
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
-            {event.location && (
-              <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" />
-                {event.location}
-              </span>
-            )}
-            <span className="flex items-center gap-1">
-              <CalendarDays className="h-3.5 w-3.5" />
-              {format(new Date(event.startDate), "MMM d, yyyy")}
-              {event.endDate
-                ? ` - ${format(new Date(event.endDate), "MMM d, yyyy")}`
-                : ""}
-            </span>
-            <span>
-              {event.capacity
-                ? `${event.registrationCount}/${event.capacity} registered`
-                : `${event.registrationCount} registered`}
-            </span>
-          </p>
-          {(canUpdate || canDelete || canReadTiers || canCheckIn || canRegister) && !event.archivedAt && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              <RegisterAttendeeButton event={event} />
-              {canCheckIn && (
-                <Button size="sm" onClick={() => router.push(`/events/check-in?eventId=${encodeURIComponent(eventId)}`)}>
-                  <UserCheck className="h-4 w-4 mr-2" />
-                  Check In Attendees
-                </Button>
-              )}
-              {canUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/events/${eventId}/edit`)}
-                >
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              )}
-              {canUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setArchiveTarget({ kind: "archive", event })}
-                >
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleteOpen(true)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-              )}
-              {!event.isFree && canReadTiers && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/events/${eventId}/tiers`)}
-                >
-                  <Ticket className="h-4 w-4 mr-2" />
-                  Manage Tiers
-                </Button>
-              )}
-            </div>
-          )}
-          {event.archivedAt && (canUpdate || canDelete) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              {canUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setArchiveTarget({ kind: "restore", event })}
-                >
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Restore
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setArchiveTarget({ kind: "purge", event })}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Forever
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Stats grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <Users className="h-5 w-5 text-muted-foreground" />
-              {statsQuery.isLoading ? "..." : stats.registered.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Registered</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <UserCheck className="h-5 w-5 text-muted-foreground" />
-              {statsQuery.isLoading ? "..." : stats.attended.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Named Check-Ins</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <UserX className="h-5 w-5 text-muted-foreground" />
-              {statsQuery.isLoading ? "..." : stats.noShows.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">No-Shows</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-semibold flex items-center gap-2">
-              <Footprints className="h-5 w-5 text-muted-foreground" />
-              {statsQuery.isLoading ? "..." : stats.walkIns.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">Walk-Ins</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Registrations tab */}
-      <TableCard
-        title="Registrations"
-        action={
-          <span className="text-xs text-muted-foreground">
-            {registrationsQuery.isLoading
-              ? ""
-              : registrations.length === 0
-                ? "No registrations"
-                : `${registrations.length} registration(s)`}
+      <PageHeader
+        title={event.title}
+        breadcrumbs={[{ label: "Events", href: "/events/list" }, { label: event.title }]}
+        action={(canUpdate || canDelete || (!event.isFree && canReadTiers && !event.archivedAt)) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button ref={eventActionsRef} variant="outline"><MoreHorizontal className="h-4 w-4" />Event actions</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {!event.archivedAt && canUpdate && <DropdownMenuItem onClick={() => router.push(`/events/${eventId}/edit`)}><Pencil className="h-4 w-4" />Edit</DropdownMenuItem>}
+              {!event.archivedAt && !event.isFree && canReadTiers && <DropdownMenuItem onClick={() => router.push(`/events/${eventId}/tiers`)}><Ticket className="h-4 w-4" />Manage Tiers</DropdownMenuItem>}
+              {canUpdate && <DropdownMenuItem onClick={() => setArchiveTarget({ kind: event.archivedAt ? "restore" : "archive", event })}>
+                {event.archivedAt ? <RotateCcw className="h-4 w-4" /> : <Archive className="h-4 w-4" />}{event.archivedAt ? "Restore" : "Archive"}
+              </DropdownMenuItem>}
+              {canDelete && <><DropdownMenuSeparator /><DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => event.archivedAt ? setArchiveTarget({ kind: "purge", event }) : setDeleteOpen(true)}><Trash2 className="h-4 w-4" />{event.archivedAt ? "Delete Forever" : "Delete"}</DropdownMenuItem></>}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      />
+      <section aria-label="Event details" className="space-y-3 border-b pb-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="outline">{EVENT_TYPE_MAP[event.type] ?? event.type}</Badge>
+          <Badge variant="secondary">{isPast ? "Past" : "Upcoming"}</Badge>
+          {event.isFree && <Badge variant="secondary">Free</Badge>}
+          {event.archivedAt && <Badge variant="destructive">Archived</Badge>}
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 shrink-0" />
+            {format(new Date(event.startDate), "MMM d, yyyy · HH:mm")}
+            {event.endDate ? ` – ${format(new Date(event.endDate), "MMM d, yyyy · HH:mm")}` : ""}
           </span>
-        }
+          {event.location && <span className="flex min-w-0 items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /><span className="break-words">{event.location}</span></span>}
+          <span>{event.capacity ? `${event.registrationCount}/${event.capacity} registered` : `${event.registrationCount} registered`}</span>
+        </div>
+        <BranchDetail record={event} />
+        {event.description && <p className="max-w-3xl whitespace-pre-wrap break-words text-sm leading-relaxed">{event.description}</p>}
+      </section>
+
+      <dl aria-label="Event summary" className="grid grid-cols-2 gap-x-6 gap-y-3 border-b pb-4 lg:grid-cols-4">
+        {[
+          { label: "Registered", icon: Users, value: !canReadRegistrations || registrationsQuery.isError ? "—" : registrationsQuery.isLoading ? "..." : stats.registered.toLocaleString() },
+          { label: "Named Check-Ins", icon: UserCheck, value: !canReadAttendance || attendanceQuery.isError ? "—" : attendanceQuery.isLoading ? "..." : stats.attended.toLocaleString() },
+          { label: "No-Shows", icon: UserX, value: !canReadRegistrations || !canReadAttendance || registrationsQuery.isError || attendanceQuery.isError ? "—" : statsQuery.isLoading ? "..." : stats.noShows.toLocaleString() },
+          { label: "Walk-Ins", icon: Footprints, value: !canReadAttendance || attendanceQuery.isError ? "—" : attendanceQuery.isLoading ? "..." : stats.walkIns.toLocaleString() },
+        ].map(({ label, icon: Icon, value }) => (
+          <div key={label} className="space-y-1 py-2">
+            <dt className="flex items-center gap-2 text-sm text-muted-foreground"><Icon className="h-4 w-4" aria-hidden="true" />{label}</dt>
+            <dd className="text-2xl font-semibold tabular-nums">{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {(showRegistrations || showAttendance) && <UrlTabs defaultValue={showRegistrations ? "registrations" : "attendance"} values={[...(showRegistrations ? ["registrations"] : []), ...(showAttendance ? ["attendance"] : [])]} className="gap-4">
+        <TabsList aria-label="Event workspace">
+          {showRegistrations && <TabsTrigger value="registrations">Registrations</TabsTrigger>}
+          {showAttendance && <TabsTrigger value="attendance">Attendance</TabsTrigger>}
+        </TabsList>
+      {showRegistrations && <TabsContent value="registrations" forceMount className="data-[state=inactive]:hidden">
+      {/* Registration controls apply only to this roster. */}
+      <TableCard
+        title={<h2>Registrations</h2>}
+        description="People with a reserved place. Registration does not mark attendance."
+        action={<RegisterAttendeeButton event={event} />}
         itemName="registrations"
         page={regPage}
         perPage={regPerPage}
@@ -352,7 +229,7 @@ export default function EventDetailPage({
           setRegPage(1);
         }}
       >
-          {registrationsQuery.isLoading ? (
+          {!canReadRegistrations ? <p className="p-6 text-sm text-muted-foreground">You can register attendees, but your role cannot view the registration roster.</p> : registrationsQuery.isError ? <ErrorState title="Unable to load registrations" /> : registrationsQuery.isLoading ? (
             <div className="px-6 space-y-2">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
@@ -409,11 +286,18 @@ export default function EventDetailPage({
           )}
       </TableCard>
 
+      </TabsContent>}
+      {showAttendance && <TabsContent value="attendance" forceMount className="space-y-4 data-[state=inactive]:hidden">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div><h2 className="text-lg font-semibold">Attendance</h2><p className="text-sm text-muted-foreground">Record aggregate totals or review individual check-ins for this event.</p></div>
+          {canCheckIn && !event.archivedAt && <Button size="sm" onClick={() => router.push(`/events/check-in?eventId=${encodeURIComponent(eventId)}`)}><UserCheck className="mr-2 h-4 w-4" />Check In Attendees</Button>}
+        </div>
       <GeneralAttendancePanel context={{type:"event",id:eventId,name:event.title,branchId:event.branchId,active:!event.archivedAt}} />
 
-      {/* Attendance tab */}
-      <TableCard
-        title="Attendance"
+      {/* Named attendance is independently permission gated. */}
+      {canReadAttendance && <TableCard
+        title={<h3>Named Check-Ins</h3>}
+        description="Individual attendees recorded at check-in; aggregate totals are managed separately above."
         action={
           <span className="text-xs text-muted-foreground">
             {attendanceQuery.isLoading
@@ -433,7 +317,7 @@ export default function EventDetailPage({
           setAttPage(1);
         }}
       >
-          {attendanceQuery.isLoading ? (
+          {attendanceQuery.isError ? <ErrorState title="Unable to load named check-ins" /> : attendanceQuery.isLoading ? (
             <div className="px-6 space-y-2">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
@@ -472,44 +356,23 @@ export default function EventDetailPage({
               </TableBody>
             </Table>
           )}
-      </TableCard>
+      </TableCard>}
 
-      {/* Delete confirmation */}
-      {deleteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-background rounded-lg p-6 max-w-md w-full mx-4 space-y-4">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-6 w-6 text-destructive" />
-              <h3 className="text-lg font-semibold">Delete Event</h3>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Are you sure you want to delete &quot;{event.title}&quot;? This action cannot be
-              undone.
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDeleteOpen(false)}
-                disabled={deleteMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-               loading={deleteMutation.isPending}>
-                {deleteMutation.isPending ? "Deleting..." : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      </TabsContent>}
+      </UrlTabs>}
+      <ConfirmDeleteDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        returnFocusRef={eventActionsRef}
+        title="Delete Event"
+        description={`Are you sure you want to delete "${event.title}"? This action cannot be undone.`}
+        pending={deleteMutation.isPending}
+        onConfirm={handleDelete}
+      />
 
       {/* Archive / Restore / Delete Forever confirmation */}
       <ArchiveConfirmDialog
+        returnFocusRef={eventActionsRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

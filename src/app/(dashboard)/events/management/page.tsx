@@ -18,6 +18,7 @@ import {
   UserPlus,
   UserCheck,
 } from "lucide-react";
+import { UrlTabs } from "@/components/shared/url-tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { TableCard } from "@/components/shared/table-card";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +50,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useAllTickets,
   useEventsSummary,
@@ -111,9 +112,9 @@ export default function ManagementPage() {
         ]}
       />
 
-      <Tabs defaultValue={canManageTypes ? "types" : "assigned"}>
+      <UrlTabs defaultValue={canManageTypes ? "types" : "assigned"} values={canManageTypes ? ["types", "assigned"] : ["assigned"]}>
         {canManageTypes && (
-          <TabsList>
+          <TabsList aria-label="Ticket workspace">
             <TabsTrigger value="types">Ticket Types</TabsTrigger>
             <TabsTrigger value="assigned">Assigned Tickets</TabsTrigger>
           </TabsList>
@@ -128,7 +129,7 @@ export default function ManagementPage() {
         <TabsContent value="assigned">
           <AssignedTicketsTab />
         </TabsContent>
-      </Tabs>
+      </UrlTabs>
     </div>
   );
 }

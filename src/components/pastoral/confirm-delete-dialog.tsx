@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 interface ConfirmDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Return to a persistent control when the dialog opens from a menu item. */
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   title: string;
   description: string;
   confirmLabel?: string;
@@ -25,6 +27,7 @@ interface ConfirmDeleteDialogProps {
 export function ConfirmDeleteDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   title,
   description,
   confirmLabel = "Delete",
@@ -33,7 +36,15 @@ export function ConfirmDeleteDialog({
 }: ConfirmDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        className="sm:max-w-[420px]"
+        onCloseAutoFocus={returnFocusRef ? (event) => {
+          if (returnFocusRef.current) {
+            event.preventDefault();
+            returnFocusRef.current.focus();
+          }
+        } : undefined}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50">

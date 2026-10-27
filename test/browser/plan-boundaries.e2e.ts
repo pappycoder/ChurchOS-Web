@@ -93,6 +93,7 @@ test('Community keeps check-in separate from registrations and records roster an
     };
   });
   await page.goto('/events/community-event');
+  await page.getByRole('tab', {name:'Attendance',exact:true}).click();
   await page.getByRole('button',{name:'Check In Attendees',exact:true}).click();
   await expect(page).toHaveURL(/\/events\/check-in\?eventId=community-event$/);
   await expect(page.getByRole('combobox').first()).toContainText('Community Gathering');
@@ -186,6 +187,8 @@ test('service creation and editing round-trip local clock times', async ({page,c
     let saved: Record<string, unknown> | undefined;
     window.fetch = async (input, options) => {
       const path = new URL(input instanceof Request ? input.url : String(input), location.origin).pathname;
+      // HQ service creation requires an available branch, even in the clock-time fixture.
+      if (path.endsWith('/api/backend/branches')) return Response.json({ success:true, data:{ data:[{branchId:'clock-branch',name:'Main Branch'}],total:1 } });
       if (!path.startsWith('/api/') || !/\/services(?:\/clock-service)?$/.test(path)) return previous(input, options);
       const method = options?.method ?? 'GET';
       if (method === 'POST' || method === 'PATCH') {

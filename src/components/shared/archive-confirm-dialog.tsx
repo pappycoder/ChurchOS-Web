@@ -40,6 +40,8 @@ const COPY: Record<
 interface ArchiveConfirmDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Return to a persistent control when the dialog opens from a menu item. */
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   kind: ArchiveDialogKind;
   entityLabel: string;
   targetName?: string | null;
@@ -52,6 +54,7 @@ interface ArchiveConfirmDialogProps {
 export function ArchiveConfirmDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   kind,
   entityLabel,
   targetName,
@@ -96,7 +99,15 @@ export function ArchiveConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        className="sm:max-w-[420px]"
+        onCloseAutoFocus={returnFocusRef ? (event) => {
+          if (returnFocusRef.current) {
+            event.preventDefault();
+            returnFocusRef.current.focus();
+          }
+        } : undefined}
+      >
         <DialogHeader>
           <div
             className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full ${
