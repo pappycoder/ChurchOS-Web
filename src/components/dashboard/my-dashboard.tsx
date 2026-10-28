@@ -63,9 +63,8 @@ export function MyDashboard() {
     setSelected(n);
   };
 
-  const canViewGiving = canAny("giving:read") || can("giving", "read");
-  const canViewMembersAnalytics = can("analytics:members", "read");
-  const canViewEvents = canAny("events:read");
+  const canViewGiving = canAny("giving:read", "giving:transactions:read") || can("giving", "read");
+  const canViewEvents = canAny("events:read", "events:list:read");
 
   const givingSummary = useGivingSummary();
   const membersAnalytics = useAnalyticsMembers();
@@ -147,7 +146,7 @@ export function MyDashboard() {
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {canViewGiving && (
+        {(canViewGiving || givingSummary.data) && (
           <StatsCard
             title="Giving this month"
             value={givingSummary.data?.monthTotal != null ? formatNaira(givingSummary.data.monthTotal) : (givingSummary.isLoading ? "..." : "—")}
@@ -155,14 +154,14 @@ export function MyDashboard() {
             variant="primary"
           />
         )}
-        {canViewMembersAnalytics && (
+        {(membersAnalytics.data || canViewGiving) && (
           <StatsCard
             title="Total members"
             value={membersAnalytics.data?.total != null ? membersAnalytics.data.total.toLocaleString() : (membersAnalytics.isLoading ? "..." : "—")}
             icon={<Users className="h-4 w-4" />}
           />
         )}
-        {canViewEvents && (
+        {(eventsList.data || canViewEvents) && (
           <StatsCard
             title="Upcoming events"
             value={eventsList.isLoading ? "..." : upcomingEventsCount.toLocaleString()}
@@ -177,7 +176,7 @@ export function MyDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        {canViewMembersAnalytics && membersAnalytics.data && (
+        {membersAnalytics.data?.byStatus && (
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">Member composition</CardTitle>
@@ -198,8 +197,8 @@ export function MyDashboard() {
             </CardContent>
           </Card>
         )}
-        {canViewGiving && givingSummary.data && (
-          <Card className={canViewMembersAnalytics && membersAnalytics.data ? "lg:col-span-2" : "lg:col-span-3"}>
+        {givingSummary.data && (
+          <Card className={membersAnalytics.data?.byStatus ? "lg:col-span-2" : "lg:col-span-3"}>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <div>
