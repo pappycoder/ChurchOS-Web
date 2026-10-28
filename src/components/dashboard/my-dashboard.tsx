@@ -6,13 +6,10 @@ import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import {
   Bell,
-  Calendar,
   ChevronRight,
   History,
   Mail,
   Sparkles,
-  Users,
-  Wallet,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -31,12 +28,8 @@ import {
 } from "@/hooks/use-notifications";
 import { NotificationsDrawer } from "@/components/notifications/notifications-drawer";
 import { NotificationDetailDialog } from "@/components/notifications/notification-detail-dialog";
-import { StatsCard } from "@/components/shared/stats-card";
-import { useGivingSummary } from "@/hooks/use-giving";
-import { useAnalyticsMembers } from "@/hooks/use-analytics";
+import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
 import { useEventsList } from "@/hooks/use-events";
-import { DonutChart, colorize } from "@/components/analytics/pie-chart";
-import { formatNaira } from "@/hooks/use-analytics";
 
 function getInitials(firstName?: string, lastName?: string): string {
   return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
@@ -44,7 +37,7 @@ function getInitials(firstName?: string, lastName?: string): string {
 
 export function MyDashboard() {
   const profile = useCurrentProfile();
-  const {canAny, can} = usePermissions();
+  const {canAny} = usePermissions();
   const labels = useRoleLabelMap();
   const auditLogs = useMyAuditLogs({ limit: 3 });
   const notifications = useNotificationsList({
@@ -63,11 +56,8 @@ export function MyDashboard() {
     setSelected(n);
   };
 
-  const canViewGiving = canAny("giving:read", "giving:transactions:read") || can("giving", "read");
   const canViewEvents = canAny("events:read", "events:list:read");
 
-  const givingSummary = useGivingSummary();
-  const membersAnalytics = useAnalyticsMembers();
   const eventsList = useEventsList({ limit: 100 });
 
   const upcomingEventsCount = React.useMemo(() => {
@@ -106,8 +96,8 @@ export function MyDashboard() {
   return (
     <>
     <div className="space-y-4">
-      <Card>
-        <CardHeader>
+      <Card className="gap-3 py-4">
+        <CardHeader className="pb-0">
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Welcome back, {firstName}!
@@ -118,14 +108,14 @@ export function MyDashboard() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-start gap-4">
-            <Avatar className="h-16 w-16">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={p.avatarUrl} alt={`${p.firstName} ${p.lastName}`} />
               <AvatarFallback className="text-lg">
                 {getInitials(p.firstName, p.lastName)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-semibold">
+              <p className="text-sm font-semibold">
                 {p.firstName} {p.lastName}
               </p>
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -145,92 +135,18 @@ export function MyDashboard() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {(canViewGiving || givingSummary.data) && (
-          <StatsCard
-            title="Giving this month"
-            value={givingSummary.data?.monthTotal != null ? formatNaira(givingSummary.data.monthTotal) : (givingSummary.isLoading ? "..." : "—")}
-            icon={<Wallet className="h-4 w-4" />}
-            variant="primary"
-          />
-        )}
-        {(membersAnalytics.data || canViewGiving) && (
-          <StatsCard
-            title="Total members"
-            value={membersAnalytics.data?.total != null ? membersAnalytics.data.total.toLocaleString() : (membersAnalytics.isLoading ? "..." : "—")}
-            icon={<Users className="h-4 w-4" />}
-          />
-        )}
-        {(eventsList.data || canViewEvents) && (
-          <StatsCard
-            title="Upcoming events"
-            value={eventsList.isLoading ? "..." : upcomingEventsCount.toLocaleString()}
-            icon={<Calendar className="h-4 w-4" />}
-          />
-        )}
-        <StatsCard
-          title="Unread notifications"
-          value={notifications.isLoading ? "..." : unreadCount.toLocaleString()}
-          icon={<Bell className="h-4 w-4" />}
-        />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {membersAnalytics.data?.byStatus && (
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Member composition</CardTitle>
-              <CardDescription>By status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DonutChart
-                data={colorize(
-                  Object.entries(membersAnalytics.data.byStatus ?? {}).map(([key, value]) => ({
-                    name: key.replace(/_/g, " "),
-                    value: Number(value),
-                  }))
-                )}
-                loading={membersAnalytics.isLoading}
-                unit="members"
-                height={200}
-              />
-            </CardContent>
-          </Card>
-        )}
-        {givingSummary.data && (
-          <Card className={membersAnalytics.data?.byStatus ? "lg:col-span-2" : "lg:col-span-3"}>
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-sm font-semibold">Giving overview</CardTitle>
-                  <CardDescription>Recent giving activity</CardDescription>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href="/giving">View giving</Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <p className="text-xs text-muted-foreground">This month</p>
-                  <p className="text-lg font-semibold">{givingSummary.data.monthTotal != null ? formatNaira(givingSummary.data.monthTotal) : "—"}</p>
-                  <p className="text-xs text-muted-foreground mt-1">All time</p>
-                  <p className="text-base font-medium">{givingSummary.data.allTimeTotal != null ? formatNaira(givingSummary.data.allTimeTotal) : "—"}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Transactions</p>
-                  <p className="text-lg font-semibold">{givingSummary.data.count?.toLocaleString() ?? "—"}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
       <nav aria-label="Common tasks" className="flex flex-wrap gap-2 rounded-lg border p-3">
         {[["members:all:read","/members","Find a member"],["attendance:checkin:read","/attendance/check-in","Check in"],["visitors:list:read","/visitors","Follow up"],["events:list:read","/events/list","Events"],["forms:read","/forms","Forms"]].filter(([permission])=>canAny(permission)).map(([,href,label])=><Button key={href} asChild variant="outline" size="sm"><Link href={href}>{label}</Link></Button>)}
       </nav>
+      <DashboardCharts
+        upcomingEvents={upcomingEventsCount}
+        eventsLoading={eventsList.isLoading}
+        eventsError={eventsList.isError}
+        canViewEvents={canViewEvents}
+        unreadCount={unreadCount}
+        notificationsLoading={notifications.isLoading}
+        notificationsError={notifications.isError}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">

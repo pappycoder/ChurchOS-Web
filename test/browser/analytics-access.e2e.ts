@@ -58,6 +58,7 @@ for (const role of roles)
                 lastName: "User",
                 role: [role],
                 isAdminHq: hq,
+                planFeatures: ["analytics", "giving"],
                 permissions: [
                   "branches:read",
                   ...(admin

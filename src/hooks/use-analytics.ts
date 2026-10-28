@@ -177,13 +177,13 @@ export function useAnalyticsAttendance(params: AnalyticsDateRangeParams = {}, op
   });
 }
 
-export function useAnalyticsMembers() {
+export function useAnalyticsMembers(params: Pick<AnalyticsDateRangeParams, "branchId"> = {}) {
   const { can } = usePermissions();
   return useQuery({
-    queryKey: ["analytics", "members"],
+    queryKey: ["analytics", "members", params],
     enabled: can("analytics:members", "read"),
     queryFn: ({ signal }) =>
-      api.get<MemberAnalytics>(`/analytics/members`, { signal }),
+      api.get<MemberAnalytics>(`/analytics/members${buildQuery(params)}`, { signal }),
     staleTime: 10 * 60 * 1000,
   });
 }
