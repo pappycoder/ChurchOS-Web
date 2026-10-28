@@ -69,19 +69,25 @@ export function MyDashboard() {
 
   const givingSummary = useGivingSummary();
   const membersAnalytics = useAnalyticsMembers();
-  const eventsList = useEventsList({ limit: 100 } as any);
+  const eventsList = useEventsList({ limit: 100 });
 
   const upcomingEventsCount = React.useMemo(() => {
-    const events = (eventsList.data as any)?.data ?? (eventsList.data as any)?.items ?? [];
-    if (!Array.isArray(events)) return 0;
+    const data = eventsList.data as unknown;
+    const events: Array<{ startDate?: string }> = Array.isArray(data)
+      ? (data as Array<{ startDate?: string }>)
+      : Array.isArray((data as { data?: unknown })?.data)
+        ? ((data as { data?: Array<{ startDate?: string }> }).data ?? [])
+        : Array.isArray((data as { items?: unknown })?.items)
+          ? ((data as { items?: Array<{ startDate?: string }> }).items ?? [])
+          : [];
     const now = Date.now();
-    return events.filter((e: any) => {
+    return events.filter((e) => {
       const start = e.startDate ? new Date(e.startDate).getTime() : now;
       return start >= now;
     }).length;
   }, [eventsList.data]);
 
-  const unreadCount = (notifications.data as any)?.unreadCount ?? 0;
+  const unreadCount = (notifications.data as { unreadCount?: number } | undefined)?.unreadCount ?? 0;
 
   if (profile.error) return <ErrorState title="Unable to load your dashboard" />;
   if (profile.isLoading || !profile.data) {
