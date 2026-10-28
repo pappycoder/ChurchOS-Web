@@ -42,26 +42,6 @@ function getInitials(firstName?: string, lastName?: string): string {
   return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
 }
 
-function InfoRow({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-3 py-2">
-      <span className="mt-0.5 text-muted-foreground shrink-0">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground uppercase tracking-wide">{label}</p>
-        <div className="text-sm font-medium break-words">{value ?? "—"}</div>
-      </div>
-    </div>
-  );
-}
-
 export function MyDashboard() {
   const profile = useCurrentProfile();
   const {canAny, can} = usePermissions();
@@ -92,15 +72,16 @@ export function MyDashboard() {
   const eventsList = useEventsList({ limit: 100 } as any);
 
   const upcomingEventsCount = React.useMemo(() => {
-    if (!eventsList.data?.data) return 0;
+    const events = (eventsList.data as any)?.data ?? (eventsList.data as any)?.items ?? [];
+    if (!Array.isArray(events)) return 0;
     const now = Date.now();
-    return eventsList.data.data.filter((e: any) => {
+    return events.filter((e: any) => {
       const start = e.startDate ? new Date(e.startDate).getTime() : now;
       return start >= now;
     }).length;
   }, [eventsList.data]);
 
-  const unreadCount = notifications.data?.unreadCount ?? 0;
+  const unreadCount = (notifications.data as any)?.unreadCount ?? 0;
 
   if (profile.error) return <ErrorState title="Unable to load your dashboard" />;
   if (profile.isLoading || !profile.data) {
