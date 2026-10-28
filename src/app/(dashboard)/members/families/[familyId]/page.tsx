@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 import { RecordActions } from "@/components/shared/record-actions";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
@@ -87,7 +88,7 @@ export default function FamilyDetailPage({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className={ui.page}>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -111,22 +112,22 @@ export default function FamilyDetailPage({
   const head = display.members.find((m) => m.isHead);
 
   return (
-    <div className="space-y-4">
+    <div className={ui.page}>
       <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/members/families"); }}>
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Families
       </Button>
 
       {/* Header card */}
-      <Card>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-5">
+      <Card className={ui.identity}>
+        <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
           <div className="flex items-center gap-4 min-w-0">
             <Avatar className="h-14 w-14">
               <AvatarFallback className="text-lg">{initials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-semibold truncate">{display.name}</h1>
+                <h1 className="text-xl font-semibold [overflow-wrap:anywhere]">{display.name}</h1>
                 <Badge variant="secondary">{display.members.length} member(s)</Badge>
                 {head && (
                   <Badge variant="outline">
@@ -202,6 +203,7 @@ export default function FamilyDetailPage({
 
       {/* Family members */}
       <TableCard
+        className={ui.directoryCard}
         title="Family Members"
         description="Member records linked to this family."
         action={
@@ -314,6 +316,7 @@ export default function FamilyDetailPage({
         member={removeTarget}
       />
       <ArchiveConfirmDialog
+        className={ui.dialog}
         open={!!archiveAction}
         onOpenChange={(open) => !open && setArchiveAction(null)}
         kind={archiveAction ?? "archive"}

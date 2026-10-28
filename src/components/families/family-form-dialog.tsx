@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 
 import * as React from "react";
 import { toast } from "@/lib/toast";
@@ -105,7 +106,7 @@ export function FamilyFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className={`${ui.dialog} sm:max-w-[480px]`}>
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Family" : "Add Family"}</DialogTitle>
           <DialogDescription>

@@ -101,7 +101,7 @@ function autoMap(
   return mapping;
 }
 
-export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
+export function PeopleImportPage({ kind, className, progressClassName }: { kind: "members" | "visitors"; className?: string; progressClassName?: string }) {
   const visitor = kind === "visitors";
   const plural = visitor ? "Visitors" : "Members";
   const singular = visitor ? "visitor" : "member";
@@ -443,7 +443,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
     );
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", className)}>
       <PageHeader
         title={`Import ${plural}`}
         breadcrumbs={[
@@ -460,6 +460,14 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
       />
 
       {/* Step indicator */}
+      {progressClassName ? <ol aria-label="Import progress" className={progressClassName}>
+        {(["upload", "map", "review", "done"] as ImportStep[]).map((value, index, steps) => (
+          <li key={value} aria-current={step === value ? "step" : undefined} data-complete={steps.indexOf(step) > index}>
+            <span aria-hidden="true">{steps.indexOf(step) > index ? <CheckCircle2 className="size-4" /> : index + 1}</span>
+            <span>{value === "upload" ? "Upload" : value === "map" ? "Map" : value === "review" ? "Review" : "Done"}</span>
+          </li>
+        ))}
+      </ol> : (
       <div className="flex items-center gap-2 text-sm">
         {(["upload", "map", "review", "done"] as ImportStep[]).map((s, i) => (
           <React.Fragment key={s}>
@@ -479,6 +487,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
           </React.Fragment>
         ))}
       </div>
+      )}
 
       {/* Step 1: Upload */}
       {step === "upload" && (

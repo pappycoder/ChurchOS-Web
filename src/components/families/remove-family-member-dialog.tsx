@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 
 import * as React from "react";
 import { toast } from "@/lib/toast";
@@ -55,7 +56,7 @@ export function RemoveFamilyMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className={`${ui.dialog} sm:max-w-[420px]`}>
         <DialogHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <UserMinus className="h-6 w-6 text-destructive" />

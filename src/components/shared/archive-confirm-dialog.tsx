@@ -38,6 +38,7 @@ const COPY: Record<
 };
 
 interface ArchiveConfirmDialogProps {
+  className?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Return to a persistent control when the dialog opens from a menu item. */
@@ -52,6 +53,7 @@ interface ArchiveConfirmDialogProps {
 }
 
 export function ArchiveConfirmDialog({
+  className,
   open,
   onOpenChange,
   returnFocusRef,
@@ -100,7 +102,7 @@ export function ArchiveConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-[420px]"
+        className={`sm:max-w-[420px] ${className ?? ""}`}
         onCloseAutoFocus={returnFocusRef ? (event) => {
           if (returnFocusRef.current) {
             event.preventDefault();

@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
@@ -223,9 +224,10 @@ export default function AddMemberPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={ui.page}>
       <PageHeader
         title="Add Member"
+        description="Create a profile with contact, membership and family details."
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Members", href: "/members" },
@@ -240,7 +242,7 @@ export default function AddMemberPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className={ui.registration}>
           {/* Profile photo */}
           <Card>
             <CardHeader className="pb-2">
@@ -250,7 +252,7 @@ export default function AddMemberPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center gap-5">
-              <Avatar className="h-20 w-20">
+              <Avatar className="h-16 w-16">
                 {photoPreview && <AvatarImage src={photoPreview} alt="Photo preview" />}
                 <AvatarFallback className="text-xl">
                   {photoPreview ? (
@@ -621,7 +623,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-end gap-2 pb-2">
+          <div className={ui.saveBar}>
             <Button
               type="button"
               variant="outline"

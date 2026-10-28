@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 import Link from "next/link";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
@@ -192,7 +193,7 @@ export default function MembersPage() {
     ],
   );
 
-  const { data, isLoading, error } = useMembersList(queryParams);
+  const { data, isLoading, error, refetch, isFetching } = useMembersList(queryParams);
   const restoreMutation = useRestoreMember();
   const archiveMutation = useArchiveMember();
   const restoreArchiveMutation = useRestoreArchiveMember();
@@ -285,33 +286,20 @@ export default function MembersPage() {
     return buildExportRows(rows);
   }, [queryParams, buildExportRows]);
 
-  if (error) {
-    return (
-      <div>
-        <PageHeader
-          title="Members"
-          breadcrumbs={[
-            { label: "Home", href: "/dashboard" },
-            { label: "Members" },
-          ]}
-        />
-        <ErrorState title="Failed to load members." />
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-4">
+    <div className={ui.page}>
       <PageHeader
         title="Members"
+        description="Browse your church directory and manage member records."
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Members" },
         ]}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {canCreateMembers && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="outline"
                   onClick={() => setCreateDialogOpen(true)}
@@ -330,28 +318,35 @@ export default function MembersPage() {
       />
 
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={ui.metrics}>
         <StatsCard
+          className={ui.metric}
           title="Total Members"
-          value={totalsQuery.data?.meta.total ?? 0}
+          value={totalsQuery.isError ? "—" : totalsQuery.data?.meta.total ?? "—"}
+          loading={totalsQuery.isLoading}
+          subtitle={totalsQuery.isError ? "Count unavailable" : undefined}
           icon={<Users className="h-4 w-4" />}
         />
         <StatsCard
+          className={ui.metric}
           title="Active"
-          value={activeQuery.data?.meta.total ?? 0}
+          value={activeQuery.isError ? "—" : activeQuery.data?.meta.total ?? "—"}
+          loading={activeQuery.isLoading}
+          subtitle={activeQuery.isError ? "Count unavailable" : undefined}
           icon={<Users className="h-4 w-4" />}
         />
         <StatsCard
+          className={ui.metric}
           title="Other Statuses"
-          value={
-            (totalsQuery.data?.meta.total ?? 0) -
-            (activeQuery.data?.meta.total ?? 0)
-          }
+          value={totalsQuery.isError || activeQuery.isError || !totalsQuery.data || !activeQuery.data ? "—" : totalsQuery.data.meta.total - activeQuery.data.meta.total}
+          loading={totalsQuery.isLoading || activeQuery.isLoading}
+          subtitle={totalsQuery.isError || activeQuery.isError ? "Count unavailable" : undefined}
           icon={<Users className="h-4 w-4" />}
         />
       </div>
 
       <TableCard
+        className={ui.directoryCard}
         title="All Members"
         itemName="members"
         page={page}
@@ -363,14 +358,8 @@ export default function MembersPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className={ui.toolbar}>
             <div role="group" aria-label="Member filters" className="flex items-center gap-2 flex-wrap">
-              <Button variant="ghost" size="sm" onClick={() => {setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setBranchFilter("all");setSortBy("first_name");setSortOrder("asc");setPage(1);setSelectedIds(new Set());}}>Reset filters</Button>
-              <ArchivedFilter
-                value={archivedFilter}
-                onChange={(value) => { setArchivedFilter(value); setPage(1); }}
-                onClearSelection={() => setSelectedIds(new Set())}
-              />
               <SearchInput
                 value={searchInput}
                 onChange={(v) => {
@@ -379,6 +368,12 @@ export default function MembersPage() {
                 placeholder="Search name, email, phone..."
                 className="w-full sm:w-64"
               />
+              <Button variant="ghost" size="sm" onClick={() => {setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setBranchFilter("all");setSortBy("first_name");setSortOrder("asc");setPage(1);setSelectedIds(new Set());}}>Reset filters</Button>
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(value) => { setArchivedFilter(value); setPage(1); }}
+                onClearSelection={() => setSelectedIds(new Set())}
+              />
               <Select
                 value={statusFilter}
                 onValueChange={(v) => {
@@ -386,7 +381,7 @@ export default function MembersPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-36" aria-label="Member status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -404,7 +399,7 @@ export default function MembersPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40" aria-label="Branch filter">
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
@@ -424,7 +419,7 @@ export default function MembersPage() {
             </div>
             <div className="flex items-center gap-1">
               <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-36">
+                <SelectTrigger className="w-36" aria-label="Sort members by">
                   <ArrowUpDown className="h-4 w-4 mr-1.5" />
                   <SelectValue />
                 </SelectTrigger>
@@ -492,7 +487,7 @@ export default function MembersPage() {
           </div>
         )}
 
-        {isLoading ? (
+        {error ? <ErrorState title="Failed to load members." onRetry={() => { void refetch(); }} retrying={isFetching} /> : isLoading ? (
           <LoadingState variant="table" />
         ) : members.length === 0 ? (
           <div className="py-8">
@@ -753,6 +748,7 @@ export default function MembersPage() {
         onDeleted={() => setSelectedIds(new Set())}
       />
       <ArchiveConfirmDialog
+        className={ui.dialog}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 
 import * as React from "react";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -176,7 +177,7 @@ export function MemberFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`${ui.dialog} sm:max-w-[560px] max-h-[90vh] overflow-y-auto`}>
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Member" : "Add Member"}</DialogTitle>
           <DialogDescription>
@@ -188,6 +189,7 @@ export function MemberFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <h3 className={ui.formSection}>Personal & contact details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -324,6 +326,7 @@ export function MemberFormDialog({
               />
             </div>
 
+            <h3 className={ui.formSection}>Address & membership</h3>
             <FormField
               control={form.control}
               name="address"
@@ -394,6 +397,7 @@ export function MemberFormDialog({
               />
             )}
 
+            <h3 className={ui.formSection}>Additional information</h3>
             <FormField
               control={form.control}
               name="notes"

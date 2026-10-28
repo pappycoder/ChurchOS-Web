@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -114,7 +115,7 @@ export default function FamiliesPage() {
     [page, perPage, search, archivedView, branchId]
   );
 
-  const { data, isLoading, error } = useFamiliesList(queryParams);
+  const { data, isLoading, error, refetch, isFetching } = useFamiliesList(queryParams);
   const archiveMutation = useArchiveFamily();
   const restoreArchiveMutation = useRestoreArchiveFamily();
   const purgeMutation = useDeleteFamily();
@@ -191,26 +192,12 @@ export default function FamiliesPage() {
     return buildExportRows(rows);
   }, [queryParams, buildExportRows]);
 
-  if (error) {
-    return (
-      <div>
-        <PageHeader
-          title="Families"
-          breadcrumbs={[
-            { label: "Home", href: "/dashboard" },
-            { label: "Members", href: "/members" },
-            { label: "Families" },
-          ]}
-        />
-        <ErrorState title="Failed to load families." />
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-4">
+    <div className={ui.page}>
       <PageHeader
         title="Families"
+        description="Manage households, relationships and linked members."
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Members", href: "/members" },
@@ -228,28 +215,38 @@ export default function FamiliesPage() {
         }
       />
 
-      <p className="text-sm text-muted-foreground">Total families uses the directory count. Head and linked-member metrics cover {statsQuery.data?.data.length ?? 0} loaded active families (up to {STATS_FETCH_LIMIT}); use the directory and its export for complete records.</p>
-      {statsQuery.error && <ErrorState title="Unable to load family metrics" />}
+      <p className={ui.metricNote}>Total families uses the directory count. Head and linked-member metrics cover the loaded active families (up to {STATS_FETCH_LIMIT}); use the directory and its export for complete records.</p>
+      {statsQuery.error && <ErrorState title="Unable to load family metrics" onRetry={() => { void statsQuery.refetch(); }} retrying={statsQuery.isFetching} className="py-6 sm:py-6" />}
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className={ui.metrics}>
         <StatsCard
+          className={ui.metric}
           title="Total Families"
-          value={totalsQuery.data?.meta.total ?? 0}
+          value={totalsQuery.isError ? "—" : totalsQuery.data?.meta.total ?? "—"}
+          loading={totalsQuery.isLoading}
+          subtitle={totalsQuery.isError ? "Count unavailable" : undefined}
           icon={<Home className="h-4 w-4" />}
         />
         <StatsCard
-          title="With head (loaded families)"
-          value={statsQuery.error ? "—" : stats.withHead}
+          className={ui.metric}
+          title="With head"
+          subtitle={statsQuery.isError ? "Count unavailable" : "Loaded active families"}
+          value={statsQuery.isError || !statsQuery.data ? "—" : stats.withHead}
+          loading={statsQuery.isLoading}
           icon={<Home className="h-4 w-4" />}
         />
         <StatsCard
-          title="Members linked (loaded families)"
-          value={statsQuery.error ? "—" : stats.membersLinked}
+          className={ui.metric}
+          title="Members linked"
+          subtitle={statsQuery.isError ? "Count unavailable" : "Loaded active families"}
+          value={statsQuery.isError || !statsQuery.data ? "—" : stats.membersLinked}
+          loading={statsQuery.isLoading}
           icon={<Home className="h-4 w-4" />}
         />
       </div>
 
       <TableCard
+        className={ui.directoryCard}
         title="All Families"
         itemName="families"
         page={page}
@@ -261,13 +258,7 @@ export default function FamiliesPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex items-center gap-2 flex-wrap">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter
-              value={archivedFilter}
-              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
-              onClearSelection={() => setSelectedIds(new Set())}
-            />
+          <div className={ui.toolbar}>
             <SearchInput
               value={searchInput}
               onChange={(v) => {
@@ -275,6 +266,12 @@ export default function FamiliesPage() {
               }}
               placeholder="Search family name..."
               className="w-full sm:w-64"
+            />
+            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
+              onClearSelection={() => setSelectedIds(new Set())}
             />
           </div>
         } exportAction={
@@ -306,7 +303,7 @@ export default function FamiliesPage() {
             </div>
           )}
 
-          {isLoading ? (
+          {error ? <ErrorState title="Failed to load families." onRetry={() => { void refetch(); }} retrying={isFetching} /> : isLoading ? (
             <LoadingState variant="table" />
           ) : families.length === 0 ? (
             <div className="py-8">
@@ -492,6 +489,7 @@ export default function FamiliesPage() {
         onDeleted={() => setSelectedIds(new Set())}
       />
       <ArchiveConfirmDialog
+        className={ui.dialog}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

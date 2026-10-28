@@ -1,4 +1,5 @@
 "use client";
+import ui from "@/components/members/members-ui.module.css";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { RecordActions } from "@/components/shared/record-actions";
 import { UrlTabs } from "@/components/shared/url-tabs";
@@ -80,12 +81,12 @@ function DataRow({
   value?: string | null;
 }) {
   return (
-    <div className="flex items-start gap-3 py-2">
-      <div className="flex items-center gap-2 w-40 shrink-0 text-sm text-muted-foreground">
+    <div className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] items-start gap-3 py-3">
+      <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
         {icon}
         <span>{label}</span>
       </div>
-      <span className="text-sm font-medium break-words min-w-0">{value || "-"}</span>
+      <span className="min-w-0 text-sm font-medium [overflow-wrap:anywhere]">{value || "-"}</span>
     </div>
   );
 }
@@ -146,7 +147,7 @@ export default function MemberDetailPage({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className={ui.page}>
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
         <div className="grid gap-4 lg:grid-cols-2">
@@ -189,7 +190,7 @@ export default function MemberDetailPage({
   };
 
   return (
-    <div className="space-y-4">
+    <div className={ui.page}>
       <Button
         variant="ghost"
         size="sm"
@@ -201,16 +202,16 @@ export default function MemberDetailPage({
       </Button>
 
       {/* Header card */}
-      <Card>
-        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-6">
-          <div className="flex items-center gap-4">
+      <Card className={ui.identity}>
+        <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
             <Avatar className="h-16 w-16">
               {display.photoUrl && (
                 <AvatarImage src={display.photoUrl} alt={`${display.firstName} ${display.lastName}`} />
               )}
               <AvatarFallback className="text-lg">{initials}</AvatarFallback>
             </Avatar>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl font-semibold">
                   {display.firstName} {display.lastName}
@@ -295,8 +296,8 @@ export default function MemberDetailPage({
       <UrlTabs defaultValue="overview" values={["overview", "attendance", ...(canAny("giving:records:read") ? ["giving"] : [])]}>
         <TabsList aria-label="Member workspace"><TabsTrigger value="overview">Overview & notes</TabsTrigger><TabsTrigger value="attendance">Attendance</TabsTrigger>{canAny("giving:records:read") && <TabsTrigger value="giving">Giving</TabsTrigger>}</TabsList>
 <TabsContent value="overview" forceMount className="space-y-4 data-[state=inactive]:hidden">
-      {/* Info cards */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className={ui.overview}>
+      <div>
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold">Contact Information</CardTitle>
@@ -332,6 +333,7 @@ export default function MemberDetailPage({
         </Card>
       </div>
 
+      <div>
       {/* Custom fields */}
       {display.customFields && Object.keys(display.customFields).length > 0 && (
         <Card>
@@ -388,9 +390,12 @@ export default function MemberDetailPage({
       </Card>
 
 
+      </div>
+      </div>
 </TabsContent><TabsContent value="attendance" forceMount className="space-y-4 data-[state=inactive]:hidden">
       {/* Attendance history */}
       <TableCard
+        className={ui.directoryCard}
         title={
           <span className="flex items-center gap-2">
             <CalendarCheck className="h-4 w-4" />
@@ -445,6 +450,7 @@ export default function MemberDetailPage({
 </TabsContent><TabsContent value="giving" forceMount className="space-y-4 data-[state=inactive]:hidden">
       {/* Giving history */}
       {canAny("giving:records:read") && <TableCard
+        className={ui.directoryCard}
         title={
           <span className="flex items-center gap-2">
             <HandCoins className="h-4 w-4" />
@@ -518,6 +524,7 @@ export default function MemberDetailPage({
         onDeleted={() => router.push("/members")}
       />
       <ArchiveConfirmDialog
+        className={ui.dialog}
         open={!!archiveAction}
         onOpenChange={(open) => !open && setArchiveAction(null)}
         kind={archiveAction ?? "archive"}
