@@ -14,7 +14,7 @@ import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
 export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <SidebarProvider>
+    <SidebarProvider mobileBreakpoint={1200} className="workspace-shell">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:p-3 focus:shadow-lg"
@@ -28,7 +28,7 @@ export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-6 lg:px-8"
+          className="flex min-w-0 flex-1 flex-col p-4 md:p-6"
         >
           {/* <OfflineEntry /> */}
           <BillingNotice />

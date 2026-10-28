@@ -2,17 +2,15 @@
 
 import * as React from 'react'
 
-const MOBILE_BREAKPOINT = 768
-const MOBILE_QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`
-
-export function useIsMobile() {
+export function useIsMobile(breakpoint = 768) {
+  const mobileQuery = `(max-width: ${breakpoint - 1}px)`
   return React.useSyncExternalStore(
     (callback) => {
-      const mql = window.matchMedia(MOBILE_QUERY)
+      const mql = window.matchMedia(mobileQuery)
       mql.addEventListener('change', callback)
       return () => mql.removeEventListener('change', callback)
     },
-    () => window.matchMedia(MOBILE_QUERY).matches,
+    () => window.matchMedia(mobileQuery).matches,
     () => false
   )
 }

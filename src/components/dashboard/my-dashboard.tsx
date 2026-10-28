@@ -4,7 +4,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
-import { Bell, ChevronRight, History, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import { Bell, CalendarDays, ChevronRight, ClipboardCheck, FileText, History, Mail, ShieldCheck, Sparkles, UserRound, Users, UserPlus } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,14 @@ import {
 } from "@/hooks/use-notifications";
 import { NotificationsDrawer } from "@/components/notifications/notifications-drawer";
 import { NotificationDetailDialog } from "@/components/notifications/notification-detail-dialog";
+
+const COMMON_TASKS = [
+  { permission: "members:all:read", href: "/members", label: "Find a member", icon: Users },
+  { permission: "attendance:checkin:read", href: "/attendance/check-in", label: "Check in attendees", icon: ClipboardCheck },
+  { permission: "visitors:list:read", href: "/visitors", label: "Follow up visitors", icon: UserPlus },
+  { permission: "events:list:read", href: "/events/list", label: "View events", icon: CalendarDays },
+  { permission: "forms:read", href: "/forms", label: "Open forms", icon: FileText },
+];
 
 function getInitials(firstName?: string, lastName?: string): string {
   return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
@@ -73,7 +81,7 @@ export function MyDashboard() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-40 rounded-lg border bg-muted/50 animate-pulse" />
+          <div key={i} className="h-40 rounded-2xl border bg-muted/50 animate-pulse" />
         ))}
       </div>
     );
@@ -85,51 +93,48 @@ export function MyDashboard() {
 
   return (
     <>
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Welcome back, {firstName}!
-          </CardTitle>
-          <CardDescription>
-            {p.church?.name} · {p.branch?.name ?? "Your permitted branches"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row items-start gap-4">
-            <Avatar className="h-16 w-16">
+    <div className="space-y-6">
+      <Card className="relative gap-4 overflow-hidden rounded-2xl border-primary/10 shadow-none">
+        <div aria-hidden="true" className="pointer-events-none absolute -end-16 -top-24 size-64 rounded-full bg-accent/25" />
+        <CardHeader className="relative">
+          <div className="flex items-start gap-4">
+            <Avatar className="size-12 shrink-0 rounded-2xl border border-border sm:size-14">
               <AvatarImage src={p.avatarUrl} alt={`${p.firstName} ${p.lastName}`} />
-              <AvatarFallback className="text-lg">
-                {getInitials(p.firstName, p.lastName)}
-              </AvatarFallback>
+              <AvatarFallback className="rounded-2xl bg-accent text-accent-foreground">{getInitials(p.firstName, p.lastName)}</AvatarFallback>
             </Avatar>
-            <div>
-              <p className="text-lg font-semibold">
-                {p.firstName} {p.lastName}
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {roles.map((role) => (
-                  <Badge key={role} variant={role === "super_admin" ? "destructive" : "secondary"}>
-                    {resolveRoleLabel(role, labels)}
-                  </Badge>
-                ))}
+            <div className="min-w-0 flex-1">
+              <p className="mb-1 flex items-center gap-2 text-xs font-medium text-muted-foreground"><Sparkles className="size-3.5" />Your workspace</p>
+              <CardTitle className="break-words text-xl sm:text-2xl">Welcome back, {firstName}!</CardTitle>
+              <CardDescription className="mt-2 break-words">{p.church?.name} · {p.branch?.name ?? "Your permitted branches"}</CardDescription>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {roles.map((role) => <Badge key={role} variant={role === "super_admin" ? "destructive" : "secondary"}>{resolveRoleLabel(role, labels)}</Badge>)}
               </div>
             </div>
           </div>
-
-          <details className="mt-4"><summary className="cursor-pointer text-sm font-medium">Account and access details</summary><div className="grid gap-4 sm:grid-cols-2"><InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={p.email}/><InfoRow icon={<ShieldCheck className="h-4 w-4" />} label="Access" value={p.isAdminHq ? "HQ · permitted branches" : "Your branch"}/></div><Link className="text-sm underline" href="/profile">Open profile</Link></details>
+        </CardHeader>
+        <CardContent className="relative">
+          <details className="border-t pt-4">
+            <summary className="cursor-pointer rounded-md text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring">Account and access details</summary>
+            <p className="mt-3 text-sm font-semibold break-words">{p.firstName} {p.lastName}</p>
+            <div className="grid gap-4 sm:grid-cols-2"><InfoRow icon={<Mail className="size-4" />} label="Email" value={p.email}/><InfoRow icon={<ShieldCheck className="size-4" />} label="Access" value={p.isAdminHq ? "HQ · permitted branches" : "Your branch"}/></div>
+            <Link className="text-sm underline" href="/profile">Open profile</Link>
+          </details>
         </CardContent>
       </Card>
 
-      <nav aria-label="Common tasks" className="flex flex-wrap gap-3 rounded-lg border p-4">
-        {[["members:all:read","/members","Find a member"],["attendance:checkin:read","/attendance/check-in","Check in attendees"],["visitors:list:read","/visitors","Follow up visitors"],["events:list:read","/events/list","View events"],["forms:read","/forms","Open forms"]].filter(([permission])=>canAny(permission)).map(([,href,label])=><Button key={href} asChild variant="outline"><Link href={href}>{label}</Link></Button>)}
-        <Button variant="ghost" asChild><Link href="/profile">My profile</Link></Button>
-      </nav>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+      <section aria-labelledby="common-tasks-heading">
+        <div className="mb-3 flex items-center justify-between"><h2 id="common-tasks-heading" className="text-base font-semibold">Common tasks</h2><span className="text-xs text-muted-foreground">Your shortcuts</span></div>
+        <nav aria-label="Common tasks" className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-3">
+          {[...COMMON_TASKS.filter((task) => canAny(task.permission)), { href: "/profile", label: "My profile", icon: UserRound }].map(({ href, label, icon: Icon }) => <Link key={href} href={href} className="group flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-4 text-sm font-medium transition-colors hover:border-primary/30 hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground"><Icon className="size-5" /></span>
+            <span className="min-w-0 flex-1 break-words">{label}</span><ChevronRight className="hidden size-4 shrink-0 text-muted-foreground sm:block" />
+          </Link>)}
+        </nav>
+      </section>
+      <div className="grid items-start gap-6 lg:grid-cols-2">
+        <Card className="gap-4 rounded-2xl shadow-none">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
               <History className="h-4 w-4 text-muted-foreground" />
               Recent Audit Logs
             </CardTitle>
@@ -144,7 +149,7 @@ export function MyDashboard() {
             ) : auditLogs.data?.data.length ? (
               <ul className="divide-y">
                 {auditLogs.data.data.map((item) => (
-                  <li key={item.id} className="py-2.5">
+                  <li key={item.id} className="relative border-s-2 border-primary/15 py-3 ps-4">
                     <p className="text-sm font-medium break-words">{auditEntryLabel(item)}</p>
                     <p className="text-xs text-muted-foreground">
                       {formatRelativeTime(item.createdAt)}
@@ -158,10 +163,10 @@ export function MyDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="flex flex-col">
-          <CardHeader className="pb-2">
+        <Card className="flex flex-col gap-4 rounded-2xl shadow-none">
+          <CardHeader className="border-b pb-4">
             <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Bell className="h-4 w-4 text-muted-foreground" />
                 Recent Notifications
               </CardTitle>
@@ -190,7 +195,7 @@ export function MyDashboard() {
                     <button
                       type="button"
                       onClick={() => openNotification(n)}
-                      className="w-full text-left py-2.5 group"
+                      className="group w-full rounded-lg py-3 text-start focus-visible:outline-2 focus-visible:outline-ring"
                     >
                       <div className="flex items-start gap-2">
                         {!n.readAt && (
@@ -200,7 +205,7 @@ export function MyDashboard() {
                           />
                         )}
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
                             <p
                               className={`text-sm font-medium break-words group-hover:underline ${
                                 n.readAt ? "text-foreground/80" : "text-foreground"

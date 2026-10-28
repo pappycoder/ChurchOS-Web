@@ -56,14 +56,17 @@ import {
 } from "lucide-react";
 
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Sidebar as SidebarPrimitive, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail,
+import { SidebarContent, SidebarFooter, SidebarHeader,
   SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
   SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, useSidebar } from "@/components/ui/sidebar";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { AccountMenu } from "./account-menu";
+import { Button } from "@/components/ui/button";
+import { ActionTooltip } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 interface NavItem {
   title: string;
@@ -580,13 +583,13 @@ function NavigationItem({ item, activeHref }: { item: NavItem; activeHref?: stri
   React.useEffect(() => { if (active) setOpen(true); }, [pathname, active]);
   const content = <>{Icon && <Icon className="size-4" />}<span>{item.title}</span>{item.badge && <span className="ms-auto rounded-full bg-secondary px-1.5 text-xs">{item.badge}</span>}</>;
   if (!children.length) return <SidebarMenuItem>
-    <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
+    <SidebarMenuButton asChild isActive={active} tooltip={item.title} className="h-10 rounded-xl px-3">
       <Link href={item.href!} aria-current={active ? "page" : undefined} onClick={() => setOpenMobile(false)} onMouseEnter={() => prefetch(item.href)} onFocus={() => prefetch(item.href)}>{content}</Link>
     </SidebarMenuButton>
   </SidebarMenuItem>;
   if (state === "collapsed" && !isMobile) return <SidebarMenuItem>
     <DropdownMenu>
-      <DropdownMenuTrigger asChild><SidebarMenuButton tooltip={item.title} isActive={active}>{content}<ChevronRight className="ms-auto size-4" /></SidebarMenuButton></DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild><SidebarMenuButton tooltip={item.title} isActive={active} className="h-10 rounded-xl px-3">{content}<ChevronRight className="ms-auto size-4" /></SidebarMenuButton></DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" sideOffset={8}>
         <DropdownMenuLabel>{item.title}</DropdownMenuLabel><DropdownMenuSeparator />
         {navigationLeaves(children).map((child) => <DropdownMenuItem key={child.href} asChild>
@@ -597,7 +600,7 @@ function NavigationItem({ item, activeHref }: { item: NavItem; activeHref?: stri
   </SidebarMenuItem>;
   return <Collapsible asChild open={open} onOpenChange={setOpen} className="group/collapsible">
     <SidebarMenuItem>
-      <CollapsibleTrigger asChild><SidebarMenuButton tooltip={item.title}>{content}<ChevronRight className="ms-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" /></SidebarMenuButton></CollapsibleTrigger>
+      <CollapsibleTrigger asChild><SidebarMenuButton tooltip={item.title} isActive={active} className="h-10 rounded-xl px-3">{content}<ChevronRight className="ms-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" /></SidebarMenuButton></CollapsibleTrigger>
       <CollapsibleContent className="CollapsibleContent"><SidebarMenuSub>
         {children.map((child) => child.children?.length ? <NavigationItem key={child.title} item={child} activeHref={activeHref} /> : <SidebarMenuSubItem key={child.title + child.href}>
           <SidebarMenuSubButton asChild isActive={child.href === activeHref}>
@@ -609,31 +612,81 @@ function NavigationItem({ item, activeHref }: { item: NavItem; activeHref?: stri
   </Collapsible>;
 }
 
+const SECTION_PRESENTATION: Record<string, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  "MAIN MENU": { label: "General", icon: LayoutDashboard },
+  COMMUNICATION: { label: "Communication", icon: MessageSquare },
+  OPERATIONS: { label: "Operations", icon: Building2 },
+  ADMINISTRATION: { label: "Administration", icon: Settings },
+  SUPPORT: { label: "Support", icon: BookOpen },
+};
+
 export function Sidebar() {
   const pathname = usePathname();
   const groups = useVisibleNavigation();
-  const { setOpenMobile } = useSidebar();
+  const { open, setOpen, isMobile, openMobile, setOpenMobile } = useSidebar();
   const { data: profile } = useCurrentProfile();
+  const closeButtonRef = React.useRef<HTMLButtonElement>(null);
+  const [selection, setSelection] = React.useState({ pathname: "", section: "MAIN MENU" });
   React.useEffect(() => { setOpenMobile(false); }, [pathname, setOpenMobile]);
+  React.useEffect(() => { if (!isMobile) setOpenMobile(false); }, [isMobile, setOpenMobile]);
   const activeHref = navigationLeaves(groups.flatMap((group) => group.items))
     .map((item) => item.href).filter((href): href is string => !!href && (pathname === href || pathname.startsWith(href + "/")))
     .sort((a, b) => b.length - a.length)[0];
-  return <SidebarPrimitive collapsible="icon" variant="inset" aria-label="Main navigation">
-    <SidebarHeader><SidebarMenu><SidebarMenuItem>
-      <SidebarMenuButton size="lg" asChild className="gap-2">
-        <Link href="/dashboard" onClick={() => setOpenMobile(false)}>
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-background"><BrandLogo variant="mark" emblemClassName="size-7 dark:brightness-0 dark:invert" /></div>
-          <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{profile?.church?.name || "ChurchOS"}</span><span className="truncate text-xs text-sidebar-foreground/70">{profile?.isAdminHq ? "Headquarters workspace" : profile?.branch?.name || "Church workspace"}</span></div>
-        </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem></SidebarMenu></SidebarHeader>
-    <SidebarContent><nav id="sidebar-menu" aria-label="Workspace">
-      {groups.map((group) => <SidebarGroup key={group.section}>
-        <SidebarGroupLabel>{group.section === "MAIN MENU" ? "General" : group.section.charAt(0) + group.section.slice(1).toLowerCase()}</SidebarGroupLabel>
-        <SidebarMenu>{group.items.map((item) => <NavigationItem key={item.title} item={item} activeHref={activeHref} />)}</SidebarMenu>
-      </SidebarGroup>)}
-    </nav></SidebarContent>
-    <SidebarFooter><AccountMenu placement="sidebar" /></SidebarFooter>
-    <SidebarRail />
-  </SidebarPrimitive>;
+  const routeGroup = groups.find((group) => navigationLeaves(group.items).some((item) => item.href === activeHref));
+  // A route change selects its owning section; browsing rail sections never navigates.
+  const selectedSection = selection.pathname !== pathname && routeGroup ? routeGroup.section : selection.section;
+  const selectedGroup = groups.find((group) => group.section === selectedSection) ?? routeGroup ?? groups[0];
+  React.useEffect(() => {
+    if (selectedGroup && (selection.pathname !== pathname || selection.section !== selectedGroup.section)) {
+      setSelection({ pathname, section: selectedGroup.section });
+    }
+  }, [pathname, selectedGroup, selection]);
+
+  const navigation = <div data-sidebar="sidebar" className="flex h-full min-h-0 w-full bg-sidebar text-sidebar-foreground">
+    <nav aria-label="Workspace sections" className="flex w-[72px] shrink-0 flex-col items-center gap-6 border-e border-sidebar-border py-5">
+      <Link href="/dashboard" aria-label="ChurchOS dashboard" onClick={() => setOpenMobile(false)} className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-sidebar-ring">
+        <BrandLogo variant="mark" emblemClassName="size-8" />
+      </Link>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3">
+        {groups.map((group) => {
+          const { label, icon: Icon } = SECTION_PRESENTATION[group.section];
+          const selected = selectedGroup?.section === group.section;
+          const button = <button key={group.section} type="button" aria-label={label} aria-pressed={selected} aria-expanded={selected && (isMobile || open)} aria-controls="workspace-menu" onClick={() => { setSelection({ pathname, section: group.section }); setOpen(true); }} className={cn("flex size-11 shrink-0 items-center justify-center rounded-2xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring", selected ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm" : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground")}>
+              <Icon className="size-5" />
+            </button>;
+          return isMobile ? button : <ActionTooltip key={group.section} label={label} side="right">{button}</ActionTooltip>;
+        })}
+      </div>
+    </nav>
+    <div id="workspace-menu" hidden={!isMobile && !open} className={cn("min-w-0 flex-1 flex-col", !isMobile && !open ? "hidden" : "flex")}>
+      <SidebarHeader className="gap-4 border-b border-sidebar-border px-5 py-5">
+        <div className="flex min-w-0 items-start gap-2">
+          <Link href="/dashboard" onClick={() => setOpenMobile(false)} className="min-w-0 flex-1 rounded-md focus-visible:outline-2 focus-visible:outline-sidebar-ring">
+            <p className="truncate text-base font-semibold">{profile?.church?.name || "ChurchOS"}</p>
+            <p className="mt-1 truncate text-xs text-sidebar-foreground/65">{profile?.isAdminHq ? "Headquarters workspace" : profile?.branch?.name || "Church workspace"}</p>
+          </Link>
+          {isMobile && <Button ref={closeButtonRef} disableTooltip variant="ghost" size="icon" aria-label="Close navigation" onClick={() => setOpenMobile(false)} className="size-8 shrink-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"><X className="size-4" /></Button>}
+        </div>
+      </SidebarHeader>
+      <SidebarContent className="px-2 py-4"><nav id="sidebar-menu" aria-label="Workspace">
+        {selectedGroup && <SidebarGroup>
+          <SidebarGroupLabel className="mb-3 text-[11px] font-semibold uppercase tracking-widest">{SECTION_PRESENTATION[selectedGroup.section].label}</SidebarGroupLabel>
+          <SidebarMenu className="gap-1.5">{selectedGroup.items.map((item) => <NavigationItem key={item.title} item={item} activeHref={activeHref} />)}</SidebarMenu>
+        </SidebarGroup>}
+      </nav></SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-3"><AccountMenu placement="sidebar" /></SidebarFooter>
+    </div>
+  </div>;
+
+  if (isMobile) return <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+    <SheetContent side="left" showCloseButton={false} className="w-[min(320px,100vw)] gap-0 overflow-hidden border-sidebar-border bg-sidebar p-0 text-sidebar-foreground" onOpenAutoFocus={(event) => { event.preventDefault(); closeButtonRef.current?.focus(); }} onCloseAutoFocus={(event) => { event.preventDefault(); document.querySelector<HTMLButtonElement>('[data-sidebar="trigger"]')?.focus(); }}>
+      <SheetTitle className="sr-only">Main navigation</SheetTitle>
+      <SheetDescription className="sr-only">Select a workspace section and page.</SheetDescription>
+      {navigation}
+    </SheetContent>
+  </Sheet>;
+
+  return <div className="hidden shrink-0 min-[1200px]:block" style={{ width: open ? 320 : 72 }}>
+    <aside aria-label="Main navigation" className="fixed inset-y-0 start-0 z-40 border-e border-sidebar-border" style={{ width: open ? 320 : 72 }}>{navigation}</aside>
+  </div>;
 }
