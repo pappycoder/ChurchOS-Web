@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { peopleWorkspaceClass } from "@/components/members/people-presentation";
 import { toast } from "@/lib/toast";
 import {
   Dialog,
@@ -96,13 +97,15 @@ export function AddFamilyMemberDialog({
             description: error?.message || "Please try again.",
           });
         },
-      }
+      },
     );
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[460px]">
+      <DialogContent
+        className={`${peopleWorkspaceClass} sm:max-w-[460px] rounded-2xl`}
+      >
         <DialogHeader>
           <DialogTitle>Add Member to {family.name}</DialogTitle>
           <DialogDescription>
@@ -125,7 +128,9 @@ export function AddFamilyMemberDialog({
                         onChange={(memberId, member) => {
                           field.onChange(memberId);
                           setMemberName(
-                            member ? `${member.firstName} ${member.lastName}` : ""
+                            member
+                              ? `${member.firstName} ${member.lastName}`
+                              : "",
                           );
                         }}
                         selectedName={memberName}
@@ -199,7 +204,11 @@ export function AddFamilyMemberDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={addMutation.isPending} loading={addMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={addMutation.isPending}
+                loading={addMutation.isPending}
+              >
                 {addMutation.isPending ? "Adding..." : "Add Member"}
               </Button>
             </DialogFooter>

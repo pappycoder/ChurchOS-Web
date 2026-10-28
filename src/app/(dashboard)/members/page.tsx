@@ -22,9 +22,14 @@ import {
   XCircle,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  PeopleWorkspace,
+  PeopleHeader,
+  PeopleAvatar,
+  PeopleStatusBadge,
+  PeopleMoreFilters,
+} from "@/components/members/people-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { TableCard } from "@/components/shared/table-card";
@@ -39,8 +44,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -99,30 +102,6 @@ const SORT_OPTIONS: Array<{
   { value: "created_at", label: "Date Added" },
 ];
 
-const STATUS_BADGE: Record<
-  MemberStatus,
-  { variant: "default" | "secondary" | "destructive" | "outline"; dot: string }
-> = {
-  active: { variant: "default", dot: "bg-green-500" },
-  inactive: { variant: "secondary", dot: "bg-gray-400" },
-  suspended: { variant: "destructive", dot: "bg-red-500" },
-  transferred: { variant: "outline", dot: "bg-blue-500" },
-};
-
-function getInitials(member: Pick<Member, "firstName" | "lastName">): string {
-  return `${member.firstName.charAt(0)}${member.lastName.charAt(0)}`.toUpperCase();
-}
-
-function MemberStatusCell({ status }: { status: MemberStatus }) {
-  const badge = STATUS_BADGE[status] ?? STATUS_BADGE.inactive;
-  return (
-    <Badge variant={badge.variant}>
-      <span className={`mr-1 h-1.5 w-1.5 rounded-full ${badge.dot}`} />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
-  );
-}
-
 export default function MembersPage() {
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
@@ -142,7 +121,11 @@ export default function MembersPage() {
     "all",
   );
   const [branchFilter, setBranchFilter] = React.useState<string>("all");
-  const effectiveBranchFilter = isAdminHq ? (branchFilter === "all" ? "" : branchFilter) : profile?.branchId ?? "";
+  const effectiveBranchFilter = isAdminHq
+    ? branchFilter === "all"
+      ? ""
+      : branchFilter
+    : (profile?.branchId ?? "");
   const [sortBy, setSortBy] =
     React.useState<NonNullable<ListMembersParams["sortBy"]>>("first_name");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("asc");
@@ -198,14 +181,11 @@ export default function MembersPage() {
   const restoreArchiveMutation = useRestoreArchiveMember();
   const purgeMutation = useDeleteMember();
 
-  // Unfiltered + active-only count queries power the stats cards.
-  const totalsQuery = useMembersList({ limit: 1, branchId: effectiveBranchFilter || undefined });
-  const activeQuery = useMembersList({ limit: 1, status: "active", branchId: effectiveBranchFilter || undefined });
-
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const branchNames = React.useMemo(() => {
     const map = new Map<string, string>();
-    if (profile?.branchId && profile.branch?.name) map.set(profile.branchId, profile.branch.name);
+    if (profile?.branchId && profile.branch?.name)
+      map.set(profile.branchId, profile.branch.name);
     for (const b of branchesQuery.data?.data ?? []) map.set(b.branchId, b.name);
     return map;
   }, [branchesQuery.data, profile?.branchId, profile?.branch?.name]);
@@ -288,7 +268,7 @@ export default function MembersPage() {
   if (error) {
     return (
       <div>
-        <PageHeader
+        <PeopleHeader
           title="Members"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
@@ -301,8 +281,9 @@ export default function MembersPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <PeopleWorkspace>
+      <PeopleHeader
+        count={data?.meta.total}
         title="Members"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -317,9 +298,13 @@ export default function MembersPage() {
                   onClick={() => setCreateDialogOpen(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Quick Add (basic details)
+                  Quick Add
                 </Button>
-                <Button onClick={() => { if (confirmDiscardChanges()) router.push("/members/new"); }}>
+                <Button
+                  onClick={() => {
+                    if (confirmDiscardChanges()) router.push("/members/new");
+                  }}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Member
                 </Button>
@@ -329,30 +314,8 @@ export default function MembersPage() {
         }
       />
 
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatsCard
-          title="Total Members"
-          value={totalsQuery.data?.meta.total ?? 0}
-          icon={<Users className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Active"
-          value={activeQuery.data?.meta.total ?? 0}
-          icon={<Users className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Other Statuses"
-          value={
-            (totalsQuery.data?.meta.total ?? 0) -
-            (activeQuery.data?.meta.total ?? 0)
-          }
-          icon={<Users className="h-4 w-4" />}
-        />
-      </div>
-
       <TableCard
-        title="All Members"
+        title={archivedView ? "Archived members" : "All Members"}
         itemName="members"
         page={page}
         perPage={perPage}
@@ -363,48 +326,46 @@ export default function MembersPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div role="group" aria-label="Member filters" className="flex items-center gap-2 flex-wrap">
-              <Button variant="ghost" size="sm" onClick={() => {setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setBranchFilter("all");setSortBy("first_name");setSortOrder("asc");setPage(1);setSelectedIds(new Set());}}>Reset filters</Button>
-              <ArchivedFilter
-                value={archivedFilter}
-                onChange={(value) => { setArchivedFilter(value); setPage(1); }}
-                onClearSelection={() => setSelectedIds(new Set())}
-              />
-              <SearchInput
-                value={searchInput}
-                onChange={(v) => {
-                  setSearchInput(v);
-                }}
-                placeholder="Search name, email, phone..."
-                className="w-full sm:w-64"
-              />
+          <div
+            role="group"
+            aria-label="Member filters"
+            className="flex flex-wrap items-center gap-2"
+          >
+            <SearchInput
+              value={searchInput}
+              onChange={(v) => {
+                setSearchInput(v);
+              }}
+              placeholder="Search name, email, phone..."
+              className="w-full sm:w-64"
+            />
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v as MemberStatus | "all");
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-36" aria-label="Member status">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isAdminHq ? (
               <Select
-                value={statusFilter}
-                onValueChange={(v) => {
-                  setStatusFilter(v as MemberStatus | "all");
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-36">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {isAdminHq ? <Select
                 value={branchFilter}
                 onValueChange={(v) => {
                   setBranchFilter(v);
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40" aria-label="Branch">
                   <SelectValue placeholder="All Branches" />
                 </SelectTrigger>
                 <SelectContent>
@@ -415,58 +376,102 @@ export default function MembersPage() {
                     </SelectItem>
                   ))}
                 </SelectContent>
-              </Select> : <Select value={profile?.branchId ?? "__no_branch__"} disabled>
-                <SelectTrigger className="w-40" aria-label="Branch filter locked to your branch">
-                  <SelectValue placeholder={profile?.branch?.name ?? "Your branch"} />
-                </SelectTrigger>
-                <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
-              </Select>}
-            </div>
-            <div className="flex items-center gap-1">
-              <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-36">
-                  <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                  <SelectValue />
+              </Select>
+            ) : (
+              <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+                <SelectTrigger
+                  className="w-40"
+                  aria-label="Branch filter locked to your branch"
+                >
+                  <SelectValue
+                    placeholder={profile?.branch?.name ?? "Your branch"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {SORT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value={profile?.branchId ?? "__no_branch__"}>
+                    {profile?.branch?.name ?? "Your branch"}
+                  </SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                onClick={() =>
-                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
-                }
-                aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
-              >
-                {sortOrder === "asc" ? (
-                  <SortAsc className="h-4 w-4" />
-                ) : (
-                  <SortDesc className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-        } exportAction={
-          <ExportDropdown
-              tableId="members"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={
-                someSelected
-                  ? `Members (${selectedMembers.length} selected)`
-                  : "Members"
+            )}
+            <PeopleMoreFilters
+              count={
+                Number(archivedView) +
+                Number(sortBy !== "first_name" || sortOrder !== "asc")
               }
-              filename="members-export"
-              disabled={exportSource.length === 0}
-            />
+            >
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(value) => {
+                  setArchivedFilter(value);
+                  setPage(1);
+                }}
+                onClearSelection={() => setSelectedIds(new Set())}
+              />
+              <div className="flex items-center gap-2">
+                <Select value={sortBy} onValueChange={handleSortChange}>
+                  <SelectTrigger className="w-36" aria-label="Sort members">
+                    <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
+                >
+                  {sortOrder === "asc" ? (
+                    <SortAsc className="h-4 w-4" />
+                  ) : (
+                    <SortDesc className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearch("");
+                  setArchivedFilter("all");
+                  setStatusFilter("all");
+                  setBranchFilter("all");
+                  setSortBy("first_name");
+                  setSortOrder("asc");
+                  setPage(1);
+                  setSelectedIds(new Set());
+                }}
+              >
+                Reset filters
+              </Button>
+            </PeopleMoreFilters>
+          </div>
+        }
+        exportAction={
+          <ExportDropdown
+            tableId="members"
+            columns={exportColumns}
+            data={exportData}
+            fetchAllRows={fetchAllExportRows}
+            title={
+              someSelected
+                ? `Members (${selectedMembers.length} selected)`
+                : "Members"
+            }
+            filename="members-export"
+            disabled={exportSource.length === 0}
+          />
         }
       >
         {!archivedView && someSelected && canDeleteMembers && (
@@ -527,7 +532,9 @@ export default function MembersPage() {
                     </TableHead>
                   )}
                   <TableHead exportKeys={["name", "email"]}>Member</TableHead>
-                  <TableHead exportKeys={["phone", "whatsappNumber"]}>Contact</TableHead>
+                  <TableHead exportKeys={["phone", "whatsappNumber"]}>
+                    Contact
+                  </TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead>Member Since</TableHead>
                   <TableHead>Status</TableHead>
@@ -559,17 +566,17 @@ export default function MembersPage() {
                     )}
                     <TableCell>
                       <div className="flex items-center gap-2.5">
-                        <Avatar size="sm">
-                          {member.photoUrl && (
-                            <AvatarImage
-                              src={member.photoUrl}
-                              alt={`${member.firstName} ${member.lastName}`}
-                            />
-                          )}
-                          <AvatarFallback>{getInitials(member)}</AvatarFallback>
-                        </Avatar>
+                        <PeopleAvatar
+                          id={member.memberId}
+                          name={`${member.firstName} ${member.lastName}`}
+                          photoUrl={member.photoUrl}
+                        />
                         <div className="min-w-0">
-                          <Link href={`/members/${member.memberId}`} onClick={event => event.stopPropagation()} className="block font-medium underline underline-offset-4">
+                          <Link
+                            href={`/members/${member.memberId}`}
+                            onClick={(event) => event.stopPropagation()}
+                            className="block font-medium underline underline-offset-4"
+                          >
                             {member.firstName} {member.lastName}
                           </Link>
                           {member.email && (
@@ -592,7 +599,7 @@ export default function MembersPage() {
                       {format(new Date(member.memberSince), "MMM d, yyyy")}
                     </TableCell>
                     <TableCell>
-                      <MemberStatusCell status={member.status} />
+                      <PeopleStatusBadge status={member.status} />
                     </TableCell>
                     {archivedView
                       ? canManage && (
@@ -678,11 +685,16 @@ export default function MembersPage() {
                                                   next.delete(member.memberId);
                                                   return next;
                                                 });
-                                                toast.success("Member restored to active");
+                                                toast.success(
+                                                  "Member restored to active",
+                                                );
                                               },
                                               onError: (e) =>
                                                 toast.error(
-                                                  getToastErrorMessage(e, "Failed to restore member")
+                                                  getToastErrorMessage(
+                                                    e,
+                                                    "Failed to restore member",
+                                                  ),
                                                 ),
                                             },
                                           )
@@ -697,28 +709,31 @@ export default function MembersPage() {
                                 {(canUpdateMembers || canDeleteMembers) && (
                                   <>
                                     <DropdownMenuSeparator />
-                                    {canUpdateMembers && (<DropdownMenuItem
-                                      onClick={() =>
-                                        setArchiveTarget({
-                                          kind: "archive",
-                                          member,
-                                        })
-                                      }
-                                    >
-                                      <Archive className="mr-2 h-4 w-4" />
-                                      Archive
-                                    </DropdownMenuItem>)}
-                                    {canDeleteMembers && member.status !== "inactive" && (
+                                    {canUpdateMembers && (
                                       <DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
                                         onClick={() =>
-                                          setDeleteTargets([member])
+                                          setArchiveTarget({
+                                            kind: "archive",
+                                            member,
+                                          })
                                         }
                                       >
-                                        <XCircle className="mr-2 h-4 w-4" />
-                                        Deactivate
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Archive
                                       </DropdownMenuItem>
                                     )}
+                                    {canDeleteMembers &&
+                                      member.status !== "inactive" && (
+                                        <DropdownMenuItem
+                                          className="text-destructive focus:text-destructive"
+                                          onClick={() =>
+                                            setDeleteTargets([member])
+                                          }
+                                        >
+                                          <XCircle className="mr-2 h-4 w-4" />
+                                          Deactivate
+                                        </DropdownMenuItem>
+                                      )}
                                   </>
                                 )}
                               </DropdownMenuContent>
@@ -772,6 +787,6 @@ export default function MembersPage() {
         }
         onConfirmed={() => setSelectedIds(new Set())}
       />
-    </div>
+    </PeopleWorkspace>
   );
 }

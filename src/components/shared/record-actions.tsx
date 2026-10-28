@@ -8,12 +8,12 @@ function hasActions(children: React.ReactNode): boolean {
   );
 }
 /** Native disclosure keeps mutation triggers mounted for predictable focus return. */
-export function RecordActions({ children }: { children: React.ReactNode }) {
+export function RecordActions({ children, label = "Manage record" }: { children: React.ReactNode; label?: string }) {
   if (!hasActions(children)) return null;
   return (
     <details className="max-w-full rounded-lg border px-3 py-2">
       <summary className="cursor-pointer text-sm font-medium focus-visible:outline-2 focus-visible:outline-ring">
-        Manage record
+        {label}
       </summary>
       <div
         role="group"

@@ -1,6 +1,10 @@
 "use client";
 
 import * as React from "react";
+import {
+  PeopleFormSection,
+  peopleWorkspaceClass,
+} from "@/components/members/people-presentation";
 import { toast } from "@/lib/toast";
 import {
   Dialog,
@@ -89,14 +93,19 @@ export function FamilyFormDialog({
     mutation.mutate(payload as never, {
       onSuccess: () => {
         toast.success(
-          isEdit ? "Family updated successfully" : "Family created successfully"
+          isEdit
+            ? "Family updated successfully"
+            : "Family created successfully",
         );
         onOpenChange(false);
       },
       onError: (error) => {
-        toast.error(isEdit ? "Failed to update family" : "Failed to create family", {
-          description: error?.message || "Please try again.",
-        });
+        toast.error(
+          isEdit ? "Failed to update family" : "Failed to create family",
+          {
+            description: error?.message || "Please try again.",
+          },
+        );
       },
     });
   };
@@ -105,7 +114,9 @@ export function FamilyFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent
+        className={`${peopleWorkspaceClass} sm:max-w-[520px] max-h-[90vh] overflow-y-auto rounded-2xl`}
+      >
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Family" : "Add Family"}</DialogTitle>
           <DialogDescription>
@@ -117,49 +128,57 @@ export function FamilyFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Family Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. The Ogundimu Family" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="headId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Head of Family</FormLabel>
-                  <FormControl>
-                    <div>
-                      <MemberCombobox
-                        value={field.value ?? ""}
-                        onChange={(memberId, member) => {
-                          field.onChange(memberId);
-                          setHeadName(
-                            member ? `${member.firstName} ${member.lastName}` : ""
-                          );
-                        }}
-                        selectedName={headName}
-                        placeholder="Select head of family..."
+            <PeopleFormSection title="Family details">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Family Name *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. The Ogundimu Family"
+                        {...field}
                       />
-                      <p className="text-xs text-muted-foreground mt-1.5">
-                        Optional. The head must be added as a family member too.
-                      </p>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </PeopleFormSection>
+            <PeopleFormSection title="Family links">
+              <FormField
+                control={form.control}
+                name="headId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Head of Family</FormLabel>
+                    <FormControl>
+                      <div>
+                        <MemberCombobox
+                          value={field.value ?? ""}
+                          onChange={(memberId, member) => {
+                            field.onChange(memberId);
+                            setHeadName(
+                              member
+                                ? `${member.firstName} ${member.lastName}`
+                                : "",
+                            );
+                          }}
+                          selectedName={headName}
+                          placeholder="Select head of family..."
+                        />
+                        <p className="text-xs text-muted-foreground mt-1.5">
+                          Optional. The head must be added as a family member
+                          too.
+                        </p>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </PeopleFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

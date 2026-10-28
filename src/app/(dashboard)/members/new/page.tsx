@@ -16,8 +16,18 @@ import {
   Trash2,
   User,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  PeopleWorkspace,
+  PeopleHeader,
+  PeopleSectionHeading,
+} from "@/components/members/people-presentation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,11 +63,7 @@ const MAX_PHOTO_MB = 5;
 const newMemberSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
   phone: z.string().optional(),
   whatsappNumber: z.string().optional(),
   gender: z.string().optional(),
@@ -116,7 +122,10 @@ export default function AddMemberPage() {
     defaultValues: EMPTY_VALUES,
   });
 
-  const customFieldsArray = useFieldArray({ control: form.control, name: "customFields" });
+  const customFieldsArray = useFieldArray({
+    control: form.control,
+    name: "customFields",
+  });
 
   const [photoFile, setPhotoFile] = React.useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = React.useState<string>("");
@@ -178,7 +187,7 @@ export default function AddMemberPage() {
           formData.append("folder", "members");
           const uploaded = await api.post<{ url: string }>(
             "/media/upload/image",
-            formData
+            formData,
           );
           await api.patch(`/members/${member.memberId}`, {
             photoUrl: uploaded.url,
@@ -210,12 +219,13 @@ export default function AddMemberPage() {
         }
       }
 
-      toast.success(`${member.firstName} ${member.lastName} added successfully`);
+      toast.success(
+        `${member.firstName} ${member.lastName} added successfully`,
+      );
       router.push(`/members/${member.memberId}`);
     } catch (error) {
       toast.error("Failed to add member", {
-        description:
-          getToastErrorMessage(error, "Please try again."),
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setSaving(false);
@@ -223,8 +233,8 @@ export default function AddMemberPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <PeopleWorkspace>
+      <PeopleHeader
         title="Add Member"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -232,7 +242,12 @@ export default function AddMemberPage() {
           { label: "Add" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/members"); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/members");
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Members
           </Button>
@@ -244,14 +259,19 @@ export default function AddMemberPage() {
           {/* Profile photo */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Profile Photo</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <PeopleSectionHeading>Profile Photo</PeopleSectionHeading>
+              </CardTitle>
               <CardDescription>
-                Optional. Images are optimized automatically ({MAX_PHOTO_MB} MB max).
+                Optional. Images are optimized automatically ({MAX_PHOTO_MB} MB
+                max).
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center gap-5">
               <Avatar className="h-20 w-20">
-                {photoPreview && <AvatarImage src={photoPreview} alt="Photo preview" />}
+                {photoPreview && (
+                  <AvatarImage src={photoPreview} alt="Photo preview" />
+                )}
                 <AvatarFallback className="text-xl">
                   {photoPreview ? (
                     ""
@@ -287,7 +307,8 @@ export default function AddMemberPage() {
                       className="text-destructive hover:text-destructive"
                       onClick={removePhoto}
                       disabled={saving}
-                     loading={saving}>
+                      loading={saving}
+                    >
                       <Trash2 className="h-4 w-4 mr-1.5" />
                       Remove
                     </Button>
@@ -295,8 +316,9 @@ export default function AddMemberPage() {
                 </div>
                 {photoFile && (
                   <p className="text-xs text-muted-foreground">
-                    {photoFile.name} · {(photoFile.size / 1024 / 1024).toFixed(1)} MB
-                    — uploaded when you save.
+                    {photoFile.name} ·{" "}
+                    {(photoFile.size / 1024 / 1024).toFixed(1)} MB — uploaded
+                    when you save.
                   </p>
                 )}
               </div>
@@ -306,8 +328,14 @@ export default function AddMemberPage() {
           {/* Personal information */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Personal Information</CardTitle>
-              <CardDescription>Basic identity and contact details.</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                <PeopleSectionHeading>
+                  Personal Information
+                </PeopleSectionHeading>
+              </CardTitle>
+              <CardDescription>
+                Basic identity and contact details.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <FormField
@@ -416,8 +444,14 @@ export default function AddMemberPage() {
           {/* Address & membership */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Address &amp; Membership</CardTitle>
-              <CardDescription>Where they live and which branch they belong to.</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                <PeopleSectionHeading>
+                  Address &amp; Membership
+                </PeopleSectionHeading>
+              </CardTitle>
+              <CardDescription>
+                Where they live and which branch they belong to.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <FormField
@@ -473,7 +507,10 @@ export default function AddMemberPage() {
                       </FormControl>
                       <SelectContent>
                         {(branchesQuery.data?.data ?? []).map((branch) => (
-                          <SelectItem key={branch.branchId} value={branch.branchId}>
+                          <SelectItem
+                            key={branch.branchId}
+                            value={branch.branchId}
+                          >
                             {branch.name}
                           </SelectItem>
                         ))}
@@ -489,7 +526,9 @@ export default function AddMemberPage() {
           {/* Family membership */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Family Membership</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <PeopleSectionHeading>Family Membership</PeopleSectionHeading>
+              </CardTitle>
               <CardDescription>
                 Optional — link this person to an existing family group.
               </CardDescription>
@@ -575,10 +614,12 @@ export default function AddMemberPage() {
           {/* Custom fields */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Custom Fields</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <PeopleSectionHeading>Custom Fields</PeopleSectionHeading>
+              </CardTitle>
               <CardDescription>
-                Track anything specific to your church — occupation, baptism date,
-                ministry roles.
+                Track anything specific to your church — occupation, baptism
+                date, ministry roles.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -595,7 +636,9 @@ export default function AddMemberPage() {
           {/* Notes */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Notes</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <PeopleSectionHeading>Notes</PeopleSectionHeading>
+              </CardTitle>
               <CardDescription>
                 Admin-only context about this member.
               </CardDescription>
@@ -625,7 +668,9 @@ export default function AddMemberPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { if (confirmDiscardChanges()) router.push("/members"); }}
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push("/members");
+              }}
               disabled={saving}
             >
               Cancel
@@ -646,6 +691,6 @@ export default function AddMemberPage() {
           </div>
         </form>
       </Form>
-    </div>
+    </PeopleWorkspace>
   );
 }

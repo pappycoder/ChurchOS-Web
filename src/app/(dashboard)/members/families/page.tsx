@@ -15,9 +15,13 @@ import {
   Archive,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  PeopleWorkspace,
+  PeopleHeader,
+  PeopleAvatar,
+  PeopleMoreFilters,
+} from "@/components/members/people-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { api } from "@/lib/api";
@@ -31,7 +35,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -50,7 +53,10 @@ import {
   type ListFamiliesParams,
 } from "@/hooks/use-families";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -59,15 +65,6 @@ import { FamilyFormDialog } from "@/components/families/family-form-dialog";
 import { TableCard } from "@/components/shared/table-card";
 import { DeleteFamilyDialog } from "@/components/families/delete-family-dialog";
 import { BranchFilter } from "@/components/shared/branch-filter";
-
-const STATS_FETCH_LIMIT = 100;
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  const first = parts[0]?.charAt(0) ?? "";
-  const last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
-  return `${first}${last}`.toUpperCase() || "?";
-}
 
 export default function FamiliesPage() {
   const router = useRouter();
@@ -79,7 +76,8 @@ export default function FamiliesPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -88,7 +86,9 @@ export default function FamiliesPage() {
 
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const [editFamily, setEditFamily] = React.useState<Family | null>(null);
-  const [deleteTargets, setDeleteTargets] = React.useState<Family[] | null>(null);
+  const [deleteTargets, setDeleteTargets] = React.useState<Family[] | null>(
+    null,
+  );
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
     family: Family;
@@ -111,24 +111,13 @@ export default function FamiliesPage() {
       archived: archivedView ? true : undefined,
       branchId: branchId || undefined,
     }),
-    [page, perPage, search, archivedView, branchId]
+    [page, perPage, search, archivedView, branchId],
   );
 
   const { data, isLoading, error } = useFamiliesList(queryParams);
   const archiveMutation = useArchiveFamily();
   const restoreArchiveMutation = useRestoreArchiveFamily();
   const purgeMutation = useDeleteFamily();
-
-  // Unfiltered queries power the stats cards.
-  const totalsQuery = useFamiliesList({ limit: 1, branchId: branchId || undefined });
-  const statsQuery = useFamiliesList({ limit: STATS_FETCH_LIMIT, branchId: branchId || undefined });
-
-  const stats = React.useMemo(() => {
-    const rows = statsQuery.data?.data ?? [];
-    const withHead = rows.filter((f) => f.headId).length;
-    const membersLinked = rows.reduce((sum, f) => sum + f.members.length, 0);
-    return { withHead, membersLinked };
-  }, [statsQuery.data]);
 
   const families = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -138,7 +127,9 @@ export default function FamiliesPage() {
   const someSelected = families.some((f) => selectedIds.has(f.familyId));
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? new Set(families.map((f) => f.familyId)) : new Set());
+    setSelectedIds(
+      checked ? new Set(families.map((f) => f.familyId)) : new Set(),
+    );
   };
 
   const handleSelectRow = (familyId: string, checked: boolean) => {
@@ -176,17 +167,19 @@ export default function FamiliesPage() {
         name: f.name,
         head: headOfFamily(f),
         memberCount: String(f.members.length),
-        memberNames: f.members.map((m) => `${m.firstName} ${m.lastName}`).join("; "),
+        memberNames: f.members
+          .map((m) => `${m.firstName} ${m.lastName}`)
+          .join("; "),
         createdAt: format(new Date(f.createdAt), "yyyy-MM-dd"),
       })),
-    []
+    [],
   );
   const exportData = buildExportRows(exportSource);
 
   // "Export all": walks every page of the current filter server-side.
   const fetchAllExportRows = React.useCallback(async () => {
     const rows = await fetchAllPages<Family>((p) =>
-      api.get(listUrl("/families", { ...queryParams, page: p, limit: 100 }))
+      api.get(listUrl("/families", { ...queryParams, page: p, limit: 100 })),
     );
     return buildExportRows(rows);
   }, [queryParams, buildExportRows]);
@@ -194,7 +187,7 @@ export default function FamiliesPage() {
   if (error) {
     return (
       <div>
-        <PageHeader
+        <PeopleHeader
           title="Families"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
@@ -208,8 +201,9 @@ export default function FamiliesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <PeopleWorkspace>
+      <PeopleHeader
+        count={data?.meta.total}
         title="Families"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -228,29 +222,8 @@ export default function FamiliesPage() {
         }
       />
 
-      <p className="text-sm text-muted-foreground">Total families uses the directory count. Head and linked-member metrics cover {statsQuery.data?.data.length ?? 0} loaded active families (up to {STATS_FETCH_LIMIT}); use the directory and its export for complete records.</p>
-      {statsQuery.error && <ErrorState title="Unable to load family metrics" />}
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatsCard
-          title="Total Families"
-          value={totalsQuery.data?.meta.total ?? 0}
-          icon={<Home className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="With head (loaded families)"
-          value={statsQuery.error ? "—" : stats.withHead}
-          icon={<Home className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Members linked (loaded families)"
-          value={statsQuery.error ? "—" : stats.membersLinked}
-          icon={<Home className="h-4 w-4" />}
-        />
-      </div>
-
       <TableCard
-        title="All Families"
+        title={archivedView ? "Archived families" : "All Families"}
         itemName="families"
         page={page}
         perPage={perPage}
@@ -261,13 +234,7 @@ export default function FamiliesPage() {
           setPage(1);
         }}
         toolbar={
-          <div className="flex items-center gap-2 flex-wrap">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter
-              value={archivedFilter}
-              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
-              onClearSelection={() => setSelectedIds(new Set())}
-            />
+          <div className="flex flex-wrap items-center gap-2">
             <SearchInput
               value={searchInput}
               onChange={(v) => {
@@ -276,115 +243,165 @@ export default function FamiliesPage() {
               placeholder="Search family name..."
               className="w-full sm:w-64"
             />
-          </div>
-        } exportAction={
-          <ExportDropdown
-              tableId="families"
-              columns={exportColumns}
-              data={exportData}
-              fetchAllRows={fetchAllExportRows}
-              title={someSelected ? `Families (${selectedFamilies.length} selected)` : "Families"}
-              filename="families-export"
-              disabled={exportSource.length === 0}
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
+                setPage(1);
+              }}
             />
+            <PeopleMoreFilters count={Number(archivedView)}>
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(value) => {
+                  setArchivedFilter(value);
+                  setPage(1);
+                }}
+                onClearSelection={() => setSelectedIds(new Set())}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearch("");
+                  setArchivedFilter("all");
+                  setBranchId("");
+                  setPage(1);
+                  setSelectedIds(new Set());
+                }}
+              >
+                Reset filters
+              </Button>
+            </PeopleMoreFilters>
+          </div>
+        }
+        exportAction={
+          <ExportDropdown
+            tableId="families"
+            columns={exportColumns}
+            data={exportData}
+            fetchAllRows={fetchAllExportRows}
+            title={
+              someSelected
+                ? `Families (${selectedFamilies.length} selected)`
+                : "Families"
+            }
+            filename="families-export"
+            disabled={exportSource.length === 0}
+          />
         }
       >
-          {!archivedView && someSelected && canDeleteFamilies && (
-            <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
-              <span className="text-sm font-medium">{selectedIds.size} selected</span>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setDeleteTargets(selectedFamilies)}
-              >
-                <Trash2 className="h-4 w-4 mr-1.5" />
-                Delete Selected
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
-                Clear Selection
-              </Button>
-            </div>
-          )}
+        {!archivedView && someSelected && canDeleteFamilies && (
+          <div className="flex items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
+            <span className="text-sm font-medium">
+              {selectedIds.size} selected
+            </span>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteTargets(selectedFamilies)}
+            >
+              <Trash2 className="h-4 w-4 mr-1.5" />
+              Delete Selected
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Clear Selection
+            </Button>
+          </div>
+        )}
 
-          {isLoading ? (
-            <LoadingState variant="table" />
-          ) : families.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<Home className="h-12 w-12" />}
-                title={archivedView ? "No archived families" : "No families found"}
-                description={
-                  archivedView
-                    ? "Archive a family to move them here."
-                    : search
-                      ? "Try adjusting your search."
-                      : canCreateFamilies
-                        ? "Add your first family to get started."
-                        : "No families have been added yet."
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table exportable={false} tableId="families">
-                <TableHeader>
-                  <TableRow>
+        {isLoading ? (
+          <LoadingState variant="table" />
+        ) : families.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<Home className="h-12 w-12" />}
+              title={
+                archivedView ? "No archived families" : "No families found"
+              }
+              description={
+                archivedView
+                  ? "Archive a family to move them here."
+                  : search
+                    ? "Try adjusting your search."
+                    : canCreateFamilies
+                      ? "Add your first family to get started."
+                      : "No families have been added yet."
+              }
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto px-4">
+            <Table exportable={false} tableId="families">
+              <TableHeader>
+                <TableRow>
+                  {!archivedView && (
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={(checked) =>
+                          handleSelectAll(!!checked)
+                        }
+                        aria-label="Select all families"
+                      />
+                    </TableHead>
+                  )}
+                  <TableHead exportKeys={["name"]}>Family</TableHead>
+                  <TableHead exportKeys={["head"]}>Head of Family</TableHead>
+                  <TableHead exportKeys={["memberCount", "memberNames"]}>
+                    Members
+                  </TableHead>
+                  <TableHead exportKeys={["createdAt"]}>Created</TableHead>
+                  {canManage && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {families.map((family) => (
+                  <TableRow
+                    key={family.familyId}
+                    className="cursor-pointer"
+                    onClick={() => handleRowClick(family.familyId)}
+                  >
                     {!archivedView && (
-                      <TableHead className="w-12">
+                      <TableCell
+                        className="w-12"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Checkbox
-                          checked={allSelected}
-                          onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                          aria-label="Select all families"
+                          checked={selectedIds.has(family.familyId)}
+                          onCheckedChange={(checked) =>
+                            handleSelectRow(family.familyId, !!checked)
+                          }
+                          aria-label={`Select ${family.name}`}
                         />
-                      </TableHead>
+                      </TableCell>
                     )}
-                    <TableHead exportKeys={["name"]}>Family</TableHead>
-                    <TableHead exportKeys={["head"]}>Head of Family</TableHead>
-                    <TableHead exportKeys={["memberCount", "memberNames"]}>Members</TableHead>
-                    <TableHead exportKeys={["createdAt"]}>Created</TableHead>
-                    {canManage && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {families.map((family) => (
-                    <TableRow
-                      key={family.familyId}
-                      className="cursor-pointer"
-                      onClick={() => handleRowClick(family.familyId)}
-                    >
-                      {!archivedView && (
-                        <TableCell
-                          className="w-12"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Checkbox
-                            checked={selectedIds.has(family.familyId)}
-                            onCheckedChange={(checked) =>
-                              handleSelectRow(family.familyId, !!checked)
-                            }
-                            aria-label={`Select ${family.name}`}
-                          />
-                        </TableCell>
-                      )}
-                      <TableCell>
-                        <div className="flex items-center gap-2.5">
-                          <Avatar size="sm">
-                            <AvatarFallback>{getInitials(family.name)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium truncate">{family.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {headOfFamily(family)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{family.members.length}</Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(family.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                      {archivedView ? (
-                        canManage && (
+                    <TableCell>
+                      <div className="flex items-center gap-2.5">
+                        <PeopleAvatar id={family.familyId} name={family.name} />
+                        <span className="font-medium truncate">
+                          {family.name}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {headOfFamily(family)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{family.members.length}</Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {format(new Date(family.createdAt), "MMM d, yyyy")}
+                    </TableCell>
+                    {archivedView
+                      ? canManage && (
                           <TableCell
                             className="text-right"
                             onClick={(e) => e.stopPropagation()}
@@ -395,7 +412,10 @@ export default function FamiliesPage() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() =>
-                                    setArchiveTarget({ kind: "restore", family })
+                                    setArchiveTarget({
+                                      kind: "restore",
+                                      family,
+                                    })
                                   }
                                 >
                                   <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
@@ -418,61 +438,78 @@ export default function FamiliesPage() {
                             </div>
                           </TableCell>
                         )
-                      ) : (
-                      canManage && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleRowClick(family.familyId)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              {canUpdateFamilies && (
-                                <DropdownMenuItem onClick={() => setEditFamily(family)}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit Family
+                      : canManage && (
+                          <TableCell
+                            className="text-right"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">More actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleRowClick(family.familyId)
+                                  }
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
                                 </DropdownMenuItem>
-                              )}
-                              {(canUpdateFamilies || canDeleteFamilies) && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  {canUpdateFamilies && (<DropdownMenuItem
-                                    onClick={() =>
-                                      setArchiveTarget({ kind: "archive", family })
-                                    }
+                                {canUpdateFamilies && (
+                                  <DropdownMenuItem
+                                    onClick={() => setEditFamily(family)}
                                   >
-                                    <Archive className="mr-2 h-4 w-4" />
-                                    Archive
-                                  </DropdownMenuItem>)}
-                                  {canDeleteFamilies && (<DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setDeleteTargets([family])}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>)}
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Family
+                                  </DropdownMenuItem>
+                                )}
+                                {(canUpdateFamilies || canDeleteFamilies) && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    {canUpdateFamilies && (
+                                      <DropdownMenuItem
+                                        onClick={() =>
+                                          setArchiveTarget({
+                                            kind: "archive",
+                                            family,
+                                          })
+                                        }
+                                      >
+                                        <Archive className="mr-2 h-4 w-4" />
+                                        Archive
+                                      </DropdownMenuItem>
+                                    )}
+                                    {canDeleteFamilies && (
+                                      <DropdownMenuItem
+                                        className="text-destructive focus:text-destructive"
+                                        onClick={() =>
+                                          setDeleteTargets([family])
+                                        }
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    )}
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </TableCard>
 
       <FamilyFormDialog
@@ -507,6 +544,6 @@ export default function FamiliesPage() {
         }
         onConfirmed={() => setSelectedIds(new Set())}
       />
-    </div>
+    </PeopleWorkspace>
   );
 }

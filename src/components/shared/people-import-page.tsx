@@ -5,6 +5,7 @@ import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
 import * as React from "react";
+import { PeopleHeader, PeopleImportProgress, peopleWorkspaceClass } from "@/components/members/people-presentation";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -442,9 +443,11 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
       </p>
     );
 
+  const ImportHeader = kind === "members" ? PeopleHeader : PageHeader;
+
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <div className={cn("space-y-4", kind === "members" && peopleWorkspaceClass)}>
+      <ImportHeader
         title={`Import ${plural}`}
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -460,6 +463,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
       />
 
       {/* Step indicator */}
+      {kind === "members" ? <PeopleImportProgress step={step} /> : (
       <div className="flex items-center gap-2 text-sm">
         {(["upload", "map", "review", "done"] as ImportStep[]).map((s, i) => (
           <React.Fragment key={s}>
@@ -479,6 +483,7 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
           </React.Fragment>
         ))}
       </div>
+      )}
 
       {/* Step 1: Upload */}
       {step === "upload" && (
