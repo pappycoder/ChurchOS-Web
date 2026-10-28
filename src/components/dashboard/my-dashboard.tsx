@@ -4,7 +4,16 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
-import { Bell, ChevronRight, History, Mail, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  Bell,
+  Calendar,
+  ChevronRight,
+  History,
+  Mail,
+  Sparkles,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +31,12 @@ import {
 } from "@/hooks/use-notifications";
 import { NotificationsDrawer } from "@/components/notifications/notifications-drawer";
 import { NotificationDetailDialog } from "@/components/notifications/notification-detail-dialog";
+import { StatsCard } from "@/components/shared/stats-card";
+import { useGivingSummary } from "@/hooks/use-giving";
+import { useAnalyticsMembers } from "@/hooks/use-analytics";
+import { useEventsList } from "@/hooks/use-events";
+import { DonutChart, colorize } from "@/components/analytics/pie-chart";
+import { formatNaira } from "@/hooks/use-analytics";
 
 function getInitials(firstName?: string, lastName?: string): string {
   return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
@@ -49,15 +64,15 @@ function InfoRow({
 
 export function MyDashboard() {
   const profile = useCurrentProfile();
-  const {canAny} = usePermissions();
+  const {canAny, can} = usePermissions();
   const labels = useRoleLabelMap();
-  const auditLogs = useMyAuditLogs({ limit: 8 });
+  const auditLogs = useMyAuditLogs({ limit: 3 });
   const notifications = useNotificationsList({
     page: 1,
     limit: NOTIFICATIONS_LIST_LIMIT,
     read: "all",
   });
-  const recentNotifications = (notifications.data?.data ?? []).slice(0, 8);
+  const recentNotifications = (notifications.data?.data ?? []).slice(0, 3);
   const markAsRead = useMarkAsRead();
 
   const [drawerOpen, setDrawerOpen] = React.useState(false);
@@ -67,6 +82,25 @@ export function MyDashboard() {
     if (!n.readAt) markAsRead.mutate(n.id);
     setSelected(n);
   };
+
+  const canViewGiving = canAny("giving:read") || can("giving", "read");
+  const canViewMembersAnalytics = can("analytics:members", "read");
+  const canViewEvents = canAny("events:read");
+
+  const givingSummary = useGivingSummary();
+  const membersAnalytics = useAnalyticsMembers();
+  const eventsList = useEventsList({ limit: 100 } as any);
+
+  const upcomingEventsCount = React.useMemo(() => {
+    if (!eventsList.data?.data) return 0;
+    const now = Date.now();
+    return eventsList.data.data.filter((e: any) => {
+      const start = e.startDate ? new Date(e.startDate).getTime() : now;
+      return start >= now;
+    }).length;
+  }, [eventsList.data]);
+
+  const unreadCount = notifications.data?.unreadCount ?? 0;
 
   if (profile.error) return <ErrorState title="Unable to load your dashboard" />;
   if (profile.isLoading || !profile.data) {
@@ -104,7 +138,7 @@ export function MyDashboard() {
                 {getInitials(p.firstName, p.lastName)}
               </AvatarFallback>
             </Avatar>
-            <div>
+            <div className="flex-1 min-w-0">
               <p className="text-lg font-semibold">
                 {p.firstName} {p.lastName}
               </p>
@@ -114,51 +148,105 @@ export function MyDashboard() {
                     {resolveRoleLabel(role, labels)}
                   </Badge>
                 ))}
+                <Badge variant="outline">{p.isAdminHq ? "HQ Access" : "Branch Scoped"}</Badge>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{p.email}</span>
+                <Link className="underline" href="/profile">View profile</Link>
               </div>
             </div>
           </div>
-
-          <details className="mt-4"><summary className="cursor-pointer text-sm font-medium">Account and access details</summary><div className="grid gap-4 sm:grid-cols-2"><InfoRow icon={<Mail className="h-4 w-4" />} label="Email" value={p.email}/><InfoRow icon={<ShieldCheck className="h-4 w-4" />} label="Access" value={p.isAdminHq ? "HQ · permitted branches" : "Your branch"}/></div><Link className="text-sm underline" href="/profile">Open profile</Link></details>
         </CardContent>
       </Card>
 
-      <nav aria-label="Common tasks" className="flex flex-wrap gap-3 rounded-lg border p-4">
-        {[["members:all:read","/members","Find a member"],["attendance:checkin:read","/attendance/check-in","Check in attendees"],["visitors:list:read","/visitors","Follow up visitors"],["events:list:read","/events/list","View events"],["forms:read","/forms","Open forms"]].filter(([permission])=>canAny(permission)).map(([,href,label])=><Button key={href} asChild variant="outline"><Link href={href}>{label}</Link></Button>)}
-        <Button variant="ghost" asChild><Link href="/profile">My profile</Link></Button>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {canViewGiving && (
+          <StatsCard
+            title="Giving this month"
+            value={givingSummary.data?.monthTotal != null ? formatNaira(givingSummary.data.monthTotal) : (givingSummary.isLoading ? "..." : "—")}
+            icon={<Wallet className="h-4 w-4" />}
+            variant="primary"
+          />
+        )}
+        {canViewMembersAnalytics && (
+          <StatsCard
+            title="Total members"
+            value={membersAnalytics.data?.total != null ? membersAnalytics.data.total.toLocaleString() : (membersAnalytics.isLoading ? "..." : "—")}
+            icon={<Users className="h-4 w-4" />}
+          />
+        )}
+        {canViewEvents && (
+          <StatsCard
+            title="Upcoming events"
+            value={eventsList.isLoading ? "..." : upcomingEventsCount.toLocaleString()}
+            icon={<Calendar className="h-4 w-4" />}
+          />
+        )}
+        <StatsCard
+          title="Unread notifications"
+          value={notifications.isLoading ? "..." : unreadCount.toLocaleString()}
+          icon={<Bell className="h-4 w-4" />}
+        />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        {canViewMembersAnalytics && membersAnalytics.data && (
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold">Member composition</CardTitle>
+              <CardDescription>By status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DonutChart
+                data={colorize(
+                  Object.entries(membersAnalytics.data.byStatus ?? {}).map(([key, value]) => ({
+                    name: key.replace(/_/g, " "),
+                    value: Number(value),
+                  }))
+                )}
+                loading={membersAnalytics.isLoading}
+                unit="members"
+                height={200}
+              />
+            </CardContent>
+          </Card>
+        )}
+        {canViewGiving && givingSummary.data && (
+          <Card className={canViewMembersAnalytics && membersAnalytics.data ? "lg:col-span-2" : "lg:col-span-3"}>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-semibold">Giving overview</CardTitle>
+                  <CardDescription>Recent giving activity</CardDescription>
+                </div>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href="/giving">View giving</Link>
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                  <p className="text-lg font-semibold">{givingSummary.data.monthTotal != null ? formatNaira(givingSummary.data.monthTotal) : "—"}</p>
+                  <p className="text-xs text-muted-foreground mt-1">All time</p>
+                  <p className="text-base font-medium">{givingSummary.data.allTimeTotal != null ? formatNaira(givingSummary.data.allTimeTotal) : "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Transactions</p>
+                  <p className="text-lg font-semibold">{givingSummary.data.count?.toLocaleString() ?? "—"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <nav aria-label="Common tasks" className="flex flex-wrap gap-2 rounded-lg border p-3">
+        {[["members:all:read","/members","Find a member"],["attendance:checkin:read","/attendance/check-in","Check in"],["visitors:list:read","/visitors","Follow up"],["events:list:read","/events/list","Events"],["forms:read","/forms","Forms"]].filter(([permission])=>canAny(permission)).map(([,href,label])=><Button key={href} asChild variant="outline" size="sm"><Link href={href}>{label}</Link></Button>)}
       </nav>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <History className="h-4 w-4 text-muted-foreground" />
-              Recent Audit Logs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {auditLogs.isError ? <ErrorState title="Unable to load account activity" /> : auditLogs.isLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
-                ))}
-              </div>
-            ) : auditLogs.data?.data.length ? (
-              <ul className="divide-y">
-                {auditLogs.data.data.map((item) => (
-                  <li key={item.id} className="py-2.5">
-                    <p className="text-sm font-medium break-words">{auditEntryLabel(item)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatRelativeTime(item.createdAt)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="py-4 text-center text-sm text-muted-foreground">No activity yet.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-2">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
@@ -171,7 +259,7 @@ export function MyDashboard() {
                 className="h-7 px-2 text-xs text-muted-foreground"
                 onClick={() => setDrawerOpen(true)}
               >
-                View more
+                View all
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -179,7 +267,7 @@ export function MyDashboard() {
           <CardContent className="flex-1">
             {notifications.isError ? <ErrorState title="Unable to load notifications" /> : notifications.isLoading ? (
               <div className="space-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
+                {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
                 ))}
               </div>
@@ -230,6 +318,37 @@ export function MyDashboard() {
               <p className="py-4 text-center text-sm text-muted-foreground">
                 You&apos;re all caught up!
               </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <History className="h-4 w-4 text-muted-foreground" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {auditLogs.isError ? <ErrorState title="Unable to load account activity" /> : auditLogs.isLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
+                ))}
+              </div>
+            ) : auditLogs.data?.data.length ? (
+              <ul className="divide-y">
+                {auditLogs.data.data.map((item) => (
+                  <li key={item.id} className="py-2.5">
+                    <p className="text-sm font-medium break-words">{auditEntryLabel(item)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatRelativeTime(item.createdAt)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="py-4 text-center text-sm text-muted-foreground">No activity yet.</p>
             )}
           </CardContent>
         </Card>
