@@ -8,12 +8,13 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useBranchesList } from "@/hooks/use-branches";
 import {
-  useAnalyticsAttendance,
-  useAnalyticsGiving,
-  useAnalyticsMembers,
-  formatNaira,
-} from "@/hooks/use-analytics";
-import { useGivingSummary } from "@/hooks/use-giving";
+  useMemberDashboard,
+  useGivingDashboardCharts,
+} from "@/hooks/use-dashboard-charts";
+import {
+  useAttendanceSummary,
+  useAttendanceTrends,
+} from "@/hooks/use-attendance";
 import {
   ReportDateRange,
   type ReportRange,
@@ -72,55 +73,6 @@ function ChartCard({
   );
 }
 
-/** Preserves giving-dashboard access for viewers without the analytics grant. */
-function GivingSummaryFallback({ branchId }: { branchId?: string }) {
-  const query = useGivingSummary({ branchId });
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm">Giving overview</CardTitle>
-        <CardDescription>
-          Fixed periods, independent of the dashboard date filter.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {query.error ? (
-          <ErrorState
-            title="Unable to load giving overview"
-            onRetry={async () => {
-              await query.refetch();
-            }}
-          />
-        ) : (
-          <div className="flex flex-wrap gap-6 text-sm">
-            <div>
-              <p className="text-muted-foreground">Giving this month</p>
-              <p className="text-lg font-semibold">
-                {query.data ? formatNaira(query.data.monthTotal) : "…"}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">All time</p>
-              <p className="text-lg font-semibold">
-                {query.data ? formatNaira(query.data.allTimeTotal) : "…"}
-              </p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Transactions · all time</p>
-              <p className="text-lg font-semibold">
-                {query.data?.count.toLocaleString() ?? "…"}
-              </p>
-            </div>
-          </div>
-        )}
-        <Button asChild variant="ghost" size="sm">
-          <Link href="/giving">View giving</Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function DashboardCharts({
   upcomingEvents,
   eventsLoading,
@@ -140,10 +92,12 @@ export function DashboardCharts({
 }) {
   const { can } = usePermissions();
   const { data: profile } = useCurrentProfile();
-  const showAttendance = can("analytics:attendance", "read");
-  const showGiving = can("analytics:giving", "read");
-  const showMembers = can("analytics:members", "read");
-  const hasAnalytics = showAttendance || showGiving || showMembers;
+  const showAttendance = can("attendance:dashboard", "read");
+  const showGiving = can("giving:dashboard", "read");
+  const showMembers = can("members:all", "read");
+  const showAttendanceTrend = can("attendance:reports", "read");
+  const hasCharts =
+    showAttendance || showAttendanceTrend || showGiving || showMembers;
   const [range, setRange] = React.useState<ReportRange>(recentRange);
   const [branch, setBranch] = React.useState("");
   const [currency, setCurrency] = React.useState("NGN");
@@ -158,20 +112,31 @@ export function DashboardCharts({
     startDate: range.startDate || undefined,
     endDate: range.endDate ? `${range.endDate}T23:59:59.999Z` : undefined,
     branchId,
-    groupBy: "day" as const,
   };
-  const attendance = useAnalyticsAttendance(params, {
+  const attendance = useAttendanceSummary(params, {
     enabled: !!profile && !invalidRange,
   });
-  const giving = useAnalyticsGiving(
+  const giving = useGivingDashboardCharts(
     { ...params, currency },
     { enabled: !!profile && !invalidRange },
   );
-  const members = useAnalyticsMembers({ branchId });
+  const members = useMemberDashboard({ branchId }, { enabled: !!profile });
+  const attendanceTrend = useAttendanceTrends(params, {
+    enabled: !!profile && !invalidRange,
+  });
+  const attendanceHref = can("analytics:attendance", "read")
+    ? "/analytics/attendance"
+    : "/attendance";
+  const givingHref = can("analytics:giving", "read")
+    ? "/analytics/giving"
+    : "/giving";
+  const membersHref = can("analytics:members", "read")
+    ? "/analytics/members"
+    : "/members";
   const branches = useBranchesList(
     { limit: 100 },
     {
-      enabled: hasAnalytics && !!profile?.isAdminHq && can("branches", "read"),
+      enabled: hasCharts && !!profile?.isAdminHq && can("branches", "read"),
     },
   );
   const money = (value: number) =>
@@ -191,13 +156,14 @@ export function DashboardCharts({
   };
   const refresh = () => {
     if (showAttendance && !invalidRange) void attendance.refetch();
+    if (showAttendanceTrend && !invalidRange) void attendanceTrend.refetch();
     if (showGiving && !invalidRange) void giving.refetch();
     if (showMembers) void members.refetch();
   };
   const memberContent = (children: React.ReactNode) =>
     members.error ? (
       <ErrorState
-        title="Unable to load member analytics"
+        title="Unable to load member dashboard"
         onRetry={async () => {
           await members.refetch();
         }}
@@ -208,7 +174,7 @@ export function DashboardCharts({
 
   return (
     <div className="space-y-4">
-      {hasAnalytics && (
+      {hasCharts && (
         <section
           aria-label="Dashboard filters"
           className="space-y-3 rounded-lg border p-4"
@@ -272,7 +238,10 @@ export function DashboardCharts({
               size="sm"
               onClick={refresh}
               disabled={
-                attendance.isFetching || giving.isFetching || members.isFetching
+                attendance.isFetching ||
+                attendanceTrend.isFetching ||
+                giving.isFetching ||
+                members.isFetching
               }
             >
               Refresh
@@ -323,7 +292,7 @@ export function DashboardCharts({
             value={
               invalidRange || attendance.error
                 ? "—"
-                : (attendance.data?.total.toLocaleString() ?? "…")
+                : (attendance.data?.totalCheckIns.toLocaleString() ?? "…")
             }
             icon={<CalendarCheck className="h-4 w-4" />}
           />
@@ -379,15 +348,13 @@ export function DashboardCharts({
         />
       </div>
 
-      {(showAttendance || showGiving) && (
-        <div
-          className={`grid gap-4 ${showAttendance && showGiving ? "lg:grid-cols-2" : ""}`}
-        >
+      {(showAttendance || showAttendanceTrend || showGiving) && (
+        <div className="grid gap-4 lg:grid-cols-2">
           {showAttendance && (
             <ChartCard
-              title="Attendance trend"
-              description={`Members and visitors · ${period}`}
-              href="/analytics/attendance"
+              title="Attendance breakdown"
+              description={`Member and visitor check-ins · ${period}`}
+              href={attendanceHref}
             >
               {invalidRange ? (
                 <p className="py-12 text-center text-sm text-muted-foreground">
@@ -395,28 +362,68 @@ export function DashboardCharts({
                 </p>
               ) : attendance.error ? (
                 <ErrorState
-                  title="Unable to load attendance analytics"
+                  title="Unable to load attendance summary"
                   onRetry={async () => {
                     await attendance.refetch();
                   }}
                 />
               ) : (
-                <AnalyticsTrendChart
-                  data={attendance.data?.trend ?? []}
+                <BarsChart
+                  data={
+                    attendance.data?.totalCheckIns
+                      ? [
+                          {
+                            label: "Members",
+                            value: attendance.data.memberCheckIns,
+                          },
+                          {
+                            label: "Visitors",
+                            value: attendance.data.visitorCheckIns,
+                          },
+                        ]
+                      : []
+                  }
                   loading={attendance.isLoading}
+                  valueLabel="check-ins"
+                />
+              )}
+            </ChartCard>
+          )}
+          {showAttendanceTrend && (
+            <ChartCard
+              title="Attendance trend"
+              description={`Members and visitors · ${period}`}
+              href={
+                can("analytics:attendance", "read")
+                  ? "/analytics/attendance"
+                  : "/attendance/reports"
+              }
+            >
+              {invalidRange ? (
+                <p className="py-12 text-center text-sm text-muted-foreground">
+                  Choose a valid date range.
+                </p>
+              ) : attendanceTrend.error ? (
+                <ErrorState
+                  title="Unable to load attendance trend"
+                  onRetry={async () => {
+                    await attendanceTrend.refetch();
+                  }}
+                />
+              ) : (
+                <AnalyticsTrendChart
+                  data={attendanceTrend.data ?? []}
+                  loading={attendanceTrend.isLoading}
                   kind="split"
                 />
               )}
-              <p className="mt-2 text-xs text-muted-foreground">
-                Members and visitors are shown separately. Hover for counts.
-              </p>
             </ChartCard>
           )}
           {showGiving && (
             <ChartCard
               title="Giving trend"
               description={`Successful giving · ${currency} · ${period}`}
-              href="/analytics/giving"
+              href={givingHref}
             >
               {invalidRange ? (
                 <p className="py-12 text-center text-sm text-muted-foreground">
@@ -424,14 +431,18 @@ export function DashboardCharts({
                 </p>
               ) : giving.error ? (
                 <ErrorState
-                  title="Unable to load giving analytics"
+                  title="Unable to load giving charts"
                   onRetry={async () => {
                     await giving.refetch();
                   }}
                 />
               ) : (
                 <AnalyticsTrendChart
-                  data={giving.data?.trend ?? []}
+                  data={(giving.data?.trend ?? []).map((point) => ({
+                    ...point,
+                    members: 0,
+                    visitors: 0,
+                  }))}
                   loading={giving.isLoading}
                   formatValue={money}
                 />
@@ -454,7 +465,7 @@ export function DashboardCharts({
             <ChartCard
               title="Member growth"
               description="Cumulative members by joining month · full history"
-              href="/analytics/members"
+              href={membersHref}
             >
               {memberContent(
                 <AnalyticsTrendChart
@@ -466,7 +477,7 @@ export function DashboardCharts({
             <ChartCard
               title="Member composition"
               description="Current membership status"
-              href="/analytics/members"
+              href={membersHref}
             >
               {memberContent(
                 <DonutChart
@@ -486,7 +497,7 @@ export function DashboardCharts({
             <ChartCard
               title="Age distribution"
               description="Current members by age group"
-              href="/analytics/members"
+              href={membersHref}
             >
               {memberContent(
                 <HistogramChart
@@ -506,7 +517,7 @@ export function DashboardCharts({
         <ChartCard
           title="Giving by category"
           description={`Successful giving · ${currency} · ${period}`}
-          href="/analytics/giving"
+          href={givingHref}
         >
           {invalidRange ? (
             <p className="py-12 text-center text-sm text-muted-foreground">
@@ -530,9 +541,6 @@ export function DashboardCharts({
             />
           )}
         </ChartCard>
-      )}
-      {!showGiving && can("giving:dashboard", "read") && (
-        <GivingSummaryFallback branchId={branchId} />
       )}
     </div>
   );

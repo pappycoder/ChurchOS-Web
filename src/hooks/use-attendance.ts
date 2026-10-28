@@ -315,10 +315,11 @@ export function useDeleteAttendance() {
 
 export function useAttendanceSummary(
   params: { startDate?: string; endDate?: string; branchId?: string } = {},
+  options: { enabled?: boolean } = {},
 ) {
   const { can } = usePermissions();
   return useQuery({
-    enabled: can("attendance:dashboard", "read"),
+    enabled: can("attendance:dashboard", "read") && (options.enabled ?? true),
     queryKey: ["attendance-summary", params],
     queryFn: ({ signal }) =>
       api.get<AttendanceSummary>(
@@ -335,10 +336,11 @@ export function useAttendanceTrends(
     endDate?: string;
     branchId?: string;
   } = {},
+  options: { enabled?: boolean } = {},
 ) {
   const { can } = usePermissions();
   return useQuery({
-    enabled: can("attendance:reports", "read"),
+    enabled: can("attendance:reports", "read") && (options.enabled ?? true),
     queryKey: ["attendance-trends", params],
     queryFn: ({ signal }) =>
       api.get<AttendanceTrendPoint[]>(
