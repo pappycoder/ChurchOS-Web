@@ -76,7 +76,7 @@ test("HQ must choose a branch when none is assigned", async ({ page, context }) 
 for (const changeBranch of [true, false]) test(`HQ editing prefills the service branch and saves branch changes=${changeBranch}`, async ({ page, context }) => {
   await fixture(context, true, "branch-a", true);
   await page.goto("/attendance/services");
-  await page.getByRole("button", { name: "More actions", exact: true }).first().click();
+  await page.getByRole("button", { name: "More options", exact: true }).first().click();
   await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByRole("combobox", { name: "Branch" })).toContainText("East Branch");
@@ -95,7 +95,7 @@ for (const changeBranch of [true, false]) test(`HQ editing prefills the service 
 test("branch-scoped editing keeps the branch read-only", async ({ page, context }) => {
   await fixture(context, false, "branch-a", true);
   await page.goto("/attendance/services");
-  await page.getByRole("button", { name: "More actions", exact: true }).first().click();
+  await page.getByRole("button", { name: "More options", exact: true }).first().click();
   await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByLabel("Branch", { exact: false })).toHaveValue("West Branch");

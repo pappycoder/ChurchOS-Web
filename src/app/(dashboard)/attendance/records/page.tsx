@@ -2,7 +2,6 @@
 import { UrlTabs } from "@/components/shared/url-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
 import { LoadingState } from "@/components/shared/loading-state";
@@ -16,7 +15,13 @@ import {
   Trash2,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  AttendanceWorkspace,
+  AttendanceHeader,
+  AttendanceMoreFilters,
+  AttendanceCategoryBadge,
+  attendanceWorkspaceClass,
+} from "@/components/attendance/attendance-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
@@ -48,6 +53,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +74,7 @@ export default function AttendanceRecordsPage() {
   const canDelete = can("attendance:records", "delete");
 
   // Filters
+  const [branchId, setBranchId] = React.useState("");
   const [serviceId, setServiceId] = React.useState<string>("all");
   const [category, setCategory] = React.useState<string>("all");
   const [startDate, setStartDate] = React.useState("");
@@ -83,17 +90,19 @@ export default function AttendanceRecordsPage() {
       limit: perPage,
       serviceId: serviceId === "all" ? undefined : serviceId,
       category: category === "all" ? undefined : category,
+      branchId: branchId || undefined,
       startDate: startDate || undefined,
       endDate: endDate || undefined,
       sortBy: "checkinAt" as const,
       sortOrder: "desc" as const,
     }),
-    [page, perPage, serviceId, category, startDate, endDate]
+    [page, perPage, serviceId, category, startDate, endDate, branchId],
   );
 
   const { data, isLoading, error } = useAttendanceRecords(queryParams);
   const deleteMutation = useDeleteAttendance();
-  const [deleteTarget, setDeleteTarget] = React.useState<AttendanceRecord | null>(null);
+  const [deleteTarget, setDeleteTarget] =
+    React.useState<AttendanceRecord | null>(null);
 
   const records = React.useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -116,13 +125,13 @@ export default function AttendanceRecordsPage() {
             ?.label ?? "Adult",
         source: r.source,
       })),
-    []
+    [],
   );
 
   // Export walks every page of the current filter set server-side.
   const fetchAllExportRows = React.useCallback(async () => {
     const rows = await fetchAllPages<AttendanceRecord>((p) =>
-      api.get(listUrl("/attendance", { ...queryParams, page: p, limit: 200 }))
+      api.get(listUrl("/attendance", { ...queryParams, page: p, limit: 200 })),
     );
     return buildExportRows(rows);
   }, [queryParams, buildExportRows]);
@@ -144,7 +153,7 @@ export default function AttendanceRecordsPage() {
   if (error) {
     return (
       <div>
-        <PageHeader
+        <AttendanceHeader
           title="Records"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
@@ -158,214 +167,272 @@ export default function AttendanceRecordsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <AttendanceWorkspace>
+      <AttendanceHeader
         title="Records"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Attendance", href: "/attendance" },
           { label: "Records" },
         ]}
-
       />
 
       <UrlTabs defaultValue="named" values={["named", "totals"]}>
-      <TabsList aria-label="Attendance records"><TabsTrigger value="named">Named check-ins</TabsTrigger><TabsTrigger value="totals">Reported headcounts</TabsTrigger></TabsList>
-<TabsContent value="named" forceMount className="space-y-4 data-[state=inactive]:hidden">
-      <TableCard
-        title="Attendance Records"
-        itemName="records"
-        page={page}
-        perPage={perPage}
-        total={meta?.total ?? 0}
-        onPageChange={setPage}
-        onPerPageChange={(n) => {
-          setPerPage(n);
-          setPage(1);
-        }}
-        toolbar={
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
-          {can("attendance:services", "read") && <Select
-            value={serviceId}
-            onValueChange={(v) => {
-              setServiceId(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-52">
-              <SelectValue placeholder="All Services" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Services</SelectItem>
-              {(servicesQuery.data?.data ?? []).map((s) => (
-                <SelectItem key={s.serviceId} value={s.serviceId}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>}
-          <Select
-            value={category}
-            onValueChange={(v) => {
-              setCategory(v);
-              setPage(1);
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {ATTENDANCE_CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-2">
-            <Input
-              type="date"
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-                setPage(1);
-              }}
-              className="w-40"
-              aria-label="From date"
-            />
-            <span className="text-xs text-muted-foreground">to</span>
-            <Input
-              type="date"
-              value={endDate}
-              onChange={(e) => {
-                setEndDate(e.target.value);
-                setPage(1);
-              }}
-              className="w-40"
-              aria-label="To date"
-            />
-          </div>
-        </div>
-        } exportAction={
-          <ExportDropdown
-              tableId="attendance-records"
-            columns={[
-              { key: "date", label: "Date" },
-              { key: "time", label: "Time" },
-              { key: "name", label: "Name" },
-              { key: "type", label: "Type" },
-              { key: "service", label: "Service" },
-              { key: "category", label: "Category" },
-              { key: "source", label: "Source" },
-            ]}
-            data={buildExportRows(records)}
-            fetchAllRows={fetchAllExportRows}
+        <TabsList aria-label="Attendance records">
+          <TabsTrigger value="named">Named check-ins</TabsTrigger>
+          <TabsTrigger value="totals">Reported headcounts</TabsTrigger>
+        </TabsList>
+        <TabsContent
+          value="named"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
+        >
+          <TableCard
             title="Attendance Records"
-            filename="attendance-records"
-            disabled={records.length === 0}
-          />
-        }
-      >
-          {isLoading ? (
-            <LoadingState variant="table" />
-          ) : records.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<CalendarCheck className="h-12 w-12" />}
-                title="No attendance records"
-                description={
-                  serviceId !== "all" || category !== "all" || startDate || endDate
-                    ? "Try adjusting your filters."
-                    : "Check-ins will appear here once recorded."
-                }
+            itemName="records"
+            page={page}
+            perPage={perPage}
+            total={meta?.total ?? 0}
+            onPageChange={setPage}
+            onPerPageChange={(n) => {
+              setPerPage(n);
+              setPage(1);
+            }}
+            toolbar={
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:flex-wrap">
+                <BranchFilter
+                  value={branchId}
+                  onChange={(value) => {
+                    setBranchId(value);
+                    setPage(1);
+                  }}
+                />
+                {can("attendance:services", "read") && (
+                  <Select
+                    value={serviceId}
+                    onValueChange={(v) => {
+                      setServiceId(v);
+                      setPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-full sm:w-52">
+                      <SelectValue placeholder="All Services" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Services</SelectItem>
+                      {(servicesQuery.data?.data ?? []).map((s) => (
+                        <SelectItem key={s.serviceId} value={s.serviceId}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-36 sm:w-40"
+                    aria-label="From date"
+                  />
+                  <span className="text-xs text-muted-foreground">to</span>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setPage(1);
+                    }}
+                    className="w-36 sm:w-40"
+                    aria-label="To date"
+                  />
+                  <AttendanceMoreFilters count={Number(category !== "all")}>
+                    <Select
+                      value={category}
+                      onValueChange={(v) => {
+                        setCategory(v);
+                        setPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-full sm:w-40">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {ATTENDANCE_CATEGORIES.map((c) => (
+                          <SelectItem key={c.value} value={c.value}>
+                            {c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setServiceId("all");
+                        setCategory("all");
+                        setStartDate("");
+                        setEndDate("");
+                        setBranchId("");
+                        setPage(1);
+                      }}
+                    >
+                      Reset filters
+                    </Button>
+                  </AttendanceMoreFilters>
+                </div>
+              </div>
+            }
+            exportAction={
+              <ExportDropdown
+                tableId="attendance-records"
+                columns={[
+                  { key: "date", label: "Date" },
+                  { key: "time", label: "Time" },
+                  { key: "name", label: "Name" },
+                  { key: "type", label: "Type" },
+                  { key: "service", label: "Service" },
+                  { key: "category", label: "Category" },
+                  { key: "source", label: "Source" },
+                ]}
+                data={buildExportRows(records)}
+                fetchAllRows={fetchAllExportRows}
+                title="Attendance Records"
+                filename="attendance-records"
+                disabled={records.length === 0}
               />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table exportable={false} tableId="attendance-records">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead exportKeys={["date", "time"]}>Date</TableHead>
-                    {canDelete && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {records.map((record) => (
-                    <TableRow key={record.attendanceId}>
-                      <TableCell className="font-medium">
-                        {recordName(record)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={record.memberId ? "default" : "outline"}>
-                          {record.memberId ? "Member" : "Visitor"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {record.serviceName || "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          {(
-                            ATTENDANCE_CATEGORIES.find(
-                              (c) => c.value === (record.category ?? "adult")
-                            )?.label ?? "Adult"
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground capitalize">
-                        {record.source}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(record.checkInAt), "MMM d, yyyy")}
-                      </TableCell>
+            }
+          >
+            {isLoading ? (
+              <LoadingState variant="table" />
+            ) : records.length === 0 ? (
+              <div className="py-8">
+                <EmptyState
+                  icon={<CalendarCheck className="h-12 w-12" />}
+                  title="No attendance records"
+                  description={
+                    serviceId !== "all" ||
+                    category !== "all" ||
+                    startDate ||
+                    endDate
+                      ? "Try adjusting your filters."
+                      : "Check-ins will appear here once recorded."
+                  }
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto px-4">
+                <Table exportable={false} tableId="attendance-records">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead exportKeys={["date", "time"]}>Date</TableHead>
                       {canDelete && (
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => setDeleteTarget(record)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Record
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
+                        <TableHead className="text-right">Actions</TableHead>
                       )}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-      </TableCard>
-</TabsContent><TabsContent value="totals" forceMount className="space-y-4 data-[state=inactive]:hidden">
-<p className="text-sm text-muted-foreground">Meeting headcounts are reported separately from named check-ins. Filters and export below apply only to these totals.</p><GeneralAttendancePanel readOnly />
-</TabsContent>
-</UrlTabs>
-
+                  </TableHeader>
+                  <TableBody>
+                    {records.map((record) => (
+                      <TableRow key={record.attendanceId}>
+                        <TableCell className="font-medium">
+                          {recordName(record)}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={record.memberId ? "default" : "outline"}
+                          >
+                            {record.memberId ? "Member" : "Visitor"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {record.serviceName || "-"}
+                        </TableCell>
+                        <TableCell>
+                          <AttendanceCategoryBadge
+                            category={record.category ?? "adult"}
+                          />
+                        </TableCell>
+                        <TableCell className="text-muted-foreground capitalize">
+                          {record.source}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(record.checkInAt), "MMM d, yyyy")}
+                        </TableCell>
+                        {canDelete && (
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">More actions</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setDeleteTarget(record)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete Record
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </TableCard>
+        </TabsContent>
+        <TabsContent
+          value="totals"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
+        >
+          <p className="text-sm text-muted-foreground">
+            Meeting headcounts are reported separately from named check-ins.
+            Filters and export below apply only to these totals.
+          </p>
+          <GeneralAttendancePanel
+            presentationClassName={attendanceWorkspaceClass}
+            readOnly
+          />
+        </TabsContent>
+      </UrlTabs>
 
       {/* Delete confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-[420px]">
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent
+          className={`${attendanceWorkspaceClass} sm:max-w-[420px] rounded-2xl`}
+        >
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <AlertTriangle className="h-6 w-6 text-destructive" />
             </div>
-            <DialogTitle className="text-center">Delete Attendance Record</DialogTitle>
+            <DialogTitle className="text-center">
+              Delete Attendance Record
+            </DialogTitle>
             <DialogDescription className="text-center">
               Remove the check-in for{" "}
               <span className="font-medium text-foreground">
@@ -396,6 +463,6 @@ export default function AttendanceRecordsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </AttendanceWorkspace>
   );
 }

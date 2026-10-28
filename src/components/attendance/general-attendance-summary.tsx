@@ -1,5 +1,7 @@
 "use client";
 
+import { AttendanceHeadcountCharts } from "./attendance-headcount-charts";
+
 import {
   Card,
   CardContent,
@@ -71,10 +73,14 @@ export function GeneralAttendanceSummaryCard({
 }
 export function GeneralAttendanceReportSummary({
   filters,
+  charts = false,
 }: {
   filters: GeneralAttendanceParams;
+  charts?: boolean;
 }) {
   const query = useGeneralAttendanceSummary(filters);
+  if (charts)
+    return <AttendanceHeadcountCharts summary={query.data} query={query} />;
   if (query.isError)
     return <p role="alert">Could not load general attendance summary.</p>;
   return <GeneralAttendanceSummaryCard summary={query.data} />;

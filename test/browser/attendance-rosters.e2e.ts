@@ -277,6 +277,7 @@ for (const type of ["department", "cell"] as const)
         ? "/departments/dept-a"
         : "/departments/cell-groups/group-a",
     );
+    await page.getByRole("tab", { name: "Attendance", exact: true }).click();
     await page
       .getByRole("button", {
         name:

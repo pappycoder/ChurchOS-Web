@@ -1,4 +1,12 @@
 "use client";
+import {
+  AttendanceWorkspace,
+  AttendanceRecordActions,
+  AttendanceCategoryBadge,
+  AttendanceStatusBadge,
+  AttendanceArchivedBadge,
+  attendanceWorkspaceClass,
+} from "@/components/attendance/attendance-presentation";
 import { UrlTabs } from "@/components/shared/url-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -16,19 +24,10 @@ import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Baby,
-  HandCoins,
-  Users,
-  Archive,
-  RotateCcw,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, HandCoins, Archive, RotateCcw, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -49,7 +48,6 @@ import {
   useDeleteService,
   useArchiveService,
   useRestoreArchiveService,
-  SERVICE_CATEGORIES,
   type ChurchService,
 } from "@/hooks/use-attendance";
 import { useGivingTransactionsAll } from "@/hooks/use-giving";
@@ -170,7 +168,7 @@ export default function ServiceDetailPage({
   }
 
   return (
-    <div className="space-y-4">
+    <AttendanceWorkspace>
       <Button
         variant="ghost"
         size="sm"
@@ -184,22 +182,13 @@ export default function ServiceDetailPage({
       </Button>
 
       {/* Header */}
-      <Card>
-        <CardContent className="p-6">
+      <Card className="py-4">
+        <CardContent className="px-5">
           <div className="flex items-start gap-3 flex-wrap">
             <h1 className="text-xl font-semibold">{service.name}</h1>
-            <Badge variant="outline">
-              {SERVICE_CATEGORIES.find(
-                (c) => c.value === (service.category ?? "adult"),
-              )?.label ?? "Adult"}
-            </Badge>
-            {!service.isActive && <Badge variant="secondary">Inactive</Badge>}
-            {service.archivedAt && (
-              <Badge variant="destructive">
-                <Archive className="mr-1 h-3 w-3" />
-                Archived
-              </Badge>
-            )}
+            <AttendanceCategoryBadge category={service.category ?? "adult"} />
+            {!service.isActive && <AttendanceStatusBadge status="inactive" />}
+            {service.archivedAt && <AttendanceArchivedBadge />}
           </div>
           <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
             <span>
@@ -225,45 +214,51 @@ export default function ServiceDetailPage({
               </span>
             )}
           </p>
-          {(canUpdate || canDelete) && !service.archivedAt && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              {canUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setArchiveTarget({ kind: "archive", service })}
-                >
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archive
-                </Button>
-              )}
-            </div>
-          )}
-          {service.archivedAt && (canUpdate || canDelete) && (
-            <div className="flex flex-wrap items-center gap-2 mt-4">
-              {canUpdate && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setArchiveTarget({ kind: "restore", service })}
-                >
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  Restore
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setArchiveTarget({ kind: "purge", service })}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Forever
-                </Button>
-              )}
-            </div>
-          )}
+          <AttendanceRecordActions>
+            {(canUpdate || canDelete) && !service.archivedAt && (
+              <div className="flex flex-wrap items-center gap-2 mt-4">
+                {canUpdate && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setArchiveTarget({ kind: "archive", service })
+                    }
+                  >
+                    <Archive className="h-4 w-4 mr-2" />
+                    Archive
+                  </Button>
+                )}
+              </div>
+            )}
+            {service.archivedAt && (canUpdate || canDelete) && (
+              <div className="flex flex-wrap items-center gap-2 mt-4">
+                {canUpdate && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setArchiveTarget({ kind: "restore", service })
+                    }
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Restore
+                  </Button>
+                )}
+                {canDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setArchiveTarget({ kind: "purge", service })}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Forever
+                  </Button>
+                )}
+              </div>
+            )}
+          </AttendanceRecordActions>
         </CardContent>
       </Card>
 
@@ -280,47 +275,29 @@ export default function ServiceDetailPage({
           forceMount
           className="space-y-4 data-[state=inactive]:hidden"
         >
-          <GeneralAttendancePanel service={service} />
+          <GeneralAttendancePanel
+            presentationClassName={attendanceWorkspaceClass}
+            service={service}
+          />
 
           {attendanceQuery.isError ? (
             <ErrorState title="Unable to load named service attendance" />
           ) : (
             <>
-              {/* Totals */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-semibold">
-                      {totalCheckIns.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Total Check-Ins
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-semibold flex items-center gap-2">
-                      <Users className="h-5 w-5 text-muted-foreground" />
-                      {memberCount.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Member Check-Ins
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-2xl font-semibold flex items-center gap-2">
-                      <Baby className="h-5 w-5 text-muted-foreground" />
-                      {childrenCount.toLocaleString()}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Children Check-Ins
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
+              <dl className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border bg-card px-4 py-3 text-xs">
+                {[
+                  ["Total Check-Ins", totalCheckIns],
+                  ["Member Check-Ins", memberCount],
+                  ["Children Check-Ins", childrenCount],
+                ].map(([label, value]) => (
+                  <div key={String(label)} className="flex items-center gap-2">
+                    <dt className="text-muted-foreground">{label}</dt>
+                    <dd className="font-semibold tabular-nums">
+                      {Number(value).toLocaleString()}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
 
               {/* Breakdowns */}
               <div className="grid gap-4 lg:grid-cols-2">
@@ -464,6 +441,6 @@ export default function ServiceDetailPage({
               : deleteMutation
         }
       />
-    </div>
+    </AttendanceWorkspace>
   );
 }

@@ -68,6 +68,7 @@ test.beforeEach(async ({ context }, info) => {
             lastName: "Test",
             role: [usherPermissions ? "usher" : "staff"],
             isAdminHq: false,
+            planFeatures: ["giving", "reports"],
             permissions: usherPermissions ?? [
               "attendance:services:read",
               ...(summaryAccess
@@ -320,6 +321,7 @@ test("staff mixed service individual check-ins default to unspecified", async ({
     .getByRole("option", { name: "Family Service", exact: true })
     .click();
   await expect(page.getByRole("combobox").nth(1)).toContainText("Unspecified");
+  await page.getByText("Record reported headcounts (optional)", { exact: true }).click();
   await expect(
     page.getByRole("button", {
       name: "Record general attendance",
@@ -332,16 +334,14 @@ test("summary dashboard separates headcounts from individual check-ins", async (
   page,
 }) => {
   await page.goto("/attendance");
-  await expect(
-    page.getByText("Total Check-Ins", { exact: true }),
-  ).toBeVisible();
-  const card = page
-    .getByText("General attendance summary", { exact: true })
-    .locator('xpath=ancestor::*[@data-slot="card"][1]');
-  await expect(card.getByText("100", { exact: true }).first()).toBeVisible();
-  await expect(
-    card.getByText("Age not supplied", { exact: true }),
-  ).toBeVisible();
+  const named = page.getByRole("region", { name: "Named check-ins", exact: true });
+  const reported = page.getByRole("region", { name: "Reported service headcounts", exact: true });
+  await expect(named.getByText("Members & visitors", { exact: true })).toBeVisible();
+  await expect(named.locator("svg.recharts-surface").first()).toBeVisible();
+  await expect(reported.getByText("Reported age breakdown", { exact: true })).toBeVisible();
+  await expect(reported.getByText(/^Age not supp/)).toBeVisible();
+  await expect(reported.getByText(/^Gender not s/)).toBeVisible();
+  await expect(page.getByText("Total Check-Ins", { exact: true })).toHaveCount(0);
 });
 
 test("summary report generator exports headcounts separately with one download action", async ({
@@ -377,6 +377,7 @@ test("usher can open general attendance from service check-in", async ({
   await page.goto("/attendance/check-in");
   await page.getByRole("combobox").first().click();
   await page.getByRole("option", { name: /Family Service/ }).click();
+  await page.getByText("Record reported headcounts (optional)", { exact: true }).click();
   await page
     .getByRole("button", { name: "Record general attendance", exact: true })
     .click();

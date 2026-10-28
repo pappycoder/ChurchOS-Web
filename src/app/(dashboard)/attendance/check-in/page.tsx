@@ -20,8 +20,18 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle,
+import {
+  AttendanceWorkspace,
+  AttendanceHeader,
+  AttendanceSectionHeading,
+  attendanceWorkspaceClass,
+} from "@/components/attendance/attendance-presentation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,11 +70,7 @@ const visitorSchema = z.object({
   lastName: z.string().optional(),
   gender: z.string().optional(),
   phone: z.string().optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
   customFields: z.array(z.object({ key: z.string(), value: z.string() })),
 });
 
@@ -75,7 +81,9 @@ export default function CheckInPage() {
   const { can } = usePermissions();
   // Route gate already requires attendance:create; keep button-level checks consistent.
   const [checkingIn, setCheckingIn] = React.useState(false);
-  const [attendanceDate, setAttendanceDate] = React.useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [attendanceDate, setAttendanceDate] = React.useState(() =>
+    format(new Date(), "yyyy-MM-dd"),
+  );
   const canCreate = can("attendance:checkin", "create");
 
   // Selected service + category override.
@@ -86,7 +94,10 @@ export default function CheckInPage() {
 
   const selectedService = services.find((s) => s.serviceId === serviceId);
   const effectiveCategory: AttendanceCategory =
-    category || (selectedService?.category === "mixed" ? "unspecified" : selectedService?.category || "adult");
+    category ||
+    (selectedService?.category === "mixed"
+      ? "unspecified"
+      : selectedService?.category || "adult");
 
   // Mode switch.
   const [mode, setMode] = React.useState<"members" | "visitor">("members");
@@ -130,12 +141,13 @@ export default function CheckInPage() {
       // 2) Auto-record their check-in. Failure must not lose the visitor.
       try {
         await recordMutation.mutateAsync({
-        serviceId,
+          serviceId,
           visitorId: visitor.id,
-        category: effectiveCategory,
-        source: "manual",
-      });
-      toast.success(`${visitor.firstName}${visitor.lastName ? ` ${visitor.lastName}` : ""} checked in`,
+          category: effectiveCategory,
+          source: "manual",
+        });
+        toast.success(
+          `${visitor.firstName}${visitor.lastName ? ` ${visitor.lastName}` : ""} checked in`,
           {
             description: "Visitor registered and attendance recorded.",
           },
@@ -167,7 +179,7 @@ export default function CheckInPage() {
   if (!canCreate) {
     return (
       <div>
-        <PageHeader
+        <AttendanceHeader
           title="Check-In"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
@@ -186,8 +198,8 @@ export default function CheckInPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <AttendanceWorkspace>
+      <AttendanceHeader
         title="Check-In"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -200,7 +212,9 @@ export default function CheckInPage() {
       {servicesQuery.isError && <ErrorState title="Unable to load services" />}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold">Service</CardTitle>
+          <CardTitle className="text-sm font-semibold">
+            <AttendanceSectionHeading>Service</AttendanceSectionHeading>
+          </CardTitle>
           <CardDescription>
             Pick today&apos;s service — its category pre-fills the check-ins.
           </CardDescription>
@@ -208,7 +222,11 @@ export default function CheckInPage() {
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Service *</p>
-            <Select disabled={checkingIn} value={serviceId} onValueChange={setServiceId}>
+            <Select
+              disabled={checkingIn}
+              value={serviceId}
+              onValueChange={setServiceId}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a service" />
               </SelectTrigger>
@@ -246,7 +264,21 @@ export default function CheckInPage() {
         </CardContent>
       </Card>
 
-      <details className="rounded-lg border p-4"><summary className="cursor-pointer font-medium">Record reported headcounts (optional)</summary><p className="my-3 text-sm text-muted-foreground">Reported totals are separate from the named check-ins below.</p><GeneralAttendancePanel service={selectedService} requireService /></details>
+      <details className="rounded-lg border p-4">
+        <summary className="cursor-pointer font-medium">
+          <AttendanceSectionHeading>
+            Record reported headcounts (optional)
+          </AttendanceSectionHeading>
+        </summary>
+        <p className="my-3 text-sm text-muted-foreground">
+          Reported totals are separate from the named check-ins below.
+        </p>
+        <GeneralAttendancePanel
+          presentationClassName={attendanceWorkspaceClass}
+          service={selectedService}
+          requireService
+        />
+      </details>
 
       {/* Mode tabs */}
       <div className="flex gap-2">
@@ -296,7 +328,9 @@ export default function CheckInPage() {
                 required
                 className="w-full sm:w-52"
               />
-              <span className="block text-xs text-muted-foreground">Attendance will be recorded for this date.</span>
+              <span className="block text-xs text-muted-foreground">
+                Attendance will be recorded for this date.
+              </span>
             </label>
           }
           branchId={selectedService?.branchId}
@@ -315,7 +349,9 @@ export default function CheckInPage() {
         /* ─── Visitor registration + auto check-in ─── */
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">New Visitor</CardTitle>
+            <CardTitle className="text-sm font-semibold">
+              <AttendanceSectionHeading>New Visitor</AttendanceSectionHeading>
+            </CardTitle>
             <CardDescription>
               Registers the visitor and records their check-in in one go.
             </CardDescription>
@@ -463,6 +499,6 @@ export default function CheckInPage() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </AttendanceWorkspace>
   );
 }

@@ -88,6 +88,7 @@ test.beforeEach(async ({ context }, info) => {
             isAdminHq: !usherPermissions,
             firstName: "Staff",
             lastName: "Test",
+            planFeatures: ["groups", "events", "tickets", "giving"],
             permissions: usherPermissions ?? resources,
           };
         else if (path.endsWith("/auth/session")) data = { userId: "user-a" };
@@ -205,6 +206,7 @@ for (const type of ["department", "cell", "event"])
     page,
   }) => {
     await page.goto(route(type));
+    await page.getByRole("tab", { name: "Attendance", exact: true }).click();
     await page
       .getByRole("button", { name: "Record general attendance", exact: true })
       .click();
@@ -236,6 +238,7 @@ for (const type of ["department", "cell"])
     page,
   }) => {
     await page.goto(route(type));
+    await page.getByRole("tab", { name: "Attendance", exact: true }).click();
     await expect(
       page.getByText("Meeting A", { exact: true }).first(),
     ).toBeVisible();
@@ -254,6 +257,7 @@ for (const type of ["department", "cell", "event"])
     page,
   }) => {
     await page.goto(route(type));
+    await page.getByRole("tab", { name: "Attendance", exact: true }).click();
     const table = page.getByRole("table", {
       name: "General attendance",
       exact: true,
@@ -303,6 +307,7 @@ test("event check-in records total-only attendance without named details", async
 
 test("usher can record general event attendance", async ({ page }) => {
   await page.goto("/events/context-a");
+  await page.getByRole("tab", { name: "Attendance", exact: true }).click();
   await page
     .getByRole("button", { name: "Record general attendance", exact: true })
     .click();
@@ -330,13 +335,14 @@ test("usher can open event editing and lifecycle controls", async ({
   page,
 }) => {
   await page.goto("/events/context-a");
+  await page.getByRole("button", { name: "Event actions", exact: true }).click();
   await expect(
-    page.getByRole("button", { name: "Archive", exact: true }),
+    page.getByRole("menuitem", { name: "Archive", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Delete", exact: true }),
+    page.getByRole("menuitem", { name: "Delete", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
   await expect(page).toHaveURL(/\/events\/context-a\/edit$/);
   await expect(page.getByLabel("Title *", { exact: true })).toHaveValue(
     "Meeting A",

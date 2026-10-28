@@ -20,7 +20,16 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  AttendanceWorkspace,
+  AttendanceHeader,
+  AttendanceMoreFilters,
+  AttendanceRecordActions,
+  AttendanceFormSection,
+  AttendanceCategoryBadge,
+  AttendanceStatusBadge,
+  attendanceWorkspaceClass,
+} from "@/components/attendance/attendance-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
 import {
@@ -57,7 +66,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
@@ -143,13 +151,20 @@ export default function AttendanceServicesPage() {
   const canManage = canCreate || canUpdate || canDelete;
 
   const [page, setPage] = React.useState(1);
-  const [perPage, setPerPage] = React.useState(20);
+  const [perPage, setPerPage] = React.useState(15);
   const [branchId, setBranchId] = React.useState("");
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ChurchService | null>(null);
-  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: dialogOpen && isAdminHq });
-  const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
+  const branchesQuery = useBranchesList(
+    { limit: 200 },
+    { enabled: dialogOpen && isAdminHq },
+  );
+  const branchOptions = React.useMemo(
+    () =>
+      (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt),
+    [branchesQuery.data],
+  );
   const [deleteTarget, setDeleteTarget] = React.useState<ChurchService | null>(
     null,
   );
@@ -188,12 +203,23 @@ export default function AttendanceServicesPage() {
 
   React.useEffect(() => {
     if (dialogOpen) {
-      form.reset({ ...toFormValues(editing), branchId: editing ? editing.branchId ?? "" : profile?.branchId ?? "" });
+      form.reset({
+        ...toFormValues(editing),
+        branchId: editing
+          ? (editing.branchId ?? "")
+          : (profile?.branchId ?? ""),
+      });
     }
   }, [dialogOpen, editing, form, profile?.branchId]);
 
   React.useEffect(() => {
-    if (dialogOpen && !editing && isAdminHq && branchOptions.length === 1 && !form.getValues("branchId")) {
+    if (
+      dialogOpen &&
+      !editing &&
+      isAdminHq &&
+      branchOptions.length === 1 &&
+      !form.getValues("branchId")
+    ) {
       form.setValue("branchId", branchOptions[0].branchId);
     }
   }, [dialogOpen, editing, isAdminHq, branchOptions, form]);
@@ -211,9 +237,21 @@ export default function AttendanceServicesPage() {
   const onSubmit = async (values: ServiceFormValues) => {
     try {
       const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
-      const branchChanged = !!editing && values.branchId !== (editing.branchId ?? "");
-      if ((!editing || branchChanged) && (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch)))) {
-        form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
+      const branchChanged =
+        !!editing && values.branchId !== (editing.branchId ?? "");
+      if (
+        (!editing || branchChanged) &&
+        (!selectedBranch ||
+          (isAdminHq &&
+            !branchOptions.some(
+              (branch) => branch.branchId === selectedBranch,
+            )))
+      ) {
+        form.setError("branchId", {
+          message: isAdminHq
+            ? "Select an available branch."
+            : "A branch assignment is required. Contact your church administrator.",
+        });
         return;
       }
       if (editing) {
@@ -251,8 +289,7 @@ export default function AttendanceServicesPage() {
       toast.error(
         editing ? "Failed to update service" : "Failed to create service",
         {
-          description:
-            getToastErrorMessage(error, "Please try again."),
+          description: getToastErrorMessage(error, "Please try again."),
         },
       );
     }
@@ -266,8 +303,7 @@ export default function AttendanceServicesPage() {
       setDeleteTarget(null);
     } catch (error) {
       toast.error(`Failed to delete ${deleteTarget.name}`, {
-        description:
-          getToastErrorMessage(error, "Please try again."),
+        description: getToastErrorMessage(error, "Please try again."),
       });
       setDeleteTarget(null);
     }
@@ -276,7 +312,7 @@ export default function AttendanceServicesPage() {
   if (error) {
     return (
       <div>
-        <PageHeader
+        <AttendanceHeader
           title="Services"
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
@@ -290,8 +326,9 @@ export default function AttendanceServicesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <AttendanceWorkspace>
+      <AttendanceHeader
+        count={meta?.total}
         title="Services"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -321,11 +358,22 @@ export default function AttendanceServicesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter
-              value={archivedFilter}
-              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
+                setPage(1);
+              }}
             />
+            <AttendanceMoreFilters count={Number(archivedView)}>
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(value) => {
+                  setArchivedFilter(value);
+                  setPage(1);
+                }}
+              />
+            </AttendanceMoreFilters>
           </div>
         }
       >
@@ -370,9 +418,12 @@ export default function AttendanceServicesPage() {
                   <TableRow
                     key={service.serviceId}
                     className="cursor-pointer"
-                    onClick={() =>
-                      { if (confirmDiscardChanges()) router.push(`/attendance/services/${service.serviceId}`); }
-                    }
+                    onClick={() => {
+                      if (confirmDiscardChanges())
+                        router.push(
+                          `/attendance/services/${service.serviceId}`,
+                        );
+                    }}
                   >
                     <TableCell className="font-medium">
                       {service.name}
@@ -389,26 +440,17 @@ export default function AttendanceServicesPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {SERVICE_CATEGORIES.find(
-                          (c) => c.value === (service.category ?? "adult"),
-                        )?.label ?? "Adult"}
-                      </Badge>
+                      <AttendanceCategoryBadge
+                        category={service.category ?? "adult"}
+                      />
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {(service.attendanceCount ?? 0).toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={service.isActive ? "default" : "secondary"}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            service.isActive ? "bg-green-500" : "bg-gray-400"
-                          }`}
-                        />
-                        {service.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <AttendanceStatusBadge
+                        status={service.isActive ? "active" : "inactive"}
+                      />
                     </TableCell>
                     {canManage && !archivedView && (
                       <TableCell
@@ -423,7 +465,7 @@ export default function AttendanceServicesPage() {
                               className="h-8 w-8"
                             >
                               <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">More actions</span>
+                              <span className="sr-only">More options</span>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -505,7 +547,7 @@ export default function AttendanceServicesPage() {
                         className="text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div className="flex items-center justify-end gap-2">
+                        <AttendanceRecordActions>
                           {canUpdate && (
                             <Button
                               variant="outline"
@@ -531,7 +573,7 @@ export default function AttendanceServicesPage() {
                               Delete Forever
                             </Button>
                           )}
-                        </div>
+                        </AttendanceRecordActions>
                       </TableCell>
                     )}
                   </TableRow>
@@ -544,7 +586,9 @@ export default function AttendanceServicesPage() {
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[480px]">
+        <DialogContent
+          className={`${attendanceWorkspaceClass} sm:max-w-[520px] max-h-[90vh] overflow-y-auto rounded-2xl`}
+        >
           <DialogHeader>
             <DialogTitle>
               {editing ? "Edit Service" : "Add Service"}
@@ -555,155 +599,206 @@ export default function AttendanceServicesPage() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. Sunday First Service"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
+              <AttendanceFormSection title="Service details">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Sunday First Service"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
                   control={form.control}
                   name="branchId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Branch *</FormLabel>
                       {isAdminHq ? (
-                        <Select value={field.value} onValueChange={field.onChange} disabled={branchesQuery.isLoading || createMutation.isPending || updateMutation.isPending}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={
+                            branchesQuery.isLoading ||
+                            createMutation.isPending ||
+                            updateMutation.isPending
+                          }
+                        >
                           <FormControl>
-                            <SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a branch" />
+                            </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {branchOptions.map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+                            {branchOptions.map((branch) => (
+                              <SelectItem
+                                key={branch.branchId}
+                                value={branch.branchId}
+                              >
+                                {branch.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       ) : (
-                        <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly aria-readonly="true" /></FormControl>
+                        <FormControl>
+                          <Input
+                            value={
+                              profile?.branch?.name ??
+                              (profile?.branchId
+                                ? "Your assigned branch"
+                                : "No branch assigned")
+                            }
+                            readOnly
+                            aria-readonly="true"
+                          />
+                        </FormControl>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {isAdminHq ? "Choose the branch where this service takes place." : "Services are limited to your assigned branch."}
+                        {isAdminHq
+                          ? "Choose the branch where this service takes place."
+                          : "Services are limited to your assigned branch."}
                       </p>
-                      {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
-                      {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {SERVICE_CATEGORIES.map((c) => (
-                            <SelectItem key={c.value} value={c.value}>
-                              {c.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="dayOfWeek"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Day</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Any day" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Any day</SelectItem>
-                          {DAY_OPTIONS.map((d) => (
-                            <SelectItem key={d.value} value={d.value}>
-                              {d.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="startTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Time</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="endTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Time</FormLabel>
-                      <FormControl>
-                        <Input type="time" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between rounded-md border p-3">
-                      <div>
-                        <FormLabel>Active</FormLabel>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Inactive services are hidden from new check-ins.
+                      {isAdminHq && branchesQuery.isError && (
+                        <p role="alert" className="text-sm text-destructive">
+                          Could not load branches.{" "}
+                          <button
+                            type="button"
+                            className="underline"
+                            onClick={() => void branchesQuery.refetch()}
+                          >
+                            Retry
+                          </button>
                         </p>
+                      )}
+                      {isAdminHq &&
+                        branchesQuery.isSuccess &&
+                        !branchOptions.length && (
+                          <p className="text-sm text-destructive">
+                            No active branches available.
+                          </p>
+                        )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </AttendanceFormSection>
+              <AttendanceFormSection title="Schedule & defaults">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {SERVICE_CATEGORIES.map((c) => (
+                              <SelectItem key={c.value} value={c.value}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="dayOfWeek"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Day</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Any day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Any day</SelectItem>
+                            {DAY_OPTIONS.map((d) => (
+                              <SelectItem key={d.value} value={d.value}>
+                                {d.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="startTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Start Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="endTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>End Time</FormLabel>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between rounded-md border p-3">
+                        <div>
+                          <FormLabel>Active</FormLabel>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Inactive services are hidden from new check-ins.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={!!field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </div>
-                      <Switch
-                        checked={!!field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </AttendanceFormSection>
               <DialogFooter className="pt-2">
                 <Button
                   type="button"
@@ -738,7 +833,9 @@ export default function AttendanceServicesPage() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <DialogContent className="sm:max-w-[420px]">
+        <DialogContent
+          className={`${attendanceWorkspaceClass} sm:max-w-[420px] rounded-2xl`}
+        >
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -788,6 +885,6 @@ export default function AttendanceServicesPage() {
               : deleteMutation
         }
       />
-    </div>
+    </AttendanceWorkspace>
   );
 }

@@ -66,6 +66,7 @@ export function GeneralAttendancePanel({
   requireService = false,
   readOnly = false,
   filters = {},
+  presentationClassName,
 }: {
   service?: ChurchService;
   context?: AttendanceSessionContext;
@@ -73,6 +74,7 @@ export function GeneralAttendancePanel({
   requireService?: boolean;
   readOnly?: boolean;
   filters?: GeneralAttendanceParams;
+  presentationClassName?: string;
 }) {
   const { canAny } = usePermissions();
   const target =
@@ -375,7 +377,7 @@ export function GeneralAttendancePanel({
         </CardContent>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className={presentationClassName}>
           <DialogHeader>
             <DialogTitle>
               {editing
