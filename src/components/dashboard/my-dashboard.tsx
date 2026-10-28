@@ -1,268 +1,98 @@
 "use client";
-import Link from "next/link";
-import { usePermissions } from "@/hooks/use-permissions";
-import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
-import {
-  Bell,
-  ChevronRight,
-  History,
-  Mail,
-  Sparkles,
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Bell, ArrowUpRight } from "lucide-react";
+import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
-import { useMyAuditLogs, auditEntryLabel } from "@/hooks/use-audit-logs";
-import {
-  useNotificationsList,
-  useMarkAsRead,
-  formatRelativeTime,
-  NOTIFICATION_TYPE_LABELS,
-  NOTIFICATIONS_LIST_LIMIT,
-  type Notification,
-} from "@/hooks/use-notifications";
+import { useMarkAsRead, type Notification } from "@/hooks/use-notifications";
+import { ErrorState } from "@/components/shared/error-state";
+import { Button } from "@/components/ui/button";
 import { NotificationsDrawer } from "@/components/notifications/notifications-drawer";
 import { NotificationDetailDialog } from "@/components/notifications/notification-detail-dialog";
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts";
-import { useEventsList } from "@/hooks/use-events";
 
-function getInitials(firstName?: string, lastName?: string): string {
-  return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
-}
+const tasks = [
+  ["members:all:read", "/members", "Find a member"],
+  ["attendance:checkin:read", "/attendance/check-in", "Check in"],
+  ["visitors:list:read", "/visitors", "Follow up"],
+  ["events:list:read", "/events/list", "Events"],
+  ["forms:read", "/forms", "Forms"],
+];
 
 export function MyDashboard() {
   const profile = useCurrentProfile();
-  const {canAny} = usePermissions();
-  const labels = useRoleLabelMap();
-  const auditLogs = useMyAuditLogs({ limit: 3 });
-  const notifications = useNotificationsList({
-    page: 1,
-    limit: NOTIFICATIONS_LIST_LIMIT,
-    read: "all",
-  });
-  const recentNotifications = (notifications.data?.data ?? []).slice(0, 3);
+  const { canAny } = usePermissions();
   const markAsRead = useMarkAsRead();
-
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [selected, setSelected] = React.useState<Notification | null>(null);
-
-  const openNotification = (n: Notification) => {
-    if (!n.readAt) markAsRead.mutate(n.id);
-    setSelected(n);
+  const openNotification = (notification: Notification) => {
+    if (!notification.readAt) markAsRead.mutate(notification.id);
+    setDrawerOpen(false);
+    setSelected(notification);
   };
 
-  const canViewEvents = canAny("events:read", "events:list:read");
-
-  const eventsList = useEventsList({ limit: 100 });
-
-  const upcomingEventsCount = React.useMemo(() => {
-    const data = eventsList.data as unknown;
-    const events: Array<{ startDate?: string }> = Array.isArray(data)
-      ? (data as Array<{ startDate?: string }>)
-      : Array.isArray((data as { data?: unknown })?.data)
-        ? ((data as { data?: Array<{ startDate?: string }> }).data ?? [])
-        : Array.isArray((data as { items?: unknown })?.items)
-          ? ((data as { items?: Array<{ startDate?: string }> }).items ?? [])
-          : [];
-    const now = Date.now();
-    return events.filter((e) => {
-      const start = e.startDate ? new Date(e.startDate).getTime() : now;
-      return start >= now;
-    }).length;
-  }, [eventsList.data]);
-
-  const unreadCount = (notifications.data as { unreadCount?: number } | undefined)?.unreadCount ?? 0;
-
-  if (profile.error) return <ErrorState title="Unable to load your dashboard" />;
-  if (profile.isLoading || !profile.data) {
+  if (profile.error)
+    return <ErrorState title="Unable to load your dashboard" />;
+  if (profile.isLoading || !profile.data)
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-40 rounded-lg border bg-muted/50 animate-pulse" />
-        ))}
-      </div>
+      <div
+        className="h-20 animate-pulse rounded-2xl bg-muted/50"
+        aria-label="Loading dashboard"
+      />
     );
-  }
 
-  const p = profile.data;
-  const roles = p.role?.length ? p.role : ["No role assigned"];
-  const firstName = p.firstName || "there";
-
+  const allowedTasks = tasks.filter(([permission]) => canAny(permission));
   return (
     <>
-    <div className="space-y-4">
-      <Card className="gap-3 py-4">
-        <CardHeader className="pb-0">
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            Welcome back, {firstName}!
-          </CardTitle>
-          <CardDescription>
-            {p.church?.name} · {p.branch?.name ?? "Your permitted branches"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row items-start gap-4">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={p.avatarUrl} alt={`${p.firstName} ${p.lastName}`} />
-              <AvatarFallback className="text-lg">
-                {getInitials(p.firstName, p.lastName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">
-                {p.firstName} {p.lastName}
-              </p>
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {roles.map((role) => (
-                  <Badge key={role} variant={role === "super_admin" ? "destructive" : "secondary"}>
-                    {resolveRoleLabel(role, labels)}
-                  </Badge>
-                ))}
-                <Badge variant="outline">{p.isAdminHq ? "HQ Access" : "Branch Scoped"}</Badge>
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{p.email}</span>
-                <Link className="underline" href="/profile">View profile</Link>
-              </div>
-            </div>
+      <div className="space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            Welcome back,{" "}
+            <span className="font-medium text-foreground">
+              {profile.data.firstName || "there"}
+            </span>
+            .
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <Bell className="size-4" />
+              Notifications
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/profile">
+                View profile
+                <ArrowUpRight className="size-3.5" />
+              </Link>
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-
-      <nav aria-label="Common tasks" className="flex flex-wrap gap-2 rounded-lg border p-3">
-        {[["members:all:read","/members","Find a member"],["attendance:checkin:read","/attendance/check-in","Check in"],["visitors:list:read","/visitors","Follow up"],["events:list:read","/events/list","Events"],["forms:read","/forms","Forms"]].filter(([permission])=>canAny(permission)).map(([,href,label])=><Button key={href} asChild variant="outline" size="sm"><Link href={href}>{label}</Link></Button>)}
-      </nav>
-      <DashboardCharts
-        upcomingEvents={upcomingEventsCount}
-        eventsLoading={eventsList.isLoading}
-        eventsError={eventsList.isError}
-        canViewEvents={canViewEvents}
-        unreadCount={unreadCount}
-        notificationsLoading={notifications.isLoading}
-        notificationsError={notifications.isError}
-      />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between gap-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Bell className="h-4 w-4 text-muted-foreground" />
-                Recent Notifications
-              </CardTitle>
+        </div>
+        {allowedTasks.length > 0 && (
+          <nav aria-label="Common tasks" className="flex flex-wrap gap-2">
+            {allowedTasks.map(([, href, label]) => (
               <Button
-                variant="ghost"
+                key={href}
+                asChild
+                variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs text-muted-foreground"
-                onClick={() => setDrawerOpen(true)}
+                className="h-8 rounded-full bg-card px-3 text-xs shadow-none"
               >
-                View all
-                <ChevronRight className="h-3.5 w-3.5" />
+                <Link href={href}>{label}</Link>
               </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="flex-1">
-            {notifications.isError ? <ErrorState title="Unable to load notifications" /> : notifications.isLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
-                ))}
-              </div>
-            ) : recentNotifications.length ? (
-              <ul className="divide-y">
-                {recentNotifications.map((n) => (
-                  <li key={n.id}>
-                    <button
-                      type="button"
-                      onClick={() => openNotification(n)}
-                      className="w-full text-left py-2.5 group"
-                    >
-                      <div className="flex items-start gap-2">
-                        {!n.readAt && (
-                          <span
-                            className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-primary"
-                            aria-hidden
-                          />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-3">
-                            <p
-                              className={`text-sm font-medium break-words group-hover:underline ${
-                                n.readAt ? "text-foreground/80" : "text-foreground"
-                              }`}
-                            >
-                              {n.title}
-                            </p>
-                            <Badge variant="outline" className="shrink-0 text-[10px]">
-                              {NOTIFICATION_TYPE_LABELS[n.type] ?? n.type}
-                            </Badge>
-                          </div>
-                          {n.body && (
-                            <p className="text-xs text-muted-foreground line-clamp-1 break-words">
-                              {n.body}
-                            </p>
-                          )}
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {formatRelativeTime(n.createdAt)}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="py-4 text-center text-sm text-muted-foreground">
-                You&apos;re all caught up!
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <History className="h-4 w-4 text-muted-foreground" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {auditLogs.isError ? <ErrorState title="Unable to load account activity" /> : auditLogs.isLoading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-5 rounded bg-muted/50 animate-pulse" />
-                ))}
-              </div>
-            ) : auditLogs.data?.data.length ? (
-              <ul className="divide-y">
-                {auditLogs.data.data.map((item) => (
-                  <li key={item.id} className="py-2.5">
-                    <p className="text-sm font-medium break-words">{auditEntryLabel(item)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatRelativeTime(item.createdAt)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="py-4 text-center text-sm text-muted-foreground">No activity yet.</p>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </nav>
+        )}
+        <DashboardCharts />
       </div>
-    </div>
-
       <NotificationsDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         onOpenNotification={openNotification}
       />
-
       <NotificationDetailDialog
         notification={selected}
         open={!!selected}

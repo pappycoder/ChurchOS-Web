@@ -1,65 +1,55 @@
-# Main dashboard charts
+# Compact main dashboard
 
-The `/dashboard` charts use existing module permissions rather than requiring
-advanced Analytics. A Church Admin with member, attendance, and giving access can
-see charts without the Network Analytics entitlement. Dedicated `/analytics`
-pages, their endpoints, permission seeds, and plan definitions remain unchanged.
+The main `/dashboard` is a compact, colorful chart grid. It removes the dashboard
+filter panel, standalone figure/KPI cards, large identity card, notifications
+feed, and recent activity feed. A slim greeting, profile link, task shortcuts,
+and Notifications button remain. Notification selection, details, and mark-as-read
+continue through the existing drawer/dialog flow.
 
-## Chart access and reporting
+## Presentation
 
-- `members:all:read`: membership-status donut, age histogram, cumulative
-  joining-month growth, and current member count. These use current non-archived
-  members within the same church/branch scope as the member list.
-- `attendance:dashboard:read`: member-versus-visitor check-in bars and summary.
-  `attendance:reports:read` independently enables the existing attendance trend.
-  General attendance headcounts are not added to named check-in counts.
-- `giving:dashboard:read` plus the existing giving entitlement: successful giving
-  trends, category bars, and selected-period totals in one currency.
-- Dates default to the last 30 calendar days, including today; the end date
-  includes its entire UTC day. Clearing dates selects all time. Reset restores
-  the date default, all permitted branches for HQ viewers, and NGN.
-- Membership is independent of the date filter and explicitly labelled as current
-  demographics/full joining history. Giving filters currency without conversion.
-- HQ viewers with branch-read access may select a branch. Restricted viewers
-  remain pinned to their effective branch; missing branch assignment does not
-  grant church-wide access.
-- Each query has its own loading, empty, and retry state. Errors are not shown as
-  zero. Branch/date/currency selections use distinct cache entries. Member and
-  giving chart keys share their existing module mutation invalidation prefixes.
-- Detail links point to accessible module pages, or the corresponding Analytics
-  page when the viewer has its existing permission and entitlement.
+- Six chart cards fill three columns on wide desktops, two on smaller screens,
+  and one on phones. Plots are 176 px high with compact headers and detail links.
+- Dashboard-specific SVG plots use blue, violet, pink, teal, amber, and orange,
+  with lightly tinted cards, gradient area fills, colorful bars, and a donut.
+  Dedicated analytics/report charts and the rest of the app's theme are unchanged.
+- Counts and monetary values remain available in chart tooltips. There are no
+  separate summary tiles or repeated totals inside the donut.
+- Plots render without entrance animation, including a visible point for a
+  one-period trend. Each card has a compact loading, empty, and retry state.
+- There are no dashboard date, branch, currency, reset, or refresh controls.
+  Attendance/giving use the last 30 calendar days, including the full final UTC
+  day. Giving remains NGN without conversion. Membership cards identify current
+  demographics and full joining history separately.
+- HQ users see their permitted church-wide scope; other viewers remain locked
+  to their effective branch. Detail links open existing module pages for further
+  investigation, or Analytics pages when the viewer already has access.
 
-The existing task shortcuts, profile access, notification drawer/details,
-mark-as-read behavior, account activity, and record workflows are retained.
+## Existing access rules
 
-## Additive APIs and deployment
+- `members:all:read` enables membership composition, growth, and age distribution,
+  through the existing `GET /members/dashboard` aggregate API. Non-archived member
+  scope is unchanged; no individual records are returned.
+- `attendance:reports:read` enables the attendance trend. Viewers with only
+  `attendance:dashboard:read` see member-versus-visitor bars instead. The dashboard
+  fetches only the attendance view it displays; named check-ins and general
+  headcounts are not added together.
+- `giving:dashboard:read` plus the existing giving entitlement enables successful
+  giving trends and category bars through `GET /giving/dashboard/charts`.
+- Basic charts do not require advanced Analytics. Dedicated Analytics routes,
+  plan rules, module permissions, and API response contracts remain unchanged.
+- Member/giving query keys retain the existing module invalidation prefixes.
+  Removed profile/role/event/activity widgets do not trigger their old reads.
 
-- `GET /members/dashboard` requires `members:all:read`; accepts optional UUID
-  `branchId`; returns `total`, `byStatus`, `byAgeGroup`, and cumulative `growth`.
-  No individual member records are returned. Non-archived scope matches listing.
-- `GET /giving/dashboard/charts` requires `giving:dashboard:read` and the giving
-  entitlement; accepts optional `branchId`, ISO `startDate`/`endDate`, and uppercase
-  three-letter `currency` (NGN by default). Returns `currency`, `total`, `count`,
-  daily `trend`, and `byCategory`. Omitted date bounds are unbounded. Dates are
-  inclusive; malformed/reversed dates are rejected. Only successful giving in
-  that currency is included; donor/status selectors are rejected, and no donor
-  records are returned.
-- Attendance reuses the existing summary and trend endpoints and their grants.
-  Existing API responses and advanced Analytics endpoints are unchanged.
+## Validation and deployment
 
-Deploy the API additions before the web application. No database migration,
-permission seed change, or dependency installation is required. This work does
-not itself deploy changes or modify live subscriptions or business records.
+Production-browser checks cover the absence of excess controls/tiles, colorful
+SVG rendering and compact desktop sizing, automatic HQ/branch scope, permissions,
+giving entitlements, attendance summary/report separation, existing shortcuts,
+profile/notification actions, retry, empty/populated mobile layouts and dark mode.
+Targeted permission/query unit tests, TypeScript, lint, and the web production
+build validate the implementation.
 
-## Validation
-
-Targeted API tests cover aggregates, non-archived membership, tenant/branch
-isolation, missing branch assignments, currency/date bounds, query validation,
-route ordering, and existing member/giving behavior. Web tests cover module
-permission gating, query keys, cancellation, and profile/range readiness.
-
-Mocked production-browser scenarios reproduce a Church Admin without Analytics,
-verify rendered pie/bar charts and module links, HQ/restricted filters, giving
-entitlements, attendance report separation, retained shortcuts/profile and
-notification actions, partial failures/retry, and populated/empty mobile layouts.
-Existing Analytics access checks continue to verify their original restrictions.
+This revision is web-only. It needs a web deployment to appear on the live site;
+it does not perform that deployment. No API, database, subscription, permission
+seed, or business-record changes are required.

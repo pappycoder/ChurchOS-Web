@@ -3,10 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { format, subDays } from "date-fns";
-import { Bell, Calendar, CalendarCheck, Users, Wallet } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChartNoAxesCombined,
+  HeartHandshake,
+  PieChart,
+  TrendingUp,
+  Users,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { useBranchesList } from "@/hooks/use-branches";
 import {
   useMemberDashboard,
   useGivingDashboardCharts,
@@ -15,16 +23,6 @@ import {
   useAttendanceSummary,
   useAttendanceTrends,
 } from "@/hooks/use-attendance";
-import {
-  ReportDateRange,
-  type ReportRange,
-} from "@/components/reports/report-date-range";
-import { AnalyticsTrendChart } from "@/components/analytics/analytics-charts";
-import { DonutChart, colorize } from "@/components/analytics/pie-chart";
-import { HistogramChart } from "@/components/analytics/histogram-chart";
-import { BarsChart } from "@/components/analytics/bars-chart";
-import { StatsCard } from "@/components/shared/stats-card";
-import { ErrorState } from "@/components/shared/error-state";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -33,119 +31,164 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DashboardBars,
+  DashboardDonut,
+  DashboardTrend,
+  dashboardColors,
+} from "./dashboard-plots";
 
-function recentRange(): ReportRange {
-  const today = new Date();
-  return {
-    startDate: format(subDays(today, 29), "yyyy-MM-dd"),
-    endDate: format(today, "yyyy-MM-dd"),
-  };
-}
+const tones = {
+  blue: {
+    background: "from-blue-500/[0.08]",
+    icon: "bg-blue-500/10 text-blue-500",
+  },
+  violet: {
+    background: "from-violet-500/[0.08]",
+    icon: "bg-violet-500/10 text-violet-500",
+  },
+  pink: {
+    background: "from-pink-500/[0.08]",
+    icon: "bg-pink-500/10 text-pink-500",
+  },
+  teal: {
+    background: "from-teal-500/[0.08]",
+    icon: "bg-teal-500/10 text-teal-500",
+  },
+  amber: {
+    background: "from-amber-500/[0.08]",
+    icon: "bg-amber-500/10 text-amber-500",
+  },
+  orange: {
+    background: "from-orange-500/[0.08]",
+    icon: "bg-orange-500/10 text-orange-500",
+  },
+};
+
+type PlotQuery = {
+  isLoading: boolean;
+  isFetching: boolean;
+  error: unknown;
+  refetch: () => Promise<unknown>;
+};
 
 function ChartCard({
   title,
   description,
   href,
+  tone,
+  icon: Icon,
+  query,
   children,
 }: {
   title: string;
   description: string;
   href: string;
+  tone: keyof typeof tones;
+  icon: LucideIcon;
+  query: PlotQuery;
   children: React.ReactNode;
 }) {
+  const style = tones[tone];
   return (
-    <Card className="min-w-0">
-      <CardHeader className="pb-2">
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
+    <Card
+      data-dashboard-chart
+      className={`min-w-0 gap-3 rounded-2xl border-border/70 bg-gradient-to-br ${style.background} via-card to-card py-4 shadow-sm`}
+    >
+      <CardHeader className="px-4 pb-0">
+        <div className="flex items-center gap-2.5">
+          <span
+            className={`flex size-9 shrink-0 items-center justify-center rounded-xl ${style.icon}`}
+          >
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
             <CardTitle className="text-sm font-semibold">{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
+            <CardDescription className="mt-0.5 text-[11px]">
+              {description}
+            </CardDescription>
           </div>
-          <Button asChild variant="ghost" size="sm">
-            <Link href={href}>
-              View details<span className="sr-only">: {title}</span>
-            </Link>
-          </Button>
+          <Link
+            href={href}
+            aria-label={`View details: ${title}`}
+            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            <ArrowUpRight className="size-4" aria-hidden="true" />
+          </Link>
         </div>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="px-4">
+        {query.error ? (
+          <div
+            role="alert"
+            className="flex h-44 flex-col items-center justify-center gap-2 text-center"
+          >
+            <p className="text-xs text-muted-foreground">
+              Unable to load {title.toLowerCase()}.
+            </p>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={query.isFetching}
+              onClick={() => {
+                void query.refetch();
+              }}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : query.isLoading ? (
+          <Skeleton
+            className="h-44 w-full rounded-xl"
+            aria-label={`Loading ${title}`}
+          />
+        ) : (
+          children
+        )}
+      </CardContent>
     </Card>
   );
 }
 
-export function DashboardCharts({
-  upcomingEvents,
-  eventsLoading,
-  eventsError,
-  canViewEvents,
-  unreadCount,
-  notificationsLoading,
-  notificationsError,
-}: {
-  upcomingEvents: number;
-  eventsLoading: boolean;
-  eventsError: boolean;
-  canViewEvents: boolean;
-  unreadCount: number;
-  notificationsLoading: boolean;
-  notificationsError: boolean;
-}) {
+export function DashboardCharts() {
   const { can } = usePermissions();
   const { data: profile } = useCurrentProfile();
   const showAttendance = can("attendance:dashboard", "read");
+  const showAttendanceTrend = can("attendance:reports", "read");
   const showGiving = can("giving:dashboard", "read");
   const showMembers = can("members:all", "read");
-  const showAttendanceTrend = can("attendance:reports", "read");
-  const hasCharts =
-    showAttendance || showAttendanceTrend || showGiving || showMembers;
-  const [range, setRange] = React.useState<ReportRange>(recentRange);
-  const [branch, setBranch] = React.useState("");
-  const [currency, setCurrency] = React.useState("NGN");
-  const branchId =
-    (profile?.isAdminHq ? branch : profile?.branchId) || undefined;
-  const invalidRange = !!(
-    range.startDate &&
-    range.endDate &&
-    range.startDate > range.endDate
-  );
-  const params = {
-    startDate: range.startDate || undefined,
-    endDate: range.endDate ? `${range.endDate}T23:59:59.999Z` : undefined,
-    branchId,
-  };
-  const attendance = useAttendanceSummary(params, {
-    enabled: !!profile && !invalidRange,
+  const [range] = React.useState(() => {
+    const today = new Date();
+    return {
+      startDate: format(subDays(today, 29), "yyyy-MM-dd"),
+      endDate: `${format(today, "yyyy-MM-dd")}T23:59:59.999Z`,
+    };
   });
+  const branchId = profile?.isAdminHq ? undefined : profile?.branchId;
+  const params = { ...range, branchId };
+  const attendance = useAttendanceSummary(params, {
+    enabled: !!profile && !showAttendanceTrend,
+  });
+  const attendanceTrend = useAttendanceTrends(params, { enabled: !!profile });
   const giving = useGivingDashboardCharts(
-    { ...params, currency },
-    { enabled: !!profile && !invalidRange },
+    { ...params, currency: "NGN" },
+    { enabled: !!profile },
   );
   const members = useMemberDashboard({ branchId }, { enabled: !!profile });
-  const attendanceTrend = useAttendanceTrends(params, {
-    enabled: !!profile && !invalidRange,
-  });
   const attendanceHref = can("analytics:attendance", "read")
     ? "/analytics/attendance"
-    : "/attendance";
+    : showAttendanceTrend
+      ? "/attendance/reports"
+      : "/attendance";
   const givingHref = can("analytics:giving", "read")
     ? "/analytics/giving"
     : "/giving";
   const membersHref = can("analytics:members", "read")
     ? "/analytics/members"
     : "/members";
-  const branches = useBranchesList(
-    { limit: 100 },
-    {
-      enabled: hasCharts && !!profile?.isAdminHq && can("branches", "read"),
-    },
-  );
   const money = (value: number) =>
-    `${currency} ${value.toLocaleString("en-NG", { maximumFractionDigits: 2 })}`;
-  const period = `${range.startDate || "Beginning"} – ${range.endDate || "Today"}`;
-  const currentScope = profile?.isAdminHq
-    ? (branches.data?.data.find((b) => b.branchId === branchId)?.name ??
-      (branchId ? "Selected branch" : "All permitted branches"))
-    : (profile?.branch?.name ?? "Your branch");
+    `NGN ${value.toLocaleString("en-NG", { maximumFractionDigits: 2 })}`;
   const ageLabels: Record<string, string> = {
     under_18: "Under 18",
     age_18_30: "18–30",
@@ -154,394 +197,156 @@ export function DashboardCharts({
     age_60_plus: "Over 60",
     unspecified: "Unspecified",
   };
-  const refresh = () => {
-    if (showAttendance && !invalidRange) void attendance.refetch();
-    if (showAttendanceTrend && !invalidRange) void attendanceTrend.refetch();
-    if (showGiving && !invalidRange) void giving.refetch();
-    if (showMembers) void members.refetch();
-  };
-  const memberContent = (children: React.ReactNode) =>
-    members.error ? (
-      <ErrorState
-        title="Unable to load member dashboard"
-        onRetry={async () => {
-          await members.refetch();
-        }}
-      />
-    ) : (
-      children
-    );
+  const scope = profile?.isAdminHq
+    ? "All permitted branches"
+    : (profile?.branch?.name ?? "Your branch");
+  if (!showAttendance && !showAttendanceTrend && !showGiving && !showMembers)
+    return null;
 
   return (
-    <div className="space-y-4">
-      {hasCharts && (
-        <section
-          aria-label="Dashboard filters"
-          className="space-y-3 rounded-lg border p-4"
-        >
-          <ReportDateRange value={range} onChange={setRange} />
-          <div className="flex flex-wrap items-end gap-3">
-            <label className="grid gap-1 text-sm font-medium">
-              Branch
-              <select
-                aria-label="Dashboard branch"
-                className="h-9 max-w-full rounded-md border bg-background px-3"
-                value={branchId ?? ""}
-                disabled={!profile?.isAdminHq || !can("branches", "read")}
-                onChange={(e) => setBranch(e.target.value)}
-              >
-                <option value="">
-                  {profile?.isAdminHq
-                    ? "All permitted branches"
-                    : (profile?.branch?.name ?? "Your branch")}
-                </option>
-                {profile?.isAdminHq
-                  ? branches.data?.data.map((b) => (
-                      <option key={b.branchId} value={b.branchId}>
-                        {b.name}
-                      </option>
-                    ))
-                  : profile?.branchId && (
-                      <option value={profile.branchId}>
-                        {profile.branch?.name ?? "Your branch"}
-                      </option>
-                    )}
-              </select>
-            </label>
-            {showGiving && (
-              <label className="grid gap-1 text-sm font-medium">
-                Giving currency
-                <select
-                  aria-label="Dashboard giving currency"
-                  className="h-9 rounded-md border bg-background px-3"
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                >
-                  {[
-                    "NGN",
-                    "USD",
-                    "GBP",
-                    "EUR",
-                    "GHS",
-                    "KES",
-                    "ZAR",
-                    "CAD",
-                    "AUD",
-                  ].map((code) => (
-                    <option key={code}>{code}</option>
-                  ))}
-                </select>
-              </label>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={refresh}
-              disabled={
-                attendance.isFetching ||
-                attendanceTrend.isFetching ||
-                giving.isFetching ||
-                members.isFetching
-              }
-            >
-              Refresh
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setRange(recentRange());
-                setBranch("");
-                setCurrency("NGN");
-              }}
-            >
-              Reset filters
-            </Button>
-          </div>
-          {invalidRange && (
-            <p role="alert" className="text-sm text-destructive">
-              Start date must be on or before end date.
-            </p>
-          )}
-          {branches.error && (
-            <ErrorState
-              title="Unable to load branch choices"
-              onRetry={async () => {
-                await branches.refetch();
-              }}
-            />
-          )}
-          <p className="text-xs text-muted-foreground">
-            {currentScope}. Dates apply to attendance and giving. Membership
-            shows the current snapshot and full growth history for this branch
-            scope.
-          </p>
-        </section>
-      )}
-
-      <div
-        className="grid gap-4"
-        style={{
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(min(100%, 180px), 1fr))",
-        }}
-      >
-        {showAttendance && (
-          <StatsCard
-            title="Check-ins · selected period"
-            value={
-              invalidRange || attendance.error
-                ? "—"
-                : (attendance.data?.totalCheckIns.toLocaleString() ?? "…")
+    <section aria-label="Dashboard charts" className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Last 30 days <span aria-hidden="true">·</span> {scope}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {(showAttendance || showAttendanceTrend) && (
+          <ChartCard
+            title={
+              showAttendanceTrend ? "Attendance trend" : "Attendance breakdown"
             }
-            icon={<CalendarCheck className="h-4 w-4" />}
-          />
+            description={
+              showAttendanceTrend
+                ? "Members & visitors"
+                : "Check-ins by attendee"
+            }
+            href={attendanceHref}
+            tone="blue"
+            icon={ChartNoAxesCombined}
+            query={showAttendanceTrend ? attendanceTrend : attendance}
+          >
+            {showAttendanceTrend ? (
+              <DashboardTrend
+                data={attendanceTrend.data ?? []}
+                colors={[dashboardColors[0], dashboardColors[2]]}
+                split
+              />
+            ) : (
+              <DashboardBars
+                data={
+                  attendance.data?.totalCheckIns
+                    ? [
+                        {
+                          label: "Members",
+                          value: attendance.data.memberCheckIns,
+                        },
+                        {
+                          label: "Visitors",
+                          value: attendance.data.visitorCheckIns,
+                        },
+                      ]
+                    : []
+                }
+                colors={[dashboardColors[0], dashboardColors[2]]}
+              />
+            )}
+          </ChartCard>
         )}
         {showGiving && (
-          <StatsCard
-            title="Giving · selected period"
-            value={
-              invalidRange || giving.error
-                ? "—"
-                : giving.data
-                  ? money(giving.data.total)
-                  : "…"
-            }
-            icon={<Wallet className="h-4 w-4" />}
-            variant="primary"
-          />
+          <ChartCard
+            title="Giving trend"
+            description="Successful giving · NGN"
+            href={givingHref}
+            tone="violet"
+            icon={Wallet}
+            query={giving}
+          >
+            <DashboardTrend
+              data={giving.data?.trend ?? []}
+              colors={[dashboardColors[1]]}
+              formatValue={money}
+            />
+          </ChartCard>
         )}
         {showMembers && (
-          <StatsCard
-            title="Current members"
-            value={
-              members.error
-                ? "—"
-                : (members.data?.total.toLocaleString() ?? "…")
-            }
-            icon={<Users className="h-4 w-4" />}
-          />
-        )}
-        {canViewEvents && (
-          <StatsCard
-            title="Upcoming events"
-            value={
-              eventsError
-                ? "—"
-                : eventsLoading
-                  ? "…"
-                  : upcomingEvents.toLocaleString()
-            }
-            icon={<Calendar className="h-4 w-4" />}
-          />
-        )}
-        <StatsCard
-          title="Unread notifications"
-          value={
-            notificationsError
-              ? "—"
-              : notificationsLoading
-                ? "…"
-                : unreadCount.toLocaleString()
-          }
-          icon={<Bell className="h-4 w-4" />}
-        />
-      </div>
-
-      {(showAttendance || showAttendanceTrend || showGiving) && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {showAttendance && (
-            <ChartCard
-              title="Attendance breakdown"
-              description={`Member and visitor check-ins · ${period}`}
-              href={attendanceHref}
-            >
-              {invalidRange ? (
-                <p className="py-12 text-center text-sm text-muted-foreground">
-                  Choose a valid date range.
-                </p>
-              ) : attendance.error ? (
-                <ErrorState
-                  title="Unable to load attendance summary"
-                  onRetry={async () => {
-                    await attendance.refetch();
-                  }}
-                />
-              ) : (
-                <BarsChart
-                  data={
-                    attendance.data?.totalCheckIns
-                      ? [
-                          {
-                            label: "Members",
-                            value: attendance.data.memberCheckIns,
-                          },
-                          {
-                            label: "Visitors",
-                            value: attendance.data.visitorCheckIns,
-                          },
-                        ]
-                      : []
-                  }
-                  loading={attendance.isLoading}
-                  valueLabel="check-ins"
-                />
-              )}
-            </ChartCard>
-          )}
-          {showAttendanceTrend && (
-            <ChartCard
-              title="Attendance trend"
-              description={`Members and visitors · ${period}`}
-              href={
-                can("analytics:attendance", "read")
-                  ? "/analytics/attendance"
-                  : "/attendance/reports"
-              }
-            >
-              {invalidRange ? (
-                <p className="py-12 text-center text-sm text-muted-foreground">
-                  Choose a valid date range.
-                </p>
-              ) : attendanceTrend.error ? (
-                <ErrorState
-                  title="Unable to load attendance trend"
-                  onRetry={async () => {
-                    await attendanceTrend.refetch();
-                  }}
-                />
-              ) : (
-                <AnalyticsTrendChart
-                  data={attendanceTrend.data ?? []}
-                  loading={attendanceTrend.isLoading}
-                  kind="split"
-                />
-              )}
-            </ChartCard>
-          )}
-          {showGiving && (
-            <ChartCard
-              title="Giving trend"
-              description={`Successful giving · ${currency} · ${period}`}
-              href={givingHref}
-            >
-              {invalidRange ? (
-                <p className="py-12 text-center text-sm text-muted-foreground">
-                  Choose a valid date range.
-                </p>
-              ) : giving.error ? (
-                <ErrorState
-                  title="Unable to load giving charts"
-                  onRetry={async () => {
-                    await giving.refetch();
-                  }}
-                />
-              ) : (
-                <AnalyticsTrendChart
-                  data={(giving.data?.trend ?? []).map((point) => ({
-                    ...point,
-                    members: 0,
-                    visitors: 0,
-                  }))}
-                  loading={giving.isLoading}
-                  formatValue={money}
-                />
-              )}
-            </ChartCard>
-          )}
-        </div>
-      )}
-
-      {showMembers && (
-        <section aria-label="Membership snapshot" className="space-y-4">
-          <div>
-            <h2 className="font-semibold">Membership · {currentScope}</h2>
-            <p className="text-sm text-muted-foreground">
-              Current demographics and full growth history. Independent of the
-              selected dates.
-            </p>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ChartCard
-              title="Member growth"
-              description="Cumulative members by joining month · full history"
-              href={membersHref}
-            >
-              {memberContent(
-                <AnalyticsTrendChart
-                  data={members.data?.growth ?? []}
-                  loading={members.isLoading}
-                />,
-              )}
-            </ChartCard>
+          <>
             <ChartCard
               title="Member composition"
               description="Current membership status"
               href={membersHref}
+              tone="pink"
+              icon={PieChart}
+              query={members}
             >
-              {memberContent(
-                <DonutChart
-                  data={colorize(
-                    Object.entries(members.data?.byStatus ?? {}).map(
-                      ([name, value]) => ({
-                        name: name.replace(/_/g, " "),
-                        value,
-                      }),
-                    ),
-                  )}
-                  loading={members.isLoading}
-                  unit="members"
-                />,
-              )}
+              <DashboardDonut
+                data={Object.entries(members.data?.byStatus ?? {}).map(
+                  ([name, value]) => ({ name: name.replace(/_/g, " "), value }),
+                )}
+              />
+            </ChartCard>
+            <ChartCard
+              title="Member growth"
+              description="Full joining history"
+              href={membersHref}
+              tone="teal"
+              icon={TrendingUp}
+              query={members}
+            >
+              <DashboardTrend
+                data={members.data?.growth ?? []}
+                colors={[dashboardColors[4]]}
+                monthly
+              />
             </ChartCard>
             <ChartCard
               title="Age distribution"
-              description="Current members by age group"
+              description="Current members by age"
               href={membersHref}
+              tone="amber"
+              icon={Users}
+              query={members}
             >
-              {memberContent(
-                <HistogramChart
-                  data={Object.entries(members.data?.byAgeGroup ?? {}).map(
-                    ([key, value]) => ({ label: ageLabels[key] ?? key, value }),
-                  )}
-                  loading={members.isLoading}
-                  unit="members"
-                />,
-              )}
+              <DashboardBars
+                data={Object.entries(members.data?.byAgeGroup ?? {}).map(
+                  ([key, value]) => ({ label: ageLabels[key] ?? key, value }),
+                )}
+                colors={[
+                  dashboardColors[3],
+                  dashboardColors[5],
+                  dashboardColors[2],
+                  dashboardColors[1],
+                  dashboardColors[0],
+                  dashboardColors[4],
+                ]}
+              />
             </ChartCard>
-          </div>
-        </section>
-      )}
-
-      {showGiving && (
-        <ChartCard
-          title="Giving by category"
-          description={`Successful giving · ${currency} · ${period}`}
-          href={givingHref}
-        >
-          {invalidRange ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">
-              Choose a valid date range.
-            </p>
-          ) : giving.error ? (
-            <ErrorState
-              title="Unable to load giving breakdown"
-              onRetry={async () => {
-                await giving.refetch();
-              }}
-            />
-          ) : (
-            <BarsChart
+          </>
+        )}
+        {showGiving && (
+          <ChartCard
+            title="Giving by category"
+            description="Successful giving · NGN"
+            href={givingHref}
+            tone="orange"
+            icon={HeartHandshake}
+            query={giving}
+          >
+            <DashboardBars
               data={(giving.data?.byCategory ?? []).map((c) => ({
                 label: c.categoryName,
                 value: c.total,
               }))}
-              loading={giving.isLoading}
+              colors={[
+                dashboardColors[5],
+                dashboardColors[1],
+                dashboardColors[4],
+                dashboardColors[2],
+                dashboardColors[0],
+              ]}
               formatValue={money}
             />
-          )}
-        </ChartCard>
-      )}
-    </div>
+          </ChartCard>
+        )}
+      </div>
+    </section>
   );
 }

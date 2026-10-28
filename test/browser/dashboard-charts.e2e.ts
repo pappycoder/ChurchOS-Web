@@ -119,8 +119,16 @@ async function setup(
             total: empty ? 0 : total,
             byStatus: empty ? {} : { active: total - 3, inactive: 3 },
             byGender: {},
-            byAgeGroup: empty ? {} : { age_18_30: total },
-            growth: empty ? [] : [point],
+            byAgeGroup: empty
+              ? {}
+              : { age_18_30: 15, age_31_45: 20, age_46_60: 7 },
+            growth: empty
+              ? []
+              : [
+                  { ...point, date: "2026-07-01", total: 15 },
+                  { ...point, date: "2026-08-01", total: 30 },
+                  { ...point, date: "2026-09-01" },
+                ],
           };
         else if (path === "/attendance/summary")
           data = {
@@ -131,7 +139,26 @@ async function setup(
             byCategory: {},
             byGender: {},
           };
-        else if (path === "/attendance/trends") data = empty ? [] : [point];
+        else if (path === "/attendance/trends")
+          data = empty
+            ? []
+            : [
+                {
+                  ...point,
+                  date: "2026-10-12",
+                  total: 24,
+                  members: 20,
+                  visitors: 4,
+                },
+                {
+                  ...point,
+                  date: "2026-10-20",
+                  total: 35,
+                  members: 30,
+                  visitors: 5,
+                },
+                point,
+              ];
         else if (path === "/giving/dashboard/charts") {
           if (window.failDashboardGiving)
             return Response.json(
@@ -145,15 +172,27 @@ async function setup(
             total: empty ? 0 : total,
             count: 2,
             currency: url.searchParams.get("currency") ?? "NGN",
-            trend: empty ? [] : [point],
+            trend: empty
+              ? []
+              : [
+                  { ...point, date: "2026-10-12", total: 20 },
+                  { ...point, date: "2026-10-20", total: 35 },
+                  point,
+                ],
             byCategory: empty
               ? []
               : [
                   {
                     categoryId: "cat-a",
                     categoryName: "Offering",
-                    total,
-                    count: 2,
+                    total: total - 10,
+                    count: 1,
+                  },
+                  {
+                    categoryId: "cat-b",
+                    categoryName: "Tithes",
+                    total: 10,
+                    count: 1,
                   },
                 ],
           };
@@ -198,120 +237,101 @@ async function assertNoAnalytics(page: Page) {
   ).toEqual([]);
 }
 
-test("Church Admin without Analytics entitlement sees real module charts and accessible detail links", async ({
+test("compact dashboard shows colorful charts without filters, KPI tiles or bulky feeds", async ({
   page,
   context,
 }) => {
   await setup(context);
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/dashboard");
-  await expect(page.locator(".recharts-surface")).toHaveCount(7);
-  await expect(page.locator(".recharts-pie-sector")).not.toHaveCount(0);
+  await expect(page.locator(".recharts-surface")).toHaveCount(6);
   await expect(
-    page.getByRole("heading", { name: "Attendance breakdown", exact: true }),
-  ).toBeVisible();
+    page.locator(".recharts-pie-sector path").first(),
+  ).toHaveAttribute("d", /A/);
+  await expect(
+    page.getByRole("region", { name: "Dashboard filters" }),
+  ).toHaveCount(0);
+  await expect(page.getByLabel("Start date")).toHaveCount(0);
+  await expect(
+    page.getByLabel("Dashboard branch", { exact: true }),
+  ).toHaveCount(0);
+  for (const title of [
+    "Check-ins · selected period",
+    "Giving · selected period",
+    "Current members",
+    "Upcoming events",
+    "Unread notifications",
+    "Recent Activity",
+    "Recent Notifications",
+  ]) {
+    await expect(page.getByText(title, { exact: true })).toHaveCount(0);
+  }
+  const cards = page.locator("[data-dashboard-chart]");
+  await expect(cards).toHaveCount(6);
+  const boxes = await cards.evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const box = node.getBoundingClientRect();
+      return { height: box.height, y: box.y };
+    }),
+  );
+  expect(boxes.every((box) => box.height <= 300)).toBe(true);
+  expect(boxes[0].y).toBe(boxes[2].y);
+  const colors = await page
+    .locator("[data-dashboard-chart] svg [fill]")
+    .evaluateAll((nodes) => [
+      ...new Set(
+        nodes
+          .map((node) => node.getAttribute("fill"))
+          .filter((fill) => fill?.startsWith("#")),
+      ),
+    ]);
+  expect(colors.length).toBeGreaterThanOrEqual(5);
   await expect(
     page.getByRole("link", {
-      name: /^View details\s*:\s*Member composition$/,
+      name: "View details: Member composition",
       exact: true,
     }),
   ).toHaveAttribute("href", "/members");
   await expect(
-    page.getByRole("link", { name: /^View details\s*:\s*Giving trend$/, exact: true }),
+    page.getByRole("link", { name: "View details: Giving trend", exact: true }),
   ).toHaveAttribute("href", "/giving");
-  await expect(
-    page.getByRole("link", {
-      name: /^View details\s*:\s*Attendance trend$/,
-      exact: true,
-    }),
-  ).toHaveAttribute("href", "/attendance/reports");
   await assertNoAnalytics(page);
-  await page.getByRole("heading", { name: "Member composition", exact: true }).scrollIntoViewIfNeeded();
-  await expect(page.locator(".recharts-pie-sector path").first()).toHaveAttribute("d", /A/);
+  const calls = await chartCalls(page);
+  expect(calls.find((call) => call.path.includes("/giving/"))?.path).toContain(
+    "currency=NGN",
+  );
+  expect(calls.find((call) => call.path.includes("/giving/"))?.path).toContain(
+    "T23%3A59%3A59.999Z",
+  );
+  expect(calls.every((call) => !call.path.includes("branchId="))).toBe(true);
+  const redundant = await page.evaluate(() =>
+    window.dashboardCalls.filter((call) =>
+      /\/(audit|events|branches)(?:\?|$)/.test(call.path),
+    ),
+  );
+  expect(redundant).toEqual([]);
   await page.screenshot({
-    path: test.info().outputPath("module-dashboard.png"),
+    path: test.info().outputPath("compact-dashboard-desktop.png"),
     fullPage: true,
   });
 });
 
-test("HQ filters update module charts; dates and currency leave member history unchanged", async ({
-  page,
-  context,
-}) => {
-  await setup(context);
-  await page.goto("/dashboard");
-  await expect(page.locator(".recharts-surface")).toHaveCount(7);
-  expect(
-    (await chartCalls(page)).find((c) => c.path.includes("/giving/"))?.path,
-  ).toContain("currency=NGN");
-  expect(
-    (await chartCalls(page)).find((c) => c.path.includes("/giving/"))?.path,
-  ).toContain("T23%3A59%3A59.999Z");
-  await page
-    .getByLabel("Dashboard branch", { exact: true })
-    .selectOption("branch-b");
-  await expect(
-    page.getByRole("heading", { name: "Membership · Branch B" }),
-  ).toBeVisible();
-  await expect
-    .poll(
-      async () =>
-        (await chartCalls(page)).filter((c) =>
-          c.path.includes("branchId=branch-b"),
-        ).length,
-    )
-    .toBe(4);
-  const before = (await chartCalls(page)).filter((c) =>
-    c.path.includes("/members/"),
-  ).length;
-  await page.getByLabel("Dashboard giving currency").selectOption("USD");
-  await expect
-    .poll(async () =>
-      (await chartCalls(page)).some((c) => c.path.includes("currency=USD")),
-    )
-    .toBe(true);
-  await page.getByRole("button", { name: "All time", exact: true }).click();
-  await expect
-    .poll(async () =>
-      (await chartCalls(page)).some(
-        (c) =>
-          c.path.includes("/giving/") &&
-          c.path.includes("currency=USD") &&
-          !c.path.includes("startDate"),
-      ),
-    )
-    .toBe(true);
-  expect(
-    (await chartCalls(page)).filter((c) => c.path.includes("/members/")),
-  ).toHaveLength(before);
-  await page.getByRole("button", { name: "Reset filters" }).click();
-  await expect(
-    page.getByLabel("Dashboard branch", { exact: true }),
-  ).toHaveValue("");
-  await expect(page.getByLabel("Dashboard giving currency")).toHaveValue("NGN");
-  await expect(page.getByLabel("Start date")).not.toHaveValue("");
-});
-
-test("branch viewer sends own scope immediately and blocks reversed dates", async ({
+test("branch viewers retain own scope without a branch picker", async ({
   page,
   context,
 }) => {
   await setup(context, { hq: false });
   await page.goto("/dashboard");
-  await expect(
-    page.getByLabel("Dashboard branch", { exact: true }),
-  ).toBeDisabled();
-  await expect.poll(async () => (await chartCalls(page)).length).toBe(4);
+  await expect(page.locator(".recharts-surface")).toHaveCount(6);
+  await expect.poll(async () => (await chartCalls(page)).length).toBe(3);
   expect(
-    (await chartCalls(page)).every((c) => c.path.includes("branchId=branch-a")),
+    (await chartCalls(page)).every((call) =>
+      call.path.includes("branchId=branch-a"),
+    ),
   ).toBe(true);
-  await page.getByLabel("Start date").fill("2099-01-01");
-  await expect(
-    page.getByText("Start date must be on or before end date."),
-  ).toBeVisible();
-  expect((await chartCalls(page)).some((c) => c.path.includes("2099"))).toBe(
-    false,
+  await expect(page.getByText("Last 30 days", { exact: false })).toContainText(
+    "Branch A",
   );
-  await expect(page.getByText("Choose a valid date range.")).toHaveCount(4);
 });
 
 test("missing module grants prevent chart rendering and requests", async ({
@@ -320,31 +340,25 @@ test("missing module grants prevent chart rendering and requests", async ({
 }) => {
   await setup(context, { modules: false });
   await page.goto("/dashboard");
-  await expect(
-    page.getByText("Welcome back, Grace!", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("region", { name: "Dashboard filters" }),
-  ).toHaveCount(0);
-  await expect(page.locator(".recharts-surface")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "View profile" })).toBeVisible();
+  await expect(page.locator("[data-dashboard-chart]")).toHaveCount(0);
   expect(await chartCalls(page)).toEqual([]);
   await assertNoAnalytics(page);
 });
 
-test("giving still requires its plan entitlement; other module charts remain", async ({
+test("giving entitlement still gates giving charts", async ({
   page,
   context,
 }) => {
   await setup(context, { features: ["events", "forms"] });
   await page.goto("/dashboard");
-  await expect(page.locator(".recharts-surface")).toHaveCount(5);
-  await expect(page.getByLabel("Dashboard giving currency")).toHaveCount(0);
+  await expect(page.locator(".recharts-surface")).toHaveCount(4);
   expect(
-    (await chartCalls(page)).some((c) => c.path.includes("/giving/")),
+    (await chartCalls(page)).some((call) => call.path.includes("/giving/")),
   ).toBe(false);
 });
 
-test("attendance summary access gives a bar chart without report access", async ({
+test("summary readers get attendance bars without report access", async ({
   page,
   context,
 }) => {
@@ -355,11 +369,18 @@ test("attendance summary access gives a bar chart without report access", async 
     page.getByRole("heading", { name: "Attendance breakdown", exact: true }),
   ).toBeVisible();
   expect(
-    (await chartCalls(page)).some((c) => c.path.includes("/attendance/trends")),
+    (await chartCalls(page)).some((call) =>
+      call.path.includes("/attendance/trends"),
+    ),
   ).toBe(false);
+  expect(
+    (await chartCalls(page)).some((call) =>
+      call.path.includes("/attendance/summary"),
+    ),
+  ).toBe(true);
 });
 
-test("shortcuts, profile and notification actions remain available without Analytics", async ({
+test("task shortcuts, profile and notification drawer actions remain available", async ({
   page,
   context,
 }) => {
@@ -380,7 +401,15 @@ test("shortcuts, profile and notification actions remain available without Analy
   await expect(
     page.getByRole("link", { name: "View profile", exact: true }),
   ).toHaveAttribute("href", "/profile");
-  await page.getByRole("button", { name: /Dashboard fixture notice/ }).click();
+  await page
+    .getByRole("button", { name: "Notifications", exact: true })
+    .last()
+    .click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page
+    .getByRole("dialog")
+    .getByText("Dashboard fixture notice", { exact: true })
+    .click();
   await expect(page.getByRole("dialog")).toContainText(
     "Existing notification details",
   );
@@ -388,65 +417,77 @@ test("shortcuts, profile and notification actions remain available without Analy
     .poll(async () =>
       page.evaluate(() =>
         window.dashboardCalls.some(
-          (c) =>
-            c.path.endsWith("/notifications/notice-a/read") &&
-            c.method === "PATCH",
+          (call) =>
+            call.path.endsWith("/notifications/notice-a/read") &&
+            call.method === "PATCH",
         ),
       ),
     )
     .toBe(true);
-  await page.keyboard.press("Escape");
-  const notifications = page
-    .locator('[data-slot="card"]')
-    .filter({ has: page.getByText("Recent Notifications", { exact: true }) });
-  await notifications.getByRole("button", { name: "View all" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
   await assertNoAnalytics(page);
 });
 
-test("failed giving charts recover independently", async ({
+test("failed giving charts recover independently in compact cards", async ({
   page,
   context,
 }) => {
   await setup(context, { failGiving: true });
   await page.goto("/dashboard");
   await expect(
-    page.getByText("Unable to load giving charts", { exact: true }),
+    page.getByText("Unable to load giving trend.", { exact: true }),
   ).toBeVisible({ timeout: 30000 });
   await expect(
-    page.getByText("Member composition", { exact: true }),
+    page.getByRole("heading", { name: "Member composition", exact: true }),
   ).toBeVisible();
   await page.evaluate(() => {
     window.failDashboardGiving = false;
   });
   await page
     .getByRole("alert")
-    .filter({ hasText: "Unable to load giving charts" })
-    .getByRole("button", { name: "Try again" })
+    .filter({ hasText: "Unable to load giving trend." })
+    .getByRole("button", { name: "Retry", exact: true })
     .click();
   await expect(
-    page.getByText("Unable to load giving charts", { exact: true }),
+    page.getByText("Unable to load giving trend.", { exact: true }),
   ).toHaveCount(0);
-  await expect(page.locator(".recharts-surface")).toHaveCount(7);
+  await expect(page.locator(".recharts-surface")).toHaveCount(6);
 });
 
 for (const empty of [true, false])
-  test(`module charts fit mobile with empty=${empty}`, async ({
+  test(`compact charts fit mobile with empty=${empty}`, async ({
     page,
     context,
   }) => {
     await setup(context, { empty });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/dashboard");
-    if (empty) {
-      await expect(
-        page.getByText("No data in the selected range."),
-      ).toHaveCount(5);
-      await expect(page.getByText("No data yet.")).toHaveCount(2);
-    } else await expect(page.locator(".recharts-surface")).toHaveCount(7);
+    if (empty)
+      await expect(page.getByText("No data yet.", { exact: true })).toHaveCount(
+        6,
+      );
+    else await expect(page.locator(".recharts-surface")).toHaveCount(6);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,
       ),
     ).toBe(true);
+    await page.screenshot({
+      path: test.info().outputPath(`compact-dashboard-mobile-${empty}.png`),
+      fullPage: true,
+    });
   });
+
+test("colorful charts remain readable in dark mode", async ({
+  page,
+  context,
+}) => {
+  await setup(context);
+  await page.goto("/dashboard");
+  await page.getByRole("button", { name: "Switch to dark mode" }).click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await expect(page.locator(".recharts-surface")).toHaveCount(6);
+  await page.screenshot({
+    path: test.info().outputPath("compact-dashboard-dark.png"),
+    fullPage: true,
+  });
+});
