@@ -36,6 +36,7 @@ interface NotificationsDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenNotification: (notification: Notification) => void;
+  onCloseAutoFocus?: React.ComponentProps<typeof SheetContent>["onCloseAutoFocus"];
 }
 
 type PresetKey = "all" | "today" | "last-7" | "last-30";
@@ -65,6 +66,7 @@ export function NotificationsDrawer({
   open,
   onOpenChange,
   onOpenNotification,
+  onCloseAutoFocus,
 }: NotificationsDrawerProps) {
   const [page, setPage] = React.useState(1);
   const [readFilter, setReadFilter] = React.useState<"all" | "unread">("all");
@@ -175,7 +177,7 @@ export function NotificationsDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" showCloseButton={false} className="w-full sm:max-w-md p-0 flex flex-col">
+      <SheetContent side="right" onCloseAutoFocus={onCloseAutoFocus} showCloseButton={false} className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="px-5 py-4 border-b border-border">
           <SheetTitle className="flex items-center justify-between">
             <span>All notifications</span>

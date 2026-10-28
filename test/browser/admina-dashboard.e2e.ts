@@ -1,4 +1,5 @@
 import { test, expect, type BrowserContext } from "@playwright/test";
+import { mockTawkWidget } from "../fixtures/tawk-widget";
 import { COARSE_RESOURCES, EXTRA_PERMISSIONS, PERMISSION_ACTIONS, SURFACE_RESOURCES } from "../../src/lib/menu-catalog";
 
 const grants = new Set<string>(EXTRA_PERMISSIONS);
@@ -8,40 +9,63 @@ for (const [resource, surfaces] of Object.entries(SURFACE_RESOURCES))
   for (const surface of surfaces)
     for (const action of PERMISSION_ACTIONS) grants.add(`${resource}:${surface}:${action}`);
 
-async function fixture(context: BrowserContext, options: { restricted?: boolean; empty?: boolean; fail?: boolean; limitedPlan?: boolean; waitReads?: Promise<void> } = {}) {
+async function fixture(context: BrowserContext, options: { restricted?: boolean; empty?: boolean; fail?: boolean; limitedPlan?: boolean; waitReads?: Promise<void>; manyRecords?: boolean; longNames?: boolean; reads?: string[] } = {}) {
   const writes: string[] = [];
   const notification = { id: "notice-a", type: "system", title: "Welcome to your workspace", body: "Your church workspace is ready.", createdAt: "2026-10-28T08:00:00Z", readAt: undefined as string | undefined };
+  const notifications = [
+    notification,
+    { id: "notice-b", type: "event", title: "Sunday volunteer briefing has been updated", body: "Review the revised arrival time and share it with your team before the service.", createdAt: "2026-10-28T07:00:00Z", readAt: undefined as string | undefined },
+    { id: "notice-c", type: "attendance", title: "Attendance reports for the community thanksgiving service are ready for your review", body: "Your service team has completed the attendance records. You can continue your work from the attendance section.", createdAt: "2026-10-27T18:00:00Z", readAt: "2026-10-27T19:00:00Z" },
+    { id: "notice-d", type: "pastoral", title: "A follow-up reminder from the care team", body: "Remember to review your assigned visitor follow-ups this week.", createdAt: "2026-10-27T12:00:00Z", readAt: "2026-10-27T13:00:00Z" },
+  ];
+  const activity = [
+    { id: "audit-a", action: "CREATE", entity: "member", entityLabel: "Ada Nwankwo", createdAt: "2026-10-28T08:20:00Z" },
+    { id: "audit-b", action: "UPDATE", entity: "event", entityLabel: "Community thanksgiving and volunteer appreciation service", createdAt: "2026-10-28T07:45:00Z" },
+    { id: "audit-c", action: "EXPORT", entity: "attendance_record", entityLabel: "Sunday service attendance", createdAt: "2026-10-27T16:30:00Z" },
+    { id: "audit-d", action: "UPDATE", entity: "visitor", entityLabel: "Chinonso Okafor", createdAt: "2026-10-27T14:00:00Z" },
+    { id: "audit-e", action: "LOGIN", entity: "account", createdAt: "2026-10-27T08:00:00Z" },
+  ];
+  if (options.manyRecords) {
+    for (let index = notifications.length; index < 10; index++) notifications.push({ ...notification, id: `notice-${index}`, title: `Additional update ${index}` });
+    for (let index = activity.length; index < 10; index++) activity.push({ ...activity[0], id: `audit-${index}`, entityLabel: `Additional activity ${index}` });
+  }
   await context.addCookies([{ name: "churchos_token", value: "layout-fixture", url: "http://127.0.0.1:3107" }]);
   await context.route("https://**", route => route.abort());
+  // Keep support ready without third-party chrome in dashboard captures.
+  await context.route("https://embed.tawk.to/**", route => route.fulfill({
+    contentType: "application/javascript",
+    body: mockTawkWidget.replaceAll("bubble.hidden = false;", "bubble.hidden = true;"),
+  }));
   await context.route("**/api/session", route => route.fulfill({ json: { hasSession: true } }));
   await context.route("**/api/backend/**", async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname.replace("/api/backend", "");
+    if (request.method() === "GET") options.reads?.push(path);
     if (request.method() !== "GET") writes.push(`${request.method()} ${path}`);
     let data: unknown = { data: [], meta: { page: 1, limit: 15, total: 0, totalPages: 0 } };
     if (path === "/profiles/me") data = {
       profileId: "profile-a", userId: "user-a", churchId: "church-a", branchId: "branch-a",
       church: { name: "ChurchOS Community Church and International Fellowship" }, branch: { name: "Main branch" },
-      firstName: "Grace", lastName: "Reviewer", email: "grace@example.test", role: [options.restricted ? "member" : "church_admin"],
+      firstName: options.longNames ? "Grace-Chidimma-Oluwaseun-Nwachukwu-Okafor" : "Grace", lastName: "Reviewer", email: options.longNames ? `${"longemail".repeat(12)}@example.test` : "grace@example.test", role: [options.restricted ? "member" : "church_admin"],
       status: "active", isAdminHq: !options.restricted,
       permissions: options.restricted ? [] : [...grants],
       planFeatures: options.limitedPlan ? [] : ["staff_roles", "custom_roles", "giving", "events", "groups", "forms", "reports", "email", "media", "tickets", "pastoral", "assets", "analytics", "sms", "whatsapp", "calls", "webhooks"],
     };
     else if (path === "/auth/session") data = { userId: "user-a", email: "grace@example.test" };
-    else if (path.endsWith("/unread-count") || path.endsWith("/unread")) data = { count: 0 };
+    else if (path.endsWith("/unread-count") || path.endsWith("/unread")) data = { count: path.startsWith("/notifications") && !options.empty ? notifications.filter(item => !item.readAt).length : 0 };
     else if (path === "/billing/subscription") data = { limits: {}, usage: {}, subscription: { paid_until: "2099-01-01T00:00:00Z" } };
     else if (path === "/church/roles") data = { roles: [] };
     else if (path === "/notifications") {
       await options.waitReads;
       if (options.fail) return route.fulfill({ status: 503, json: { success: false, error: { message: "Notifications unavailable" } } });
-      data = { data: options.empty ? [] : [notification], total: options.empty ? 0 : 1, unreadCount: notification.readAt ? 0 : 1 };
+      data = { data: options.empty ? [] : notifications, total: options.empty ? 0 : notifications.length, unreadCount: options.empty ? 0 : notifications.filter(item => !item.readAt).length };
     } else if (path === "/notifications/notice-a/read") {
       notification.readAt = "2026-10-28T09:00:00Z";
       data = notification;
     } else if (path === "/audit") {
       await options.waitReads;
       if (options.fail) return route.fulfill({ status: 503, json: { success: false, error: { message: "Activity unavailable" } } });
-      data = { data: [], total: 0 };
+      data = { data: options.empty ? [] : activity, total: options.empty ? 0 : activity.length };
     }
     return route.fulfill({ json: { success: true, data } });
   });
@@ -185,7 +209,7 @@ test("dashboard panels show loading before resolving to empty states", async ({ 
   await fixture(context, { empty: true, waitReads });
   try {
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: "Recent Audit Logs" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Recent activity" })).toBeVisible();
     await expect(page.getByRole("main").locator(".animate-pulse").first()).toBeVisible();
     await expect(page.getByText("No activity yet.")).toHaveCount(0);
     await expect(page.getByText("You're all caught up!")).toHaveCount(0);
@@ -215,3 +239,82 @@ test("header help, notifications, inbox and theme controls remain usable", async
   await header.getByRole("button", { name: "Switch to light mode", exact: true }).click();
   await expect(page.locator("html")).not.toHaveClass(/dark/);
 });
+
+
+test("personal dashboard preserves account details and notification drawer access", async ({ page, context }) => {
+  await fixture(context);
+  await page.goto("/dashboard");
+  await expect(page.getByRole("main").getByRole("heading", { level: 1 })).toHaveCount(1);
+  const account = page.getByRole("main").locator("summary");
+  await account.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("main").getByText("grace@example.test", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByText("HQ · permitted branches", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open profile", exact: true })).toHaveAttribute("href", "/profile");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("link", { name: "Open profile", exact: true })).toBeHidden();
+  const updates = page.getByRole("region", { name: "Notifications", exact: true });
+  await expect(updates.getByText("2 unread", { exact: true })).toBeVisible();
+  await updates.getByRole("button", { name: /Welcome to your workspace/ }).click();
+  await expect(page.getByRole("dialog", { name: "Welcome to your workspace" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(updates.getByText("1 unread", { exact: true })).toBeVisible();
+  await expect(updates.getByRole("button", { name: /^Unread: Welcome to your workspace/ })).toHaveCount(0);
+  await updates.getByRole("button", { name: "View more", exact: true }).click();
+  const drawer = page.getByRole("dialog", { name: /All notifications/ });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("button", { name: /Sunday volunteer briefing has been updated/ })).toBeVisible();
+  await drawer.getByRole("button", { name: "Close notifications", exact: true }).click();
+  await expect(updates.getByRole("button", { name: "View more", exact: true })).toBeFocused();
+});
+
+test("dashboard retries each failed panel independently", async ({ page, context }) => {
+  const reads: string[] = [];
+  const options = { fail: true, reads };
+  await fixture(context, options);
+  await page.goto("/dashboard");
+  const updates = page.getByRole("region", { name: "Notifications", exact: true });
+  const activity = page.getByRole("region", { name: "Recent activity", exact: true });
+  await expect(updates.getByRole("alert")).toBeVisible();
+  await expect(activity.getByRole("alert")).toBeVisible();
+  const notificationReads = reads.filter(path => path === "/notifications").length;
+  const activityReads = reads.filter(path => path === "/audit").length;
+  options.fail = false;
+  await activity.getByRole("button", { name: "Try again" }).click();
+  await expect(activity.getByText("Created Member — Ada Nwankwo")).toBeVisible();
+  await expect(updates.getByRole("alert")).toBeVisible();
+  expect(reads.filter(path => path === "/notifications")).toHaveLength(notificationReads);
+  expect(reads.filter(path => path === "/audit")).toHaveLength(activityReads + 1);
+  await updates.getByRole("button", { name: "Try again" }).click();
+  await expect(updates.getByRole("button", { name: /Welcome to your workspace/ })).toBeVisible();
+  expect(reads.filter(path => path === "/notifications")).toHaveLength(notificationReads + 1);
+  expect(reads.filter(path => path === "/audit")).toHaveLength(activityReads + 1);
+});
+
+test("dashboard previews retain eight entries with notifications first", async ({ page, context }) => {
+  await fixture(context, { manyRecords: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/dashboard");
+  const updates = page.getByRole("region", { name: "Notifications", exact: true });
+  const activity = page.getByRole("region", { name: "Recent activity", exact: true });
+  await expect(updates.getByRole("listitem")).toHaveCount(8);
+  await expect(activity.getByRole("listitem")).toHaveCount(8);
+  const desktopUpdates = (await updates.boundingBox())!;
+  const desktopActivity = (await activity.boundingBox())!;
+  expect(desktopUpdates.x).toBeLessThan(desktopActivity.x);
+  expect(desktopUpdates.width).toBeGreaterThan(desktopActivity.width);
+  await page.setViewportSize({ width: 375, height: 1000 });
+  expect((await updates.boundingBox())!.y).toBeLessThan((await activity.boundingBox())!.y);
+});
+
+for (const width of [320, 375]) {
+  test(`long dashboard names and account details wrap at ${width}px`, async ({ page, context }) => {
+    await fixture(context, { longNames: true });
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto("/dashboard");
+    await expect(page.getByRole("heading", { level: 1, name: /Welcome back, Grace-Chidimma/ })).toBeVisible();
+    await page.getByRole("main").locator("summary").click();
+    await expect(page.getByRole("link", { name: "Open profile", exact: true })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
