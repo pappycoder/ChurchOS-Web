@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { VisitorFormSection } from "./visitor-presentation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -44,19 +45,33 @@ const convertSchema = z.object({
 
 type ConvertFormValues = z.infer<typeof convertSchema>;
 
+function PlainSection({
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return <div className="space-y-4">{children}</div>;
+}
+
 export function ConvertVisitorDialog({
   open,
   onOpenChange,
+  presentationClassName,
+  returnFocusRef,
   visitor,
   onConverted,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  presentationClassName?: string;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   /** Target visitor; nullable so the dialog can stay mounted while closed. */
   visitor?: Visitor | null;
   /** Called after a successful conversion with the new member's ID. */
   onConverted?: (memberId: string) => void;
 }) {
+  const Section = presentationClassName ? VisitorFormSection : PlainSection;
   const router = useRouter();
   const convertMutation = useConvertVisitor(visitor?.id ?? "");
   const branchesQuery = useBranchesList({ limit: 100 }, { enabled: open });
@@ -106,8 +121,7 @@ export function ConvertVisitorDialog({
       router.push(`/members/${result.memberId}`);
     } catch (error) {
       toast.error("Failed to convert visitor", {
-        description:
-          getToastErrorMessage(error, "Please try again."),
+        description: getToastErrorMessage(error, "Please try again."),
       });
     } finally {
       setPending(false);
@@ -116,101 +130,122 @@ export function ConvertVisitorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent
+        className={`${presentationClassName ?? ""} ${presentationClassName ? "max-h-[90dvh] overflow-y-auto" : ""} sm:max-w-[520px]`}
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                if (returnFocusRef.current?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => returnFocusRef.current?.focus());
+                }
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
           <DialogTitle>Convert to Member</DialogTitle>
           <DialogDescription>
-            Creates an active member record from this visitor. Gender, WhatsApp number
-            and custom fields carry over automatically, and the visitor is marked
-            converted.
+            Creates an active member record from this visitor. Gender, WhatsApp
+            number and custom fields carry over automatically, and the visitor
+            is marked converted.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name *</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name *</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <Section title="Member details">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name *</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name *</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="amina@example.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+234 801 234 5678" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </Section>
+            <Section title="Membership location">
               <FormField
                 control={form.control}
-                name="email"
+                name="branchId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="amina@example.com" {...field} />
-                    </FormControl>
+                    <FormLabel>Branch</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select branch" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(branchesQuery.data?.data ?? []).map((branch) => (
+                          <SelectItem
+                            key={branch.branchId}
+                            value={branch.branchId}
+                          >
+                            {branch.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+234 801 234 5678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="branchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Branch</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select branch" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {(branchesQuery.data?.data ?? []).map((branch) => (
-                        <SelectItem key={branch.branchId} value={branch.branchId}>
-                          {branch.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            </Section>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

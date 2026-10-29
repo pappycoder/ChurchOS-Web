@@ -35,7 +35,7 @@ for (const hq of [true, false]) for (const editing of [true, false]) test(`visit
   await fixture(context, hq);
   await page.goto("/visitors");
   if (editing) {
-    await page.getByRole("button", { name: "More actions", exact: true }).first().click();
+    await page.getByRole("button", { name: /^Manage / }).first().click();
     await page.getByRole("menuitem", { name: "Edit Visitor", exact: true }).click();
   } else await page.getByRole("button", { name: "Quick Add", exact: true }).click();
   const dialog = page.getByRole("dialog");

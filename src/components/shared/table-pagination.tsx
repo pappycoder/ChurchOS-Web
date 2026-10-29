@@ -20,6 +20,8 @@ interface TablePaginationProps {
   itemName?: string;
   onPageChange: (page: number) => void;
   onPerPageChange?: (perPage: number) => void;
+  /** Optional sizes for collections with a different initial page size. */
+  pageSizeOptions?: readonly number[];
 }
 
 export function TablePagination({
@@ -29,6 +31,7 @@ export function TablePagination({
   itemName = "rows",
   onPageChange,
   onPerPageChange,
+  pageSizeOptions = PAGE_SIZE_OPTIONS,
 }: TablePaginationProps) {
   if (total <= 0) return null;
 
@@ -42,26 +45,31 @@ export function TablePagination({
         Showing {from}–{to} of {total} {itemName}
       </p>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        {onPerPageChange && <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            Rows per page
-          </span>
-          <Select
-            value={String(perPage)}
-            onValueChange={(v) => onPerPageChange(Number(v))}
-          >
-            <SelectTrigger className="h-8 w-[70px]" aria-label="Rows per page">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((size) => (
-                <SelectItem key={size} value={String(size)}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>}
+        {onPerPageChange && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              Rows per page
+            </span>
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => onPerPageChange(Number(v))}
+            >
+              <SelectTrigger
+                className="h-8 w-[70px]"
+                aria-label="Rows per page"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {pageSizeOptions.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             Page {page} of {totalPages}

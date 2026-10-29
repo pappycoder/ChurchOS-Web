@@ -20,6 +20,8 @@ interface DeleteVisitorDialogProps {
   visitors: Visitor[];
   /** Called after all deletions finish (even with partial failures). */
   onDeleted?: () => void;
+  presentationClassName?: string;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
 export function DeleteVisitorDialog({
@@ -27,12 +29,15 @@ export function DeleteVisitorDialog({
   onOpenChange,
   visitors,
   onDeleted,
+  presentationClassName,
+  returnFocusRef,
 }: DeleteVisitorDialogProps) {
   const deleteMutation = useDeleteVisitor();
   const [pendingCount, setPendingCount] = React.useState(0);
 
   const single = visitors.length === 1 ? visitors[0] : null;
-  const displayName = (v: Visitor) => `${v.firstName}${v.lastName ? ` ${v.lastName}` : ""}`;
+  const displayName = (v: Visitor) =>
+    `${v.firstName}${v.lastName ? ` ${v.lastName}` : ""}`;
 
   const handleDelete = () => {
     if (visitors.length === 0) return;
@@ -60,9 +65,13 @@ export function DeleteVisitorDialog({
           setPendingCount(visitors.length - done);
           if (done === visitors.length) {
             if (!single && visitors.length > 3 && failed > 0) {
-              toast.warning(`Deleted ${succeeded} of ${visitors.length} visitors`, {
-                description: "Some visitors could not be deleted. Please try again.",
-              });
+              toast.warning(
+                `Deleted ${succeeded} of ${visitors.length} visitors`,
+                {
+                  description:
+                    "Some visitors could not be deleted. Please try again.",
+                },
+              );
             } else if (!single && succeeded > 0) {
               toast.success(`${succeeded} visitor(s) deleted`);
             }
@@ -88,7 +97,19 @@ export function DeleteVisitorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        className={`${presentationClassName ?? ""} sm:max-w-[420px]`}
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                if (returnFocusRef.current?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => returnFocusRef.current?.focus());
+                }
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -100,9 +121,11 @@ export function DeleteVisitorDialog({
             {single ? (
               <>
                 Are you sure you want to permanently delete{" "}
-                <span className="font-medium text-foreground">{displayName(single)}</span>?
-                This removes their record and follow-up history. This action cannot be
-                undone.
+                <span className="font-medium text-foreground">
+                  {displayName(single)}
+                </span>
+                ? This removes their record and follow-up history. This action
+                cannot be undone.
               </>
             ) : (
               <>
@@ -110,8 +133,8 @@ export function DeleteVisitorDialog({
                 <span className="font-medium text-foreground">
                   {visitors.length} visitors
                 </span>
-                ? Their records and follow-up history will be removed. This action cannot
-                be undone.
+                ? Their records and follow-up history will be removed. This
+                action cannot be undone.
               </>
             )}
           </DialogDescription>
@@ -124,7 +147,11 @@ export function DeleteVisitorDialog({
           >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={pendingCount > 0}>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={pendingCount > 0}
+          >
             {pendingCount > 0
               ? `Deleting... (${visitors.length - pendingCount}/${visitors.length})`
               : "Delete"}

@@ -15,8 +15,17 @@ import {
   ShieldCheck,
   Upload,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  MediaHeader as PageHeader,
+  mediaWorkspaceClass,
+} from "@/components/media/media-presentation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,29 +80,30 @@ function MediaUploadPage() {
   const [uploaded, setUploaded] = React.useState<QueueItem[]>([]);
   const [uploadingAll, setUploadingAll] = React.useState(false);
   const [isDragging, setIsDragging] = React.useState(false);
-  useUnsavedChanges(queue.some(item => item.status !== "done") || uploadingAll);
+  useUnsavedChanges(
+    queue.some((item) => item.status !== "done") || uploadingAll,
+  );
   const fileRef = React.useRef<HTMLInputElement>(null);
 
-  const effectiveFolder = newFolderMode ? newFolderName.trim() || "uploads" : folder;
+  const effectiveFolder = newFolderMode
+    ? newFolderName.trim() || "uploads"
+    : folder;
 
-  const addFiles = React.useCallback(
-    (files: FileList | File[]) => {
-      const next: QueueItem[] = [];
-      for (const file of Array.from(files)) {
-        const err = validateFile(file);
-        if (err) {
-          toast.error(err);
-          continue;
-        }
-        next.push({ id: `q-${++queueSeq}`, file, status: "pending" });
+  const addFiles = React.useCallback((files: FileList | File[]) => {
+    const next: QueueItem[] = [];
+    for (const file of Array.from(files)) {
+      const err = validateFile(file);
+      if (err) {
+        toast.error(err);
+        continue;
       }
-      if (next.length) {
-        setQueue((prev) => [...prev, ...next]);
-        toast.info(`${next.length} file${next.length > 1 ? "s" : ""} added`);
-      }
-    },
-    []
-  );
+      next.push({ id: `q-${++queueSeq}`, file, status: "pending" });
+    }
+    if (next.length) {
+      setQueue((prev) => [...prev, ...next]);
+      toast.info(`${next.length} file${next.length > 1 ? "s" : ""} added`);
+    }
+  }, []);
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -105,25 +115,35 @@ function MediaUploadPage() {
     const target = effectiveFolder;
     setUploadingAll(true);
     for (const item of queue.filter((q) => q.status !== "done")) {
-      setQueue((prev) => prev.map((q) => (q.id === item.id ? { ...q, status: "uploading", error: undefined } : q)));
+      setQueue((prev) =>
+        prev.map((q) =>
+          q.id === item.id
+            ? { ...q, status: "uploading", error: undefined }
+            : q,
+        ),
+      );
       try {
-        const result = await uploadMutation.mutateAsync({ file: item.file, folder: target, branchId: branchId || undefined });
+        const result = await uploadMutation.mutateAsync({
+          file: item.file,
+          folder: target,
+          branchId: branchId || undefined,
+        });
         setQueue((prev) =>
           prev.map((q) =>
-            q.id === item.id ? { ...q, status: "done", result } : q
-          )
+            q.id === item.id ? { ...q, status: "done", result } : q,
+          ),
         );
         setUploaded((prev) => [...prev, { ...item, status: "done", result }]);
         toast.success(`${item.file.name} uploaded`);
       } catch (err) {
         const message = getToastErrorMessage(err, "Upload failed");
-        toast.error(`${item.file.name} upload failed`, { description: message });
+        toast.error(`${item.file.name} upload failed`, {
+          description: message,
+        });
         setQueue((prev) =>
           prev.map((q) =>
-            q.id === item.id
-              ? { ...q, status: "error", error: message }
-              : q
-          )
+            q.id === item.id ? { ...q, status: "error", error: message } : q,
+          ),
         );
       }
     }
@@ -144,7 +164,11 @@ function MediaUploadPage() {
       <div>
         <PageHeader
           title="Media Upload"
-          breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Media", href: "/media" }, { label: "Upload" }]}
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Media", href: "/media" },
+            { label: "Upload" },
+          ]}
         />
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <p className="text-muted-foreground">
@@ -156,12 +180,21 @@ function MediaUploadPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${mediaWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Media Upload"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Media", href: "/media" }, { label: "Upload" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Media", href: "/media" },
+          { label: "Upload" },
+        ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/media"); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/media");
+            }}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Library
           </Button>
@@ -172,12 +205,16 @@ function MediaUploadPage() {
         <CardHeader>
           <CardTitle>Upload Files</CardTitle>
           <CardDescription>
-            Choose where files should be stored, then pick or drag files in. Images are
-            optimized automatically (up to 5 MB); other files up to 50 MB.
+            Choose where files should be stored, then pick or drag files in.
+            Images are optimized automatically (up to 5 MB); other files up to
+            50 MB.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2"><Label>Branch</Label><BranchFilter value={branchId} onChange={setBranchId} /></div>
+          <div className="space-y-2">
+            <Label>Branch</Label>
+            <BranchFilter value={branchId} onChange={setBranchId} />
+          </div>
           <div className="space-y-2">
             <Label>Folder</Label>
             {newFolderMode ? (
@@ -252,17 +289,20 @@ function MediaUploadPage() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             className={cn(
-              "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors",
+              "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-6 text-center transition-colors",
               isDragging
                 ? "border-primary bg-primary/5"
-                : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
+                : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50",
             )}
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <Upload className="h-6 w-6 text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <Upload className="h-5 w-5 text-[var(--workspace-accent-readable,var(--primary))]" />
             </div>
             <p className="text-sm font-medium">
-              Drop files here, or <span className="text-primary">browse</span>
+              Drop files here, or{" "}
+              <span className="text-[var(--workspace-accent-readable,var(--primary))]">
+                browse
+              </span>
             </p>
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5" />
@@ -285,12 +325,17 @@ function MediaUploadPage() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">
                   {queue.filter((q) => q.status !== "done").length} file
-                  {queue.filter((q) => q.status !== "done").length !== 1 ? "s" : ""} waiting
+                  {queue.filter((q) => q.status !== "done").length !== 1
+                    ? "s"
+                    : ""}{" "}
+                  waiting
                 </p>
                 <Button
                   type="button"
                   onClick={() => void uploadAll()}
-                  disabled={uploadingAll || queue.every((q) => q.status === "done")}
+                  disabled={
+                    uploadingAll || queue.every((q) => q.status === "done")
+                  }
                 >
                   {uploadingAll ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -302,7 +347,10 @@ function MediaUploadPage() {
               </div>
               <div data-export-list className="space-y-2 rounded-md border p-3">
                 {queue.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 rounded-md bg-muted/50 px-3 py-2">
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 rounded-md bg-muted/50 px-3 py-2"
+                  >
                     <div
                       className={cn(
                         "flex h-8 w-8 shrink-0 items-center justify-center rounded-md",
@@ -310,7 +358,7 @@ function MediaUploadPage() {
                           ? "bg-emerald-500/15 text-emerald-600"
                           : item.status === "error"
                             ? "bg-destructive/10 text-destructive"
-                            : "bg-primary/10 text-primary"
+                            : "bg-primary/10 text-primary",
                       )}
                     >
                       {item.status === "done" ? (
@@ -322,7 +370,9 @@ function MediaUploadPage() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{item.file.name}</p>
+                      <p className="truncate text-sm font-medium">
+                        {item.file.name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {formatBytes(item.file.size)} ·{" "}
                         {item.status === "done"
@@ -335,7 +385,12 @@ function MediaUploadPage() {
                       </p>
                     </div>
                     {item.status === "done" && item.result && (
-                      <Button type="button" variant="ghost" size="sm" onClick={() => copyUrl(item.result!.url)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyUrl(item.result!.url)}
+                      >
                         <Clipboard className="mr-2 h-3.5 w-3.5" />
                         Copy URL
                       </Button>
@@ -348,7 +403,13 @@ function MediaUploadPage() {
 
           {uploaded.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/media"); }}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (confirmDiscardChanges()) router.push("/media");
+                }}
+              >
                 View in Library
               </Button>
               <Button

@@ -9,7 +9,11 @@ import { z } from "zod";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { format } from "date-fns";
 import { ArrowLeft, Loader2, UserPlus } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  VisitorHeader as PageHeader,
+  visitorWorkspaceClass,
+  VisitorSectionHeading,
+} from "@/components/visitors/visitor-presentation";
 import {
   Card,
   CardContent,
@@ -35,7 +39,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateVisitor, FOLLOW_UP_STATUSES, type FollowUpStatus } from "@/hooks/use-visitors";
+import {
+  useCreateVisitor,
+  FOLLOW_UP_STATUSES,
+  type FollowUpStatus,
+} from "@/hooks/use-visitors";
 import { useCurrentProfile } from "@/hooks/use-profile";
 import { useBranchesList } from "@/hooks/use-branches";
 import { useUsers } from "@/hooks/use-users";
@@ -49,11 +57,7 @@ const newVisitorSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().optional(),
   gender: z.string().optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
   phone: z.string().optional(),
   whatsappNumber: z.string().optional(),
   firstVisitDate: z.string().min(1, "First visit date is required"),
@@ -71,7 +75,11 @@ export default function AddVisitorPage() {
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
   const branchesQuery = useBranchesList({ limit: 200 }, { enabled: isAdminHq });
-  const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
+  const branchOptions = React.useMemo(
+    () =>
+      (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt),
+    [branchesQuery.data],
+  );
   // Powers the assignee picker.
   const usersQuery = useUsers({ limit: 100, status: "active" });
 
@@ -100,7 +108,11 @@ export default function AddVisitorPage() {
 
   React.useEffect(() => {
     if (!form.getValues("branchId")) {
-      const defaultBranch = profile?.branchId ?? (isAdminHq && branchOptions.length === 1 ? branchOptions[0].branchId : "");
+      const defaultBranch =
+        profile?.branchId ??
+        (isAdminHq && branchOptions.length === 1
+          ? branchOptions[0].branchId
+          : "");
       if (defaultBranch) form.setValue("branchId", defaultBranch);
     }
   }, [profile?.branchId, isAdminHq, branchOptions, form]);
@@ -111,8 +123,16 @@ export default function AddVisitorPage() {
     setSaving(true);
     try {
       const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
-      if (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch))) {
-        form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
+      if (
+        !selectedBranch ||
+        (isAdminHq &&
+          !branchOptions.some((branch) => branch.branchId === selectedBranch))
+      ) {
+        form.setError("branchId", {
+          message: isAdminHq
+            ? "Select an available branch."
+            : "A branch assignment is required. Contact your church administrator.",
+        });
         return;
       }
       const visitor = await createMutation.mutateAsync({
@@ -132,7 +152,9 @@ export default function AddVisitorPage() {
         notes: values.notes?.trim() || undefined,
         customFields: rowsToCustomFields(values.customFields),
       });
-      toast.success(`${visitor.firstName}${visitor.lastName ? ` ${visitor.lastName}` : ""} registered successfully`);
+      toast.success(
+        `${visitor.firstName}${visitor.lastName ? ` ${visitor.lastName}` : ""} registered successfully`,
+      );
       router.push(`/visitors/${visitor.id}`);
     } catch (error) {
       toast.error("Failed to register visitor", {
@@ -144,7 +166,7 @@ export default function AddVisitorPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={`${visitorWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Add Visitor"
         breadcrumbs={[
@@ -153,7 +175,12 @@ export default function AddVisitorPage() {
           { label: "Add" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/visitors"); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/visitors");
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Visitors
           </Button>
@@ -165,33 +192,85 @@ export default function AddVisitorPage() {
           {/* Personal information */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Personal Information</CardTitle>
-              <CardDescription>Basic identity and contact details.</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                <VisitorSectionHeading>
+                  Personal Information
+                </VisitorSectionHeading>
+              </CardTitle>
+              <CardDescription>
+                Basic identity and contact details.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="branchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Branch *</FormLabel>
-                  {isAdminHq ? (
-                    <Select value={field.value} onValueChange={field.onChange} disabled={saving || branchesQuery.isLoading}>
-                      <FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        {branchOptions.map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly /></FormControl>
-                  )}
-                  <p className="text-xs text-muted-foreground">{isAdminHq ? "Choose the visitor's branch." : "Visitors are limited to your assigned branch."}</p>
-                  {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
-                  {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Branch *</FormLabel>
+                    {isAdminHq ? (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={saving || branchesQuery.isLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a branch" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {branchOptions.map((branch) => (
+                            <SelectItem
+                              key={branch.branchId}
+                              value={branch.branchId}
+                            >
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <FormControl>
+                        <Input
+                          value={
+                            profile?.branch?.name ??
+                            (profile?.branchId
+                              ? "Your assigned branch"
+                              : "No branch assigned")
+                          }
+                          readOnly
+                        />
+                      </FormControl>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {isAdminHq
+                        ? "Choose the visitor's branch."
+                        : "Visitors are limited to your assigned branch."}
+                    </p>
+                    {isAdminHq && branchesQuery.isError && (
+                      <p role="alert" className="text-sm text-destructive">
+                        Could not load branches.{" "}
+                        <button
+                          type="button"
+                          className="underline"
+                          onClick={() => void branchesQuery.refetch()}
+                        >
+                          Retry
+                        </button>
+                      </p>
+                    )}
+                    {isAdminHq &&
+                      branchesQuery.isSuccess &&
+                      !branchOptions.length && (
+                        <p className="text-sm text-destructive">
+                          No active branches available.
+                        </p>
+                      )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -285,7 +364,11 @@ export default function AddVisitorPage() {
           {/* Visit & follow-up */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Visit &amp; Follow-Up</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <VisitorSectionHeading>
+                  Visit &amp; Follow-Up
+                </VisitorSectionHeading>
+              </CardTitle>
               <CardDescription>
                 When they first visited and who owns the relationship.
               </CardDescription>
@@ -343,7 +426,10 @@ export default function AddVisitorPage() {
                       <SelectContent>
                         <SelectItem value="none">Unassigned</SelectItem>
                         {(usersQuery.data?.data ?? []).map((user) => (
-                          <SelectItem key={user.profileId} value={user.profileId}>
+                          <SelectItem
+                            key={user.profileId}
+                            value={user.profileId}
+                          >
                             {user.firstName} {user.lastName}
                           </SelectItem>
                         ))}
@@ -359,10 +445,12 @@ export default function AddVisitorPage() {
           {/* Custom fields */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Custom Fields</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <VisitorSectionHeading>Custom Fields</VisitorSectionHeading>
+              </CardTitle>
               <CardDescription>
-                Track anything specific to your church — how they heard about you,
-                prayer requests, referral source.
+                Track anything specific to your church — how they heard about
+                you, prayer requests, referral source.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -379,7 +467,9 @@ export default function AddVisitorPage() {
           {/* Notes */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Notes</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                <VisitorSectionHeading>Notes</VisitorSectionHeading>
+              </CardTitle>
               <CardDescription>
                 Admin-only context about this visitor.
               </CardDescription>
@@ -409,7 +499,9 @@ export default function AddVisitorPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { if (confirmDiscardChanges()) router.push("/visitors"); }}
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push("/visitors");
+              }}
               disabled={saving}
             >
               Cancel

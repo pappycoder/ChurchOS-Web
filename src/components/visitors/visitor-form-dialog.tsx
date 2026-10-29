@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { VisitorFormSection } from "./visitor-presentation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -66,26 +67,48 @@ function toFormValues(visitor?: Visitor | null): VisitorFormValues {
   };
 }
 
+function PlainSection({
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return <div className="space-y-4">{children}</div>;
+}
+
 export function VisitorFormDialog({
   open,
   onOpenChange,
+  presentationClassName,
+  returnFocusRef,
   visitor,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  presentationClassName?: string;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   /** When set, the dialog edits this visitor; otherwise it creates a new one. */
   visitor?: Visitor | null;
   onSaved?: (saved: Visitor) => void;
 }) {
+  const Section = presentationClassName ? VisitorFormSection : PlainSection;
   const isEdit = !!visitor;
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
-  const branchesQuery = useBranchesList({ limit: 200 }, { enabled: open && isAdminHq });
-  const branchOptions = React.useMemo(() => (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt), [branchesQuery.data]);
+  const branchesQuery = useBranchesList(
+    { limit: 200 },
+    { enabled: open && isAdminHq },
+  );
+  const branchOptions = React.useMemo(
+    () =>
+      (branchesQuery.data?.data ?? []).filter((branch) => !branch.archivedAt),
+    [branchesQuery.data],
+  );
   const usersQuery = useUsers({ limit: 100, status: "active" });
   const assignees = usersQuery.data?.data ?? [];
-  const currentAssigneeMissing = visitor?.assignedToId &&
+  const currentAssigneeMissing =
+    visitor?.assignedToId &&
     !assignees.some((user) => user.profileId === visitor.assignedToId);
   const createMutation = useCreateVisitor();
   const updateMutation = useUpdateVisitor(visitor?.id ?? "");
@@ -98,12 +121,23 @@ export function VisitorFormDialog({
 
   React.useEffect(() => {
     if (open) {
-      form.reset({ ...toFormValues(visitor), branchId: visitor ? visitor.branchId ?? "" : profile?.branchId ?? "" });
+      form.reset({
+        ...toFormValues(visitor),
+        branchId: visitor
+          ? (visitor.branchId ?? "")
+          : (profile?.branchId ?? ""),
+      });
     }
   }, [open, visitor, form, profile?.branchId]);
 
   React.useEffect(() => {
-    if (open && !visitor && isAdminHq && branchOptions.length === 1 && !form.getValues("branchId")) {
+    if (
+      open &&
+      !visitor &&
+      isAdminHq &&
+      branchOptions.length === 1 &&
+      !form.getValues("branchId")
+    ) {
       form.setValue("branchId", branchOptions[0].branchId);
     }
   }, [open, visitor, isAdminHq, branchOptions, form]);
@@ -111,15 +145,30 @@ export function VisitorFormDialog({
   const onSubmit = async (values: VisitorFormValues) => {
     setPending(true);
     try {
-      const branchChanged = isEdit && values.branchId !== (visitor?.branchId ?? "");
+      const branchChanged =
+        isEdit && values.branchId !== (visitor?.branchId ?? "");
       const selectedBranch = isAdminHq ? values.branchId : profile?.branchId;
-      if ((!isEdit || branchChanged) && (!selectedBranch || (isAdminHq && !branchOptions.some((branch) => branch.branchId === selectedBranch)))) {
-        form.setError("branchId", { message: isAdminHq ? "Select an available branch." : "A branch assignment is required. Contact your church administrator." });
+      if (
+        (!isEdit || branchChanged) &&
+        (!selectedBranch ||
+          (isAdminHq &&
+            !branchOptions.some(
+              (branch) => branch.branchId === selectedBranch,
+            )))
+      ) {
+        form.setError("branchId", {
+          message: isAdminHq
+            ? "Select an available branch."
+            : "A branch assignment is required. Contact your church administrator.",
+        });
         return;
       }
-      const assignmentChanged = (values.assignedToId ?? "") !== (visitor?.assignedToId ?? "");
+      const assignmentChanged =
+        (values.assignedToId ?? "") !== (visitor?.assignedToId ?? "");
       const payload = {
-        ...(!isEdit || (isAdminHq && branchChanged) ? { branchId: selectedBranch } : {}),
+        ...(!isEdit || (isAdminHq && branchChanged)
+          ? { branchId: selectedBranch }
+          : {}),
         assignedToId: assignmentChanged ? values.assignedToId || "" : undefined,
         firstName: values.firstName.trim(),
         lastName: values.lastName?.trim() || undefined,
@@ -136,9 +185,12 @@ export function VisitorFormDialog({
       onOpenChange(false);
       onSaved?.(saved);
     } catch (error) {
-      toast.error(isEdit ? "Failed to update visitor" : "Failed to register visitor", {
-        description: getToastErrorMessage(error, "Please try again."),
-      });
+      toast.error(
+        isEdit ? "Failed to update visitor" : "Failed to register visitor",
+        {
+          description: getToastErrorMessage(error, "Please try again."),
+        },
+      );
     } finally {
       setPending(false);
     }
@@ -146,9 +198,23 @@ export function VisitorFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent
+        className={`${presentationClassName ?? ""} ${presentationClassName ? "max-h-[90dvh] overflow-y-auto" : ""} sm:max-w-[520px]`}
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                if (returnFocusRef.current?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => returnFocusRef.current?.focus());
+                }
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Visitor" : "Register Visitor"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Visitor" : "Register Visitor"}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update the visitor's details, branch and follow-up assignee."
@@ -158,165 +224,231 @@ export function VisitorFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Amina" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Okafor" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <Section title="Visitor details">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Amina" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Okafor" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="branchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Branch *</FormLabel>
-                  {isAdminHq ? (
-                    <Select value={field.value} onValueChange={field.onChange} disabled={pending || branchesQuery.isLoading}>
-                      <FormControl><SelectTrigger className="w-full"><SelectValue placeholder="Select a branch" /></SelectTrigger></FormControl>
+              <FormField
+                control={form.control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Branch *</FormLabel>
+                    {isAdminHq ? (
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={pending || branchesQuery.isLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a branch" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {visitor?.branchId &&
+                            !branchOptions.some(
+                              (branch) => branch.branchId === visitor.branchId,
+                            ) && (
+                              <SelectItem value={visitor.branchId} disabled>
+                                {visitor.branchName ?? "Current branch"}
+                              </SelectItem>
+                            )}
+                          {branchOptions.map((branch) => (
+                            <SelectItem
+                              key={branch.branchId}
+                              value={branch.branchId}
+                            >
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <FormControl>
+                        <Input
+                          value={
+                            profile?.branch?.name ??
+                            (profile?.branchId
+                              ? "Your assigned branch"
+                              : "No branch assigned")
+                          }
+                          readOnly
+                        />
+                      </FormControl>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {isAdminHq
+                        ? "Choose the visitor's branch."
+                        : "Visitors are limited to your assigned branch."}
+                    </p>
+                    {isAdminHq && branchesQuery.isError && (
+                      <p role="alert" className="text-sm text-destructive">
+                        Could not load branches.{" "}
+                        <button
+                          type="button"
+                          className="underline"
+                          onClick={() => void branchesQuery.refetch()}
+                        >
+                          Retry
+                        </button>
+                      </p>
+                    )}
+                    {isAdminHq &&
+                      branchesQuery.isSuccess &&
+                      !branchOptions.length && (
+                        <p className="text-sm text-destructive">
+                          No active branches available.
+                        </p>
+                      )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="gender"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gender</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
-                        {visitor?.branchId && !branchOptions.some((branch) => branch.branchId === visitor.branchId) && <SelectItem value={visitor.branchId} disabled>{visitor.branchName ?? "Current branch"}</SelectItem>}
-                        {branchOptions.map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
                       </SelectContent>
                     </Select>
-                  ) : (
-                    <FormControl><Input value={profile?.branch?.name ?? (profile?.branchId ? "Your assigned branch" : "No branch assigned")} readOnly /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+234 801 234 5678" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  <p className="text-xs text-muted-foreground">{isAdminHq ? "Choose the visitor's branch." : "Visitors are limited to your assigned branch."}</p>
-                  {isAdminHq && branchesQuery.isError && <p role="alert" className="text-sm text-destructive">Could not load branches. <button type="button" className="underline" onClick={() => void branchesQuery.refetch()}>Retry</button></p>}
-                  {isAdminHq && branchesQuery.isSuccess && !branchOptions.length && <p className="text-sm text-destructive">No active branches available.</p>}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="gender"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Gender</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="phone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+234 801 234 5678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="whatsappNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>WhatsApp Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="+234 801 234 5678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {!isEdit && (
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="amina@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            <FormField
-              control={form.control}
-              name="assignedToId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assigned To</FormLabel>
-                  <Select
-                    onValueChange={(value) => field.onChange(value === "none" ? "" : value)}
-                    value={field.value || "none"}
-                    disabled={pending || usersQuery.isLoading}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select team member" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Unassigned</SelectItem>
-                      {currentAssigneeMissing && (
-                        <SelectItem value={visitor.assignedToId!}>
-                          {visitor.assignedToName || "Current assignee"}
-                        </SelectItem>
-                      )}
-                      {assignees.map((user) => (
-                        <SelectItem key={user.profileId} value={user.profileId}>
-                          {user.firstName} {user.lastName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {usersQuery.isError && (
-                    <p className="text-sm text-destructive">Unable to load team members. Please try again.</p>
+                />
+                <FormField
+                  control={form.control}
+                  name="whatsappNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="+234 801 234 5678" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                />
+              </div>
 
+              {!isEdit && (
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="amina@example.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </Section>
+            <Section title="Follow-up assignment">
+              <FormField
+                control={form.control}
+                name="assignedToId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assigned To</FormLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        field.onChange(value === "none" ? "" : value)
+                      }
+                      value={field.value || "none"}
+                      disabled={pending || usersQuery.isLoading}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select team member" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Unassigned</SelectItem>
+                        {currentAssigneeMissing && (
+                          <SelectItem value={visitor.assignedToId!}>
+                            {visitor.assignedToName || "Current assignee"}
+                          </SelectItem>
+                        )}
+                        {assignees.map((user) => (
+                          <SelectItem
+                            key={user.profileId}
+                            value={user.profileId}
+                          >
+                            {user.firstName} {user.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {usersQuery.isError && (
+                      <p className="text-sm text-destructive">
+                        Unable to load team members. Please try again.
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </Section>
             <DialogFooter className="pt-2">
               <Button
                 type="button"
@@ -327,7 +459,11 @@ export function VisitorFormDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={pending}>
-                {pending ? "Saving..." : isEdit ? "Save Changes" : "Register Visitor"}
+                {pending
+                  ? "Saving..."
+                  : isEdit
+                    ? "Save Changes"
+                    : "Register Visitor"}
               </Button>
             </DialogFooter>
           </form>

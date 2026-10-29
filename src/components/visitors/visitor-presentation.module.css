@@ -1,0 +1,17 @@
+.workspace {
+  min-width: 0;
+}
+.workspace.workspace :global([data-slot="card"]) {
+  gap: 0.75rem;
+  padding-block: 1rem;
+}
+.workspace.workspace :global([data-slot="card-header"]),
+.workspace.workspace :global([data-slot="card-content"]) {
+  padding-inline: 1rem;
+}
+.workspace.workspace :global([data-slot="table-cell"]) {
+  padding-block: 0.625rem;
+}
+.workspace.workspace :global([data-slot="card-title"]) {
+  font-size: 0.875rem;
+}

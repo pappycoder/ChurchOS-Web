@@ -5,7 +5,11 @@ import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { VisibleDataExport } from "@/components/shared/visible-data-export";
 
 import * as React from "react";
-import { PeopleHeader, PeopleImportProgress, peopleWorkspaceClass } from "@/components/members/people-presentation";
+import {
+  PeopleHeader,
+  PeopleImportProgress,
+  peopleWorkspaceClass,
+} from "@/components/members/people-presentation";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -102,7 +106,15 @@ function autoMap(
   return mapping;
 }
 
-export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
+export function PeopleImportPage({
+  kind,
+  presentationClassName,
+  compactProgress = false,
+}: {
+  kind: "members" | "visitors";
+  presentationClassName?: string;
+  compactProgress?: boolean;
+}) {
   const visitor = kind === "visitors";
   const plural = visitor ? "Visitors" : "Members";
   const singular = visitor ? "visitor" : "member";
@@ -443,10 +455,17 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
       </p>
     );
 
-  const ImportHeader = kind === "members" ? PeopleHeader : PageHeader;
+  const ImportHeader =
+    kind === "members" || compactProgress ? PeopleHeader : PageHeader;
 
   return (
-    <div className={cn("space-y-4", kind === "members" && peopleWorkspaceClass)}>
+    <div
+      className={cn(
+        "space-y-4",
+        kind === "members" && peopleWorkspaceClass,
+        presentationClassName,
+      )}
+    >
       <ImportHeader
         title={`Import ${plural}`}
         breadcrumbs={[
@@ -455,7 +474,12 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
           { label: "Import" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/${kind}`); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push(`/${kind}`);
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to {plural}
           </Button>
@@ -463,26 +487,28 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
       />
 
       {/* Step indicator */}
-      {kind === "members" ? <PeopleImportProgress step={step} /> : (
-      <div className="flex items-center gap-2 text-sm">
-        {(["upload", "map", "review", "done"] as ImportStep[]).map((s, i) => (
-          <React.Fragment key={s}>
-            {i > 0 && <span className="text-muted-foreground">→</span>}
-            <span
-              className={
-                step === s
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground capitalize"
-              }
-            >
-              {i + 1}.{" "}
-              {s === "upload"
-                ? "Upload"
-                : s.charAt(0).toUpperCase() + s.slice(1)}
-            </span>
-          </React.Fragment>
-        ))}
-      </div>
+      {kind === "members" || compactProgress ? (
+        <PeopleImportProgress step={step} />
+      ) : (
+        <div className="flex items-center gap-2 text-sm">
+          {(["upload", "map", "review", "done"] as ImportStep[]).map((s, i) => (
+            <React.Fragment key={s}>
+              {i > 0 && <span className="text-muted-foreground">→</span>}
+              <span
+                className={
+                  step === s
+                    ? "font-medium text-foreground"
+                    : "text-muted-foreground capitalize"
+                }
+              >
+                {i + 1}.{" "}
+                {s === "upload"
+                  ? "Upload"
+                  : s.charAt(0).toUpperCase() + s.slice(1)}
+              </span>
+            </React.Fragment>
+          ))}
+        </div>
       )}
 
       {/* Step 1: Upload */}
@@ -854,7 +880,11 @@ export function PeopleImportPage({ kind }: { kind: "members" | "visitors" }) {
               <Button variant="outline" onClick={resetAll}>
                 Import Another File
               </Button>
-              <Button onClick={() => { if (confirmDiscardChanges()) router.push(`/${kind}`); }}>
+              <Button
+                onClick={() => {
+                  if (confirmDiscardChanges()) router.push(`/${kind}`);
+                }}
+              >
                 Go to {plural}
               </Button>
             </div>

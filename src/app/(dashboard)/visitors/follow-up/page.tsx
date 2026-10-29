@@ -26,12 +26,16 @@ import {
   GripVertical,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  VisitorHeader as PageHeader,
+  visitorWorkspaceClass,
+  VisitorAvatar,
+  VisitorStatusBadge,
+} from "@/components/visitors/visitor-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchInput } from "@/components/shared/search-input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -59,21 +63,32 @@ interface BoardColumn {
 const BOARD_COLUMNS: BoardColumn[] = [
   { key: "new", label: "New", statuses: ["new"] },
   { key: "contacted", label: "Contacted", statuses: ["contacted"] },
-  { key: "follow_up_scheduled", label: "Scheduled", statuses: ["follow_up_scheduled"] },
+  {
+    key: "follow_up_scheduled",
+    label: "Scheduled",
+    statuses: ["follow_up_scheduled"],
+  },
   { key: "interested", label: "Interested", statuses: ["interested"] },
-  { key: "closed", label: "Converted / Dropped", statuses: ["converted", "dropped_off"] },
+  {
+    key: "closed",
+    label: "Converted / Dropped",
+    statuses: ["converted", "dropped_off"],
+  },
 ];
 
 const COLUMN_ACCENT: Record<string, string> = {
   new: "bg-blue-500",
-  contacted: "bg-purple-500",
+  contacted: "bg-teal-500",
   follow_up_scheduled: "bg-amber-500",
-  interested: "bg-green-500",
+  interested: "bg-violet-500",
   closed: "bg-emerald-600",
 };
 
 /** Resolves the status a card takes when dropped into a column. */
-function statusForColumn(column: BoardColumn, current: FollowUpStatus): FollowUpStatus {
+function statusForColumn(
+  column: BoardColumn,
+  current: FollowUpStatus,
+): FollowUpStatus {
   // Merged terminal column keeps an existing dropped_off, everything else lands converted.
   if (column.key === "closed") {
     return current === "dropped_off" ? "dropped_off" : "converted";
@@ -83,7 +98,7 @@ function statusForColumn(column: BoardColumn, current: FollowUpStatus): FollowUp
 
 function daysSinceVisitLabel(visitor: Visitor): string {
   const days = Math.floor(
-    (Date.now() - new Date(visitor.firstVisitDate).getTime()) / 86_400_000
+    (Date.now() - new Date(visitor.firstVisitDate).getTime()) / 86_400_000,
   );
   if (days <= 0) return "First visit today";
   if (days === 1) return "1 day ago";
@@ -108,22 +123,18 @@ function CardBody({
     !!visitor.convertedMemberId ||
     visitor.followUpStatus === ("converted" as FollowUpStatus);
   return (
-    <div
-      className={`rounded-md border p-2.5 space-y-2 bg-background ${className}`}
-    >
+    <div className={`rounded-xl border p-2.5 space-y-2 bg-card ${className}`}>
       <div className="flex items-start gap-1.5">
-        <Avatar size="sm" className="shrink-0">
-          <AvatarFallback className="text-xs">{`${visitor.firstName.charAt(0)}${(visitor.lastName ?? "").charAt(0)}`.toUpperCase()}</AvatarFallback>
-        </Avatar>
+        <VisitorAvatar
+          id={visitor.id}
+          name={`${visitor.firstName} ${visitor.lastName ?? ""}`}
+          className="size-8"
+        />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate leading-tight">
+          <p className="text-xs font-semibold truncate leading-tight">
             {visitor.firstName}
             {visitor.lastName ? ` ${visitor.lastName}` : ""}
-            {isConverted && (
-              <Badge variant="secondary" className="ml-1.5 px-1 py-0 text-[10px]">
-                Converted
-              </Badge>
-            )}
+            {isConverted && <VisitorStatusBadge status="converted" />}
           </p>
           <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
             <CalendarDays className="h-3 w-3" />
@@ -161,7 +172,10 @@ export default function FollowUpBoardPage() {
 
   // Debounce the client-side filter.
   React.useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput.trim().toLowerCase()), 300);
+    const timer = setTimeout(
+      () => setSearch(searchInput.trim().toLowerCase()),
+      300,
+    );
     return () => clearTimeout(timer);
   }, [searchInput]);
 
@@ -187,7 +201,7 @@ export default function FollowUpBoardPage() {
   // PointerSensor covers mouse + touch + pen.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(KeyboardSensor)
+    useSensor(KeyboardSensor),
   );
 
   const moveVisitorToStatus = React.useCallback(
@@ -199,8 +213,8 @@ export default function FollowUpBoardPage() {
       setVisitors(
         (prev) =>
           prev?.map((v) =>
-            v.id === visitor.id ? { ...v, followUpStatus: nextStatus } : v
-          ) ?? null
+            v.id === visitor.id ? { ...v, followUpStatus: nextStatus } : v,
+          ) ?? null,
       );
       updateMutation.mutate(
         { visitorId: visitor.id, input: { followUpStatus: nextStatus } },
@@ -213,10 +227,10 @@ export default function FollowUpBoardPage() {
             });
           },
           onSettled: () => setMovingId(null),
-        }
+        },
       );
     },
-    [updateMutation, data]
+    [updateMutation, data],
   );
 
   const handleSelectChange = (visitor: Visitor, status: string) => {
@@ -234,7 +248,10 @@ export default function FollowUpBoardPage() {
     const column = BOARD_COLUMNS.find((c) => c.key === String(over.id));
     const visitor = (visitors ?? []).find((v) => v.id === String(active.id));
     if (!column || !visitor) return;
-    moveVisitorToStatus(visitor, statusForColumn(column, visitor.followUpStatus));
+    moveVisitorToStatus(
+      visitor,
+      statusForColumn(column, visitor.followUpStatus),
+    );
   };
 
   const filtered = React.useMemo(() => {
@@ -244,14 +261,16 @@ export default function FollowUpBoardPage() {
       [v.firstName, v.lastName ?? "", v.email ?? "", v.phone ?? ""]
         .join(" ")
         .toLowerCase()
-        .includes(search)
+        .includes(search),
     );
   }, [visitors, search]);
 
   const withAssignee = (rows: Visitor[]): Visitor[] =>
     rows.map((v) => ({
       ...v,
-      assigneeName: v.assignedToId ? assigneeNames.get(v.assignedToId) : undefined,
+      assigneeName: v.assignedToId
+        ? assigneeNames.get(v.assignedToId)
+        : undefined,
     }));
 
   const activeVisitor =
@@ -274,7 +293,7 @@ export default function FollowUpBoardPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${visitorWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Follow-Up"
         breadcrumbs={[
@@ -282,71 +301,97 @@ export default function FollowUpBoardPage() {
           { label: "Visitors", href: "/visitors" },
           { label: "Follow-Up" },
         ]}
-
       />
 
-      <section data-collection className="space-y-4 rounded-xl border p-4"><div className="flex flex-wrap items-center gap-2">
-            <SearchInput
-              value={searchInput}
-              onChange={setSearchInput}
-              placeholder="Filter by name, email, phone..."
-              className="w-full sm:w-64"
-            />
-          </div><VisibleDataExport includeTables={false} />      <p className="text-sm text-muted-foreground">
-        This board shows page {page} of the visitor directory, up to 100 visitors. Search filters this loaded page.
-        {canUpdateVisitors &&
-          " Drag cards by the grip handle between columns, or use each card's dropdown."}
-      </p>
-
-      <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>Previous page</Button><span className="text-sm">{data?.meta.total ?? "—"} visitors in directory</span><Button variant="outline" disabled={!data || page * 100 >= data.meta.total} onClick={() => setPage(page + 1)}>Next page</Button></div>
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-64 w-full" />
-          ))}
+      <section data-collection className="space-y-4 rounded-xl border p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <SearchInput
+            value={searchInput}
+            onChange={setSearchInput}
+            placeholder="Filter by name, email, phone..."
+            className="w-full sm:w-64"
+          />
         </div>
-      ) : (visitors ?? []).length === 0 ? (
-        <EmptyState
-          icon={<KanbanSquare className="h-12 w-12" />}
-          title="No visitors to follow up"
-          description="Register visitors and they will appear here automatically."
-        />
-      ) : (
-        <DndContext
-          sensors={canUpdateVisitors ? sensors : []}
-          collisionDetection={pointerWithin}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={() => setActiveId(null)}
-        >
-          <div data-export-list className="grid gap-4 md:grid-cols-3 xl:grid-cols-5 items-start">
-            {BOARD_COLUMNS.map((column) => (
-              <BoardColumnView
-                key={column.key}
-                column={column}
-                cards={withAssignee(
-                  filtered.filter((v) =>
-                    column.statuses.includes(v.followUpStatus)
-                  )
-                )}
-                dragActive={!!activeId}
-                canUpdate={canUpdateVisitors}
-                movingId={movingId}
-                onSelectChange={handleSelectChange}
-              />
+        <VisibleDataExport includeTables={false} />{" "}
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          This board shows page {page} of the visitor directory, up to 100
+          visitors. Search filters this loaded page.
+          {canUpdateVisitors &&
+            " Drag cards by the grip handle between columns, or use each card's dropdown."}
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+          >
+            Previous page
+          </Button>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {data?.meta.total ?? "—"} visitors in directory
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!data || page * 100 >= data.meta.total}
+            onClick={() => setPage(page + 1)}
+          >
+            Next page
+          </Button>
+        </div>
+        {isLoading ? (
+          <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-64 w-full" />
             ))}
           </div>
+        ) : (visitors ?? []).length === 0 ? (
+          <EmptyState
+            icon={<KanbanSquare className="h-12 w-12" />}
+            title="No visitors to follow up"
+            description="Register visitors and they will appear here automatically."
+          />
+        ) : (
+          <DndContext
+            sensors={canUpdateVisitors ? sensors : []}
+            collisionDetection={pointerWithin}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onDragCancel={() => setActiveId(null)}
+          >
+            <div
+              data-export-list
+              className="grid gap-4 md:grid-cols-3 xl:grid-cols-5 items-start"
+            >
+              {BOARD_COLUMNS.map((column) => (
+                <BoardColumnView
+                  key={column.key}
+                  column={column}
+                  cards={withAssignee(
+                    filtered.filter((v) =>
+                      column.statuses.includes(v.followUpStatus),
+                    ),
+                  )}
+                  dragActive={!!activeId}
+                  canUpdate={canUpdateVisitors}
+                  movingId={movingId}
+                  onSelectChange={handleSelectChange}
+                />
+              ))}
+            </div>
 
-          <DragOverlay dropAnimation={{ duration: 180 }}>
-            {activeVisitor ? (
-              <CardBody
-                visitor={withAssignee([activeVisitor])[0]}
-                className="shadow-lg ring-2 ring-primary/40 rotate-2 cursor-grabbing"
-              />
-            ) : null}
-          </DragOverlay>
-        </DndContext>
-      )}</section>
+            <DragOverlay dropAnimation={{ duration: 180 }}>
+              {activeVisitor ? (
+                <CardBody
+                  visitor={withAssignee([activeVisitor])[0]}
+                  className="shadow-lg ring-2 ring-primary/40 rotate-2 cursor-grabbing"
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        )}
+      </section>
     </div>
   );
 }
@@ -383,14 +428,23 @@ function BoardColumnView({
     >
       <div className="flex items-center justify-between border-b px-3 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <span className={`h-2 w-2 rounded-full shrink-0 ${COLUMN_ACCENT[column.key]}`} />
-          <span className="text-sm font-semibold truncate">{column.label}</span>
+          <span
+            className={`h-2 w-2 rounded-full shrink-0 ${COLUMN_ACCENT[column.key]}`}
+          />
+          <span className="text-xs font-semibold truncate">{column.label}</span>
         </div>
-        <Badge variant="secondary">{cards.length}</Badge>
+        <Badge
+          variant="outline"
+          className="font-normal tabular-nums text-[11px]"
+        >
+          {cards.length}
+        </Badge>
       </div>
       <div className="space-y-2 p-2 min-h-[80px] max-h-[60vh] overflow-y-auto">
         {cards.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-6">No visitors</p>
+          <p className="text-xs text-muted-foreground text-center py-6">
+            No visitors
+          </p>
         ) : (
           cards.map((visitor) => (
             <VisitorCardView
