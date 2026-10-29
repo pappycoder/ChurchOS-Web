@@ -20,6 +20,7 @@ interface DeleteFamilyDialogProps {
   families: Family[];
   /** Called after all deletions finish (even with partial failures). */
   onDeleted?: () => void;
+  returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export function DeleteFamilyDialog({
@@ -27,6 +28,7 @@ export function DeleteFamilyDialog({
   onOpenChange,
   families,
   onDeleted,
+  returnFocusRef,
 }: DeleteFamilyDialogProps) {
   const deleteMutation = useDeleteFamily();
   const [pendingCount, setPendingCount] = React.useState(0);
@@ -64,7 +66,7 @@ export function DeleteFamilyDialog({
                 {
                   description:
                     "Some families could not be deleted. Please try again.",
-                }
+                },
               );
             } else if (!single && succeeded > 0) {
               toast.success(`${succeeded} family(ies) deleted`);
@@ -91,7 +93,17 @@ export function DeleteFamilyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        className="sm:max-w-[420px]"
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                event.preventDefault();
+                returnFocusRef.current?.focus();
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -103,9 +115,11 @@ export function DeleteFamilyDialog({
             {single ? (
               <>
                 Are you sure you want to delete{" "}
-                <span className="font-medium text-foreground">{single.name}</span>?
-                The family group and its member associations are removed. Member
-                records themselves are not deleted.
+                <span className="font-medium text-foreground">
+                  {single.name}
+                </span>
+                ? The family group and its member associations are removed.
+                Member records themselves are not deleted.
               </>
             ) : (
               <>
@@ -120,10 +134,18 @@ export function DeleteFamilyDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pendingCount > 0}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={pendingCount > 0}
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={pendingCount > 0}>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={pendingCount > 0}
+          >
             {pendingCount > 0
               ? `Deleting... (${families.length - pendingCount}/${families.length})`
               : "Delete"}

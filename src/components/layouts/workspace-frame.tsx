@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceAppearanceProvider } from "@/contexts/workspace-appearance-context";
 import { PlanLimitDialog } from "@/components/billing/plan-limit-dialog";
 import { BillingNotice } from "@/components/billing/billing-notice";
 import { usePathname } from "next/navigation";
@@ -14,30 +15,32 @@ import { PermissionRouteGate } from "@/components/shared/permission-route-gate";
 export function WorkspaceFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <SidebarProvider>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:p-3 focus:shadow-lg"
-      >
-        Skip to content
-      </a>
-      <TopProgressBar />
-      <Sidebar />
-      <SidebarInset className="min-w-0">
-        <Header />
-        <main
-          id="main-content"
-          tabIndex={-1}
-          className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-6 lg:px-8"
+    <WorkspaceAppearanceProvider>
+      <SidebarProvider data-workspace-root>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:p-3 focus:shadow-lg"
         >
-          {/* <OfflineEntry /> */}
-          <BillingNotice />
-          <PlanLimitDialog />
-          <TableColumnsProvider key={pathname}>
-            <PermissionRouteGate>{children}</PermissionRouteGate>
-          </TableColumnsProvider>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+          Skip to content
+        </a>
+        <TopProgressBar />
+        <Sidebar />
+        <SidebarInset className="min-w-0">
+          <Header />
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="flex min-w-0 flex-1 flex-col px-4 py-6 md:px-6 lg:px-8"
+          >
+            {/* <OfflineEntry /> */}
+            <BillingNotice />
+            <PlanLimitDialog />
+            <TableColumnsProvider key={pathname}>
+              <PermissionRouteGate>{children}</PermissionRouteGate>
+            </TableColumnsProvider>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </WorkspaceAppearanceProvider>
   );
 }

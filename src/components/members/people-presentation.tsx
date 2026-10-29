@@ -46,7 +46,7 @@ export function PeopleHeader({
       titleMeta={
         count === undefined ? undefined : (
           <span
-            className="rounded-full border border-teal-600/15 bg-teal-500/5 px-2.5 py-1 text-xs font-medium tabular-nums text-teal-700 dark:text-teal-300"
+            className="rounded-full border border-primary/15 bg-primary/5 px-2.5 py-1 text-xs font-medium tabular-nums text-[var(--workspace-accent-readable,var(--primary))]"
             aria-label={`${count.toLocaleString()} results`}
           >
             {count.toLocaleString()}
@@ -179,7 +179,7 @@ export function PeopleMoreFilters({
           More filters
           {count > 0 && (
             <span
-              className="rounded-full bg-teal-500/10 px-1.5 text-[11px] text-teal-700 dark:text-teal-300"
+              className="rounded-full bg-primary/10 px-1.5 text-[11px] text-[var(--workspace-accent-readable,var(--primary))]"
               aria-label={`${count} active filters`}
             >
               {count}
@@ -225,7 +225,7 @@ export function PeopleImportProgress({
             className={cn(
               "flex size-6 shrink-0 items-center justify-center rounded-full border",
               index < current
-                ? "border-teal-600/15 bg-teal-500/8 text-teal-700 dark:text-teal-300"
+                ? "border-primary/15 bg-primary/8 text-[var(--workspace-accent-readable,var(--primary))]"
                 : "border-current/15",
             )}
           >

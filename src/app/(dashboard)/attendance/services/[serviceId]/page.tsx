@@ -1,7 +1,7 @@
 "use client";
+import { DetailManagementMenu } from "@/components/shared/detail-management-menu";
 import {
   AttendanceWorkspace,
-  AttendanceRecordActions,
   AttendanceCategoryBadge,
   AttendanceStatusBadge,
   AttendanceArchivedBadge,
@@ -24,7 +24,14 @@ import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, HandCoins, Archive, RotateCcw, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  HandCoins,
+  Archive,
+  RotateCcw,
+  Trash2,
+} from "lucide-react";
 import { format } from "date-fns";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -77,6 +84,7 @@ export default function ServiceDetailPage({
 }) {
   const { serviceId } = React.use(params);
   const router = useRouter();
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { can } = usePermissions();
   const canUpdate = can("attendance:services", "update");
   const canDelete = can("attendance:services", "delete");
@@ -183,82 +191,81 @@ export default function ServiceDetailPage({
 
       {/* Header */}
       <Card className="py-4">
-        <CardContent className="px-5">
-          <div className="flex items-start gap-3 flex-wrap">
-            <h1 className="text-xl font-semibold">{service.name}</h1>
-            <AttendanceCategoryBadge category={service.category ?? "adult"} />
-            {!service.isActive && <AttendanceStatusBadge status="inactive" />}
-            {service.archivedAt && <AttendanceArchivedBadge />}
-          </div>
-          <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
-            <span>
-              {service.dayOfWeek !== undefined
-                ? [
-                    "Sunday",
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday",
-                  ][service.dayOfWeek]
-                : "Any day"}
-              {service.startTime && service.endTime
-                ? ` · ${service.startTime}–${service.endTime}`
-                : ""}
-            </span>
-            {latest && (
-              <span>
-                Last check-in{" "}
-                {format(new Date(latest.checkInAt), "MMM d, yyyy · HH:mm")}
+        <CardContent className="flex flex-wrap items-start justify-between gap-4 px-5">
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="flex size-10 items-center justify-center rounded-xl border bg-muted/50 text-muted-foreground">
+                <CalendarDays className="size-5" aria-hidden="true" />
               </span>
-            )}
-          </p>
-          <AttendanceRecordActions>
-            {(canUpdate || canDelete) && !service.archivedAt && (
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                {canUpdate && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setArchiveTarget({ kind: "archive", service })
-                    }
-                  >
-                    <Archive className="h-4 w-4 mr-2" />
-                    Archive
-                  </Button>
-                )}
-              </div>
-            )}
-            {service.archivedAt && (canUpdate || canDelete) && (
-              <div className="flex flex-wrap items-center gap-2 mt-4">
-                {canUpdate && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setArchiveTarget({ kind: "restore", service })
-                    }
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Restore
-                  </Button>
-                )}
-                {canDelete && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => setArchiveTarget({ kind: "purge", service })}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Forever
-                  </Button>
-                )}
-              </div>
-            )}
-          </AttendanceRecordActions>
+              <h1 className="text-xl font-semibold tracking-tight">
+                {service.name}
+              </h1>
+              <AttendanceCategoryBadge category={service.category ?? "adult"} />
+              {!service.isActive && <AttendanceStatusBadge status="inactive" />}
+              {service.archivedAt && <AttendanceArchivedBadge />}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
+              <span>
+                {service.dayOfWeek !== undefined
+                  ? [
+                      "Sunday",
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                    ][service.dayOfWeek]
+                  : "Any day"}
+                {service.startTime && service.endTime
+                  ? ` · ${service.startTime}–${service.endTime}`
+                  : ""}
+              </span>
+              {latest && (
+                <span>
+                  Last check-in{" "}
+                  {format(new Date(latest.checkInAt), "MMM d, yyyy · HH:mm")}
+                </span>
+              )}
+            </p>
+          </div>
+          <DetailManagementMenu
+            label="Service management"
+            triggerRef={managementRef}
+            actions={[
+              ...(!service.archivedAt && canUpdate
+                ? [
+                    {
+                      label: "Archive",
+                      icon: Archive,
+                      onSelect: () =>
+                        setArchiveTarget({ kind: "archive", service }),
+                    },
+                  ]
+                : []),
+              ...(service.archivedAt && canUpdate
+                ? [
+                    {
+                      label: "Restore",
+                      icon: RotateCcw,
+                      onSelect: () =>
+                        setArchiveTarget({ kind: "restore", service }),
+                    },
+                  ]
+                : []),
+              ...(service.archivedAt && canDelete
+                ? [
+                    {
+                      label: "Delete Forever",
+                      icon: Trash2,
+                      destructive: true,
+                      onSelect: () =>
+                        setArchiveTarget({ kind: "purge", service }),
+                    },
+                  ]
+                : []),
+            ]}
+          />
         </CardContent>
       </Card>
 
@@ -427,6 +434,7 @@ export default function ServiceDetailPage({
 
       {/* Archive / Restore / Delete Forever confirmation */}
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

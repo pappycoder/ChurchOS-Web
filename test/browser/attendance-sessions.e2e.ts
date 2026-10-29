@@ -62,6 +62,7 @@ test.beforeEach(async ({ context }, info) => {
               ]
             : [
                 "events:all:read",
+                "events:list:read",
                 "events:checkin:read",
                 ...(!readonly
                   ? ["events:checkin:create", "events:checkin:update"]

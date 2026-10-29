@@ -20,6 +20,7 @@ interface DeleteMemberDialogProps {
   members: Member[];
   /** Called after all deletions finish (even with partial failures). */
   onDeleted?: () => void;
+  returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 export function DeleteMemberDialog({
@@ -27,6 +28,7 @@ export function DeleteMemberDialog({
   onOpenChange,
   members,
   onDeleted,
+  returnFocusRef,
 }: DeleteMemberDialogProps) {
   const deleteMutation = useDeleteMember();
   const [pendingCount, setPendingCount] = React.useState(0);
@@ -65,7 +67,7 @@ export function DeleteMemberDialog({
                 {
                   description:
                     "Some members could not be deactivated. They may already be inactive.",
-                }
+                },
               );
             } else if (!single && succeeded > 0) {
               toast.success(`${succeeded} member(s) deactivated`);
@@ -92,13 +94,25 @@ export function DeleteMemberDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        className="sm:max-w-[420px]"
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                event.preventDefault();
+                returnFocusRef.current?.focus();
+              }
+            : undefined
+        }
+      >
         <DialogHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
           </div>
           <DialogTitle className="text-center">
-            {single ? "Deactivate Member" : `Deactivate ${members.length} Members`}
+            {single
+              ? "Deactivate Member"
+              : `Deactivate ${members.length} Members`}
           </DialogTitle>
           <DialogDescription className="text-center">
             {single ? (
@@ -122,10 +136,18 @@ export function DeleteMemberDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pendingCount > 0}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={pendingCount > 0}
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={pendingCount > 0}>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={pendingCount > 0}
+          >
             {pendingCount > 0
               ? `Deactivating... (${members.length - pendingCount}/${members.length})`
               : "Deactivate"}

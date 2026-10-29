@@ -1,9 +1,9 @@
 "use client";
+import { DetailManagementMenu } from "@/components/shared/detail-management-menu";
 import {
   PeopleWorkspace,
   PeopleAvatar,
   PeopleArchivedBadge,
-  PeopleRecordActions,
 } from "@/components/members/people-presentation";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
@@ -60,6 +60,7 @@ export default function FamilyDetailPage({
 }) {
   const { familyId } = React.use(params);
   const router = useRouter();
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { can } = usePermissions();
   const canUpdateFamilies = can("families", "update");
   const canDeleteFamilies = can("families", "delete");
@@ -125,17 +126,17 @@ export default function FamilyDetailPage({
       </Button>
 
       {/* Header card */}
-      <Card data-people-profile>
+      <Card data-people-profile className="overflow-hidden py-0">
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between py-5">
           <div className="flex items-center gap-4 min-w-0">
             <PeopleAvatar
               id={display.familyId}
               name={display.name}
-              className="size-12"
+              className="size-14 rounded-2xl"
             />
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl font-semibold truncate">
+                <h1 className="text-xl font-semibold tracking-tight [overflow-wrap:anywhere]">
                   {display.name}
                 </h1>
                 <Badge variant="secondary">
@@ -154,65 +155,62 @@ export default function FamilyDetailPage({
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-start gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {!display.archivedAt && canUpdateFamilies && (
               <Button onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-2 size-4" />
                 Edit
               </Button>
             )}
-            {(canUpdateFamilies || canDeleteFamilies) && (
-              <PeopleRecordActions>
-                {display.archivedAt ? (
-                  <>
-                    {canUpdateFamilies && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setArchiveAction("restore")}
-                      >
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Restore
-                      </Button>
-                    )}
-                    {canDeleteFamilies && (
-                      <Button
-                        variant="outline"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setArchiveAction("purge")}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Forever
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {(canUpdateFamilies || canDeleteFamilies) && (
-                      <>
-                        {canUpdateFamilies && (
-                          <Button
-                            variant="outline"
-                            onClick={() => setArchiveAction("archive")}
-                          >
-                            <Archive className="h-4 w-4 mr-2" />
-                            Archive
-                          </Button>
-                        )}
-                        {canDeleteFamilies && (
-                          <Button
-                            variant="destructive"
-                            onClick={() => setDeleteOpen(true)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </PeopleRecordActions>
-            )}
+            <DetailManagementMenu
+              label="Family management"
+              triggerRef={managementRef}
+              actions={[
+                ...(display.archivedAt
+                  ? [
+                      ...(canUpdateFamilies
+                        ? [
+                            {
+                              label: "Restore",
+                              icon: RotateCcw,
+                              onSelect: () => setArchiveAction("restore"),
+                            },
+                          ]
+                        : []),
+                      ...(canDeleteFamilies
+                        ? [
+                            {
+                              label: "Delete Forever",
+                              icon: Trash2,
+                              destructive: true,
+                              onSelect: () => setArchiveAction("purge"),
+                            },
+                          ]
+                        : []),
+                    ]
+                  : [
+                      ...(canUpdateFamilies
+                        ? [
+                            {
+                              label: "Archive",
+                              icon: Archive,
+                              onSelect: () => setArchiveAction("archive"),
+                            },
+                          ]
+                        : []),
+                      ...(canDeleteFamilies
+                        ? [
+                            {
+                              label: "Delete",
+                              icon: Trash2,
+                              destructive: true,
+                              onSelect: () => setDeleteOpen(true),
+                            },
+                          ]
+                        : []),
+                    ]),
+              ]}
+            />
           </div>
         </CardContent>
       </Card>
@@ -318,6 +316,7 @@ export default function FamilyDetailPage({
         family={display}
       />
       <DeleteFamilyDialog
+        returnFocusRef={managementRef}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         families={display ? [display] : []}
@@ -336,6 +335,7 @@ export default function FamilyDetailPage({
         member={removeTarget}
       />
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveAction}
         onOpenChange={(open) => !open && setArchiveAction(null)}
         kind={archiveAction ?? "archive"}

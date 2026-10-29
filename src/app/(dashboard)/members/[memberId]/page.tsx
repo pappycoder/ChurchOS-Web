@@ -1,4 +1,5 @@
 "use client";
+import { DetailManagementMenu } from "@/components/shared/detail-management-menu";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import {
   PeopleWorkspace,
@@ -6,7 +7,6 @@ import {
   PeopleStatusBadge,
   PeopleArchivedBadge,
   PeopleSectionHeading,
-  PeopleRecordActions,
 } from "@/components/members/people-presentation";
 import { UrlTabs } from "@/components/shared/url-tabs";
 import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -78,12 +78,12 @@ function DataRow({
   value?: string | null;
 }) {
   return (
-    <div className="flex items-start gap-3 py-2">
-      <div className="flex items-center gap-2 w-40 shrink-0 text-sm text-muted-foreground">
+    <div className="grid grid-cols-[minmax(0,7rem)_minmax(0,1fr)] items-start gap-3 py-3 sm:grid-cols-[minmax(0,9rem)_minmax(0,1fr)]">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {icon}
         <span>{label}</span>
       </div>
-      <span className="text-sm font-medium break-words min-w-0">
+      <span className="min-w-0 text-sm font-medium [overflow-wrap:anywhere]">
         {value || "-"}
       </span>
     </div>
@@ -97,6 +97,7 @@ export default function MemberDetailPage({
 }) {
   const { memberId } = React.use(params);
   const router = useRouter();
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { can, canAny } = usePermissions();
   const canUpdateMembers = can("members:all", "update");
   const canDeleteMembers = can("members:all", "delete");
@@ -210,14 +211,14 @@ export default function MemberDetailPage({
       </Button>
 
       {/* Header card */}
-      <Card data-people-profile>
+      <Card data-people-profile className="overflow-hidden py-0">
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between p-4 sm:px-5">
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <PeopleAvatar
               id={display.memberId}
               name={`${display.firstName} ${display.lastName}`}
               photoUrl={display.photoUrl}
-              className="size-12"
+              className="size-14 rounded-2xl"
             />
             <div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -237,7 +238,7 @@ export default function MemberDetailPage({
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-start gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {!display.archivedAt && canUpdateMembers && (
               <Button onClick={() => setEditOpen(true)}>
                 <Pencil className="mr-2 size-4" />
@@ -249,55 +250,55 @@ export default function MemberDetailPage({
               memberName={`${display.firstName} ${display.lastName}`}
               disabled={!display.phone || !!display.archivedAt}
             />
-            {(canUpdateMembers || canDeleteMembers) && (
-              <PeopleRecordActions>
-                {display.archivedAt ? (
-                  <>
-                    {canUpdateMembers && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setArchiveAction("restore")}
-                      >
-                        <RotateCcw className="h-4 w-4 mr-2" />
-                        Restore
-                      </Button>
-                    )}
-                    {canDeleteMembers && (
-                      <Button
-                        variant="outline"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setArchiveAction("purge")}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Forever
-                      </Button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {canDeleteMembers && display.status !== "inactive" && (
-                      <Button
-                        variant="outline"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => setDeleteOpen(true)}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Deactivate
-                      </Button>
-                    )}
-                    {canUpdateMembers && (
-                      <Button
-                        variant="outline"
-                        onClick={() => setArchiveAction("archive")}
-                      >
-                        <Archive className="h-4 w-4 mr-2" />
-                        Archive
-                      </Button>
-                    )}
-                  </>
-                )}
-              </PeopleRecordActions>
-            )}
+            <DetailManagementMenu
+              label="Member management"
+              triggerRef={managementRef}
+              actions={[
+                ...(display.archivedAt
+                  ? [
+                      ...(canUpdateMembers
+                        ? [
+                            {
+                              label: "Restore",
+                              icon: RotateCcw,
+                              onSelect: () => setArchiveAction("restore"),
+                            },
+                          ]
+                        : []),
+                      ...(canDeleteMembers
+                        ? [
+                            {
+                              label: "Delete Forever",
+                              icon: Trash2,
+                              destructive: true,
+                              onSelect: () => setArchiveAction("purge"),
+                            },
+                          ]
+                        : []),
+                    ]
+                  : [
+                      ...(canUpdateMembers
+                        ? [
+                            {
+                              label: "Archive",
+                              icon: Archive,
+                              onSelect: () => setArchiveAction("archive"),
+                            },
+                          ]
+                        : []),
+                      ...(canDeleteMembers && display.status !== "inactive"
+                        ? [
+                            {
+                              label: "Deactivate",
+                              icon: Trash2,
+                              destructive: true,
+                              onSelect: () => setDeleteOpen(true),
+                            },
+                          ]
+                        : []),
+                    ]),
+              ]}
+            />
           </div>
         </CardContent>
       </Card>
@@ -622,12 +623,14 @@ export default function MemberDetailPage({
         onSaved={(saved) => setDisplay(saved)}
       />
       <DeleteMemberDialog
+        returnFocusRef={managementRef}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
         members={[display]}
         onDeleted={() => router.push("/members")}
       />
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveAction}
         onOpenChange={(open) => !open && setArchiveAction(null)}
         kind={archiveAction ?? "archive"}

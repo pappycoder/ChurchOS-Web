@@ -14,11 +14,12 @@ No API, database, subscription, route, or permission-seed changes. Dedicated Ana
 
 ## Verification
 
-- Unit suite, targeted lint, TypeScript, production build and Attendance browser regressions; see final implementation report for results.
+- 448 unit tests passed; targeted lint, TypeScript and the production web build passed.
+- Attendance browser verification covers 49 cases across the full regression and focused reruns (including visitor registration outcomes and duplicate check-ins).
 - New mocked browser coverage checks summary-only/report access, denied access, HQ/branch scope, inclusive dashboard dates, missing demographics, empty states, independent failures/retry, record/report export filters, service lifecycle controls and responsive chart layouts.
-- Existing roster/session regressions navigate the existing Attendance tab on department/cell-group detail pages.
+- Existing regression fixtures now navigate the existing Attendance tabs, optional headcount disclosure and event action menu, and declare the existing module entitlements/event-list grant needed by those flows. Application permissions are unchanged.
 - Mock-data previews are saved outside the repository at `/tmp/churchos-attendance-previews/` (desktop/mobile and dark views, check-in, records, services, service form, service detail and reports). These are local test fixtures, not live church data.
 
 ## Release
 
-Web-only deployment through the repository's normal process. No deployment or live writes were performed during this implementation; the public Vercel site changes only after the web release.
+Web release commit `754c89b` is on `main`. The existing Vercel Git integration reports a successful deployment: https://vercel.com/pappycoders-projects/church-os-web/Edre4DqGyB4J36hescFgRYvckStF . No API deployment, migration, subscription changes or live church-data writes are needed. Subsequent local changes are test-fixture and validation-documentation updates only.

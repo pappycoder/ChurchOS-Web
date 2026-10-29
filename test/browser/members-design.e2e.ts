@@ -362,8 +362,8 @@ test("profile edit is prominent and destructive actions still require confirmati
   await expect(
     page.getByRole("tab", { name: "Giving", exact: true }),
   ).toBeVisible();
-  await page.getByText("More options", { exact: true }).click();
-  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await page.getByRole("button", { name: "Member management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Archive", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   expect(state.calls.some((call) => call.path.endsWith("/archive"))).toBe(
     false,
@@ -560,12 +560,13 @@ test("archived member controls retain restore and permanent-delete confirmation"
   await expect(
     page.getByRole("button", { name: "Edit Member", exact: true }),
   ).toHaveCount(0);
-  await page.getByText("More options", { exact: true }).click();
-  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Member management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Restore", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Member management", exact: true }).click();
   await page
-    .getByRole("button", { name: "Delete Forever", exact: true })
+    .getByRole("menuitem", { name: "Delete Forever", exact: true })
     .click();
   await expect(page.getByRole("dialog")).toContainText("Delete");
   expect(

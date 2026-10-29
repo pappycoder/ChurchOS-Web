@@ -1,0 +1,69 @@
+/* A server-rendered workspace marker scopes tokens and covers body-level portals. */
+:root:has([data-workspace-root]) {
+  --background: #fafafa;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: var(--workspace-accent, #0f766e);
+  --primary-foreground: var(--workspace-accent-foreground, #ffffff);
+  --secondary: #f4f4f5;
+  --secondary-foreground: #27272a;
+  --muted: #f4f4f5;
+  --muted-foreground: #64646e;
+  --accent: #ededf0;
+  --accent-foreground: #18181b;
+  --border: #dedee3;
+  --input: #c8c8d0;
+  --ring: var(--workspace-focus, #0f766e);
+  --chart-1: #3b82f6;
+  --chart-2: #8b5cf6;
+  --chart-3: #ec4899;
+  --chart-4: #f59e0b;
+  --chart-5: #14b8a6;
+  --chart-6: #f97316;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: #f0f0f2;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: var(--ring);
+}
+:root.dark:has([data-workspace-root]) {
+  --background: #101012;
+  --foreground: #f4f4f5;
+  --card: #18181b;
+  --card-foreground: #f4f4f5;
+  --popover: #202024;
+  --popover-foreground: #f4f4f5;
+  --secondary: #27272a;
+  --secondary-foreground: #f4f4f5;
+  --muted: #242427;
+  --muted-foreground: #aaaab4;
+  --accent: #2c2c31;
+  --accent-foreground: #fafafa;
+  --border: #35353c;
+  --input: #4c4c55;
+  --sidebar: #161618;
+  --sidebar-foreground: #d4d4d8;
+  --sidebar-accent: #28282c;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #303036;
+}
+:root:has([data-workspace-root]) [data-slot="button"][data-variant="default"] {
+  border-color: var(--workspace-accent-border, #0f766e);
+}
+:root:has([data-workspace-root])
+  [data-sidebar="menu-button"][data-active="true"],
+:root:has([data-workspace-root])
+  [data-sidebar="menu-sub-button"][data-active="true"] {
+  box-shadow: inset 3px 0 var(--workspace-accent-readable, #0f766e);
+  color: var(--workspace-accent-readable, #0f766e);
+}
+:root:has([data-workspace-root])
+  [data-slot="tabs-trigger"][data-state="active"] {
+  color: var(--workspace-accent-readable, #0f766e);
+}

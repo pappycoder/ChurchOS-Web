@@ -1,8 +1,4 @@
 .workspace {
-  --card: var(--background);
-  --primary: #0f766e;
-  --primary-foreground: #fff;
-  --ring: #14b8a6;
   min-width: 0;
 }
 .workspace :global([data-slot="card"]) {
@@ -25,13 +21,13 @@
   font-size: 0.8125rem;
 }
 .workspace :global([data-slot="table-row"]:hover) {
-  background: color-mix(in srgb, #14b8a6 4%, var(--background));
+  background: color-mix(in srgb, var(--primary) 4%, var(--background));
 }
 .workspace :global([data-slot="table-cell"] a) {
   text-decoration: none;
 }
 .workspace :global([data-slot="table-cell"] a:hover) {
-  color: var(--primary);
+  color: var(--workspace-accent-readable, var(--primary));
   text-decoration: underline;
 }
 .workspace :global([data-slot="input"]),
@@ -44,7 +40,7 @@
   background: color-mix(in srgb, var(--muted) 65%, transparent);
 }
 .workspace :global([data-slot="tabs-trigger"][data-state="active"]) {
-  color: var(--primary);
+  color: var(--workspace-accent-readable, var(--primary));
   background: var(--background);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.05);
 }

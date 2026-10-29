@@ -333,18 +333,21 @@ test("desktop, mobile and dark previews retain compact charts and scoped present
   await expect(
     page.locator("[data-attendance-chart] svg.recharts-surface"),
   ).toHaveCount(7);
-  await page.screenshot({ animations: "disabled",
+  await page.screenshot({
+    animations: "disabled",
     path: `${directory}/dashboard-desktop.png`,
     fullPage: true,
   });
   await page.evaluate(() => document.documentElement.classList.add("dark"));
-  await page.screenshot({ animations: "disabled",
+  await page.screenshot({
+    animations: "disabled",
     path: `${directory}/dashboard-dark.png`,
     fullPage: true,
   });
   await page.evaluate(() => document.documentElement.classList.remove("dark"));
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.screenshot({ animations: "disabled",
+  await page.screenshot({
+    animations: "disabled",
     path: `${directory}/dashboard-mobile.png`,
     fullPage: true,
   });
@@ -363,12 +366,14 @@ test("desktop, mobile and dark previews retain compact charts and scoped present
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto(route);
     await expect(page.locator("#main-content h1")).toBeVisible();
-    await page.screenshot({ animations: "disabled",
+    await page.screenshot({
+      animations: "disabled",
       path: `${directory}/${name}-desktop.png`,
       fullPage: true,
     });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.screenshot({ animations: "disabled",
+    await page.screenshot({
+      animations: "disabled",
       path: `${directory}/${name}-mobile.png`,
       fullPage: true,
     });
@@ -378,7 +383,8 @@ test("desktop, mobile and dark previews retain compact charts and scoped present
       ),
     ).toBe(true);
     await page.evaluate(() => document.documentElement.classList.add("dark"));
-    await page.screenshot({ animations: "disabled",
+    await page.screenshot({
+      animations: "disabled",
       path: `${directory}/${name}-dark-mobile.png`,
       fullPage: true,
     });
@@ -395,7 +401,8 @@ test("desktop, mobile and dark previews retain compact charts and scoped present
           .getByRole("dialog")
           .getByText("Schedule & defaults", { exact: true }),
       ).toBeVisible();
-      await page.screenshot({ animations: "disabled",
+      await page.screenshot({
+        animations: "disabled",
         path: `${directory}/service-form-mobile.png`,
         fullPage: true,
       });
@@ -444,7 +451,7 @@ test("record filters and exports share branch, dates and secondary category", as
   ).toContainText("All branches");
 });
 
-test("service administration stays behind More options and confirms archive and restore", async ({
+test("service administration stays behind its management menu and confirms archive and restore", async ({
   page,
   context,
 }) => {
@@ -456,8 +463,8 @@ test("service administration stays behind More options and confirms archive and 
   await expect(
     page.getByRole("tab", { name: "Giving", exact: true }),
   ).toHaveCount(0);
-  await page.getByText("More options", { exact: true }).click();
-  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  await page.getByRole("button", { name: "Service management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Archive", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(
     dialog.getByRole("heading", {
@@ -468,7 +475,8 @@ test("service administration stays behind More options and confirms archive and 
   await dialog.getByRole("button", { name: "Archive", exact: true }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.getByText("Archived", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByRole("button", { name: "Service management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Restore", exact: true }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Restore", exact: true })
@@ -483,48 +491,125 @@ test("service administration stays behind More options and confirms archive and 
   expect(calls.some((url) => url.pathname.includes("/giving/"))).toBe(false);
 });
 
-for (const failedCheckIn of [false, true]) test(`visitor registration preserves its existing check-in outcome, failure=${failedCheckIn}`, async ({ page, context }) => {
-  await fixture(context);
-  const writes: {path: string; body: Record<string, unknown>}[] = [];
-  await context.route("**/api/backend/members?**", route => route.fulfill({json:{success:true,data:{data:[],meta:{page:1,totalPages:0,total:0}}}}));
-  await context.route("**/api/backend/visitors", async route => {
-    writes.push({path:"visitors",body:route.request().postDataJSON()});
-    await route.fulfill({json:{success:true,data:{id:"visitor-new",firstName:"Amina",lastName:"Okafor"}}});
+for (const failedCheckIn of [false, true])
+  test(`visitor registration preserves its existing check-in outcome, failure=${failedCheckIn}`, async ({
+    page,
+    context,
+  }) => {
+    await fixture(context);
+    const writes: { path: string; body: Record<string, unknown> }[] = [];
+    await context.route("**/api/backend/members?**", (route) =>
+      route.fulfill({
+        json: {
+          success: true,
+          data: { data: [], meta: { page: 1, totalPages: 0, total: 0 } },
+        },
+      }),
+    );
+    await context.route("**/api/backend/visitors", async (route) => {
+      writes.push({ path: "visitors", body: route.request().postDataJSON() });
+      await route.fulfill({
+        json: {
+          success: true,
+          data: { id: "visitor-new", firstName: "Amina", lastName: "Okafor" },
+        },
+      });
+    });
+    await context.route("**/api/backend/attendance", async (route) => {
+      writes.push({ path: "attendance", body: route.request().postDataJSON() });
+      await route.fulfill(
+        failedCheckIn
+          ? { status: 409, json: { message: "Already checked in" } }
+          : { json: { success: true, data: { id: "check-in-new" } } },
+      );
+    });
+    await page.goto("/attendance/check-in");
+    await page.getByRole("combobox").first().click();
+    await page.getByRole("option", { name: /Sunday Service/ }).click();
+    await page.getByRole("button", { name: "Visitor", exact: true }).click();
+    await page.getByLabel("First Name *", { exact: true }).fill("Amina");
+    await page.getByLabel("Last Name", { exact: true }).fill("Okafor");
+    await page
+      .getByRole("button", { name: "Register & Check In", exact: true })
+      .click();
+    await expect(
+      page.getByText(
+        failedCheckIn
+          ? "Visitor registered, but the check-in failed."
+          : "Amina Okafor checked in",
+        { exact: true },
+      ),
+    ).toBeVisible();
+    expect(writes).toEqual([
+      {
+        path: "visitors",
+        body: expect.objectContaining({
+          firstName: "Amina",
+          lastName: "Okafor",
+        }),
+      },
+      {
+        path: "attendance",
+        body: expect.objectContaining({
+          serviceId: "service-a",
+          visitorId: "visitor-new",
+          category: "unspecified",
+          source: "manual",
+        }),
+      },
+    ]);
+    await expect(page).toHaveURL(/\/visitors\/visitor-new$/);
   });
-  await context.route("**/api/backend/attendance", async route => {
-    writes.push({path:"attendance",body:route.request().postDataJSON()});
-    await route.fulfill(failedCheckIn ? {status:409,json:{message:"Already checked in"}} : {json:{success:true,data:{id:"check-in-new"}}});
-  });
-  await page.goto("/attendance/check-in");
-  await page.getByRole("combobox").first().click();
-  await page.getByRole("option",{name:/Sunday Service/}).click();
-  await page.getByRole("button",{name:"Visitor",exact:true}).click();
-  await page.getByLabel("First Name *",{exact:true}).fill("Amina");
-  await page.getByLabel("Last Name",{exact:true}).fill("Okafor");
-  await page.getByRole("button",{name:"Register & Check In",exact:true}).click();
-  await expect(page.getByText(failedCheckIn ? "Visitor registered, but the check-in failed." : "Amina Okafor checked in",{exact:true})).toBeVisible();
-  expect(writes).toEqual([
-    {path:"visitors",body:expect.objectContaining({firstName:"Amina",lastName:"Okafor"})},
-    {path:"attendance",body:expect.objectContaining({serviceId:"service-a",visitorId:"visitor-new",category:"unspecified",source:"manual"})},
-  ]);
-  await expect(page.getByLabel("First Name *",{exact:true})).toHaveValue("");
-});
 
-test("duplicate member check-ins remain skipped and selections clear after the response", async ({page,context}) => {
+test("duplicate member check-ins remain skipped and selections clear after the response", async ({
+  page,
+  context,
+}) => {
   await fixture(context);
-  await context.route("**/api/backend/members?**", route => route.fulfill({json:{success:true,data:{data:[{memberId:"member-a",firstName:"Grace",lastName:"Adeyemi",status:"active"}],meta:{page:1,totalPages:1,total:1}}}}));
-  const writes: Record<string,unknown>[] = [];
-  await context.route("**/api/backend/attendance/bulk", async route => {
+  await context.route("**/api/backend/members?**", (route) =>
+    route.fulfill({
+      json: {
+        success: true,
+        data: {
+          data: [
+            {
+              memberId: "member-a",
+              firstName: "Grace",
+              lastName: "Adeyemi",
+              status: "active",
+            },
+          ],
+          meta: { page: 1, totalPages: 1, total: 1 },
+        },
+      },
+    }),
+  );
+  const writes: Record<string, unknown>[] = [];
+  await context.route("**/api/backend/attendance/bulk", async (route) => {
     writes.push(route.request().postDataJSON());
-    await route.fulfill({json:{success:true,data:{recorded:0,skipped:1}}});
+    await route.fulfill({
+      json: { success: true, data: { recorded: 0, skipped: 1 } },
+    });
   });
   await page.goto("/attendance/check-in");
   await page.getByRole("combobox").first().click();
-  await page.getByRole("option",{name:/Sunday Service/}).click();
-  const roster = page.getByLabel("Attendance roster",{exact:true});
-  await roster.getByRole("checkbox",{name:"Select Grace Adeyemi",exact:true}).click();
-  await roster.getByRole("button",{name:"Mark attendance (1)",exact:true}).click();
-  await expect(page.getByText("1 already recorded and skipped.",{exact:true})).toBeVisible();
-  await expect(roster.getByText("0 selected",{exact:true})).toBeVisible();
-  expect(writes).toEqual([expect.objectContaining({serviceId:"service-a",category:"unspecified",records:[{memberId:"member-a"}]})]);
+  await page.getByRole("option", { name: /Sunday Service/ }).click();
+  const roster = page.getByLabel("Attendance roster", { exact: true });
+  await roster
+    .getByRole("checkbox", { name: "Select Grace Adeyemi", exact: true })
+    .click();
+  await roster
+    .getByRole("button", { name: "Mark attendance (1)", exact: true })
+    .click();
+  await expect(
+    page.getByText("1 already recorded and skipped.", { exact: true }),
+  ).toBeVisible();
+  await expect(roster.getByText("0 selected", { exact: true })).toBeVisible();
+  expect(writes).toEqual([
+    expect.objectContaining({
+      serviceId: "service-a",
+      category: "unspecified",
+      records: [{ memberId: "member-a" }],
+    }),
+  ]);
 });
