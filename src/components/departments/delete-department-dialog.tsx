@@ -17,6 +17,7 @@ import { useDeleteDepartment, type Department } from "@/hooks/use-admin";
 interface DeleteDepartmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   department: Department | null;
   onDeleted?: (departmentId: string) => void;
 }
@@ -24,6 +25,7 @@ interface DeleteDepartmentDialogProps {
 export function DeleteDepartmentDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   department,
   onDeleted,
 }: DeleteDepartmentDialogProps) {
@@ -47,7 +49,20 @@ export function DeleteDepartmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                const target = returnFocusRef.current;
+                if (target?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => target.focus());
+                }
+              }
+            : undefined
+        }
+        className="sm:max-w-[420px]"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50">
@@ -57,8 +72,11 @@ export function DeleteDepartmentDialog({
           </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete{" "}
-            <span className="font-medium text-foreground">{department?.name}</span>? Members
-            assigned to it are not removed — only the department record itself is deleted.
+            <span className="font-medium text-foreground">
+              {department?.name}
+            </span>
+            ? Members assigned to it are not removed — only the department
+            record itself is deleted.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -75,7 +93,8 @@ export function DeleteDepartmentDialog({
             variant="destructive"
             onClick={handleConfirm}
             disabled={deleteMutation.isPending}
-           loading={deleteMutation.isPending}>
+            loading={deleteMutation.isPending}
+          >
             {deleteMutation.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>

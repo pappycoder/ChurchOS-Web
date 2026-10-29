@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GeneralSettingsTab } from "@/components/settings/general-settings-tab";

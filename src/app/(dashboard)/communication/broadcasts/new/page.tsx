@@ -9,7 +9,7 @@ import { ArrowLeft, Loader2, Megaphone } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -38,14 +38,21 @@ import {
   type MemberStatus,
 } from "@/hooks/use-broadcasts";
 import { useTemplatesList } from "@/hooks/use-templates";
-import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+import {
+  BranchAssignmentField,
+  useBranchAssignment,
+} from "@/components/shared/branch-assignment";
 import { usePermissions } from "@/hooks/use-permissions";
 
 const broadcastSchema = z.object({
   name: z.string().min(1, "Broadcast name is required"),
-  channel: z.enum(BROADCAST_CHANNELS as [BroadcastChannel, ...BroadcastChannel[]], {
-    error: (issue) => issue.input === undefined ? "Channel is required" : undefined,
-  }),
+  channel: z.enum(
+    BROADCAST_CHANNELS as [BroadcastChannel, ...BroadcastChannel[]],
+    {
+      error: (issue) =>
+        issue.input === undefined ? "Channel is required" : undefined,
+    },
+  ),
   templateId: z.string().min(1, "Select a template"),
   memberStatus: z.string().optional(),
   branchId: z.string().optional(),
@@ -64,11 +71,20 @@ export default function NewBroadcastPage() {
 
   const [channel, setChannel] = React.useState<BroadcastChannel>("email");
   const branchAssignment = useBranchAssignment();
-  const templatesQuery = useTemplatesList({ status: "published", limit: 100, branchId: branchAssignment.value || undefined });
+  const templatesQuery = useTemplatesList({
+    status: "published",
+    limit: 100,
+    branchId: branchAssignment.value || undefined,
+  });
 
   const templates = React.useMemo(
-    () => (templatesQuery.data?.data ?? []).filter((t) => t.channel === channel && (!t.branchId || t.branchId === branchAssignment.value)),
-    [templatesQuery.data, channel, branchAssignment.value]
+    () =>
+      (templatesQuery.data?.data ?? []).filter(
+        (t) =>
+          t.channel === channel &&
+          (!t.branchId || t.branchId === branchAssignment.value),
+      ),
+    [templatesQuery.data, channel, branchAssignment.value],
   );
 
   const form = useForm<BroadcastFormValues>({
@@ -113,7 +129,8 @@ export default function NewBroadcastPage() {
     if (!branchPayload) return;
     const audienceFilter: Record<string, string> = {};
     if (values.memberStatus) audienceFilter.status = values.memberStatus;
-    if (branchPayload.branchId) audienceFilter.branchId = branchPayload.branchId;
+    if (branchPayload.branchId)
+      audienceFilter.branchId = branchPayload.branchId;
     if (values.gender) audienceFilter.gender = values.gender;
 
     const scheduledAt = values.scheduledAt
@@ -137,7 +154,9 @@ export default function NewBroadcastPage() {
         scheduledAt,
       });
       toast.success(
-        scheduledAt ? "Broadcast scheduled successfully" : "Broadcast sent successfully"
+        scheduledAt
+          ? "Broadcast scheduled successfully"
+          : "Broadcast sent successfully",
       );
       router.push("/communication/broadcasts");
     } catch (err) {
@@ -159,7 +178,12 @@ export default function NewBroadcastPage() {
           { label: "New Broadcast" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.back(); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.back();
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
@@ -180,7 +204,10 @@ export default function NewBroadcastPage() {
                   <FormItem>
                     <FormLabel>Broadcast Name *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Sunday Service Reminder" {...field} />
+                      <Input
+                        placeholder="e.g. Sunday Service Reminder"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription>
                       A label you use to identify this broadcast.
@@ -209,7 +236,9 @@ export default function NewBroadcastPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {BROADCAST_CHANNELS.filter(ch => profile?.planFeatures?.includes(ch)).map((ch) => (
+                        {BROADCAST_CHANNELS.filter((ch) =>
+                          profile?.planFeatures?.includes(ch),
+                        ).map((ch) => (
                           <SelectItem key={ch} value={ch}>
                             {BROADCAST_CHANNEL_LABELS[ch]}
                           </SelectItem>
@@ -226,7 +255,10 @@ export default function NewBroadcastPage() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Template *</FormLabel>
-                    <Select value={field.value || undefined} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || undefined}
+                      onValueChange={field.onChange}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue
@@ -247,7 +279,8 @@ export default function NewBroadcastPage() {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Only published templates for the selected channel are available.
+                      Only published templates for the selected channel are
+                      available.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -291,7 +324,10 @@ export default function NewBroadcastPage() {
                     </FormItem>
                   )}
                 />
-                <BranchAssignmentField assignment={branchAssignment} disabled={pending} />
+                <BranchAssignmentField
+                  assignment={branchAssignment}
+                  disabled={pending}
+                />
                 <FormField
                   control={form.control}
                   name="gender"
@@ -318,8 +354,8 @@ export default function NewBroadcastPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Leave all filters empty to reach every member with a valid contact for
-                this channel.
+                Leave all filters empty to reach every member with a valid
+                contact for this channel.
               </p>
             </CardContent>
           </Card>
@@ -348,12 +384,43 @@ export default function NewBroadcastPage() {
             </CardContent>
           </Card>
 
-          <Card><CardHeader><CardTitle>Review before sending</CardTitle></CardHeader><CardContent className="space-y-2 text-sm"><p><strong>Channel:</strong> {channel}</p><p><strong>Audience:</strong> {form.watch("memberStatus") || "All member statuses"}; {form.watch("gender") || "all genders"}; {branchAssignment.value ? "selected branch" : "your permitted branch scope"}.</p><p><strong>Timing:</strong> {form.watch("scheduledAt") ? `Scheduled for ${form.watch("scheduledAt")} (local time)` : "Send immediately after confirmation"}.</p><p>Check the selected template and audience above. Delivery uses the saved provider settings.</p></CardContent></Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Review before sending</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <p>
+                <strong>Channel:</strong> {channel}
+              </p>
+              <p>
+                <strong>Audience:</strong>{" "}
+                {form.watch("memberStatus") || "All member statuses"};{" "}
+                {form.watch("gender") || "all genders"};{" "}
+                {branchAssignment.value
+                  ? "selected branch"
+                  : "your permitted branch scope"}
+                .
+              </p>
+              <p>
+                <strong>Timing:</strong>{" "}
+                {form.watch("scheduledAt")
+                  ? `Scheduled for ${form.watch("scheduledAt")} (local time)`
+                  : "Send immediately after confirmation"}
+                .
+              </p>
+              <p>
+                Check the selected template and audience above. Delivery uses
+                the saved provider settings.
+              </p>
+            </CardContent>
+          </Card>
           <div className="flex justify-end gap-3">
             <Button
               type="button"
               variant="outline"
-              onClick={() => { if (confirmDiscardChanges()) router.back(); }}
+              onClick={() => {
+                if (confirmDiscardChanges()) router.back();
+              }}
               disabled={pending}
             >
               Cancel
@@ -361,7 +428,9 @@ export default function NewBroadcastPage() {
             <Button type="submit" disabled={pending}>
               {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               <Megaphone className="mr-2 h-4 w-4" />
-              {form.watch("scheduledAt") ? "Schedule Broadcast" : "Send Broadcast"}
+              {form.watch("scheduledAt")
+                ? "Schedule Broadcast"
+                : "Send Broadcast"}
             </Button>
           </div>
         </form>

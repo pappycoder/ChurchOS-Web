@@ -1,5 +1,5 @@
 "use client";
-import { RecordActions } from "@/components/shared/record-actions";
+import { WorkspaceManagementMenu } from "@/components/workspace/workspace-management-menu";
 import { ErrorState } from "@/components/shared/error-state";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
@@ -41,7 +41,10 @@ import {
   type Branch,
 } from "@/hooks/use-branches";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchiveConfirmDialog, type ArchiveDialogKind } from "@/components/shared/archive-confirm-dialog";
+import {
+  ArchiveConfirmDialog,
+  type ArchiveDialogKind,
+} from "@/components/shared/archive-confirm-dialog";
 import { BranchFormDialog } from "@/components/branches/branch-form-dialog";
 import { DeleteBranchDialog } from "@/components/branches/delete-branch-dialog";
 
@@ -72,6 +75,7 @@ export default function BranchDetailPage({
 }: {
   params: Promise<{ branchId: string }>;
 }) {
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { branchId } = React.use(params);
   const router = useRouter();
   const { can } = usePermissions();
@@ -84,7 +88,8 @@ export default function BranchDetailPage({
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [archiveAction, setArchiveAction] = React.useState<ArchiveDialogKind | null>(null);
+  const [archiveAction, setArchiveAction] =
+    React.useState<ArchiveDialogKind | null>(null);
   const [savedBranch, setSavedBranch] = React.useState<Branch | null>(null);
 
   const display = savedBranch ?? branch ?? null;
@@ -105,8 +110,16 @@ export default function BranchDetailPage({
         </Breadcrumb>
         <div className="flex flex-col items-center justify-center py-20 gap-4">
           <AlertTriangle className="h-12 w-12 text-destructive" />
-          <ErrorState title="Unable to load branch" description="The record may be unavailable, or access may have changed. Retry before assuming it has been deleted." />
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/branches"); }}>
+          <ErrorState
+            title="Unable to load branch"
+            description="The record may be unavailable, or access may have changed. Retry before assuming it has been deleted."
+          />
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/admin/branches");
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Branches
           </Button>
@@ -118,7 +131,14 @@ export default function BranchDetailPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => { if (confirmDiscardChanges()) router.push("/admin/branches"); }} aria-label="Back to branches">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => {
+            if (confirmDiscardChanges()) router.push("/admin/branches");
+          }}
+          aria-label="Back to branches"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <Breadcrumb>
@@ -128,7 +148,9 @@ export default function BranchDetailPage({
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="/admin/settings">Church Settings</BreadcrumbLink>
+              <BreadcrumbLink href="/admin/settings">
+                Church Settings
+              </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
@@ -137,7 +159,11 @@ export default function BranchDetailPage({
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage>
-                {isLoading ? <LoadingIndicator label="Loading branch" size="sm" /> : display?.name}
+                {isLoading ? (
+                  <LoadingIndicator label="Loading branch" size="sm" />
+                ) : (
+                  display?.name
+                )}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -155,7 +181,11 @@ export default function BranchDetailPage({
             <div className="flex items-center gap-4">
               <Avatar className="h-16 w-16 rounded-xl border">
                 {display?.photoUrl && (
-                  <AvatarImage src={display.photoUrl} alt={display.name} className="rounded-xl object-cover" />
+                  <AvatarImage
+                    src={display.photoUrl}
+                    alt={display.name}
+                    className="rounded-xl object-cover"
+                  />
                 )}
                 <AvatarFallback className="rounded-xl bg-primary/10 text-primary font-medium">
                   <Building2 className="h-7 w-7" />
@@ -163,7 +193,7 @@ export default function BranchDetailPage({
               </Avatar>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-semibold">{display?.name}</h1>
+                  <h1 className="text-xl font-semibold">{display?.name}</h1>
                   {display?.isHeadquarters && (
                     <Badge variant="secondary">Headquarters</Badge>
                   )}
@@ -181,7 +211,10 @@ export default function BranchDetailPage({
               </div>
             </div>
             {(canUpdateBranches || canDeleteBranches) && display && (
-              <RecordActions>
+              <WorkspaceManagementMenu
+                label="Branch management"
+                triggerRef={managementRef}
+              >
                 {display.archivedAt ? (
                   <>
                     {canUpdateBranches && (
@@ -208,21 +241,25 @@ export default function BranchDetailPage({
                   <>
                     {(canUpdateBranches || canDeleteBranches) && (
                       <>
-                        {canDeleteBranches && (<Button
-                          variant="outline"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => setDeleteOpen(true)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>)}
-                        {canUpdateBranches && (<Button
-                          variant="outline"
-                          onClick={() => setArchiveAction("archive")}
-                        >
-                          <Archive className="h-4 w-4 mr-2" />
-                          Archive
-                        </Button>)}
+                        {canDeleteBranches && (
+                          <Button
+                            variant="outline"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => setDeleteOpen(true)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        )}
+                        {canUpdateBranches && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setArchiveAction("archive")}
+                          >
+                            <Archive className="h-4 w-4 mr-2" />
+                            Archive
+                          </Button>
+                        )}
                       </>
                     )}
                     {canUpdateBranches && (
@@ -233,22 +270,48 @@ export default function BranchDetailPage({
                     )}
                   </>
                 )}
-              </RecordActions>
+              </WorkspaceManagementMenu>
             )}
           </div>
 
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-lg border bg-card p-6">
-              <h3 className="text-sm font-semibold mb-2">Contact Information</h3>
-              <DataRow icon={<Phone className="h-4 w-4" />} label="Phone" value={display?.phone} />
-              <DataRow icon={<Mail className="h-4 w-4" />} label="Email" value={display?.email} />
+              <h3 className="text-sm font-semibold mb-2">
+                Contact Information
+              </h3>
+              <DataRow
+                icon={<Phone className="h-4 w-4" />}
+                label="Phone"
+                value={display?.phone}
+              />
+              <DataRow
+                icon={<Mail className="h-4 w-4" />}
+                label="Email"
+                value={display?.email}
+              />
             </div>
             <div className="rounded-lg border bg-card p-6">
               <h3 className="text-sm font-semibold mb-2">Location</h3>
-              <DataRow icon={<MapPin className="h-4 w-4" />} label="Address" value={display?.address} />
-              <DataRow icon={<MapPin className="h-4 w-4" />} label="City" value={display?.city} />
-              <DataRow icon={<MapPin className="h-4 w-4" />} label="State" value={display?.state} />
-              <DataRow icon={<MapPin className="h-4 w-4" />} label="Country" value={display?.country} />
+              <DataRow
+                icon={<MapPin className="h-4 w-4" />}
+                label="Address"
+                value={display?.address}
+              />
+              <DataRow
+                icon={<MapPin className="h-4 w-4" />}
+                label="City"
+                value={display?.city}
+              />
+              <DataRow
+                icon={<MapPin className="h-4 w-4" />}
+                label="State"
+                value={display?.state}
+              />
+              <DataRow
+                icon={<MapPin className="h-4 w-4" />}
+                label="Country"
+                value={display?.country}
+              />
             </div>
           </div>
 
@@ -266,12 +329,26 @@ export default function BranchDetailPage({
               <DataRow
                 icon={<CalendarDays className="h-4 w-4" />}
                 label="Created"
-                value={display ? format(new Date(display.createdAt), "MMM d, yyyy 'at' h:mm a") : undefined}
+                value={
+                  display
+                    ? format(
+                        new Date(display.createdAt),
+                        "MMM d, yyyy 'at' h:mm a",
+                      )
+                    : undefined
+                }
               />
               <DataRow
                 icon={<CalendarDays className="h-4 w-4" />}
                 label="Last Updated"
-                value={display ? format(new Date(display.updatedAt), "MMM d, yyyy 'at' h:mm a") : undefined}
+                value={
+                  display
+                    ? format(
+                        new Date(display.updatedAt),
+                        "MMM d, yyyy 'at' h:mm a",
+                      )
+                    : undefined
+                }
               />
             </div>
           </div>
@@ -280,6 +357,7 @@ export default function BranchDetailPage({
 
       {display && (
         <BranchFormDialog
+          returnFocusRef={managementRef}
           open={editOpen}
           onOpenChange={(open) => {
             setEditOpen(open);
@@ -292,6 +370,7 @@ export default function BranchDetailPage({
 
       {display && (
         <DeleteBranchDialog
+          returnFocusRef={managementRef}
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
           branches={[display]}
@@ -300,6 +379,7 @@ export default function BranchDetailPage({
       )}
 
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveAction}
         onOpenChange={(open) => !open && setArchiveAction(null)}
         kind={archiveAction ?? "archive"}
@@ -314,7 +394,9 @@ export default function BranchDetailPage({
               : purgeMutation
         }
         onConfirmed={
-          archiveAction === "purge" ? () => router.push("/admin/branches") : undefined
+          archiveAction === "purge"
+            ? () => router.push("/admin/branches")
+            : undefined
         }
       />
     </div>

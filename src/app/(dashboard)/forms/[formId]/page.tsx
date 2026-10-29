@@ -17,7 +17,7 @@ import {
   ClipboardList,
   Globe2,
   LockKeyhole,
-  MoreHorizontal,
+  MoreVertical,
   ArrowLeft,
   CheckCircle2,
   Copy,
@@ -55,7 +55,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import {
   ArchiveConfirmDialog,
@@ -99,15 +99,17 @@ export default function FormDetailPage() {
 
   const { data: form, isLoading, error } = useForm(formId);
   const [regenerateOpen, setRegenerateOpen] = React.useState(false);
-  const [statusFilter, setStatusFilter] = React.useState<SubmissionStatus | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = React.useState<
+    SubmissionStatus | undefined
+  >(undefined);
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
-  const [selectedSubmission, setSelectedSubmission] = React.useState<FormSubmission | undefined>(
-    undefined,
-  );
-  const [reviewSubmission, setReviewSubmission] = React.useState<FormSubmission | undefined>(
-    undefined,
-  );
+  const [selectedSubmission, setSelectedSubmission] = React.useState<
+    FormSubmission | undefined
+  >(undefined);
+  const [reviewSubmission, setReviewSubmission] = React.useState<
+    FormSubmission | undefined
+  >(undefined);
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
     form: Form;
@@ -122,11 +124,15 @@ export default function FormDetailPage() {
     [page, perPage, statusFilter],
   );
 
-  const { data: submissionsData, isLoading: submissionsLoading, error: submissionsError } = useFormSubmissions(
-    formId,
-    queryParams,
+  const {
+    data: submissionsData,
+    isLoading: submissionsLoading,
+    error: submissionsError,
+  } = useFormSubmissions(formId, queryParams);
+  const submissions = React.useMemo(
+    () => submissionsData?.data ?? [],
+    [submissionsData],
   );
-  const submissions = React.useMemo(() => submissionsData?.data ?? [], [submissionsData]);
   const submissionsMeta = submissionsData?.meta;
 
   const archiveMutation = useArchiveForm();
@@ -211,7 +217,12 @@ export default function FormDetailPage() {
               { label: "Form" },
             ]}
             action={
-              <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (confirmDiscardChanges()) router.push("/forms");
+                }}
+              >
                 <ArrowLeft className="mr-1 h-4 w-4" />
                 Back
               </Button>
@@ -220,7 +231,12 @@ export default function FormDetailPage() {
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <AlertTriangle className="h-10 w-10 text-destructive" />
             <ErrorState title="Unable to load this form" />
-            <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push("/forms");
+              }}
+            >
               Back to Forms
             </Button>
           </div>
@@ -250,18 +266,32 @@ export default function FormDetailPage() {
 
   const headerAction = (
     <div className="flex flex-wrap items-center gap-2">
-      <Button variant="ghost" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+      <Button
+        variant="ghost"
+        onClick={() => {
+          if (confirmDiscardChanges()) router.push("/forms");
+        }}
+      >
         <ArrowLeft className="size-4" />
         All forms
       </Button>
       {!form.archivedAt && canRead && form.status === "published" && (
-        <Button onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${form.id}/fill`); }}>
+        <Button
+          onClick={() => {
+            if (confirmDiscardChanges()) router.push(`/forms/${form.id}/fill`);
+          }}
+        >
           <PlayCircle className="size-4" />
           Open form
         </Button>
       )}
       {!form.archivedAt && canUpdate && (
-        <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${form.id}/edit`); }}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (confirmDiscardChanges()) router.push(`/forms/${form.id}/edit`);
+          }}
+        >
           <Pencil className="size-4" />
           Edit form
         </Button>
@@ -270,7 +300,7 @@ export default function FormDetailPage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" aria-label="More form actions">
-              <MoreHorizontal className="size-4" />
+              <MoreVertical className="size-4" />
               More
             </Button>
           </DropdownMenuTrigger>
@@ -304,7 +334,11 @@ export default function FormDetailPage() {
                 {canUpdate && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={() => setArchiveTarget({ kind: "archive", form })}>
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        setArchiveTarget({ kind: "archive", form })
+                      }
+                    >
                       <ShieldX className="size-4" />
                       Archive form
                     </DropdownMenuItem>
@@ -313,7 +347,9 @@ export default function FormDetailPage() {
               </>
             )}
             {form.archivedAt && canUpdate && (
-              <DropdownMenuItem onSelect={() => setArchiveTarget({ kind: "restore", form })}>
+              <DropdownMenuItem
+                onSelect={() => setArchiveTarget({ kind: "restore", form })}
+              >
                 Restore form
               </DropdownMenuItem>
             )}
@@ -346,19 +382,23 @@ export default function FormDetailPage() {
       <section className="mb-6 overflow-hidden rounded-2xl border bg-card">
         <div className="border-b bg-accent/40 p-5 sm:p-7">
           <div className="mb-3 flex flex-wrap items-center gap-2">
-          <BranchDetail record={form} />
+            <BranchDetail record={form} />
             <Badge variant="outline" className={FORM_STATUS_TEXT[form.status]}>
               {FORM_STATUS_LABELS[form.status]}
             </Badge>
             {form.archivedAt && <Badge variant="destructive">Archived</Badge>}
-            {form.isTemplate && <Badge variant="secondary">Reusable template</Badge>}
+            {form.isTemplate && (
+              <Badge variant="secondary">Reusable template</Badge>
+            )}
             <span className="flex items-center gap-1 text-xs text-muted-foreground">
               {form.isPublic ? (
                 <Globe2 className="size-3.5" />
               ) : (
                 <LockKeyhole className="size-3.5" />
               )}
-              {form.isPublic ? "Public submissions enabled" : "Workspace access only"}
+              {form.isPublic
+                ? "Public submissions enabled"
+                : "Workspace access only"}
             </span>
           </div>
           <p className="max-w-3xl whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
@@ -368,7 +408,11 @@ export default function FormDetailPage() {
         </div>
         <div className="grid grid-cols-2 divide-x divide-y sm:grid-cols-4 sm:divide-y-0">
           {[
-            ["Responses received", form.submissionCount.toLocaleString(), "For this form"],
+            [
+              "Responses received",
+              form.submissionCount.toLocaleString(),
+              "For this form",
+            ],
             [
               "Questions",
               form.fields.length.toString(),
@@ -376,7 +420,9 @@ export default function FormDetailPage() {
             ],
             [
               "Response capacity",
-              form.submissionLimit > 0 ? form.submissionLimit.toLocaleString() : "Unlimited",
+              form.submissionLimit > 0
+                ? form.submissionLimit.toLocaleString()
+                : "Unlimited",
               form.submissionLimit > 0
                 ? `${Math.max(0, form.submissionLimit - form.submissionCount)} spaces remaining`
                 : "No response cap",
@@ -388,199 +434,252 @@ export default function FormDetailPage() {
             ],
           ].map(([label, value, hint]) => (
             <div key={label} className="p-4 sm:p-5">
-              <p className="text-xs font-medium text-muted-foreground">{label}</p>
-              <p className="mt-2 text-xl font-semibold tracking-tight">{value}</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                {label}
+              </p>
+              <p className="mt-2 text-xl font-semibold tracking-tight">
+                {value}
+              </p>
               <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <UrlTabs defaultValue={canReadSubmissions ? "responses" : "details"} values={["details", ...(canReadSubmissions ? ["responses"] : [])]}>
-      <TabsList aria-label="Form workspace">{canReadSubmissions && <TabsTrigger value="responses">Responses</TabsTrigger>}<TabsTrigger value="details">Questions & access</TabsTrigger></TabsList>
-<TabsContent value="responses" forceMount className="space-y-4 data-[state=inactive]:hidden">
-      {canReadSubmissions && (
-        <TableCard
-          title="Submissions"
-          description={`${submissionsMeta?.total ?? 0} total`}
-          itemName="submissions"
-          page={page}
-          perPage={perPage}
-          total={submissionsMeta?.total ?? 0}
-          onPageChange={setPage}
-          onPerPageChange={(p) => {
-            setPerPage(p);
-            setPage(1);
-          }}
-          toolbar={
-            <Select
-              value={statusFilter ?? "all"}
-              onValueChange={(v) => {
-                setStatusFilter(v === "all" ? undefined : (v as SubmissionStatus));
+      <UrlTabs
+        defaultValue={canReadSubmissions ? "responses" : "details"}
+        values={["details", ...(canReadSubmissions ? ["responses"] : [])]}
+      >
+        <TabsList aria-label="Form workspace">
+          {canReadSubmissions && (
+            <TabsTrigger value="responses">Responses</TabsTrigger>
+          )}
+          <TabsTrigger value="details">Questions & access</TabsTrigger>
+        </TabsList>
+        <TabsContent
+          value="responses"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
+        >
+          {canReadSubmissions && (
+            <TableCard
+              title="Submissions"
+              description={`${submissionsMeta?.total ?? 0} total`}
+              itemName="submissions"
+              page={page}
+              perPage={perPage}
+              total={submissionsMeta?.total ?? 0}
+              onPageChange={setPage}
+              onPerPageChange={(p) => {
+                setPerPage(p);
                 setPage(1);
               }}
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          }
-        >
-          {submissionsError ? <ErrorState title="Unable to load submissions" /> : submissionsLoading ? (
-            <div className="px-4 py-4">
-              <Skeleton className="h-24 w-full" />
-            </div>
-          ) : submissions.length === 0 ? (
-            <div className="px-4 py-12">
-              <EmptyState
-                icon={<CheckCircle2 className="h-8 w-8" />}
-                title="No submissions yet"
-                description={
-                  form.isPublic && form.status === "published"
-                    ? "Share the link to start collecting responses."
-                    : "Submit the form to collect your first response."
-                }
-              />
-            </div>
-          ) : (
-            <SubmissionsTable
-            key={form.id}
-              form={form}
-              submissions={submissions}
-              canReview={canReview}
-              busy={statusMutation.isPending}
-              onOpen={setSelectedSubmission}
-              onReject={setReviewSubmission}
-              onApprove={(submission) =>
-                statusMutation.mutate(
-                  { submissionId: submission.id, input: { status: "approved" } },
-                  {
-                    onSuccess: () => toast.success("Submission approved"),
-                    onError: (err) =>
-                      toast.error(getToastErrorMessage(err, "Failed to approve submission")),
-                  },
-                )
-              }
-            />
-          )}
-        </TableCard>
-      )}
-
-
-</TabsContent><TabsContent value="details" forceMount className="space-y-4 data-[state=inactive]:hidden">
-      <div className="mb-6 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <section
-          className="min-w-0 rounded-2xl border bg-card p-5 sm:p-6"
-          aria-labelledby="form-questions-title"
-        >
-          <h2 id="form-questions-title" className="flex items-center gap-2 text-base font-semibold">
-            <ClipboardList className="size-4 text-primary" />
-            Questions in this form
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            The information respondents are asked to provide.
-          </p>
-          <ol className="mt-4 divide-y">
-            {form.fields.map((field, index) => (
-              <li key={field.key} className="flex min-w-0 items-start gap-3 py-3">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground">
-                  {index + 1}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="break-words text-sm font-medium">
-                    {field.label}
-                    <span className="ml-2 text-xs font-normal text-muted-foreground">
-                      {field.required ? "Required" : "Optional"}
-                    </span>
-                  </p>
-                  <p className="mt-1 break-words text-xs text-muted-foreground">
-                    {FIELD_TYPE_LABELS[field.type]}
-                    {field.options?.length ? ` · ${field.options.join(" / ")}` : ""}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          {!form.fields.length && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              No questions have been added to this form.
-            </p>
-          )}
-        </section>
-        <section
-          className="min-w-0 rounded-2xl border bg-card p-5 sm:p-6"
-          aria-labelledby="form-access-title"
-        >
-          <h2 id="form-access-title" className="text-base font-semibold">
-            Access & collection
-          </h2>
-          <dl className="mt-3 divide-y">
-            <DataRow
-              label="Accepting replies"
-              value={
-                form.archivedAt
-                  ? "Archived"
-                  : form.status === "published" &&
-                      (form.submissionLimit === 0 || form.submissionCount < form.submissionLimit)
-                    ? "Open"
-                    : "Not accepting responses"
-              }
-            />
-            <DataRow
-              label="Audience"
-              value={form.isPublic ? "Anyone with the public link" : "Signed-in workspace users"}
-            />
-            <DataRow
-              label="Unique answer"
-              value={
-                form.fields.find((field) => field.key === form.uniqueField)?.label ||
-                "No unique answer required"
-              }
-            />
-          </dl>
-          {form.isPublic && form.publicToken && canUpdate ? (
-            <div className="mt-5 rounded-xl border bg-muted/30 p-4">
-              <p className="flex items-center gap-2 text-sm font-medium">
-                <Link2 className="size-4" />
-                Public form link
-              </p>
-              <p className="mt-2 break-all text-xs text-muted-foreground">{createShareUrl()}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button variant="outline" size="sm" onClick={handleShare}>
-                  <Copy className="size-3.5" />
-                  Copy link
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={regenerateMutation.isPending}
-                  onClick={() => setRegenerateOpen(true)}
+              toolbar={
+                <Select
+                  value={statusFilter ?? "all"}
+                  onValueChange={(v) => {
+                    setStatusFilter(
+                      v === "all" ? undefined : (v as SubmissionStatus),
+                    );
+                    setPage(1);
+                  }}
                 >
-                  <RefreshCw className="size-3.5" />
-                  Regenerate
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              {form.isPublic
-                ? "Form managers control the public share link."
-                : "A public link is not available for this form."}
-            </p>
+                  <SelectTrigger className="w-full sm:w-[150px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              }
+            >
+              {submissionsError ? (
+                <ErrorState title="Unable to load submissions" />
+              ) : submissionsLoading ? (
+                <div className="px-4 py-4">
+                  <Skeleton className="h-24 w-full" />
+                </div>
+              ) : submissions.length === 0 ? (
+                <div className="px-4 py-12">
+                  <EmptyState
+                    icon={<CheckCircle2 className="h-8 w-8" />}
+                    title="No submissions yet"
+                    description={
+                      form.isPublic && form.status === "published"
+                        ? "Share the link to start collecting responses."
+                        : "Submit the form to collect your first response."
+                    }
+                  />
+                </div>
+              ) : (
+                <SubmissionsTable
+                  key={form.id}
+                  form={form}
+                  submissions={submissions}
+                  canReview={canReview}
+                  busy={statusMutation.isPending}
+                  onOpen={setSelectedSubmission}
+                  onReject={setReviewSubmission}
+                  onApprove={(submission) =>
+                    statusMutation.mutate(
+                      {
+                        submissionId: submission.id,
+                        input: { status: "approved" },
+                      },
+                      {
+                        onSuccess: () => toast.success("Submission approved"),
+                        onError: (err) =>
+                          toast.error(
+                            getToastErrorMessage(
+                              err,
+                              "Failed to approve submission",
+                            ),
+                          ),
+                      },
+                    )
+                  }
+                />
+              )}
+            </TableCard>
           )}
-        </section>
-      </div>
-
-
-</TabsContent>
-</UrlTabs>
-      <ConfirmDeleteDialog open={regenerateOpen} onOpenChange={setRegenerateOpen} title="Replace the public share link?" description={`The existing link for "${form.title}" will stop accepting responses. Share the new link with anyone who still needs to respond. Existing submissions are kept.`} confirmLabel="Regenerate link" pendingLabel="Regenerating..." pending={regenerateMutation.isPending} onConfirm={() => void handleRegenerate()} />
+        </TabsContent>
+        <TabsContent
+          value="details"
+          forceMount
+          className="space-y-4 data-[state=inactive]:hidden"
+        >
+          <div className="mb-6 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+            <section
+              className="min-w-0 rounded-2xl border bg-card p-5 sm:p-6"
+              aria-labelledby="form-questions-title"
+            >
+              <h2
+                id="form-questions-title"
+                className="flex items-center gap-2 text-base font-semibold"
+              >
+                <ClipboardList className="size-4 text-primary" />
+                Questions in this form
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                The information respondents are asked to provide.
+              </p>
+              <ol className="mt-4 divide-y">
+                {form.fields.map((field, index) => (
+                  <li
+                    key={field.key}
+                    className="flex min-w-0 items-start gap-3 py-3"
+                  >
+                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-muted text-xs font-medium text-muted-foreground">
+                      {index + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-sm font-medium">
+                        {field.label}
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          {field.required ? "Required" : "Optional"}
+                        </span>
+                      </p>
+                      <p className="mt-1 break-words text-xs text-muted-foreground">
+                        {FIELD_TYPE_LABELS[field.type]}
+                        {field.options?.length
+                          ? ` · ${field.options.join(" / ")}`
+                          : ""}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              {!form.fields.length && (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  No questions have been added to this form.
+                </p>
+              )}
+            </section>
+            <section
+              className="min-w-0 rounded-2xl border bg-card p-5 sm:p-6"
+              aria-labelledby="form-access-title"
+            >
+              <h2 id="form-access-title" className="text-base font-semibold">
+                Access & collection
+              </h2>
+              <dl className="mt-3 divide-y">
+                <DataRow
+                  label="Accepting replies"
+                  value={
+                    form.archivedAt
+                      ? "Archived"
+                      : form.status === "published" &&
+                          (form.submissionLimit === 0 ||
+                            form.submissionCount < form.submissionLimit)
+                        ? "Open"
+                        : "Not accepting responses"
+                  }
+                />
+                <DataRow
+                  label="Audience"
+                  value={
+                    form.isPublic
+                      ? "Anyone with the public link"
+                      : "Signed-in workspace users"
+                  }
+                />
+                <DataRow
+                  label="Unique answer"
+                  value={
+                    form.fields.find((field) => field.key === form.uniqueField)
+                      ?.label || "No unique answer required"
+                  }
+                />
+              </dl>
+              {form.isPublic && form.publicToken && canUpdate ? (
+                <div className="mt-5 rounded-xl border bg-muted/30 p-4">
+                  <p className="flex items-center gap-2 text-sm font-medium">
+                    <Link2 className="size-4" />
+                    Public form link
+                  </p>
+                  <p className="mt-2 break-all text-xs text-muted-foreground">
+                    {createShareUrl()}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={handleShare}>
+                      <Copy className="size-3.5" />
+                      Copy link
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={regenerateMutation.isPending}
+                      onClick={() => setRegenerateOpen(true)}
+                    >
+                      <RefreshCw className="size-3.5" />
+                      Regenerate
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+                  {form.isPublic
+                    ? "Form managers control the public share link."
+                    : "A public link is not available for this form."}
+                </p>
+              )}
+            </section>
+          </div>
+        </TabsContent>
+      </UrlTabs>
+      <ConfirmDeleteDialog
+        open={regenerateOpen}
+        onOpenChange={setRegenerateOpen}
+        title="Replace the public share link?"
+        description={`The existing link for "${form.title}" will stop accepting responses. Share the new link with anyone who still needs to respond. Existing submissions are kept.`}
+        confirmLabel="Regenerate link"
+        pendingLabel="Regenerating..."
+        pending={regenerateMutation.isPending}
+        onConfirm={() => void handleRegenerate()}
+      />
       <SubmissionDetailDialog
         form={form}
         submission={selectedSubmission}

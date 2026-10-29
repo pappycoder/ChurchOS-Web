@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceFormSection } from "@/components/workspace/workspace-presentation";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -54,9 +55,21 @@ const CONFIDENTIALITY_OPTIONS: Array<{
   label: string;
   description: string;
 }> = [
-  { value: "standard", label: "Standard", description: "Visible to any staff member" },
-  { value: "confidential", label: "Confidential", description: "Only pastors and leaders" },
-  { value: "restricted", label: "Restricted", description: "Very few staff members" },
+  {
+    value: "standard",
+    label: "Standard",
+    description: "Visible to any staff member",
+  },
+  {
+    value: "confidential",
+    label: "Confidential",
+    description: "Only pastors and leaders",
+  },
+  {
+    value: "restricted",
+    label: "Restricted",
+    description: "Very few staff members",
+  },
 ];
 
 interface NoteFormDialogProps {
@@ -107,7 +120,11 @@ export function NoteFormDialog({
 
     mutation.mutate(
       (isEdit
-        ? { content: values.content.trim(), confidentiality: values.confidentiality, tags }
+        ? {
+            content: values.content.trim(),
+            confidentiality: values.confidentiality,
+            tags,
+          }
         : {
             memberId: values.memberId,
             content: values.content.trim(),
@@ -117,7 +134,7 @@ export function NoteFormDialog({
       {
         onSuccess: (saved) => {
           toast.success(
-            isEdit ? "Note updated successfully" : "Note added successfully"
+            isEdit ? "Note updated successfully" : "Note added successfully",
           );
           onOpenChange(false);
           onSaved?.(saved);
@@ -127,7 +144,7 @@ export function NoteFormDialog({
             description: error?.message || "Please try again.",
           });
         },
-      }
+      },
     );
   };
 
@@ -147,97 +164,99 @@ export function NoteFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="memberId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Member</FormLabel>
-                  {isEdit && note ? (
-                    <div className="flex h-10 items-center rounded-md border border-transparent bg-gray-50 px-3 py-2 text-sm">
-                      {note.memberFirstName} {note.memberLastName}
-                    </div>
-                  ) : (
+            <WorkspaceFormSection title="Member and note">
+              <FormField
+                control={form.control}
+                name="memberId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Member</FormLabel>
+                    {isEdit && note ? (
+                      <div className="flex h-10 items-center rounded-md border border-transparent bg-gray-50 px-3 py-2 text-sm">
+                        {note.memberFirstName} {note.memberLastName}
+                      </div>
+                    ) : (
+                      <FormControl>
+                        <MemberCombobox
+                          value={field.value}
+                          onChange={(memberId) => field.onChange(memberId)}
+                          placeholder="Search and select a member"
+                        />
+                      </FormControl>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content *</FormLabel>
                     <FormControl>
-                      <MemberCombobox
-                        value={field.value}
-                        onChange={(memberId) => field.onChange(memberId)}
-                        placeholder="Search and select a member"
+                      <Textarea
+                        placeholder="What happened, what was discussed, and any follow-up needed..."
+                        rows={4}
+                        {...field}
                       />
                     </FormControl>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Access and organization">
+              <FormField
+                control={form.control}
+                name="confidentiality"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confidentiality</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {CONFIDENTIALITY_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {
+                        CONFIDENTIALITY_OPTIONS.find(
+                          (opt) => opt.value === field.value,
+                        )?.description
+                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Content *</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="What happened, what was discussed, and any follow-up needed..."
-                      rows={4}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confidentiality"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confidentiality</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
+                      <Input
+                        placeholder="e.g. visit, follow-up, counseling (comma separated)"
+                        {...field}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {CONFIDENTIALITY_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    {
-                      CONFIDENTIALITY_OPTIONS.find(
-                        (opt) => opt.value === field.value
-                      )?.description
-                    }
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. visit, follow-up, counseling (comma separated)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </WorkspaceFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

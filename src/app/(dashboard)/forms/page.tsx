@@ -11,7 +11,7 @@ import {
   ClipboardList,
   Copy,
   Eye,
-  MoreHorizontal,
+  MoreVertical,
   PauseCircle,
   Pencil,
   PlayCircle,
@@ -35,11 +35,16 @@ import {
   FORM_STATUS_LABELS,
   FORM_STATUS_TEXT,
 } from "@/hooks/use-forms";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchiveConfirmDialog,
@@ -96,8 +101,11 @@ export default function FormsPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<FormStatus | "all">("all");
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [statusFilter, setStatusFilter] = React.useState<FormStatus | "all">(
+    "all",
+  );
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -127,7 +135,7 @@ export default function FormsPage() {
       archived: archivedView ? true : undefined,
       branchId: branchId || undefined,
     }),
-    [page, perPage, search, statusFilter, archivedView, branchId]
+    [page, perPage, search, statusFilter, archivedView, branchId],
   );
 
   const { data, isLoading, error } = useFormsList(queryParams);
@@ -207,7 +215,10 @@ export default function FormsPage() {
       <div>
         <PageHeader
           title="Forms"
-          breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Forms" }]}
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Forms" },
+          ]}
         />
         <ErrorState />
       </div>
@@ -217,35 +228,25 @@ export default function FormsPage() {
   return (
     <div>
       <PageHeader
+        count={meta?.total ?? 0}
         title="Forms"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Forms" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Forms" },
+        ]}
         action={
           canCreate ? (
-            <Button onClick={() => { if (confirmDiscardChanges()) router.push("/forms/new"); }}>
+            <Button
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push("/forms/new");
+              }}
+            >
               <Plus className="mr-1 h-4 w-4" />
               Add Form
             </Button>
           ) : undefined
         }
       />
-
-      <div className="mb-4 grid gap-4 sm:grid-cols-3">
-        <StatsCard
-          title="Total Forms"
-          value={meta?.total ?? 0}
-          icon={<ClipboardList className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Published"
-          value={forms.filter((f) => f.status === "published" && !f.archivedAt).length}
-          variant="success"
-        />
-        <StatsCard
-          title="Public"
-          value={forms.filter((f) => f.isPublic && !f.archivedAt).length}
-          variant="primary"
-        />
-      </div>
 
       <TableCard
         title="All Forms"
@@ -261,14 +262,36 @@ export default function FormsPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter
-              value={archivedFilter}
-              onChange={(v) => {
-                setArchivedFilter(v);
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
                 setPage(1);
               }}
             />
+            <WorkspaceMoreFilters count={Number(archivedFilter !== "all")}>
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(v) => {
+                  setArchivedFilter(v);
+                  setPage(1);
+                }}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setArchivedFilter("all");
+                  setStatusFilter("all");
+                  setSearchInput("");
+                  setSearch("");
+                  setBranchId("");
+                  setPage(1);
+                }}
+              >
+                Reset filters
+              </Button>
+            </WorkspaceMoreFilters>
             <SearchInput
               placeholder="Search forms..."
               value={searchInput}
@@ -305,7 +328,9 @@ export default function FormsPage() {
                 <TableHead>Fields</TableHead>
                 <TableHead>Responses</TableHead>
                 <TableHead>Public</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -314,7 +339,9 @@ export default function FormsPage() {
                   <TableCell>
                     <Skeleton className="h-4 w-40" />
                   </TableCell>
-                  <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-28" />
+                  </TableCell>
                   <TableCell>
                     <Skeleton className="h-4 w-16" />
                   </TableCell>
@@ -365,7 +392,9 @@ export default function FormsPage() {
                 <TableHead>Fields</TableHead>
                 <TableHead>Responses</TableHead>
                 <TableHead>Public</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -373,21 +402,31 @@ export default function FormsPage() {
                 <TableRow
                   key={form.id}
                   className="cursor-pointer"
-                  onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${form.id}`); }}
+                  onClick={() => {
+                    if (confirmDiscardChanges())
+                      router.push(`/forms/${form.id}`);
+                  }}
                 >
                   <TableCell>
                     <div className="font-medium">{form.title}</div>
                     <div className="text-xs text-muted-foreground">
                       {form.description ? (
-                        <span className="line-clamp-1 max-w-[240px]">{form.description}</span>
+                        <span className="line-clamp-1 max-w-[240px]">
+                          {form.description}
+                        </span>
                       ) : (
                         `Updated ${format(new Date(form.updatedAt), "MMM d, yyyy")}`
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs" title={form.id}>{form.id}</TableCell>
+                  <TableCell className="font-mono text-xs" title={form.id}>
+                    {form.id}
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={FORM_STATUS_TEXT[form.status]}>
+                    <Badge
+                      variant="outline"
+                      className={FORM_STATUS_TEXT[form.status]}
+                    >
                       {FORM_STATUS_LABELS[form.status]}
                     </Badge>
                   </TableCell>
@@ -442,7 +481,7 @@ export default function FormsPage() {
                               aria-label="Form actions"
                               title="Form actions"
                             >
-                              <MoreHorizontal className="h-4 w-4" />
+                              <MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -489,7 +528,8 @@ export default function FormsPage() {
                               </DropdownMenuItem>
                             )}
                             {canUpdate &&
-                              (form.status === "draft" || form.status === "published") && (
+                              (form.status === "draft" ||
+                                form.status === "published") && (
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -514,26 +554,33 @@ export default function FormsPage() {
                             {(canUpdate || canDelete) && !form.archivedAt && (
                               <>
                                 <DropdownMenuSeparator />
-                                {canUpdate && (<DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setArchiveTarget({ kind: "archive", form });
-                                  }}
-                                >
-                                  <Archive className="mr-2 h-4 w-4" />
-                                  Archive
-                                </DropdownMenuItem>)}
-                                {canDelete && (<DropdownMenuItem
-                                  className="text-destructive focus:text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDeleteTarget(form);
-                                  }}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>)}
+                                {canUpdate && (
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setArchiveTarget({
+                                        kind: "archive",
+                                        form,
+                                      });
+                                    }}
+                                  >
+                                    <Archive className="mr-2 h-4 w-4" />
+                                    Archive
+                                  </DropdownMenuItem>
+                                )}
+                                {canDelete && (
+                                  <DropdownMenuItem
+                                    className="text-destructive focus:text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeleteTarget(form);
+                                    }}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                )}
                               </>
                             )}
                           </DropdownMenuContent>
@@ -555,14 +602,22 @@ export default function FormsPage() {
               <DialogTitle>Delete form?</DialogTitle>
             </DialogHeader>
             <p className="text-sm text-muted-foreground">
-              This permanently deletes &quot;{deleteTarget.title}&quot; and all of its
-              submissions. This cannot be undone.
+              This permanently deletes &quot;{deleteTarget.title}&quot; and all
+              of its submissions. This cannot be undone.
             </p>
             <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setDeleteTarget(null)} disabled={deletePending}>
+              <Button
+                variant="outline"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deletePending}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleDelete} disabled={deletePending}>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={deletePending}
+              >
                 {deletePending ? "Deleting..." : "Delete"}
               </Button>
             </DialogFooter>
@@ -578,7 +633,9 @@ export default function FormsPage() {
           entityLabel="form"
           targetName={archiveTarget.form.title}
           targetId={archiveTarget.form.id}
-          mutation={archiveTarget.kind === "archive" ? archiveMutation : restoreMutation}
+          mutation={
+            archiveTarget.kind === "archive" ? archiveMutation : restoreMutation
+          }
           onConfirmed={() => setArchiveTarget(null)}
         />
       )}

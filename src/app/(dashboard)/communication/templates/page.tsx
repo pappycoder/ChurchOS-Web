@@ -8,10 +8,9 @@ import { Suspense } from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
-  CheckCircle2,
   Eye,
   FileText,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Plus,
   Send,
@@ -20,9 +19,11 @@ import {
   RotateCcw,
 } from "lucide-react";
 
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { TableCard } from "@/components/shared/table-card";
 
@@ -68,7 +69,10 @@ import {
   type ListTemplatesParams,
 } from "@/hooks/use-templates";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchiveConfirmDialog,
@@ -86,11 +90,14 @@ function TemplatesListContent() {
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
   const [channel, setChannel] = React.useState<TemplateChannel | "">("");
-  const [statusFilter, setStatusFilter] = React.useState<"draft" | "published" | "">("");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "draft" | "published" | ""
+  >("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [branchId, setBranchId] = React.useState("");
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Template | null>(null);
@@ -119,18 +126,13 @@ function TemplatesListContent() {
       archived: archivedView ? true : undefined,
       branchId: branchId || undefined,
     }),
-    [page, perPage, search, channel, statusFilter, archivedView, branchId]
+    [page, perPage, search, channel, statusFilter, archivedView, branchId],
   );
 
   const { data, isLoading, error } = useTemplatesList(queryParams);
 
-  const allQuery = useTemplatesList({ limit: 100, branchId: branchId || undefined, archived: archivedView ? true : undefined });
-  const allTemplates = React.useMemo(() => allQuery.data?.data ?? [], [allQuery.data]);
   const total = data?.meta?.total ?? 0;
   const templates = React.useMemo(() => data?.data ?? [], [data]);
-
-  const published = allTemplates.filter((t) => t.status === "published").length;
-  const drafts = allTemplates.filter((t) => t.status === "draft").length;
 
   const publishMutation = usePublishTemplate();
   const archiveMutation = useArchiveTemplate();
@@ -174,7 +176,10 @@ function TemplatesListContent() {
       <div>
         <PageHeader
           title="Templates"
-          breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Templates" }]}
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Templates" },
+          ]}
         />
         <ErrorState title="Failed to load templates." />
       </div>
@@ -184,8 +189,12 @@ function TemplatesListContent() {
   return (
     <div className="space-y-4">
       <PageHeader
+        count={total}
         title="Templates"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Templates" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Templates" },
+        ]}
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
@@ -198,39 +207,41 @@ function TemplatesListContent() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatsCard
-          title={archivedView ? "Archived Templates" : "Total Templates"}
-          value={
-            archivedView
-              ? allTemplates.length
-              : allQuery.data?.meta?.total ?? allTemplates.length
-          }
-          icon={<FileText className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Published"
-          value={published}
-          icon={<CheckCircle2 className="h-4 w-4" />}
-          variant="success"
-        />
-        <StatsCard
-          title="Drafts"
-          value={drafts}
-          icon={<FileText className="h-4 w-4" />}
-          variant="warning"
-        />
-      </div>
-
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-              <ArchivedFilter
-                value={archivedFilter}
-                onChange={(value) => { setArchivedFilter(value); setPage(1); }}
+              <BranchFilter
+                value={branchId}
+                onChange={(value) => {
+                  setBranchId(value);
+                  setPage(1);
+                }}
               />
+              <WorkspaceMoreFilters count={Number(archivedFilter !== "all")}>
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={(value) => {
+                    setArchivedFilter(value);
+                    setPage(1);
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setArchivedFilter("all");
+                    setChannel("");
+                    setStatusFilter("");
+                    setSearchInput("");
+                    setSearch("");
+                    setBranchId("");
+                    setPage(1);
+                  }}
+                >
+                  Reset filters
+                </Button>
+              </WorkspaceMoreFilters>
               <select
                 value={channel}
                 onChange={(e) => {
@@ -250,7 +261,9 @@ function TemplatesListContent() {
                 <select
                   value={statusFilter}
                   onChange={(e) => {
-                    setStatusFilter(e.target.value as "" | "draft" | "published");
+                    setStatusFilter(
+                      e.target.value as "" | "draft" | "published",
+                    );
                     setPage(1);
                   }}
                   className="h-8 rounded-md border border-input bg-background px-2 text-sm"
@@ -285,7 +298,9 @@ function TemplatesListContent() {
           <div className="py-8">
             <EmptyState
               icon={<FileText className="h-12 w-12" />}
-              title={archivedView ? "No archived templates" : "No templates yet"}
+              title={
+                archivedView ? "No archived templates" : "No templates yet"
+              }
               description={
                 archivedView
                   ? "Archive a template to move it here."
@@ -305,26 +320,38 @@ function TemplatesListContent() {
                 <TableHead>Category</TableHead>
                 <TableHead>Variables</TableHead>
                 <TableHead>Language</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
               {templates.map((template) => (
-                <TableRow key={template.templateId} className="cursor-pointer" onClick={() => setViewing(template)}>
+                <TableRow
+                  key={template.templateId}
+                  className="cursor-pointer"
+                  onClick={() => setViewing(template)}
+                >
                   <TableCell className="font-medium">{template.name}</TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center gap-1 ${TEMPLATE_CHANNEL_TEXT[template.channel]}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 ${TEMPLATE_CHANNEL_TEXT[template.channel]}`}
+                    >
                       {TEMPLATE_CHANNEL_LABELS[template.channel]}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-sm font-medium ${TEMPLATE_STATUS_TEXT[template.status]}`}>
+                    <span
+                      className={`text-sm font-medium ${TEMPLATE_STATUS_TEXT[template.status]}`}
+                    >
                       {TEMPLATE_STATUS_LABELS[template.status]}
                     </span>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {template.category ? (
-                      <Badge variant="secondary">{TEMPLATE_CATEGORY_LABELS[template.category]}</Badge>
+                      <Badge variant="secondary">
+                        {TEMPLATE_CATEGORY_LABELS[template.category]}
+                      </Badge>
                     ) : (
                       "-"
                     )}
@@ -338,21 +365,32 @@ function TemplatesListContent() {
                     {template.language || "-"}
                   </TableCell>
                   {canManage && !archivedView && (
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="h-4 w-4" />
                             <span className="sr-only">More actions</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setViewing(template)}>
+                          <DropdownMenuItem
+                            onClick={() => setViewing(template)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
                           {canUpdate && (
-                            <DropdownMenuItem onClick={() => openEdit(template)}>
+                            <DropdownMenuItem
+                              onClick={() => openEdit(template)}
+                            >
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
@@ -401,7 +439,10 @@ function TemplatesListContent() {
                     </TableCell>
                   )}
                   {canManage && archivedView && (
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="flex items-center justify-end gap-2">
                         {canUpdate && (
                           <Button
@@ -451,16 +492,23 @@ function TemplatesListContent() {
       />
 
       {/* View detail */}
-      <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
+      <Dialog
+        open={!!viewing}
+        onOpenChange={(open) => !open && setViewing(null)}
+      >
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>{viewing?.name}</DialogTitle>
             <DialogDescription className="flex flex-wrap items-center gap-2">
               {viewing && (
-                <Badge variant="secondary">{TEMPLATE_CHANNEL_LABELS[viewing.channel]}</Badge>
+                <Badge variant="secondary">
+                  {TEMPLATE_CHANNEL_LABELS[viewing.channel]}
+                </Badge>
               )}
               {viewing && (
-                <span className={`text-sm font-medium ${viewing ? TEMPLATE_STATUS_TEXT[viewing.status] : ""}`}>
+                <span
+                  className={`text-sm font-medium ${viewing ? TEMPLATE_STATUS_TEXT[viewing.status] : ""}`}
+                >
                   {viewing ? TEMPLATE_STATUS_LABELS[viewing.status] : ""}
                 </span>
               )}
@@ -474,7 +522,9 @@ function TemplatesListContent() {
           <div className="space-y-4">
             {viewing && <BranchDetail record={viewing} />}
             {viewing?.language && (
-              <p className="text-sm text-muted-foreground">Language: {viewing.language}</p>
+              <p className="text-sm text-muted-foreground">
+                Language: {viewing.language}
+              </p>
             )}
             <div className="rounded-md border bg-muted/40 p-4 whitespace-pre-wrap text-sm">
               {viewing?.content}
@@ -496,7 +546,10 @@ function TemplatesListContent() {
       </Dialog>
 
       {/* Delete */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
@@ -505,8 +558,10 @@ function TemplatesListContent() {
             <DialogTitle className="text-center">Delete Template</DialogTitle>
             <DialogDescription className="text-center">
               Are you sure you want to permanently delete{" "}
-              <span className="font-medium text-foreground">{deleteTarget?.name}</span>?
-              This action cannot be undone.
+              <span className="font-medium text-foreground">
+                {deleteTarget?.name}
+              </span>
+              ? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

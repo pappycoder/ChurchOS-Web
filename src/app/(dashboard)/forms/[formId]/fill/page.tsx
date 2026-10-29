@@ -5,12 +5,18 @@ import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast, getToastErrorMessage } from "@/lib/toast";
-import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  CheckCircle2,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useForm, useSubmitForm } from "@/hooks/use-forms";
 import { FormFieldsRenderer } from "@/components/forms/form-fields-renderer";
 import { SubmissionAttachments } from "@/components/forms/submission-attachments";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -29,7 +35,15 @@ export default function FillFormPage() {
   const [submitted, setSubmitted] = React.useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = React.useState(false);
   const [failMsg, setFailMsg] = React.useState<string | null>(null);
-  useUnsavedChanges(!submitted && (assetIds.length > 0 || Object.values(data).some(value => Array.isArray(value) ? value.length > 0 : value !== "" && value != null)));
+  useUnsavedChanges(
+    !submitted &&
+      (assetIds.length > 0 ||
+        Object.values(data).some((value) =>
+          Array.isArray(value)
+            ? value.length > 0
+            : value !== "" && value != null,
+        )),
+  );
 
   const notFillable = form && (form.status === "closed" || !!form.archivedAt);
 
@@ -68,7 +82,10 @@ export default function FillFormPage() {
       ) {
         setAlreadySubmitted(true);
       } else {
-        const message = getToastErrorMessage(err, "Unable to submit. Please try again.");
+        const message = getToastErrorMessage(
+          err,
+          "Unable to submit. Please try again.",
+        );
         setFailMsg(message);
         toast.error("Form submission failed", { description: message });
       }
@@ -84,7 +101,12 @@ export default function FillFormPage() {
         { label: form?.title ?? "Form" },
       ]}
       action={
-        <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${formId}`); }}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            if (confirmDiscardChanges()) router.push(`/forms/${formId}`);
+          }}
+        >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
         </Button>
@@ -107,8 +129,15 @@ export default function FillFormPage() {
         {header}
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <AlertTriangle className="h-10 w-10 text-destructive" />
-          <p className="text-sm text-muted-foreground">You don&apos;t have access to forms.</p>
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+          <p className="text-sm text-muted-foreground">
+            You don&apos;t have access to forms.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/forms");
+            }}
+          >
             Back to Forms
           </Button>
         </div>
@@ -123,8 +152,15 @@ export default function FillFormPage() {
           {header}
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <AlertTriangle className="h-10 w-10 text-destructive" />
-            <p className="text-sm text-muted-foreground">Failed to load this form.</p>
-            <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+            <p className="text-sm text-muted-foreground">
+              Failed to load this form.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push("/forms");
+              }}
+            >
               Back to Forms
             </Button>
           </div>
@@ -152,7 +188,9 @@ export default function FillFormPage() {
         <div className="flex flex-col items-center gap-3 rounded-md border p-12 text-center">
           <AlertTriangle className="h-10 w-10 text-amber-600" />
           <p className="font-medium">
-            {form.status === "closed" ? "This form is closed" : "This form is archived"}
+            {form.status === "closed"
+              ? "This form is closed"
+              : "This form is archived"}
           </p>
           <p className="text-sm text-muted-foreground">
             This form is not accepting new submissions.
@@ -160,7 +198,9 @@ export default function FillFormPage() {
           <Button
             variant="outline"
             className="mt-2"
-            onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${formId}`); }}
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push(`/forms/${formId}`);
+            }}
           >
             View form details
           </Button>
@@ -188,7 +228,9 @@ export default function FillFormPage() {
           <Button
             variant="outline"
             className="mt-2"
-            onClick={() => { if (confirmDiscardChanges()) router.push(`/forms/${formId}`); }}
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push(`/forms/${formId}`);
+            }}
           >
             View form details
           </Button>
@@ -202,7 +244,9 @@ export default function FillFormPage() {
       {header}
       <div className="space-y-6 rounded-2xl border bg-card p-5 sm:p-8">
         <div className="rounded-xl border bg-accent/40 p-5">
-          <p className="text-sm font-medium text-muted-foreground">Complete the questions below</p>
+          <p className="text-sm font-medium text-muted-foreground">
+            Complete the questions below
+          </p>
           <div className="mb-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
             <span className="rounded-full border bg-background px-3 py-1">
               {form.fields.length} questions
@@ -215,7 +259,9 @@ export default function FillFormPage() {
             </span>
           </div>
           {form.description && (
-            <p className="mt-1 text-sm text-muted-foreground">{form.description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {form.description}
+            </p>
           )}
         </div>
 
@@ -225,7 +271,10 @@ export default function FillFormPage() {
           disabled={submitMutation.isPending}
         />
 
-        <SubmissionAttachments onChange={setAssetIds} disabled={submitMutation.isPending} />
+        <SubmissionAttachments
+          onChange={setAssetIds}
+          disabled={submitMutation.isPending}
+        />
 
         {failMsg && (
           <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
@@ -239,7 +288,11 @@ export default function FillFormPage() {
           Your response is linked to your signed-in church account.
         </p>
 
-        <Button type="button" onClick={handleSubmit} disabled={submitMutation.isPending}>
+        <Button
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitMutation.isPending}
+        >
           {submitMutation.isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

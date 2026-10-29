@@ -22,7 +22,10 @@ import {
   RISK_LEVEL_LABELS,
   RISK_LEVEL_TEXT,
 } from "@/hooks/use-pastoral";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,8 +67,12 @@ export default function RiskScoresPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [levelFilter, setLevelFilter] = React.useState<RiskLevel | "all">("all");
-  const [sortBy, setSortBy] = React.useState<"score" | "calculated_at">("score");
+  const [levelFilter, setLevelFilter] = React.useState<RiskLevel | "all">(
+    "all",
+  );
+  const [sortBy, setSortBy] = React.useState<"score" | "calculated_at">(
+    "score",
+  );
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -88,7 +95,7 @@ export default function RiskScoresPage() {
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, levelFilter, sortBy, sortOrder]
+    [page, perPage, search, levelFilter, sortBy, sortOrder],
   );
 
   const { data, isLoading, error } = useRiskScores(queryParams);
@@ -133,6 +140,7 @@ export default function RiskScoresPage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        count={meta?.total ?? 0}
         title="Risk Scores"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -148,16 +156,22 @@ export default function RiskScoresPage() {
               <RefreshCw
                 className={cn(
                   "h-4 w-4 mr-2",
-                  recalculateMutation.isPending && "animate-spin"
+                  recalculateMutation.isPending && "animate-spin",
                 )}
               />
-              {recalculateMutation.isPending ? "Calculating..." : "Recalculate Scores"}
+              {recalculateMutation.isPending
+                ? "Calculating..."
+                : "Recalculate Scores"}
             </Button>
           )
         }
       />
 
-      <p className="text-sm text-muted-foreground">Scores reflect the most recent calculation shown in each row. They are decision support for follow-up; review the factors and member context before taking action.</p>
+      <p className="text-sm text-muted-foreground">
+        Scores reflect the most recent calculation shown in each row. They are
+        decision support for follow-up; review the factors and member context
+        before taking action.
+      </p>
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -188,40 +202,60 @@ export default function RiskScoresPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-1">
-              <Select
-                value={sortBy}
-                onValueChange={(v) => {
-                  setSortBy(v as "score" | "calculated_at");
+            <WorkspaceMoreFilters
+              count={Number(sortBy !== "score" || sortOrder !== "desc")}
+            >
+              <div className="flex items-center gap-1">
+                <Select
+                  value={sortBy}
+                  onValueChange={(v) => {
+                    setSortBy(v as "score" | "calculated_at");
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-40">
+                    <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
+                >
+                  {sortOrder === "asc" ? (
+                    <SortAsc className="h-4 w-4" />
+                  ) : (
+                    <SortDesc className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSortBy("score");
+                  setSortOrder("desc");
+                  setLevelFilter("all");
+                  setSearchInput("");
+                  setSearch("");
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-40">
-                  <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SORT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
-              >
-                {sortOrder === "asc" ? (
-                  <SortAsc className="h-4 w-4" />
-                ) : (
-                  <SortDesc className="h-4 w-4" />
-                )}
+                Reset filters
               </Button>
-            </div>
+            </WorkspaceMoreFilters>
           </div>
         }
         itemName="members"
@@ -245,62 +279,69 @@ export default function RiskScoresPage() {
                 search || levelFilter !== "all"
                   ? "Try adjusting your search or filters."
                   : canRecalculate
-                    ? "Run \"Recalculate Scores\" to flag members at risk of disengagement."
+                    ? 'Run "Recalculate Scores" to flag members at risk of disengagement.'
                     : "Risk scores have not been calculated yet."
               }
             />
           </div>
         ) : (
           <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Level</TableHead>
-                    <TableHead>Calculated</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scores.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className="cursor-pointer"
-                      onClick={() => setSelected(row)}
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Score</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Calculated</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {scores.map((row) => (
+                <TableRow
+                  key={row.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelected(row)}
+                >
+                  <TableCell>
+                    <p className="font-medium">
+                      {row.memberFirstName} {row.memberLastName}
+                    </p>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelected(row);
+                      }}
                     >
-                      <TableCell>
-                        <p className="font-medium">
-                          {row.memberFirstName} {row.memberLastName}
-                        </p><Button variant="link" size="sm" onClick={event => {event.stopPropagation();setSelected(row);}}>View factors</Button>
-                        {row.memberEmail && (
-                          <p className="text-xs text-muted-foreground truncate">
-                            {row.memberEmail}
-                          </p>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-lg font-semibold">
-                          {Math.round(row.score)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "font-medium",
-                            RISK_LEVEL_TEXT[row.level]
-                          )}
-                        >
-                          {RISK_LEVEL_LABELS[row.level]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {format(new Date(row.calculatedAt), "MMM d, yyyy")}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-          )}
+                      View factors
+                    </Button>
+                    {row.memberEmail && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {row.memberEmail}
+                      </p>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-lg font-semibold">
+                      {Math.round(row.score)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={cn("font-medium", RISK_LEVEL_TEXT[row.level])}
+                    >
+                      {RISK_LEVEL_LABELS[row.level]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {format(new Date(row.calculatedAt), "MMM d, yyyy")}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </TableCard>
 
       <MemberScoringDialog

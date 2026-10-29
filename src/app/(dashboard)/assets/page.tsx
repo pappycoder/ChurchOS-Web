@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceRowMenu } from "@/components/workspace/workspace-management-menu";
 
 import { ContentImage } from "@/components/shared/content-image";
 
@@ -6,12 +7,25 @@ import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
-import { Boxes, Eye, Pencil, Plus, Trash2, Archive, RotateCcw } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { StatsCard } from "@/components/shared/stats-card";
+import {
+  Boxes,
+  Eye,
+  Pencil,
+  Plus,
+  Trash2,
+  Archive,
+  RotateCcw,
+} from "lucide-react";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { SearchInput } from "@/components/shared/search-input";
 import { TablePagination } from "@/components/shared/table-pagination";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -46,7 +60,6 @@ import {
   formatCurrency,
   useAssetCategories,
   useAssetsList,
-  useAssetStats,
   useDeleteAsset,
   useArchiveAsset,
   useRestoreAsset,
@@ -66,6 +79,7 @@ const STATUS_OPTIONS = [
 const CONDITION_OPTIONS = ["new", "good", "fair", "poor", "damaged"] as const;
 
 export default function AssetsPage() {
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { data: profile } = useCurrentProfile();
   const isAdminHq = !!profile?.isAdminHq;
   const { can, canAny } = usePermissions();
@@ -76,15 +90,22 @@ export default function AssetsPage() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
-  const [statusFilter, setStatusFilter] = React.useState<AssetStatus | "all">("all");
-  const [conditionFilter, setConditionFilter] = React.useState<AssetCondition | "all">("all");
+  const [statusFilter, setStatusFilter] = React.useState<AssetStatus | "all">(
+    "all",
+  );
+  const [conditionFilter, setConditionFilter] = React.useState<
+    AssetCondition | "all"
+  >("all");
   const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
   const [branchFilter, setBranchFilter] = React.useState<string>("all");
   const effectiveBranchFilter = isAdminHq
-    ? branchFilter === "all" ? "" : branchFilter
-    : profile?.branchId ?? "";
+    ? branchFilter === "all"
+      ? ""
+      : branchFilter
+    : (profile?.branchId ?? "");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
 
@@ -115,12 +136,19 @@ export default function AssetsPage() {
       branchId: effectiveBranchFilter || undefined,
       archived: archivedView ? true : undefined,
     }),
-    [page, perPage, search, statusFilter, conditionFilter, categoryFilter, effectiveBranchFilter, archivedView]
+    [
+      page,
+      perPage,
+      search,
+      statusFilter,
+      conditionFilter,
+      categoryFilter,
+      effectiveBranchFilter,
+      archivedView,
+    ],
   );
 
   const { data, isLoading, error } = useAssetsList(queryParams);
-  const statsQuery = useAssetStats(effectiveBranchFilter || undefined);
-  const stats = statsQuery.data;
   const deleteMutation = useDeleteAsset();
   const archiveMutation = useArchiveAsset();
   const restoreMutation = useRestoreAsset();
@@ -172,6 +200,7 @@ export default function AssetsPage() {
   return (
     <div>
       <PageHeader
+        count={data?.meta?.total ?? 0}
         title="Asset Register"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -181,42 +210,103 @@ export default function AssetsPage() {
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
-              <Button asChild><Link href="/assets/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Register Asset
-              </Link></Button>
+              <Button asChild>
+                <Link href="/assets/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Register Asset
+                </Link>
+              </Button>
             )}
           </div>
         }
       />
 
-      {statsQuery.isError && <ErrorState title="Unable to load asset summary" />}
-      <div className="grid gap-4 sm:grid-cols-3 mb-6">
-        <StatsCard
-          title="Total Assets"
-          value={statsQuery.isError ? "—" : statsQuery.isLoading ? "..." : (stats?.totalAssets ?? 0)}
-          icon={<Boxes className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Purchase Value"
-          value={statsQuery.isError ? "—" : statsQuery.isLoading ? "..." : formatCurrency(stats?.totalPurchaseValue)}
-          icon={<Boxes className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Current Value"
-          value={statsQuery.isError ? "—" : statsQuery.isLoading ? "..." : formatCurrency(stats?.totalCurrentValue)}
-          icon={<Boxes className="h-4 w-4" />}
-        />
-      </div>
-
       <Card>
-        <CardHeader><ExportDropdown tableId="assets" columns={exportColumns} data={exportData} title="Asset Register" filename={`assets-${format(new Date(), "yyyyMMdd")}`} disabled={assets.length === 0} />
+        <CardHeader>
+          <ExportDropdown
+            tableId="assets"
+            columns={exportColumns}
+            data={exportData}
+            title="Asset Register"
+            filename={`assets-${format(new Date(), "yyyyMMdd")}`}
+            disabled={assets.length === 0}
+          />
           <CardTitle>All Assets</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between"><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setArchivedFilter("all");setStatusFilter("all");setConditionFilter("all");setCategoryFilter("all");setBranchFilter("all");setPage(1);}}>Reset filters</Button>
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
             <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
+              <WorkspaceMoreFilters
+                count={
+                  Number(archivedFilter !== "all") +
+                  Number(conditionFilter !== "all") +
+                  Number(categoryFilter !== "all")
+                }
+              >
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={(value) => {
+                    setArchivedFilter(value);
+                    setPage(1);
+                  }}
+                />
+                <Select
+                  value={conditionFilter}
+                  onValueChange={(v) => {
+                    setConditionFilter(v as AssetCondition | "all");
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-full sm:w-[150px] h-9">
+                    <SelectValue placeholder="Condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Conditions</SelectItem>
+                    {CONDITION_OPTIONS.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c[0].toUpperCase() + c.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {can("assets:categories", "read") && (
+                  <Select
+                    value={categoryFilter}
+                    onValueChange={(v) => {
+                      setCategoryFilter(v);
+                      setPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-full sm:w-[170px] h-9">
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {(categoriesQuery.data ?? []).map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setArchivedFilter("all");
+                    setConditionFilter("all");
+                    setCategoryFilter("all");
+                    setStatusFilter("all");
+                    setBranchFilter("all");
+                    setSearchInput("");
+                    setSearch("");
+                    setPage(1);
+                  }}
+                >
+                  Reset filters
+                </Button>
+              </WorkspaceMoreFilters>
               <SearchInput
                 value={searchInput}
                 onChange={setSearchInput}
@@ -244,65 +334,44 @@ export default function AssetsPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Select
-                value={conditionFilter}
-                onValueChange={(v) => {
-                  setConditionFilter(v as AssetCondition | "all");
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full sm:w-[150px] h-9">
-                  <SelectValue placeholder="Condition" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Conditions</SelectItem>
-                  {CONDITION_OPTIONS.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c[0].toUpperCase() + c.slice(1)}
+
+              {isAdminHq ? (
+                <Select
+                  value={branchFilter}
+                  onValueChange={(v) => {
+                    setBranchFilter(v);
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-full sm:w-[160px] h-9">
+                    <SelectValue placeholder="Branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+                    {(branchesQuery.data?.data ?? []).map((b) => (
+                      <SelectItem key={b.branchId} value={b.branchId}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select value={profile?.branchId ?? "__no_branch__"} disabled>
+                  <SelectTrigger
+                    className="w-full sm:w-[160px] h-9"
+                    aria-label="Branch filter locked to your branch"
+                  >
+                    <SelectValue
+                      placeholder={profile?.branch?.name ?? "Your branch"}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={profile?.branchId ?? "__no_branch__"}>
+                      {profile?.branch?.name ?? "Your branch"}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {can("assets:categories", "read") && <Select
-                value={categoryFilter}
-                onValueChange={(v) => {
-                  setCategoryFilter(v);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full sm:w-[170px] h-9">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {(categoriesQuery.data ?? []).map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>}
-              {isAdminHq ? <Select
-                value={branchFilter}
-                onValueChange={(v) => { setBranchFilter(v); setPage(1); }}
-              >
-                <SelectTrigger className="w-full sm:w-[160px] h-9">
-                  <SelectValue placeholder="Branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  {(branchesQuery.data?.data ?? []).map((b) => (
-                    <SelectItem key={b.branchId} value={b.branchId}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select> : <Select value={profile?.branchId ?? "__no_branch__"} disabled>
-                <SelectTrigger className="w-full sm:w-[160px] h-9" aria-label="Branch filter locked to your branch">
-                  <SelectValue placeholder={profile?.branch?.name ?? "Your branch"} />
-                </SelectTrigger>
-                <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
-              </Select>}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
 
@@ -313,13 +382,17 @@ export default function AssetsPage() {
               <Table selectable exportable={false} tableId="assets">
                 <TableHeader>
                   <TableRow>
-                    <TableHead exportKeys={["name", "tag", "serial"]}>Asset</TableHead>
+                    <TableHead exportKeys={["name", "tag", "serial"]}>
+                      Asset
+                    </TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Condition</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Current Value</TableHead>
                     <TableHead>Custodian</TableHead>
-                    {canReadActions && <TableHead className="text-right">Actions</TableHead>}
+                    {canReadActions && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -333,11 +406,16 @@ export default function AssetsPage() {
                     ))
                   ) : assets.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={canReadActions ? 7 : 6} className="h-32 text-center">
+                      <TableCell
+                        colSpan={canReadActions ? 7 : 6}
+                        className="h-32 text-center"
+                      >
                         <p className="text-muted-foreground">
                           {archivedView
                             ? "No archived assets."
-                            : search || statusFilter !== "all" || conditionFilter !== "all"
+                            : search ||
+                                statusFilter !== "all" ||
+                                conditionFilter !== "all"
                               ? "No assets match your filters."
                               : "No assets registered yet."}
                         </p>
@@ -363,7 +441,9 @@ export default function AssetsPage() {
                               <p className="font-medium">{asset.name}</p>
                               <p className="text-xs text-muted-foreground font-mono">
                                 {asset.assetTag}
-                                {asset.serialNumber ? ` · ${asset.serialNumber}` : ""}
+                                {asset.serialNumber
+                                  ? ` · ${asset.serialNumber}`
+                                  : ""}
                               </p>
                             </div>
                           </div>
@@ -372,7 +452,10 @@ export default function AssetsPage() {
                           {asset.categoryName ?? "—"}
                         </TableCell>
                         <TableCell onClick={() => openDetail(asset)}>
-                          <StatusBadge kind="condition" value={asset.condition} />
+                          <StatusBadge
+                            kind="condition"
+                            value={asset.condition}
+                          />
                         </TableCell>
                         <TableCell onClick={() => openDetail(asset)}>
                           <StatusBadge kind="status" value={asset.status} />
@@ -381,7 +464,9 @@ export default function AssetsPage() {
                           className="text-right"
                           onClick={() => openDetail(asset)}
                         >
-                          {formatCurrency(asset.currentValue ?? asset.purchasePrice)}
+                          {formatCurrency(
+                            asset.currentValue ?? asset.purchasePrice,
+                          )}
                         </TableCell>
                         <TableCell onClick={() => openDetail(asset)}>
                           {asset.custodianName ?? "—"}
@@ -389,12 +474,20 @@ export default function AssetsPage() {
                         {canReadActions && (
                           <TableCell className="text-right">
                             {archivedView ? (
-                              <div className="flex justify-end gap-1">
+                              <WorkspaceRowMenu
+                                label={`Manage ${asset.name}`}
+                                returnFocusRef={managementRef}
+                              >
                                 {canUpdate && (
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setArchiveTarget({ kind: "restore", asset })}
+                                    onClick={() =>
+                                      setArchiveTarget({
+                                        kind: "restore",
+                                        asset,
+                                      })
+                                    }
                                   >
                                     <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
                                     Restore
@@ -405,24 +498,31 @@ export default function AssetsPage() {
                                     variant="outline"
                                     size="sm"
                                     className="text-destructive hover:text-destructive"
-                                    onClick={() => setArchiveTarget({ kind: "purge", asset })}
+                                    onClick={() =>
+                                      setArchiveTarget({ kind: "purge", asset })
+                                    }
                                   >
                                     <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                                     Delete Forever
                                   </Button>
                                 )}
-                              </div>
+                              </WorkspaceRowMenu>
                             ) : (
-                              <div className="flex justify-end gap-1">
-                                {canReadAssets && <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  title="View"
-                                  aria-label={`View ${asset.name}`}
-                                  onClick={() => openDetail(asset)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>}
+                              <WorkspaceRowMenu
+                                label={`Manage ${asset.name}`}
+                                returnFocusRef={managementRef}
+                              >
+                                {canReadAssets && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    title="View"
+                                    aria-label={`View ${asset.name}`}
+                                    onClick={() => openDetail(asset)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                )}
                                 {canUpdate && (
                                   <Button
                                     size="icon"
@@ -431,30 +531,41 @@ export default function AssetsPage() {
                                     aria-label={`Edit ${asset.name}`}
                                     asChild
                                   >
-                                    <Link href={`/assets/${asset.id}/edit`}><Pencil className="h-4 w-4" /></Link>
+                                    <Link href={`/assets/${asset.id}/edit`}>
+                                      <Pencil className="h-4 w-4" />
+                                    </Link>
                                   </Button>
                                 )}
                                 {(canUpdate || canDelete) && (
                                   <>
-                                    {canUpdate && (<Button
-                                      size="icon"
-                                      variant="ghost"
-                                      title="Archive"
-                                      onClick={() => setArchiveTarget({ kind: "archive", asset })}
-                                    >
-                                      <Archive className="h-4 w-4" />
-                                    </Button>)}
-                                    {canDelete && (<Button
-                                      size="icon"
-                                      variant="ghost"
-                                      title="Delete"
-                                      onClick={() => setDeleteTarget(asset)}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>)}
+                                    {canUpdate && (
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        title="Archive"
+                                        onClick={() =>
+                                          setArchiveTarget({
+                                            kind: "archive",
+                                            asset,
+                                          })
+                                        }
+                                      >
+                                        <Archive className="h-4 w-4" />
+                                      </Button>
+                                    )}
+                                    {canDelete && (
+                                      <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        title="Delete"
+                                        onClick={() => setDeleteTarget(asset)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    )}
                                   </>
                                 )}
-                              </div>
+                              </WorkspaceRowMenu>
                             )}
                           </TableCell>
                         )}
@@ -483,6 +594,7 @@ export default function AssetsPage() {
       </Card>
 
       <ConfirmDeleteDialog
+        returnFocusRef={managementRef}
         open={!!deleteTarget}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
@@ -506,11 +618,13 @@ export default function AssetsPage() {
         }}
       />
       <AssetDetailDrawer
+        returnFocusRef={managementRef}
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         assetId={detailAsset?.id ?? ""}
       />
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

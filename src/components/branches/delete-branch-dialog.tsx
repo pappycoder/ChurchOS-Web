@@ -17,6 +17,7 @@ import { AlertTriangle } from "lucide-react";
 interface DeleteBranchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   branches: Branch[];
   /** Called after all deletions finish (even with partial failures). */
   onDeleted?: () => void;
@@ -25,6 +26,7 @@ interface DeleteBranchDialogProps {
 export function DeleteBranchDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   branches,
   onDeleted,
 }: DeleteBranchDialogProps) {
@@ -61,7 +63,9 @@ export function DeleteBranchDialog({
             if (!single && branches.length > 3 && failed > 0) {
               toast.warning(
                 `Deleted ${succeeded} of ${branches.length} branches`,
-                { description: `${failed} could not be deleted (they may still have members assigned).` }
+                {
+                  description: `${failed} could not be deleted (they may still have members assigned).`,
+                },
               );
             } else if (!single && succeeded > 0) {
               toast.success(`${succeeded} branch(es) deleted`);
@@ -88,7 +92,20 @@ export function DeleteBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                const target = returnFocusRef.current;
+                if (target?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => target.focus());
+                }
+              }
+            : undefined
+        }
+        className="sm:max-w-[420px]"
+      >
         <DialogHeader>
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -100,9 +117,11 @@ export function DeleteBranchDialog({
             {single ? (
               <>
                 Are you sure you want to permanently delete{" "}
-                <span className="font-medium text-foreground">{single.name}</span>?
-                This cannot be undone. Branches with members assigned cannot be
-                deleted.
+                <span className="font-medium text-foreground">
+                  {single.name}
+                </span>
+                ? This cannot be undone. Branches with members assigned cannot
+                be deleted.
               </>
             ) : (
               <>
@@ -117,11 +136,21 @@ export function DeleteBranchDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pendingCount > 0}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={pendingCount > 0}
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleDelete} disabled={pendingCount > 0}>
-            {pendingCount > 0 ? `Deleting... (${branches.length - pendingCount}/${branches.length})` : "Delete"}
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={pendingCount > 0}
+          >
+            {pendingCount > 0
+              ? `Deleting... (${branches.length - pendingCount}/${branches.length})`
+              : "Delete"}
           </Button>
         </DialogFooter>
       </DialogContent>

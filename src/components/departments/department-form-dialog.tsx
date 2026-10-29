@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceFormSection } from "@/components/workspace/workspace-presentation";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -53,6 +54,7 @@ type DepartmentFormValues = z.infer<typeof departmentSchema>;
 interface DepartmentFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   department?: Department | null;
   departments?: Department[];
   onSaved?: (department: Department) => void;
@@ -73,6 +75,7 @@ function toFormValues(department?: Department | null): DepartmentFormValues {
 export function DepartmentFormDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   department,
   departments = [],
   onSaved,
@@ -99,8 +102,10 @@ export function DepartmentFormDialog({
       form.reset(values);
       setHeadName(
         department
-          ? [department.headFirstName, department.headLastName].filter(Boolean).join(" ")
-          : ""
+          ? [department.headFirstName, department.headLastName]
+              .filter(Boolean)
+              .join(" ")
+          : "",
       );
     }
   }, [open, department, form, profile?.isAdminHq, profile?.branchId]);
@@ -120,24 +125,35 @@ export function DepartmentFormDialog({
       description: values.description?.trim() || undefined,
       parentId: values.parentId?.trim() || undefined,
       branchId:
-        lockedLeaderBranch || !values.branchId?.trim() ? undefined : values.branchId.trim(),
+        lockedLeaderBranch || !values.branchId?.trim()
+          ? undefined
+          : values.branchId.trim(),
       headMemberId:
-        lockedLeaderBranch || !values.headMemberId?.trim() ? undefined : values.headMemberId.trim(),
+        lockedLeaderBranch || !values.headMemberId?.trim()
+          ? undefined
+          : values.headMemberId.trim(),
     };
 
     const mutation = isEdit ? updateMutation : createMutation;
     mutation.mutate(payload, {
       onSuccess: (saved) => {
         toast.success(
-          isEdit ? "Department updated successfully" : "Department created successfully"
+          isEdit
+            ? "Department updated successfully"
+            : "Department created successfully",
         );
         onOpenChange(false);
         onSaved?.(saved);
       },
       onError: (error) => {
-        toast.error(isEdit ? "Failed to update department" : "Failed to create department", {
-          description: error?.message || "Please try again.",
-        });
+        toast.error(
+          isEdit
+            ? "Failed to update department"
+            : "Failed to create department",
+          {
+            description: error?.message || "Please try again.",
+          },
+        );
       },
     });
   };
@@ -146,9 +162,24 @@ export function DepartmentFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                const target = returnFocusRef.current;
+                if (target?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => target.focus());
+                }
+              }
+            : undefined
+        }
+        className="sm:max-w-[560px] max-h-[90vh] overflow-y-auto"
+      >
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit Department" : "Add Department"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Department" : "Add Department"}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update this department's details."
@@ -158,81 +189,47 @@ export function DepartmentFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Department Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Youth Ministry" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="parentId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Parent Department</FormLabel>
-                  <Select
-                    value={field.value || undefined}
-                    onValueChange={field.onChange}
-                    disabled={parentOptions.length === 0}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            parentOptions.length === 0
-                              ? "No other departments"
-                              : "None (top-level)"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {parentOptions.map((d) => (
-                        <SelectItem key={d.id} value={d.id}>
-                          {d.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <WorkspaceFormSection title="Identity">
               <FormField
                 control={form.control}
-                name="branchId"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Branch{!isEdit && " *"}</FormLabel>
+                    <FormLabel>Department Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Youth Ministry" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="parentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parent Department</FormLabel>
                     <Select
                       value={field.value || undefined}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        form.setValue("headMemberId", "");
-                        form.setValue("parentId", "");
-                        setHeadName("");
-                      }}
-                      disabled={branchLocked}
+                      onValueChange={field.onChange}
+                      disabled={parentOptions.length === 0}
                     >
                       <FormControl>
-                        <SelectTrigger disabled={branchLocked}>
-                          <SelectValue placeholder="Select a branch" />
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              parentOptions.length === 0
+                                ? "No other departments"
+                                : "None (top-level)"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {branches.map((b) => (
-                          <SelectItem key={b.branchId} value={b.branchId}>
-                            {b.name}
+                        {parentOptions.map((d) => (
+                          <SelectItem key={d.id} value={d.id}>
+                            {d.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -241,46 +238,90 @@ export function DepartmentFormDialog({
                   </FormItem>
                 )}
               />
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Location and leadership">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="branchId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Branch{!isEdit && " *"}</FormLabel>
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          form.setValue("headMemberId", "");
+                          form.setValue("parentId", "");
+                          setHeadName("");
+                        }}
+                        disabled={branchLocked}
+                      >
+                        <FormControl>
+                          <SelectTrigger disabled={branchLocked}>
+                            <SelectValue placeholder="Select a branch" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {branches.map((b) => (
+                            <SelectItem key={b.branchId} value={b.branchId}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <FormField
+                  control={form.control}
+                  name="headMemberId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Head</FormLabel>
+                      <FormControl>
+                        <MemberCombobox
+                          value={field.value ?? ""}
+                          onChange={(id, member) => {
+                            field.onChange(id);
+                            setHeadName(
+                              member
+                                ? `${member.firstName} ${member.lastName}`
+                                : "",
+                            );
+                          }}
+                          selectedName={headName}
+                          branchId={selectedBranchId || undefined}
+                          placeholder="Select head..."
+                          disabled={lockedLeaderBranch || !selectedBranchId}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Additional information">
               <FormField
                 control={form.control}
-                name="headMemberId"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Head</FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <MemberCombobox
-                        value={field.value ?? ""}
-                        onChange={(id, member) => {
-                          field.onChange(id);
-                          setHeadName(member ? `${member.firstName} ${member.lastName}` : "");
-                        }}
-                        selectedName={headName}
-                        branchId={selectedBranchId || undefined}
-                        placeholder="Select head..."
-                        disabled={lockedLeaderBranch || !selectedBranchId}
+                      <Textarea
+                        placeholder="What does this department do?"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="What does this department do?" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            </WorkspaceFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

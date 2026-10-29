@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { WorkspaceAvatar } from "@/components/workspace/workspace-presentation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,7 +17,7 @@ import {
   Trash2,
   ShieldCheck,
   ShieldOff,
-  MoreHorizontal,
+  MoreVertical,
   KeyRound,
   LogOut,
 } from "lucide-react";
@@ -27,11 +27,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePermissions } from "@/hooks/use-permissions";
 import { format } from "date-fns";
 
-function getInitials(firstName: string, lastName: string): string {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
-
-function getRoleBadgeVariant(role: string): "default" | "secondary" | "outline" {
+function getRoleBadgeVariant(
+  role: string,
+): "default" | "secondary" | "outline" {
   switch (role) {
     case "super_admin":
     case "senior_pastor":
@@ -80,7 +78,10 @@ export function UserActionsCell({
 }: UserActionsCellProps) {
   const { can } = usePermissions();
   const { user: currentUser } = useAuth();
-  const canDelete = can("profiles", "delete") && user.userId !== currentUser?.userId && !user.role.includes("super_admin");
+  const canDelete =
+    can("profiles", "delete") &&
+    user.userId !== currentUser?.userId &&
+    !user.role.includes("super_admin");
   const canUpdate = can("profiles", "update");
   const canEditRole = can("roles", "update");
   const canToggleStatus = canUpdate;
@@ -88,7 +89,13 @@ export function UserActionsCell({
   const canForceSignout = canUpdate;
 
   // Nothing actionable for this viewer — render an empty cell.
-  if (!canDelete && !canEditRole && !canToggleStatus && !canResetPassword && !canForceSignout) {
+  if (
+    !canDelete &&
+    !canEditRole &&
+    !canToggleStatus &&
+    !canResetPassword &&
+    !canForceSignout
+  ) {
     return <div className="flex items-center justify-end" />;
   }
 
@@ -105,32 +112,33 @@ export function UserActionsCell({
           <Pencil className="h-4 w-4" />
         </Button>
       )}
-      {canToggleStatus && (user.status === "active" ? (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:text-destructive"
-          onClick={() => onDeactivate(user)}
-          title="Deactivate"
-        >
-          <ShieldOff className="h-4 w-4" />
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-green-600 hover:text-green-700"
-          onClick={() => onReactivate(user)}
-          title="Activate"
-        >
-          <ShieldCheck className="h-4 w-4" />
-        </Button>
-      ))}
+      {canToggleStatus &&
+        (user.status === "active" ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={() => onDeactivate(user)}
+            title="Deactivate"
+          >
+            <ShieldOff className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-green-600 hover:text-green-700"
+            onClick={() => onReactivate(user)}
+            title="Activate"
+          >
+            <ShieldCheck className="h-4 w-4" />
+          </Button>
+        ))}
       {(canDelete || canResetPassword || canForceSignout) && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
+              <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More actions</span>
             </Button>
           </DropdownMenuTrigger>
@@ -148,12 +156,20 @@ export function UserActionsCell({
                 Force Sign Out
               </DropdownMenuItem>
             )}
-            {canDelete && <>
-              {(canResetPassword || canForceSignout) && <DropdownMenuSeparator />}
-              <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => onDelete(user)}>
-                <Trash2 className="mr-2 h-4 w-4" />Delete User
-              </DropdownMenuItem>
-            </>}
+            {canDelete && (
+              <>
+                {(canResetPassword || canForceSignout) && (
+                  <DropdownMenuSeparator />
+                )}
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => onDelete(user)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete User
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )}
@@ -164,10 +180,12 @@ export function UserActionsCell({
 export function UserNameCell({ user }: { user: UserProfile }) {
   return (
     <div className="flex items-center gap-3">
-      <Avatar size="sm">
-        <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
-        <AvatarFallback>{getInitials(user.firstName, user.lastName)}</AvatarFallback>
-      </Avatar>
+      <WorkspaceAvatar
+        id={user.profileId}
+        name={`${user.firstName} ${user.lastName}`}
+        photoUrl={user.avatarUrl}
+        className="size-8"
+      />
       <div>
         <p className="font-medium">{`${user.firstName} ${user.lastName}`}</p>
         {user.email && (
@@ -196,7 +214,9 @@ export function UserAdminHqCell({ isAdminHq }: { isAdminHq: boolean }) {
   return (
     <Badge
       variant="secondary"
-      className={isAdminHq ? "text-[11px] font-medium" : "text-[11px] opacity-70"}
+      className={
+        isAdminHq ? "text-[11px] font-medium" : "text-[11px] opacity-70"
+      }
     >
       {isAdminHq ? "Admin HQ" : "Branch-scoped"}
     </Badge>
@@ -206,7 +226,14 @@ export function UserAdminHqCell({ isAdminHq }: { isAdminHq: boolean }) {
 export function UserStatusCell({ status }: { status: string }) {
   const isActive = status === "active";
   return (
-    <Badge variant={isActive ? "default" : "destructive"}>
+    <Badge
+      variant="outline"
+      className={
+        isActive
+          ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20"
+          : "bg-muted text-muted-foreground"
+      }
+    >
       <span
         className={`mr-1 h-1.5 w-1.5 rounded-full ${isActive ? "bg-green-500" : "bg-red-500"}`}
       />

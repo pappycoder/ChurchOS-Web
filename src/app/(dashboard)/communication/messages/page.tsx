@@ -6,7 +6,6 @@ import * as React from "react";
 import { Suspense } from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
-  AlertTriangle,
   ArrowDownLeft,
   ArrowUpRight,
   MessageSquare,
@@ -15,9 +14,8 @@ import {
   Send,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 import { TableCard } from "@/components/shared/table-card";
 import {
@@ -63,7 +61,9 @@ function MessagesListContent() {
   const [phoneInput, setPhoneInput] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [direction, setDirection] = React.useState<MessageDirection | "">("");
-  const [channelFilter, setChannelFilter] = React.useState<MessageChannel | "">("");
+  const [channelFilter, setChannelFilter] = React.useState<MessageChannel | "">(
+    "",
+  );
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [viewing, setViewing] = React.useState<Message | null>(null);
@@ -85,7 +85,7 @@ function MessagesListContent() {
       phone: phone || undefined,
       direction: direction || undefined,
     }),
-    [phone, direction]
+    [phone, direction],
   );
 
   const { data, isLoading, error } = useMessagesList(queryParams);
@@ -101,13 +101,8 @@ function MessagesListContent() {
   const safePage = Math.min(page, totalPages);
   const pageRows = React.useMemo(
     () => filtered.slice((safePage - 1) * perPage, safePage * perPage),
-    [filtered, safePage, perPage]
+    [filtered, safePage, perPage],
   );
-
-  const totalFetch = data?.total ?? 0;
-  const outbound = allMessages.filter((m) => m.direction === "outbound").length;
-  const inbound = allMessages.filter((m) => m.direction === "inbound").length;
-  const failed = allMessages.filter((m) => m.status === "failed").length;
 
   const sendMutation = useSendMessage();
 
@@ -136,7 +131,10 @@ function MessagesListContent() {
       <div>
         <PageHeader
           title="Messages"
-          breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Messages" }]}
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Messages" },
+          ]}
         />
         <ErrorState title="Failed to load messages." />
       </div>
@@ -146,8 +144,12 @@ function MessagesListContent() {
   return (
     <div className="space-y-4">
       <PageHeader
+        count={total}
         title="Messages"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Messages" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Messages" },
+        ]}
         action={
           canSend && (
             <Button onClick={() => setSendOpen(true)}>
@@ -158,32 +160,10 @@ function MessagesListContent() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total Messages"
-          value={totalFetch}
-          icon={<MessageSquare className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Outbound"
-          value={outbound}
-          icon={<ArrowUpRight className="h-4 w-4" />}
-          variant="primary"
-        />
-        <StatsCard
-          title="Inbound"
-          value={inbound}
-          icon={<ArrowDownLeft className="h-4 w-4" />}
-          variant="success"
-        />
-        <StatsCard
-          title="Failed"
-          value={failed}
-          icon={<AlertTriangle className="h-4 w-4" />}
-          variant="default"
-        />
-      </div>
-
+      <p className="text-xs text-muted-foreground">
+        Search and channel filters cover up to 200 loaded messages. Matching
+        messages: {total.toLocaleString()}.
+      </p>
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -274,7 +254,9 @@ function MessagesListContent() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center gap-1 text-sm font-medium ${MESSAGE_DIRECTION_TEXT[message.direction]}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 text-sm font-medium ${MESSAGE_DIRECTION_TEXT[message.direction]}`}
+                    >
                       {message.direction === "inbound" ? (
                         <ArrowDownLeft className="h-3.5 w-3.5" />
                       ) : (
@@ -284,7 +266,9 @@ function MessagesListContent() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{MESSAGE_CHANNEL_LABELS[message.channel]}</Badge>
+                    <Badge variant="secondary">
+                      {MESSAGE_CHANNEL_LABELS[message.channel]}
+                    </Badge>
                   </TableCell>
                   <TableCell className="max-w-[260px]">
                     <p className="truncate text-muted-foreground">
@@ -292,7 +276,9 @@ function MessagesListContent() {
                     </p>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-sm font-medium ${MESSAGE_STATUS_TEXT[message.status]}`}>
+                    <span
+                      className={`text-sm font-medium ${MESSAGE_STATUS_TEXT[message.status]}`}
+                    >
                       {MESSAGE_STATUS_LABELS[message.status]}
                     </span>
                   </TableCell>
@@ -307,18 +293,26 @@ function MessagesListContent() {
       </TableCard>
 
       {/* View detail */}
-      <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
+      <Dialog
+        open={!!viewing}
+        onOpenChange={(open) => !open && setViewing(null)}
+      >
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
             <DialogTitle>
-              {viewing ? MESSAGE_DIRECTION_LABELS[viewing.direction] : ""} Message
+              {viewing ? MESSAGE_DIRECTION_LABELS[viewing.direction] : ""}{" "}
+              Message
             </DialogTitle>
             <DialogDescription className="flex flex-wrap items-center gap-2">
               {viewing && (
-                <Badge variant="secondary">{MESSAGE_CHANNEL_LABELS[viewing.channel]}</Badge>
+                <Badge variant="secondary">
+                  {MESSAGE_CHANNEL_LABELS[viewing.channel]}
+                </Badge>
               )}
               {viewing && (
-                <span className={`text-sm font-medium ${MESSAGE_STATUS_TEXT[viewing.status]}`}>
+                <span
+                  className={`text-sm font-medium ${MESSAGE_STATUS_TEXT[viewing.status]}`}
+                >
                   {MESSAGE_STATUS_LABELS[viewing.status]}
                 </span>
               )}
@@ -332,11 +326,17 @@ function MessagesListContent() {
                   <p className="font-medium">{viewing.phone}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs mb-0.5">Direction</p>
-                  <p className="font-medium">{MESSAGE_DIRECTION_LABELS[viewing.direction]}</p>
+                  <p className="text-muted-foreground text-xs mb-0.5">
+                    Direction
+                  </p>
+                  <p className="font-medium">
+                    {MESSAGE_DIRECTION_LABELS[viewing.direction]}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs mb-0.5">Sent / Received</p>
+                  <p className="text-muted-foreground text-xs mb-0.5">
+                    Sent / Received
+                  </p>
                   <p className="font-medium">
                     {format(new Date(viewing.createdAt), "MMM d, yyyy h:mm a")}
                   </p>
@@ -363,7 +363,9 @@ function MessagesListContent() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Recipient Phone *</label>
+              <label className="text-sm font-medium mb-1.5 block">
+                Recipient Phone *
+              </label>
               <Input
                 placeholder="e.g. +2348012345678"
                 value={sendTo}
@@ -371,7 +373,9 @@ function MessagesListContent() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-1.5 block">Message *</label>
+              <label className="text-sm font-medium mb-1.5 block">
+                Message *
+              </label>
               <Textarea
                 placeholder="Type your message..."
                 rows={4}
@@ -388,8 +392,13 @@ function MessagesListContent() {
             >
               Cancel
             </Button>
-            <Button onClick={() => void handleSend()} disabled={sendMutation.isPending}>
-              {sendMutation.isPending ? "Sending..." : (
+            <Button
+              onClick={() => void handleSend()}
+              disabled={sendMutation.isPending}
+            >
+              {sendMutation.isPending ? (
+                "Sending..."
+              ) : (
                 <>
                   <Send className="h-4 w-4 mr-2" />
                   Send

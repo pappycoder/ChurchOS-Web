@@ -62,6 +62,7 @@ interface AssetDetailDrawerProps {
   presentation?: "drawer" | "page";
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   assetId: string;
   /** Rendered in the footer (e.g. maintenance / loan actions). */
   children?: React.ReactNode;
@@ -89,6 +90,7 @@ export function AssetDetailDrawer({
   open,
   presentation = "drawer",
   onOpenChange,
+  returnFocusRef,
   assetId,
   children,
 }: AssetDetailDrawerProps) {
@@ -430,7 +432,20 @@ export function AssetDetailDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+      <SheetContent
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                const target = returnFocusRef.current;
+                if (target?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => target.focus());
+                }
+              }
+            : undefined
+        }
+        className="w-full sm:max-w-md overflow-y-auto"
+      >
         <SheetHeader className="px-6 pt-6 pb-3">
           <SheetTitle className="flex items-center gap-2">
             <Boxes className="h-5 w-5" />

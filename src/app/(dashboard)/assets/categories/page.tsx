@@ -1,13 +1,24 @@
 "use client";
+import { WorkspaceRowMenu } from "@/components/workspace/workspace-management-menu";
 
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
 import { parseISO } from "date-fns";
-import { FolderTree, Pencil, Plus, Trash2, Archive, RotateCcw } from "lucide-react";
+import {
+  FolderTree,
+  Pencil,
+  Plus,
+  Trash2,
+  Archive,
+  RotateCcw,
+} from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
-import { PageHeader } from "@/components/shared/page-header";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -35,24 +46,32 @@ import {
 } from "@/hooks/use-assets";
 
 export default function AssetCategoriesPage() {
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { can } = usePermissions();
   const canCreate = can("assets:categories", "create");
   const canUpdate = can("assets:categories", "update");
   const canDelete = can("assets:categories", "delete");
 
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
 
-  const { data: categories, isLoading, error } = useAssetCategories(
-    archivedView ? true : undefined
-  );
+  const {
+    data: categories,
+    isLoading,
+    error,
+  } = useAssetCategories(archivedView ? true : undefined);
   const deleteMutation = useDeleteAssetCategory();
   const archiveMutation = useArchiveAssetCategory();
   const restoreMutation = useRestoreAssetCategory();
 
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
-  const [editCategory, setEditCategory] = React.useState<AssetCategory | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<AssetCategory | null>(null);
+  const [editCategory, setEditCategory] = React.useState<AssetCategory | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = React.useState<AssetCategory | null>(
+    null,
+  );
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
     category: AssetCategory;
@@ -63,7 +82,7 @@ export default function AssetCategoriesPage() {
   const allCategories = React.useMemo(() => categories ?? [], [categories]);
   const pagedCategories = React.useMemo(
     () => allCategories.slice((page - 1) * perPage, page * perPage),
-    [allCategories, page, perPage]
+    [allCategories, page, perPage],
   );
 
   const canManage = canCreate || canUpdate || canDelete;
@@ -71,6 +90,7 @@ export default function AssetCategoriesPage() {
   return (
     <div>
       <PageHeader
+        count={allCategories.length}
         title="Asset Categories"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -96,7 +116,13 @@ export default function AssetCategoriesPage() {
         }
         toolbar={
           <div className="flex items-center gap-2">
-            <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
+            <ArchivedFilter
+              value={archivedFilter}
+              onChange={(value) => {
+                setArchivedFilter(value);
+                setPage(1);
+              }}
+            />
           </div>
         }
         itemName="categories"
@@ -118,7 +144,9 @@ export default function AssetCategoriesPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Created</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -132,7 +160,10 @@ export default function AssetCategoriesPage() {
                 ))
               ) : allCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={canManage ? 4 : 3} className="h-32 text-center">
+                  <TableCell
+                    colSpan={canManage ? 4 : 3}
+                    className="h-32 text-center"
+                  >
                     <p className="text-muted-foreground">
                       {archivedView
                         ? "No archived categories."
@@ -143,10 +174,14 @@ export default function AssetCategoriesPage() {
               ) : (
                 pagedCategories.map((category) => (
                   <TableRow key={category.id}>
-                    <TableCell className="font-medium">{category.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {category.name}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {category.description ? (
-                        <span className="max-w-md truncate block">{category.description}</span>
+                        <span className="max-w-md truncate block">
+                          {category.description}
+                        </span>
                       ) : (
                         "—"
                       )}
@@ -154,7 +189,10 @@ export default function AssetCategoriesPage() {
                     <TableCell>
                       {(() => {
                         try {
-                          return format(parseISO(category.createdAt), "dd MMM yyyy");
+                          return format(
+                            parseISO(category.createdAt),
+                            "dd MMM yyyy",
+                          );
                         } catch {
                           return category.createdAt;
                         }
@@ -163,13 +201,19 @@ export default function AssetCategoriesPage() {
                     {canManage && (
                       <TableCell className="text-right">
                         {archivedView ? (
-                          <div className="flex justify-end gap-1">
+                          <WorkspaceRowMenu
+                            label={`Manage ${category.name}`}
+                            returnFocusRef={managementRef}
+                          >
                             {canUpdate && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  setArchiveTarget({ kind: "restore", category })
+                                  setArchiveTarget({
+                                    kind: "restore",
+                                    category,
+                                  })
                                 }
                               >
                                 <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
@@ -181,15 +225,20 @@ export default function AssetCategoriesPage() {
                                 variant="outline"
                                 size="sm"
                                 className="text-destructive hover:text-destructive"
-                                onClick={() => setArchiveTarget({ kind: "purge", category })}
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "purge", category })
+                                }
                               >
                                 <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                                 Delete Forever
                               </Button>
                             )}
-                          </div>
+                          </WorkspaceRowMenu>
                         ) : (
-                          <div className="flex justify-end gap-1">
+                          <WorkspaceRowMenu
+                            label={`Manage ${category.name}`}
+                            returnFocusRef={managementRef}
+                          >
                             {canUpdate && (
                               <Button
                                 size="icon"
@@ -202,27 +251,34 @@ export default function AssetCategoriesPage() {
                             )}
                             {(canUpdate || canDelete) && (
                               <>
-                                {canUpdate && (<Button
-                                  size="icon"
-                                  variant="ghost"
-                                  title="Archive"
-                                  onClick={() =>
-                                    setArchiveTarget({ kind: "archive", category })
-                                  }
-                                >
-                                  <Archive className="h-4 w-4" />
-                                </Button>)}
-                                {canDelete && (<Button
-                                  size="icon"
-                                  variant="ghost"
-                                  title="Delete"
-                                  onClick={() => setDeleteTarget(category)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>)}
+                                {canUpdate && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    title="Archive"
+                                    onClick={() =>
+                                      setArchiveTarget({
+                                        kind: "archive",
+                                        category,
+                                      })
+                                    }
+                                  >
+                                    <Archive className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {canDelete && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    title="Delete"
+                                    onClick={() => setDeleteTarget(category)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                )}
                               </>
                             )}
-                          </div>
+                          </WorkspaceRowMenu>
                         )}
                       </TableCell>
                     )}
@@ -240,6 +296,7 @@ export default function AssetCategoriesPage() {
         onSaved={() => setCreateDialogOpen(false)}
       />
       <CategoryFormDialog
+        returnFocusRef={managementRef}
         open={!!editCategory}
         onOpenChange={(open) => {
           if (!open) setEditCategory(null);
@@ -247,6 +304,7 @@ export default function AssetCategoriesPage() {
         category={editCategory}
       />
       <ConfirmDeleteDialog
+        returnFocusRef={managementRef}
         open={!!deleteTarget}
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
@@ -270,6 +328,7 @@ export default function AssetCategoriesPage() {
         }}
       />
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

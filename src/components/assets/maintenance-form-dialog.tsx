@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceFormSection } from "@/components/workspace/workspace-presentation";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -77,7 +78,9 @@ interface MaintenanceFormDialogProps {
   onSaved?: () => void;
 }
 
-function toFormValues(maintenance?: AssetMaintenance | null): MaintenanceFormValues {
+function toFormValues(
+  maintenance?: AssetMaintenance | null,
+): MaintenanceFormValues {
   return {
     type: maintenance?.type ?? "",
     scheduledDate: maintenance?.scheduledDate
@@ -85,7 +88,9 @@ function toFormValues(maintenance?: AssetMaintenance | null): MaintenanceFormVal
       : new Date().toISOString().slice(0, 10),
     description: maintenance?.description ?? "",
     status: maintenance?.status ?? "scheduled",
-    completedDate: maintenance?.completedDate ? maintenance.completedDate.slice(0, 10) : "",
+    completedDate: maintenance?.completedDate
+      ? maintenance.completedDate.slice(0, 10)
+      : "",
     cost: maintenance?.cost ?? undefined,
     performedBy: maintenance?.performedBy ?? "",
     notes: maintenance?.notes ?? "",
@@ -129,15 +134,19 @@ export function MaintenanceFormDialog({
     mutation.mutate(payload as never, {
       onSuccess: () => {
         toast.success(
-          isEdit ? "Maintenance updated successfully" : "Maintenance scheduled successfully"
+          isEdit
+            ? "Maintenance updated successfully"
+            : "Maintenance scheduled successfully",
         );
         onOpenChange(false);
         onSaved?.();
       },
       onError: (error) => {
         toast.error(
-          isEdit ? "Failed to update maintenance" : "Failed to schedule maintenance",
-          { description: error?.message || "Please try again." }
+          isEdit
+            ? "Failed to update maintenance"
+            : "Failed to schedule maintenance",
+          { description: error?.message || "Please try again." },
         );
       },
     });
@@ -149,7 +158,9 @@ export function MaintenanceFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Update Maintenance" : "Schedule Maintenance"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Update Maintenance" : "Schedule Maintenance"}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update the maintenance record, including marking it complete."
@@ -159,23 +170,66 @@ export function MaintenanceFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <WorkspaceFormSection title="Schedule and status">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Maintenance Type *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {MAINTENANCE_TYPES.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="scheduledDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Scheduled Date *</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
               <FormField
                 control={form.control}
-                name="type"
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Maintenance Type *</FormLabel>
+                    <FormLabel>Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {MAINTENANCE_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
+                        {STATUS_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -184,120 +238,95 @@ export function MaintenanceFormDialog({
                   </FormItem>
                 )}
               />
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Completion and cost">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="completedDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Completed Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="cost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cost (₦)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          placeholder="0"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="performedBy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Performed By</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Technician or vendor"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Work details">
               <FormField
                 control={form.control}
-                name="scheduledDate"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Scheduled Date *</FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Textarea
+                        placeholder="What needs to be done?"
+                        rows={2}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="completedDate"
+                name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Completed Date</FormLabel>
+                    <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Textarea
+                        placeholder="Additional notes"
+                        rows={2}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="cost"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost (₦)</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} placeholder="0" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="performedBy"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Performed By</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Technician or vendor" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="What needs to be done?"
-                      rows={2}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Additional notes" rows={2} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            </WorkspaceFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

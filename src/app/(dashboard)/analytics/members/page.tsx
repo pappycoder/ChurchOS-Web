@@ -1,12 +1,17 @@
 "use client";
 
-
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { Users } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { StatsCard } from "@/components/shared/stats-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
+import { SummaryMetric as StatsCard } from "@/components/workspace/workspace-presentation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AnalyticsTrendChart } from "@/components/analytics/analytics-charts";
 import { DonutChart, colorize } from "@/components/analytics/pie-chart";
@@ -37,15 +42,24 @@ export default function AnalyticsMembersPage() {
         ]}
         action={
           <>
-
-            <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isLoading}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => query.refetch()}
+              disabled={query.isLoading}
+            >
               Refresh
             </Button>
           </>
         }
       />
 
-      <p className="text-sm text-muted-foreground">Current membership and demographics in your permitted branch scope. Growth uses the reporting window supplied by the service. Refresh updates cached results; these demographics do not support a historical date filter.</p>
+      <p className="text-sm text-muted-foreground">
+        Current membership and demographics in your permitted branch scope.
+        Growth uses the reporting window supplied by the service. Refresh
+        updates cached results; these demographics do not support a historical
+        date filter.
+      </p>
 
       {query.error ? (
         <ErrorState title="Failed to load member analytics." />
@@ -62,26 +76,35 @@ export default function AnalyticsMembersPage() {
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Member Growth</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Member Growth
+              </CardTitle>
               <CardDescription>Monthly membership growth.</CardDescription>
             </CardHeader>
             <CardContent>
-              <AnalyticsTrendChart data={data?.growth ?? []} loading={query.isLoading} />
+              <AnalyticsTrendChart
+                data={data?.growth ?? []}
+                loading={query.isLoading}
+              />
             </CardContent>
           </Card>
 
           {/* Age distribution — histogram */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Age Distribution</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Age Distribution
+              </CardTitle>
               <CardDescription>Members by age group (bins).</CardDescription>
             </CardHeader>
             <CardContent>
               <HistogramChart
-                data={Object.entries(data?.byAgeGroup ?? {}).map(([key, value]) => ({
-                  label: AGE_LABELS[key] ?? key.replace(/_/g, " "),
-                  value,
-                }))}
+                data={Object.entries(data?.byAgeGroup ?? {}).map(
+                  ([key, value]) => ({
+                    label: AGE_LABELS[key] ?? key.replace(/_/g, " "),
+                    value,
+                  }),
+                )}
                 loading={query.isLoading}
                 unit="members"
                 color="var(--chart-2)"
@@ -92,16 +115,22 @@ export default function AnalyticsMembersPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">By Status</CardTitle>
-                <CardDescription>Members per membership status.</CardDescription>
+                <CardTitle className="text-sm font-semibold">
+                  By Status
+                </CardTitle>
+                <CardDescription>
+                  Members per membership status.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <DonutChart
                   data={colorize(
-                    Object.entries(data?.byStatus ?? {}).map(([key, value]) => ({
-                      name: key.replace(/_/g, " "),
-                      value,
-                    }))
+                    Object.entries(data?.byStatus ?? {}).map(
+                      ([key, value]) => ({
+                        name: key.replace(/_/g, " "),
+                        value,
+                      }),
+                    ),
                   )}
                   loading={query.isLoading}
                   unit="members"
@@ -111,16 +140,20 @@ export default function AnalyticsMembersPage() {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">By Gender</CardTitle>
+                <CardTitle className="text-sm font-semibold">
+                  By Gender
+                </CardTitle>
                 <CardDescription>Members by gender.</CardDescription>
               </CardHeader>
               <CardContent>
                 <DonutChart
                   data={colorize(
-                    Object.entries(data?.byGender ?? {}).map(([key, value]) => ({
-                      name: key.replace(/_/g, " "),
-                      value,
-                    }))
+                    Object.entries(data?.byGender ?? {}).map(
+                      ([key, value]) => ({
+                        name: key.replace(/_/g, " "),
+                        value,
+                      }),
+                    ),
                   )}
                   loading={query.isLoading}
                   unit="members"

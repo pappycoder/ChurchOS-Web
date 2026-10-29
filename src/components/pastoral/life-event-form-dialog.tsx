@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceFormSection } from "@/components/workspace/workspace-presentation";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -102,7 +103,7 @@ export function LifeEventFormDialog({
             description: error?.message || "Please try again.",
           });
         },
-      }
+      },
     );
   };
 
@@ -118,82 +119,87 @@ export function LifeEventFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="memberId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Member</FormLabel>
-                  <FormControl>
-                    <MemberCombobox
-                      value={field.value}
-                      onChange={(memberId) => field.onChange(memberId)}
-                      placeholder="Search and select a member"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <WorkspaceFormSection title="Member and event">
               <FormField
                 control={form.control}
-                name="type"
+                name="memberId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {LIFE_EVENT_TYPES.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {LIFE_EVENT_TYPE_LABELS[type]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date *</FormLabel>
+                    <FormLabel>Member</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <MemberCombobox
+                        value={field.value}
+                        onChange={(memberId) => field.onChange(memberId)}
+                        placeholder="Search and select a member"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Optional details about this event"
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {LIFE_EVENT_TYPES.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {LIFE_EVENT_TYPE_LABELS[type]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date *</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Additional information">
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Optional details about this event"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </WorkspaceFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"
@@ -203,7 +209,11 @@ export function LifeEventFormDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending} loading={createMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                loading={createMutation.isPending}
+              >
                 {createMutation.isPending ? "Adding..." : "Add Life Event"}
               </Button>
             </DialogFooter>

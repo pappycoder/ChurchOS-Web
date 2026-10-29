@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCreateForm } from "@/hooks/use-forms";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FormForm } from "@/components/forms/form-form";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,9 @@ export default function NewFormPage() {
     );
   }
 
-  const handleSubmit = async (input: Parameters<typeof createMutation.mutateAsync>[0]) => {
+  const handleSubmit = async (
+    input: Parameters<typeof createMutation.mutateAsync>[0],
+  ) => {
     try {
       const created = await createMutation.mutateAsync(input);
       toast.success("Form created");
@@ -62,7 +64,12 @@ export default function NewFormPage() {
           { label: "New Form" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/forms");
+            }}
+          >
             Back
           </Button>
         }

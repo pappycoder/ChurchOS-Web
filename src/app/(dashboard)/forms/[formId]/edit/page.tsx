@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useForm, useUpdateForm } from "@/hooks/use-forms";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FormForm } from "@/components/forms/form-form";
 import { Button } from "@/components/ui/button";
@@ -76,8 +76,15 @@ export default function EditFormPage() {
         />
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <AlertTriangle className="h-10 w-10 text-destructive" />
-          <p className="text-sm text-muted-foreground">Failed to load this form.</p>
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/forms"); }}>
+          <p className="text-sm text-muted-foreground">
+            Failed to load this form.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/forms");
+            }}
+          >
             Back to Forms
           </Button>
         </div>
@@ -85,7 +92,9 @@ export default function EditFormPage() {
     );
   }
 
-  const handleSubmit = async (input: Parameters<typeof updateMutation.mutateAsync>[0]) => {
+  const handleSubmit = async (
+    input: Parameters<typeof updateMutation.mutateAsync>[0],
+  ) => {
     try {
       await updateMutation.mutateAsync(input);
       toast.success("Form updated");
@@ -109,12 +118,21 @@ export default function EditFormPage() {
           { label: "Edit" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.back(); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.back();
+            }}
+          >
             Back
           </Button>
         }
       />
-      <FormForm form={form} onSubmit={handleSubmit} submitLabel="Save Changes" />
+      <FormForm
+        form={form}
+        onSubmit={handleSubmit}
+        submitLabel="Save Changes"
+      />
     </div>
   );
 }

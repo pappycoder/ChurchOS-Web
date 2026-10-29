@@ -1,17 +1,11 @@
 "use client";
 
-
 import { ErrorState } from "@/components/shared/error-state";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import * as React from "react";
 import { format } from "date-fns";
-import {
-  ArrowUpDown,
-  SortAsc,
-  SortDesc,
-  Sparkles,
-} from "lucide-react";
+import { ArrowUpDown, SortAsc, SortDesc, Sparkles } from "lucide-react";
 import {
   useEngagementScores,
   useEngagementDistribution,
@@ -21,8 +15,10 @@ import {
   ENGAGEMENT_BUCKET_TEXT,
   engagementBucketFor,
 } from "@/hooks/use-pastoral";
-import { PageHeader } from "@/components/shared/page-header";
-import { LoadingIndicator } from "@/components/shared/loading-indicator";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,7 +39,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/shared/empty-state";
 import { SearchInput } from "@/components/shared/search-input";
-import { StatsCard } from "@/components/shared/stats-card";
+import { DistributionChart } from "@/components/workspace/workspace-presentation";
 import { MemberScoringDialog } from "@/components/pastoral/member-scoring-dialog";
 import { cn } from "@/lib/utils";
 
@@ -54,13 +50,6 @@ const BUCKET_ORDER: EngagementBucket[] = [
   "disengaged",
 ];
 
-const BUCKET_CARD_VARIANT: Record<EngagementBucket, "default" | "primary" | "success" | "warning"> = {
-  highly_engaged: "success",
-  moderately_engaged: "primary",
-  low_engagement: "warning",
-  disengaged: "default",
-};
-
 const SORT_OPTIONS = [
   { value: "score", label: "Engagement Score" },
   { value: "calculated_at", label: "Date Calculated" },
@@ -69,10 +58,12 @@ const SORT_OPTIONS = [
 export default function EngagementPage() {
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [bucketFilter, setBucketFilter] = React.useState<EngagementBucket | "all">(
-    "all"
+  const [bucketFilter, setBucketFilter] = React.useState<
+    EngagementBucket | "all"
+  >("all");
+  const [sortBy, setSortBy] = React.useState<"score" | "calculated_at">(
+    "score",
   );
-  const [sortBy, setSortBy] = React.useState<"score" | "calculated_at">("score");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -95,7 +86,7 @@ export default function EngagementPage() {
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, bucketFilter, sortBy, sortOrder]
+    [page, perPage, search, bucketFilter, sortBy, sortOrder],
   );
 
   const { data, isLoading, error } = useEngagementScores(queryParams);
@@ -107,58 +98,33 @@ export default function EngagementPage() {
 
   const [selected, setSelected] = React.useState<EngagementScore | null>(null);
 
-  if (error) {
-    return (
-      <div>
-        <PageHeader
-          title="Engagement"
-          breadcrumbs={[
-            { label: "Home", href: "/dashboard" },
-            { label: "Pastoral Care" },
-            { label: "Engagement" },
-          ]}
-        />
-        <ErrorState />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <PageHeader
+        count={meta?.total ?? 0}
         title="Engagement"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Pastoral Care" },
           { label: "Engagement" },
         ]}
-
       />
 
-      {/* Distribution overview */}
-      <div data-export-list className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {BUCKET_ORDER.map((bucket) => {
-          const count = distribution?.[bucket] ?? 0;
-          return (
-            <StatsCard
-              key={bucket}
-              title={ENGAGEMENT_BUCKET_LABELS[bucket]}
-              value={count}
-              icon={<Sparkles className="h-4 w-4" />}
-              variant={BUCKET_CARD_VARIANT[bucket]}
-              subtitle={
-                distributionQuery.isLoading
-                  ? <LoadingIndicator label="Loading engagement distribution" size="sm" />
-                  : count === 1
-                    ? "1 member"
-                    : `${count} members`
-              }
-            />
-          );
-        })}
-      </div>
+      <DistributionChart
+        title="Engagement distribution"
+        description="Latest engagement scores in your permitted scope. This summary is independent of the table’s search and bucket filters."
+        query={distributionQuery}
+        data={BUCKET_ORDER.map((bucket) => ({
+          label: ENGAGEMENT_BUCKET_LABELS[bucket],
+          value: distribution?.[bucket] ?? 0,
+        }))}
+      />
 
-      <p className="text-sm text-muted-foreground">Scores reflect the most recent calculation shown in each row. They are decision support for follow-up; review the factors and member context before taking action.</p>
+      <p className="text-sm text-muted-foreground">
+        Scores reflect the most recent calculation shown in each row. They are
+        decision support for follow-up; review the factors and member context
+        before taking action.
+      </p>
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -189,40 +155,60 @@ export default function EngagementPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex items-center gap-1">
-              <Select
-                value={sortBy}
-                onValueChange={(v) => {
-                  setSortBy(v as "score" | "calculated_at");
+            <WorkspaceMoreFilters
+              count={Number(sortBy !== "score" || sortOrder !== "desc")}
+            >
+              <div className="flex items-center gap-1">
+                <Select
+                  value={sortBy}
+                  onValueChange={(v) => {
+                    setSortBy(v as "score" | "calculated_at");
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="w-44">
+                    <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() =>
+                    setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                  }
+                  aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
+                >
+                  {sortOrder === "asc" ? (
+                    <SortAsc className="h-4 w-4" />
+                  ) : (
+                    <SortDesc className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSortBy("score");
+                  setSortOrder("desc");
+                  setBucketFilter("all");
+                  setSearchInput("");
+                  setSearch("");
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-44">
-                  <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SORT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
-              >
-                {sortOrder === "asc" ? (
-                  <SortAsc className="h-4 w-4" />
-                ) : (
-                  <SortDesc className="h-4 w-4" />
-                )}
+                Reset filters
               </Button>
-            </div>
+            </WorkspaceMoreFilters>
           </div>
         }
         itemName="members"
@@ -235,7 +221,9 @@ export default function EngagementPage() {
           setPage(1);
         }}
       >
-        {isLoading ? (
+        {error ? (
+          <ErrorState title="Unable to load engagement records" />
+        ) : isLoading ? (
           <LoadingState variant="table" />
         ) : scores.length === 0 ? (
           <div className="py-8">
@@ -251,58 +239,68 @@ export default function EngagementPage() {
           </div>
         ) : (
           <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Bucket</TableHead>
-                    <TableHead>Calculated</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {scores.map((row) => {
-                    const bucket = engagementBucketFor(row.score);
-                    return (
-                      <TableRow
-                        key={row.id}
-                        className="cursor-pointer"
-                        onClick={() => setSelected(row)}
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Score</TableHead>
+                <TableHead>Bucket</TableHead>
+                <TableHead>Calculated</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {scores.map((row) => {
+                const bucket = engagementBucketFor(row.score);
+                return (
+                  <TableRow
+                    key={row.id}
+                    className="cursor-pointer"
+                    onClick={() => setSelected(row)}
+                  >
+                    <TableCell>
+                      <p className="font-medium">
+                        {row.memberFirstName} {row.memberLastName}
+                      </p>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setSelected(row);
+                        }}
                       >
-                        <TableCell>
-                          <p className="font-medium">
-                            {row.memberFirstName} {row.memberLastName}
-                          </p><Button variant="link" size="sm" onClick={event => {event.stopPropagation();setSelected(row);}}>View factors</Button>
-                          {row.memberEmail && (
-                            <p className="text-xs text-muted-foreground truncate">
-                              {row.memberEmail}
-                            </p>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-lg font-semibold">
-                            {Math.round(row.score)}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "font-medium",
-                              ENGAGEMENT_BUCKET_TEXT[bucket]
-                            )}
-                          >
-                            {ENGAGEMENT_BUCKET_LABELS[bucket]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground whitespace-nowrap">
-                          {format(new Date(row.calculatedAt), "MMM d, yyyy")}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-          )}
+                        View factors
+                      </Button>
+                      {row.memberEmail && (
+                        <p className="text-xs text-muted-foreground truncate">
+                          {row.memberEmail}
+                        </p>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-lg font-semibold">
+                        {Math.round(row.score)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "font-medium",
+                          ENGAGEMENT_BUCKET_TEXT[bucket],
+                        )}
+                      >
+                        {ENGAGEMENT_BUCKET_LABELS[bucket]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {format(new Date(row.calculatedAt), "MMM d, yyyy")}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
       </TableCard>
 
       <MemberScoringDialog

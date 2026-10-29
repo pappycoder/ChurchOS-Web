@@ -7,7 +7,7 @@ import * as React from "react";
 import { format } from "date-fns";
 import { toast } from "@/lib/toast";
 import {
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Plus,
   StickyNote,
@@ -26,9 +26,15 @@ import {
   CONFIDENTIALITY_LABELS,
   CONFIDENTIALITY_TEXT,
 } from "@/hooks/use-pastoral";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -42,7 +48,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -63,7 +75,10 @@ import { NoteFormDialog } from "@/components/pastoral/note-form-dialog";
 import { ConfirmDeleteDialog } from "@/components/pastoral/confirm-delete-dialog";
 import { cn } from "@/lib/utils";
 
-const CONFIDENTIALITY_OPTIONS: Array<{ value: ConfidentialityLevel | "all"; label: string }> = [
+const CONFIDENTIALITY_OPTIONS: Array<{
+  value: ConfidentialityLevel | "all";
+  label: string;
+}> = [
   { value: "all", label: "All Levels" },
   ...Object.entries(CONFIDENTIALITY_LABELS).map(([value, label]) => ({
     value: value as ConfidentialityLevel,
@@ -73,7 +88,11 @@ const CONFIDENTIALITY_OPTIONS: Array<{ value: ConfidentialityLevel | "all"; labe
 
 export default function PastoralNotesPage() {
   const { can } = usePermissions();
-  const [viewNote, setViewNote] = React.useState<{content:string; memberFirstName?:string; memberLastName?:string} | null>(null);
+  const [viewNote, setViewNote] = React.useState<{
+    content: string;
+    memberFirstName?: string;
+    memberLastName?: string;
+  } | null>(null);
   const canCreate = can("pastoral:notes", "create");
   const canUpdate = can("pastoral:notes", "update");
   const canDelete = can("pastoral:notes", "delete");
@@ -82,7 +101,8 @@ export default function PastoralNotesPage() {
   const [confidentiality, setConfidentiality] = React.useState<
     ConfidentialityLevel | "all"
   >("all");
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
@@ -94,7 +114,7 @@ export default function PastoralNotesPage() {
       confidentiality: confidentiality === "all" ? undefined : confidentiality,
       archived: archivedView ? true : undefined,
     }),
-    [page, perPage, confidentiality, archivedView]
+    [page, perPage, confidentiality, archivedView],
   );
 
   const { data, isLoading, error } = usePastoralNotes(queryParams);
@@ -107,7 +127,9 @@ export default function PastoralNotesPage() {
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editNote, setEditNote] = React.useState<PastoralNote | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<PastoralNote | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<PastoralNote | null>(
+    null,
+  );
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
     note: PastoralNote;
@@ -132,6 +154,7 @@ export default function PastoralNotesPage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        count={meta?.total ?? 0}
         title="Pastoral Notes"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -152,7 +175,26 @@ export default function PastoralNotesPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-2 flex-wrap">
-              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
+              <WorkspaceMoreFilters count={Number(archivedFilter !== "all")}>
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={(value) => {
+                    setArchivedFilter(value);
+                    setPage(1);
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setArchivedFilter("all");
+                    setConfidentiality("all");
+                    setPage(1);
+                  }}
+                >
+                  Reset filters
+                </Button>
+              </WorkspaceMoreFilters>
               <Select
                 value={confidentiality}
                 onValueChange={(v) => {
@@ -208,149 +250,187 @@ export default function PastoralNotesPage() {
           </div>
         ) : (
           <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Confidentiality</TableHead>
-                    <TableHead>Tags</TableHead>
-                    <TableHead>Content</TableHead>
-                    <TableHead>Author</TableHead>
-                    <TableHead>Date</TableHead>
-                    {canManage && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {notes.map((note) => (
-                    <TableRow key={note.id}>
-                      <TableCell>
-                        <p className="font-medium">
-                          {note.memberFirstName} {note.memberLastName}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "font-normal",
-                            CONFIDENTIALITY_TEXT[note.confidentiality]
-                          )}
-                        >
-                          {CONFIDENTIALITY_LABELS[note.confidentiality]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {(note.tags ?? []).length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {note.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="secondary">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {(note.tags ?? []).length > 3 && (
-                              <span className="text-xs text-muted-foreground self-center">
-                                +{note.tags.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Confidentiality</TableHead>
+                <TableHead>Tags</TableHead>
+                <TableHead>Content</TableHead>
+                <TableHead>Author</TableHead>
+                <TableHead>Date</TableHead>
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {notes.map((note) => (
+                <TableRow key={note.id}>
+                  <TableCell>
+                    <p className="font-medium">
+                      {note.memberFirstName} {note.memberLastName}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "font-normal",
+                        CONFIDENTIALITY_TEXT[note.confidentiality],
+                      )}
+                    >
+                      {CONFIDENTIALITY_LABELS[note.confidentiality]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {(note.tags ?? []).length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {note.tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag} variant="secondary">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {(note.tags ?? []).length > 3 && (
+                          <span className="text-xs text-muted-foreground self-center">
+                            +{note.tags.length - 3}
+                          </span>
                         )}
-                      </TableCell>
-                      <TableCell className="max-w-[280px]">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {note.content}
-                        </p>
-                        <Button size="sm" variant="link" onClick={() => setViewNote(note)}>Read full note</Button>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {note.authorFirstName} {note.authorLastName}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {format(new Date(note.createdAt), "MMM d, yyyy")}
-                      </TableCell>
-                      {canManage && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {archivedView ? (
-                            <div className="flex items-center justify-end gap-1.5">
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="max-w-[280px]">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {note.content}
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="link"
+                      onClick={() => setViewNote(note)}
+                    >
+                      Read full note
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {note.authorFirstName} {note.authorLastName}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {format(new Date(note.createdAt), "MMM d, yyyy")}
+                  </TableCell>
+                  {canManage && (
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {archivedView ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          {canUpdate && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "restore", note })
+                              }
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                              Restore
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "purge", note })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                              Delete Forever
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        (canUpdate || canDelete) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">More actions</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
                               {canUpdate && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setArchiveTarget({ kind: "restore", note })}
+                                <DropdownMenuItem
+                                  onClick={() => setEditNote(note)}
                                 >
-                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                                  Restore
-                                </Button>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit Note
+                                </DropdownMenuItem>
                               )}
-                              {canDelete && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive"
-                                  onClick={() => setArchiveTarget({ kind: "purge", note })}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                                  Delete Forever
-                                </Button>
-                              )}
-                            </div>
-                          ) : (
-                            (canUpdate || canDelete) && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">More actions</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                              {(canUpdate || canDelete) && (
+                                <>
+                                  <DropdownMenuSeparator />
                                   {canUpdate && (
-                                    <DropdownMenuItem onClick={() => setEditNote(note)}>
-                                      <Pencil className="mr-2 h-4 w-4" />
-                                      Edit Note
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setArchiveTarget({
+                                          kind: "archive",
+                                          note,
+                                        })
+                                      }
+                                    >
+                                      <Archive className="mr-2 h-4 w-4" />
+                                      Archive
                                     </DropdownMenuItem>
                                   )}
-                                  {(canUpdate || canDelete) && (
-                                    <>
-                                      <DropdownMenuSeparator />
-                                      {canUpdate && (<DropdownMenuItem
-                                        onClick={() =>
-                                          setArchiveTarget({ kind: "archive", note })
-                                        }
-                                      >
-                                        <Archive className="mr-2 h-4 w-4" />
-                                        Archive
-                                      </DropdownMenuItem>)}
-                                      {canDelete && (<DropdownMenuItem
-                                        className="text-destructive focus:text-destructive"
-                                        onClick={() => setDeleteTarget(note)}
-                                      >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete
-                                      </DropdownMenuItem>)}
-                                    </>
+                                  {canDelete && (
+                                    <DropdownMenuItem
+                                      className="text-destructive focus:text-destructive"
+                                      onClick={() => setDeleteTarget(note)}
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
                                   )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )
-                          )}
-                        </TableCell>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )
                       )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-          )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </TableCard>
 
-      <Dialog open={!!viewNote} onOpenChange={open => { if (!open) setViewNote(null); }}><DialogContent className="max-h-[85vh] overflow-y-auto"><DialogHeader><DialogTitle>Pastoral note</DialogTitle><DialogDescription>{viewNote?.memberFirstName} {viewNote?.memberLastName}</DialogDescription></DialogHeader><p className="whitespace-pre-wrap break-words text-sm">{viewNote?.content}</p></DialogContent></Dialog>
+      <Dialog
+        open={!!viewNote}
+        onOpenChange={(open) => {
+          if (!open) setViewNote(null);
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Pastoral note</DialogTitle>
+            <DialogDescription>
+              {viewNote?.memberFirstName} {viewNote?.memberLastName}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="whitespace-pre-wrap break-words text-sm">
+            {viewNote?.content}
+          </p>
+        </DialogContent>
+      </Dialog>
       <NoteFormDialog open={createOpen} onOpenChange={setCreateOpen} />
       <NoteFormDialog
         open={!!editNote}

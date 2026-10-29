@@ -1,16 +1,19 @@
 "use client";
+import { WorkspaceRowMenu } from "@/components/workspace/workspace-management-menu";
 import { ErrorState } from "@/components/shared/error-state";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PermissionLink } from "@/components/shared/permission-link";
-import { Building2, Pencil, Plus, Trash2, Users, RotateCcw, Archive } from "lucide-react";
+import { Pencil, Plus, Trash2, RotateCcw, Archive } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { PageHeader } from "@/components/shared/page-header";
-import { StatsCard } from "@/components/shared/stats-card";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +26,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -40,22 +46,27 @@ import {
 } from "@/hooks/use-admin";
 
 export default function DepartmentsPage() {
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const router = useRouter();
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Department heads only ever see the department they head (backend-scoped);
   // HQ department heads see every department church-wide but edit only the
   // department they head (backend-enforced ownership).
-  const isDepartmentHead = canAny("departments:own:read") && !canAny("departments:delete");
+  const isDepartmentHead =
+    canAny("departments:own:read") && !canAny("departments:delete");
   const isAdminHq = !!profile?.isAdminHq;
 
-  const canCreate = can("departments", "create") && (!isDepartmentHead || isAdminHq);
+  const canCreate =
+    can("departments", "create") && (!isDepartmentHead || isAdminHq);
   const canUpdate = can("departments", "update");
   const canDelete = can("departments", "delete");
   // A department head edits only the department they head; the row Edit button
   // therefore also requires ownership whenever the viewer is a head.
   const isOwnDepartment = (department: Department) =>
-    isDepartmentHead && !!profile?.memberId && department.headMemberId === profile.memberId;
+    isDepartmentHead &&
+    !!profile?.memberId &&
+    department.headMemberId === profile.memberId;
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
@@ -65,7 +76,8 @@ export default function DepartmentsPage() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Department | null>(null);
   const [deleting, setDeleting] = React.useState<Department | null>(null);
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -77,7 +89,11 @@ export default function DepartmentsPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: departments, isLoading, error } = useDepartmentsList({
+  const {
+    data: departments,
+    isLoading,
+    error,
+  } = useDepartmentsList({
     archived: archivedView ? true : undefined,
     branchId: branchId || undefined,
   });
@@ -94,18 +110,15 @@ export default function DepartmentsPage() {
         d.name.toLowerCase().includes(q) ||
         (d.description ?? "").toLowerCase().includes(q) ||
         (d.branchName ?? "").toLowerCase().includes(q) ||
-        `${d.headFirstName ?? ""} ${d.headLastName ?? ""}`.toLowerCase().includes(q)
+        `${d.headFirstName ?? ""} ${d.headLastName ?? ""}`
+          .toLowerCase()
+          .includes(q),
     );
   }, [departments, search]);
 
   const paged = React.useMemo(
     () => filtered.slice((page - 1) * perPage, page * perPage),
-    [filtered, page, perPage]
-  );
-
-  const totalMembers = React.useMemo(
-    () => (departments ?? []).reduce((sum, d) => sum + d.memberCount, 0),
-    [departments]
+    [filtered, page, perPage],
   );
 
   const openDetail = (department: Department) => {
@@ -115,6 +128,7 @@ export default function DepartmentsPage() {
   return (
     <div>
       <PageHeader
+        count={filtered.length}
         title="Departments"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -139,20 +153,6 @@ export default function DepartmentsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <StatsCard
-          title="Total Departments"
-          value={error ? "—" : (departments ?? []).length}
-          icon={<Building2 className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Members Covered"
-          value={error ? "—" : totalMembers}
-          subtitle="Across all departments"
-          icon={<Users className="h-4 w-4" />}
-        />
-      </div>
-
       <TableCard
         title="All Departments"
         itemName="departments"
@@ -166,10 +166,37 @@ export default function DepartmentsPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            {!isDepartmentHead && (
-              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
-            )}
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
+                setPage(1);
+              }}
+            />
+            <WorkspaceMoreFilters count={Number(archivedFilter !== "all")}>
+              {!isDepartmentHead && (
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={(value) => {
+                    setArchivedFilter(value);
+                    setPage(1);
+                  }}
+                />
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setArchivedFilter("all");
+                  setSearchInput("");
+                  setSearch("");
+                  setBranchId("");
+                  setPage(1);
+                }}
+              >
+                Reset filters
+              </Button>
+            </WorkspaceMoreFilters>
             <div className="relative sm:w-72">
               <input
                 type="text"
@@ -194,11 +221,19 @@ export default function DepartmentsPage() {
               <TableHead>Parent</TableHead>
               <TableHead className="text-right">Members</TableHead>
               <TableHead className="text-right">Date Added</TableHead>
-              {canUpdate || canDelete ? <TableHead className="text-right">Actions</TableHead> : null}
+              {canUpdate || canDelete ? (
+                <TableHead className="text-right">Actions</TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {error ? <TableRow><TableCell colSpan={20}><ErrorState title="Unable to load departments" /></TableCell></TableRow> : isLoading ? (
+            {error ? (
+              <TableRow>
+                <TableCell colSpan={20}>
+                  <ErrorState title="Unable to load departments" />
+                </TableCell>
+              </TableRow>
+            ) : isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={canUpdate || canDelete ? 7 : 6}>
@@ -208,21 +243,36 @@ export default function DepartmentsPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canUpdate || canDelete ? 7 : 6} className="h-32 text-center">
-                  <EmptyState title="No results" description={archivedView
-                      ? "No archived departments."
-                      : search
-                        ? "No departments match your search."
-                        : "No departments yet. Create your first one to get started."} />
+                <TableCell
+                  colSpan={canUpdate || canDelete ? 7 : 6}
+                  className="h-32 text-center"
+                >
+                  <EmptyState
+                    title="No results"
+                    description={
+                      archivedView
+                        ? "No archived departments."
+                        : search
+                          ? "No departments match your search."
+                          : "No departments yet. Create your first one to get started."
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ) : (
               paged.map((department) => {
-                const parent = (departments ?? []).find((d) => d.id === department.parentId);
+                const parent = (departments ?? []).find(
+                  (d) => d.id === department.parentId,
+                );
                 return (
                   <TableRow key={department.id} className="cursor-pointer">
                     <TableCell>
-                      <PermissionLink href={`/departments/${department.id}`} className="font-medium hover:underline">{department.name}</PermissionLink>
+                      <PermissionLink
+                        href={`/departments/${department.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {department.name}
+                      </PermissionLink>
                       {department.description && (
                         <p className="text-xs text-muted-foreground line-clamp-1 max-w-md">
                           {department.description}
@@ -231,9 +281,13 @@ export default function DepartmentsPage() {
                     </TableCell>
                     <TableCell onClick={() => openDetail(department)}>
                       {department.branchName ? (
-                        <Badge variant="secondary">{department.branchName}</Badge>
+                        <Badge variant="secondary">
+                          {department.branchName}
+                        </Badge>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Unassigned</span>
+                        <span className="text-xs text-muted-foreground">
+                          Unassigned
+                        </span>
                       )}
                     </TableCell>
                     <TableCell onClick={() => openDetail(department)}>
@@ -244,32 +298,50 @@ export default function DepartmentsPage() {
                             .join(" ")}
                         </span>
                       ) : (
-                        <span className="text-xs text-muted-foreground">No head assigned</span>
+                        <span className="text-xs text-muted-foreground">
+                          No head assigned
+                        </span>
                       )}
                     </TableCell>
                     <TableCell onClick={() => openDetail(department)}>
                       {parent ? (
                         <span className="text-sm">{parent.name}</span>
                       ) : (
-                        <span className="text-xs text-muted-foreground">Top-level</span>
+                        <span className="text-xs text-muted-foreground">
+                          Top-level
+                        </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right" onClick={() => openDetail(department)}>
-                      <span className="font-medium">{department.memberCount}</span>
+                    <TableCell
+                      className="text-right"
+                      onClick={() => openDetail(department)}
+                    >
+                      <span className="font-medium">
+                        {department.memberCount}
+                      </span>
                     </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground" onClick={() => openDetail(department)}>
+                    <TableCell
+                      className="text-right text-sm text-muted-foreground"
+                      onClick={() => openDetail(department)}
+                    >
                       {new Date(department.createdAt).toLocaleDateString()}
                     </TableCell>
                     {canUpdate || canDelete ? (
                       <TableCell className="text-right">
                         {archivedView ? (
-                          <div className="flex justify-end gap-1.5">
+                          <WorkspaceRowMenu
+                            label={`Manage ${department.name}`}
+                            returnFocusRef={managementRef}
+                          >
                             {canUpdate && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() =>
-                                  setArchiveTarget({ kind: "restore", department })
+                                  setArchiveTarget({
+                                    kind: "restore",
+                                    department,
+                                  })
                                 }
                               >
                                 <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
@@ -282,55 +354,70 @@ export default function DepartmentsPage() {
                                 size="sm"
                                 className="text-destructive hover:text-destructive"
                                 onClick={() =>
-                                  setArchiveTarget({ kind: "purge", department })
+                                  setArchiveTarget({
+                                    kind: "purge",
+                                    department,
+                                  })
                                 }
                               >
                                 <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                                 Delete Forever
                               </Button>
                             )}
-                          </div>
+                          </WorkspaceRowMenu>
                         ) : (
-                          <div className="flex justify-end gap-1">
-                            {canUpdate && (!isDepartmentHead || isOwnDepartment(department)) && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label={`Edit ${department.name}`}
-                                onClick={() => {
-                                  setEditing(department);
-                                  setFormOpen(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {(canUpdate || canDelete) && (
-                              <>
-                                {canUpdate && (<Button
+                          <WorkspaceRowMenu
+                            label={`Manage ${department.name}`}
+                            returnFocusRef={managementRef}
+                          >
+                            {canUpdate &&
+                              (!isDepartmentHead ||
+                                isOwnDepartment(department)) && (
+                                <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
-                                  aria-label={`Archive ${department.name}`}
-                                  onClick={() =>
-                                    setArchiveTarget({ kind: "archive", department })
-                                  }
+                                  aria-label={`Edit ${department.name}`}
+                                  onClick={() => {
+                                    setEditing(department);
+                                    setFormOpen(true);
+                                  }}
                                 >
-                                  <Archive className="h-4 w-4" />
-                                </Button>)}
-                                {canDelete && (<Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                  aria-label={`Delete ${department.name}`}
-                                  onClick={() => setDeleting(department)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>)}
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                              )}
+                            {(canUpdate || canDelete) && (
+                              <>
+                                {canUpdate && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    aria-label={`Archive ${department.name}`}
+                                    onClick={() =>
+                                      setArchiveTarget({
+                                        kind: "archive",
+                                        department,
+                                      })
+                                    }
+                                  >
+                                    <Archive className="h-4 w-4" />
+                                  </Button>
+                                )}
+                                {canDelete && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                    aria-label={`Delete ${department.name}`}
+                                    onClick={() => setDeleting(department)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                )}
                               </>
                             )}
-                          </div>
+                          </WorkspaceRowMenu>
                         )}
                       </TableCell>
                     ) : null}
@@ -344,6 +431,7 @@ export default function DepartmentsPage() {
 
       {formOpen && (
         <DepartmentFormDialog
+          returnFocusRef={editing ? managementRef : undefined}
           open={formOpen}
           onOpenChange={setFormOpen}
           department={editing}
@@ -353,6 +441,7 @@ export default function DepartmentsPage() {
       )}
 
       <DeleteDepartmentDialog
+        returnFocusRef={managementRef}
         open={!!deleting}
         onOpenChange={(open) => {
           if (!open) setDeleting(null);
@@ -361,6 +450,7 @@ export default function DepartmentsPage() {
       />
 
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

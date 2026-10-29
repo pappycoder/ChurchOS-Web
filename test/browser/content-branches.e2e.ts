@@ -419,8 +419,11 @@ test("new form includes its branch and field definitions", async ({
   await chooseEast(page);
   await page.getByLabel("Title", { exact: true }).fill("Registration");
   await page.getByRole("button", { name: "Add Field", exact: true }).click();
-  await page.getByPlaceholder("e.g. Full Name").fill("Full name");
-  await page.getByPlaceholder("e.g. full_name").fill("name");
+  await page
+    .getByPlaceholder("e.g. Full name", { exact: true })
+    .fill("Full name");
+  await page.getByText("Advanced: answer identifier", { exact: true }).click();
+  await page.getByLabel("Field Key", { exact: true }).fill("name");
   await page.getByRole("button", { name: "Create Form", exact: true }).click();
   await expect
     .poll(async () => (await writes(page))[0]?.body.branchId)

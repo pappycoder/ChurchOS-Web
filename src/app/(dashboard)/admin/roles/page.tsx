@@ -9,13 +9,11 @@ import {
   ShieldPlus,
   Lock,
   ChevronRight,
-  KeyRound,
   Plus,
   SlidersHorizontal,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { TableCard } from "@/components/shared/table-card";
 import {
   Table,
@@ -95,11 +93,8 @@ export default function RolesPage() {
 
   const roles = React.useMemo(
     () => sortRolesByOrder(data?.roles ?? []),
-    [data]
+    [data],
   );
-  const customizedCount = roles.filter(
-    (r) => r.isCustomized || r.isChurchOwned
-  ).length;
   const totalPermissions = allPermissions?.length ?? 0;
   const [createDialogOpen, setCreateDialogOpen] = React.useState(false);
   const { can } = usePermissions();
@@ -124,6 +119,7 @@ export default function RolesPage() {
   return (
     <div>
       <PageHeader
+        count={roles.length}
         title="Roles & Permissions"
         breadcrumbs={[
           { label: "Admin" },
@@ -136,27 +132,6 @@ export default function RolesPage() {
         <TableSkeleton />
       ) : (
         <>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 mb-6">
-            <StatsCard
-              title="Total Roles"
-              value={roles.length}
-              icon={<ShieldCheck className="h-5 w-5" />}
-            />
-            <StatsCard
-              title="Customized"
-              value={customizedCount}
-              subtitle="Roles with church-specific permissions"
-              icon={
-                <SlidersHorizontal className="h-5 w-5 text-blue-600" />
-              }
-            />
-            <StatsCard
-              title="Available Permissions"
-              value={totalPermissions}
-              icon={<KeyRound className="h-5 w-5 text-purple-600" />}
-            />
-          </div>
-
           <TableCard
             title="Roles"
             description="Church-level changes are added on top of each role's global defaults."
@@ -193,9 +168,10 @@ export default function RolesPage() {
                     <TableRow
                       key={role.roleName}
                       className="cursor-pointer"
-                      onClick={() =>
-                        { if (confirmDiscardChanges()) router.push(`/admin/roles/${role.roleName}`); }
-                      }
+                      onClick={() => {
+                        if (confirmDiscardChanges())
+                          router.push(`/admin/roles/${role.roleName}`);
+                      }}
                     >
                       <TableCell className="font-medium">
                         {role.label || getRoleLabel(role.roleName)}

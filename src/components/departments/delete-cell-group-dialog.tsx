@@ -17,6 +17,7 @@ import { useDeleteCellGroup, type CellGroup } from "@/hooks/use-admin";
 interface DeleteCellGroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   group: CellGroup | null;
   onDeleted?: (groupId: string) => void;
 }
@@ -24,6 +25,7 @@ interface DeleteCellGroupDialogProps {
 export function DeleteCellGroupDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   group,
   onDeleted,
 }: DeleteCellGroupDialogProps) {
@@ -47,7 +49,20 @@ export function DeleteCellGroupDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                const target = returnFocusRef.current;
+                if (target?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => target.focus());
+                }
+              }
+            : undefined
+        }
+        className="sm:max-w-[420px]"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-red-50">
@@ -57,8 +72,8 @@ export function DeleteCellGroupDialog({
           </DialogTitle>
           <DialogDescription>
             Are you sure you want to delete{" "}
-            <span className="font-medium text-foreground">{group?.name}</span>? Its members
-            and attendance records will also be removed.
+            <span className="font-medium text-foreground">{group?.name}</span>?
+            Its members and attendance records will also be removed.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -75,7 +90,8 @@ export function DeleteCellGroupDialog({
             variant="destructive"
             onClick={handleConfirm}
             disabled={deleteMutation.isPending}
-           loading={deleteMutation.isPending}>
+            loading={deleteMutation.isPending}
+          >
             {deleteMutation.isPending ? "Deleting..." : "Delete"}
           </Button>
         </DialogFooter>

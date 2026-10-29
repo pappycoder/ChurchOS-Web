@@ -8,7 +8,7 @@ import { format } from "date-fns";
 import {
   ArrowUpDown,
   CalendarHeart,
-  MoreHorizontal,
+  MoreVertical,
   Plus,
   SortAsc,
   SortDesc,
@@ -28,9 +28,15 @@ import {
   LIFE_EVENT_TYPE_LABELS,
   LIFE_EVENT_TYPE_TEXT,
 } from "@/hooks/use-pastoral";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -68,7 +74,10 @@ import { toast } from "@/lib/toast";
 
 const TYPE_OPTIONS: Array<{ value: LifeEventType | "all"; label: string }> = [
   { value: "all", label: "All Types" },
-  ...LIFE_EVENT_TYPES.map((type) => ({ value: type, label: LIFE_EVENT_TYPE_LABELS[type] })),
+  ...LIFE_EVENT_TYPES.map((type) => ({
+    value: type,
+    label: LIFE_EVENT_TYPE_LABELS[type],
+  })),
 ];
 
 const SORT_OPTIONS = [
@@ -82,9 +91,12 @@ export default function LifeEventsPage() {
   const canUpdate = can("pastoral:life-events", "update");
   const canDelete = can("pastoral:life-events", "delete");
 
-  const [typeFilter, setTypeFilter] = React.useState<LifeEventType | "all">("all");
+  const [typeFilter, setTypeFilter] = React.useState<LifeEventType | "all">(
+    "all",
+  );
   const [upcomingOnly, setUpcomingOnly] = React.useState(false);
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [sortBy, setSortBy] = React.useState<"date" | "created_at">("date");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
@@ -101,7 +113,7 @@ export default function LifeEventsPage() {
       sortOrder,
       archived: archivedView ? true : undefined,
     }),
-    [page, perPage, typeFilter, upcomingOnly, sortBy, sortOrder, archivedView]
+    [page, perPage, typeFilter, upcomingOnly, sortBy, sortOrder, archivedView],
   );
 
   const { data, isLoading, error } = useLifeEvents(queryParams);
@@ -113,7 +125,9 @@ export default function LifeEventsPage() {
   const meta = data?.meta;
 
   const [createOpen, setCreateOpen] = React.useState(false);
-  const [deleteTarget, setDeleteTarget] = React.useState<LifeEvent | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<LifeEvent | null>(
+    null,
+  );
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
     event: LifeEvent;
@@ -147,6 +161,7 @@ export default function LifeEventsPage() {
   return (
     <div className="space-y-4">
       <PageHeader
+        count={meta?.total ?? 0}
         title="Life Events"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -167,7 +182,25 @@ export default function LifeEventsPage() {
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-3 flex-wrap">
-              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
+              <WorkspaceMoreFilters count={Number(archivedFilter !== "all")}>
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={(value) => {
+                    setArchivedFilter(value);
+                    setPage(1);
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setArchivedFilter("all");
+                    setPage(1);
+                  }}
+                >
+                  Reset filters
+                </Button>
+              </WorkspaceMoreFilters>
               <Select
                 value={typeFilter}
                 onValueChange={(v) => {
@@ -219,7 +252,9 @@ export default function LifeEventsPage() {
                 variant="outline"
                 size="icon"
                 className="h-9 w-9 shrink-0"
-                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
                 aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
               >
                 {sortOrder === "asc" ? (
@@ -247,7 +282,11 @@ export default function LifeEventsPage() {
           <div className="py-8">
             <EmptyState
               icon={<CalendarHeart className="h-12 w-12" />}
-              title={archivedView ? "No archived life events" : "No life events found"}
+              title={
+                archivedView
+                  ? "No archived life events"
+                  : "No life events found"
+              }
               description={
                 archivedView
                   ? "Archive a life event to move it here."
@@ -261,114 +300,124 @@ export default function LifeEventsPage() {
           </div>
         ) : (
           <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    {(canUpdate || canDelete) && (
-                      <TableHead className="text-right">Actions</TableHead>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>
-                        <p className="font-medium">
-                          {event.memberFirstName} {event.memberLastName}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={cn(
-                            "text-sm font-medium",
-                            LIFE_EVENT_TYPE_TEXT[event.type]
-                          )}
-                        >
-                          {LIFE_EVENT_TYPE_LABELS[event.type]}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground whitespace-nowrap">
-                        {format(new Date(event.date), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={event.notified ? "default" : "outline"}
-                          className={event.notified ? "" : "text-amber-600"}
-                        >
-                          {event.notified ? "Notified" : "Pending"}
-                        </Badge>
-                      </TableCell>
-                      {(canUpdate || canDelete) && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {archivedView ? (
-                            <div className="flex items-center justify-end gap-1.5">
-                              {canUpdate && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setArchiveTarget({ kind: "restore", event })}
-                                >
-                                  <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-                                  Restore
-                                </Button>
-                              )}
-                              {canDelete && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive"
-                                  onClick={() => setArchiveTarget({ kind: "purge", event })}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                                  Delete Forever
-                                </Button>
-                              )}
-                            </div>
-                          ) : (
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">More actions</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {canUpdate && (
-                                  <DropdownMenuItem
-                                    onClick={() => setArchiveTarget({ kind: "archive", event })}
-                                  >
-                                    <Archive className="mr-2 h-4 w-4" />
-                                    Archive
-                                  </DropdownMenuItem>
-                                )}
-                                {canDelete && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      className="text-destructive focus:text-destructive"
-                                      onClick={() => setDeleteTarget(event)}
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )}
-                        </TableCell>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                {(canUpdate || canDelete) && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {events.map((event) => (
+                <TableRow key={event.id}>
+                  <TableCell>
+                    <p className="font-medium">
+                      {event.memberFirstName} {event.memberLastName}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        LIFE_EVENT_TYPE_TEXT[event.type],
                       )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-          )}
+                    >
+                      {LIFE_EVENT_TYPE_LABELS[event.type]}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {format(new Date(event.date), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={event.notified ? "default" : "outline"}
+                      className={event.notified ? "" : "text-amber-600"}
+                    >
+                      {event.notified ? "Notified" : "Pending"}
+                    </Badge>
+                  </TableCell>
+                  {(canUpdate || canDelete) && (
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {archivedView ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          {canUpdate && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "restore", event })
+                              }
+                            >
+                              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                              Restore
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setArchiveTarget({ kind: "purge", event })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                              Delete Forever
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                              <span className="sr-only">More actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {canUpdate && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setArchiveTarget({ kind: "archive", event })
+                                }
+                              >
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setDeleteTarget(event)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </TableCard>
 
       <LifeEventFormDialog open={createOpen} onOpenChange={setCreateOpen} />
@@ -403,7 +452,9 @@ export default function LifeEventsPage() {
         kind={archiveTarget?.kind ?? "archive"}
         entityLabel="life event"
         targetName={
-          archiveTarget ? LIFE_EVENT_TYPE_LABELS[archiveTarget.event.type] ?? null : null
+          archiveTarget
+            ? (LIFE_EVENT_TYPE_LABELS[archiveTarget.event.type] ?? null)
+            : null
         }
         targetId={archiveTarget?.event.id ?? ""}
         mutation={

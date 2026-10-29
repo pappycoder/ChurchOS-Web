@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { ErrorState } from "@/components/shared/error-state";
 import { TableCard } from "@/components/shared/table-card";
 import { Input } from "@/components/ui/input";
@@ -125,6 +125,7 @@ export function AssetWorklist({ kind }: { kind: "loans" | "maintenance" }) {
   return (
     <div className="space-y-6">
       <PageHeader
+        count={query.data?.meta.total ?? 0}
         title={isLoan ? "Asset loans" : "Asset maintenance"}
         breadcrumbs={[
           { label: "Assets", href: "/assets" },

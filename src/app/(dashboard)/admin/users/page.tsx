@@ -12,9 +12,11 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 
 import { TableCard } from "@/components/shared/table-card";
@@ -91,25 +93,53 @@ function TableSkeleton() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12"><Skeleton className="h-4 w-4" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-                <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-                <TableHead className="text-right"><Skeleton className="h-4 w-20" /></TableHead>
+                <TableHead className="w-12">
+                  <Skeleton className="h-4 w-4" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead>
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
+                <TableHead className="text-right">
+                  <Skeleton className="h-4 w-20" />
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {[1, 2, 3, 4, 5].map((i) => (
                 <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-4" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-full" /></TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-4" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -123,11 +153,17 @@ function TableSkeleton() {
 export default function UsersPage() {
   const router = useRouter();
   const { user: currentUser } = useAuth();
-  const [confirmMode, setConfirmMode] = React.useState<"delete" | "deactivate">("deactivate");
+  const [confirmMode, setConfirmMode] = React.useState<"delete" | "deactivate">(
+    "deactivate",
+  );
   const [search, setSearch] = React.useState("");
   const [roleFilter, setRoleFilter] = React.useState("all");
-  const [statusFilter, setStatusFilter] = React.useState<"all" | "active" | "inactive">("all");
-  const [sortBy, setSortBy] = React.useState<"created_at" | "first_name" | "last_name" | "role">("created_at");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | "active" | "inactive"
+  >("all");
+  const [sortBy, setSortBy] = React.useState<
+    "created_at" | "first_name" | "last_name" | "role"
+  >("created_at");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
@@ -135,8 +171,12 @@ export default function UsersPage() {
 
   const [inviteDialogOpen, setInviteDialogOpen] = React.useState(false);
   const [editRoleDialogOpen, setEditRoleDialogOpen] = React.useState(false);
-  const [deleteTargets, setDeleteTargets] = React.useState<UserProfile[] | null>(null);
-  const [selectedUser, setSelectedUser] = React.useState<UserProfile | null>(null);
+  const [deleteTargets, setDeleteTargets] = React.useState<
+    UserProfile[] | null
+  >(null);
+  const [selectedUser, setSelectedUser] = React.useState<UserProfile | null>(
+    null,
+  );
 
   const queryParams: ListUsersParams = React.useMemo(
     () => ({
@@ -148,7 +188,7 @@ export default function UsersPage() {
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, roleFilter, statusFilter, sortBy, sortOrder]
+    [page, perPage, search, roleFilter, statusFilter, sortBy, sortOrder],
   );
 
   const { data, isLoading, error } = useUsers(queryParams);
@@ -161,21 +201,14 @@ export default function UsersPage() {
   const canCreateUsers = can("profiles", "create");
   const canUpdateUsers = can("profiles", "update");
   const canDeleteUsers = can("profiles", "delete");
-  const canManageUsers = canDeleteUsers || canUpdateUsers || can("roles", "update");
+  const canManageUsers =
+    canDeleteUsers || canUpdateUsers || can("roles", "update");
 
   const users = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
 
-  const activeUsers = users.filter((u) => u.status === "active").length;
-  const inactiveUsers = users.filter((u) => u.status === "inactive").length;
-  const newJoiners = users.filter((u) => {
-    const joined = new Date(u.createdAt);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    return joined >= thirtyDaysAgo;
-  }).length;
-
-  const allSelected = users.length > 0 && users.every((u) => selectedIds.has(u.profileId));
+  const allSelected =
+    users.length > 0 && users.every((u) => selectedIds.has(u.profileId));
   const someSelected = users.some((u) => selectedIds.has(u.profileId));
 
   const handleSelectAll = (checked: boolean) => {
@@ -215,7 +248,9 @@ export default function UsersPage() {
   const handleReactivate = (user: UserProfile) => {
     reactivateMutation.mutate(user.profileId, {
       onSuccess: () => {
-        toast.success(`${user.firstName} ${user.lastName} has been reactivated.`);
+        toast.success(
+          `${user.firstName} ${user.lastName} has been reactivated.`,
+        );
       },
       onError: (err: Error) => {
         toast.error(err.message);
@@ -226,7 +261,9 @@ export default function UsersPage() {
   const handleResetPassword = (user: UserProfile) => {
     resetPasswordMutation.mutate(user.profileId, {
       onSuccess: () => {
-        toast.success(`Password reset email sent to ${user.email || user.firstName}.`);
+        toast.success(
+          `Password reset email sent to ${user.email || user.firstName}.`,
+        );
       },
       onError: (err: Error) => {
         toast.error(err.message);
@@ -237,7 +274,9 @@ export default function UsersPage() {
   const handleForceSignout = (user: UserProfile) => {
     forceSignoutMutation.mutate(user.profileId, {
       onSuccess: () => {
-        toast.success(`${user.firstName} ${user.lastName} has been signed out.`);
+        toast.success(
+          `${user.firstName} ${user.lastName} has been signed out.`,
+        );
       },
       onError: (err: Error) => {
         toast.error(err.message);
@@ -250,7 +289,11 @@ export default function UsersPage() {
       <div>
         <PageHeader
           title="Users"
-          breadcrumbs={[{ label: "Admin" }, { label: "User management" }, { label: "Users" }]}
+          breadcrumbs={[
+            { label: "Admin" },
+            { label: "User management" },
+            { label: "Users" },
+          ]}
         />
         <ErrorState title="Failed to load users." />
       </div>
@@ -260,8 +303,13 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
+        count={total}
         title="Users"
-        breadcrumbs={[{ label: "Admin" }, { label: "User management" }, { label: "Users" }]}
+        breadcrumbs={[
+          { label: "Admin" },
+          { label: "User management" },
+          { label: "Users" },
+        ]}
         action={
           <div className="flex items-center gap-2">
             {canCreateUsers && (
@@ -278,13 +326,6 @@ export default function UsersPage() {
         <TableSkeleton />
       ) : (
         <>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-6">
-            <StatsCard title="Total Users" value={total} icon={<Users className="h-5 w-5" />} />
-            <StatsCard title="Active" value={activeUsers} icon={<Users className="h-5 w-5 text-green-600" />} />
-            <StatsCard title="Inactive" value={inactiveUsers} icon={<Users className="h-5 w-5 text-red-500" />} />
-            <StatsCard title="New (30d)" value={newJoiners} icon={<UserPlus className="h-5 w-5 text-blue-600" />} />
-          </div>
-
           <TableCard
             title="Users List"
             toolbar={
@@ -295,18 +336,85 @@ export default function UsersPage() {
                   placeholder="Search users..."
                   className="w-56"
                 />
-                <Select value={roleFilter} onValueChange={setRoleFilter}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Roles</SelectItem>
-                    {assignableRoles.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as typeof statusFilter); setPage(1); setSelectedIds(new Set()); }}>
+                <WorkspaceMoreFilters
+                  count={
+                    Number(roleFilter !== "all") +
+                    Number(sortBy !== "created_at" || sortOrder !== "desc")
+                  }
+                >
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-36">
+                      <SelectValue placeholder="Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      {assignableRoles.map((role) => (
+                        <SelectItem key={role.value} value={role.value}>
+                          {role.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex items-center gap-1">
+                    <Select
+                      value={sortBy}
+                      onValueChange={(v) => {
+                        setSortBy(v as typeof sortBy);
+                        setPage(1);
+                      }}
+                    >
+                      <SelectTrigger className="w-36">
+                        <ArrowUpDown className="h-4 w-4 mr-1.5" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SORT_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      onClick={() =>
+                        setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                      }
+                      aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
+                    >
+                      {sortOrder === "asc" ? (
+                        <SortAsc className="h-4 w-4" />
+                      ) : (
+                        <SortDesc className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setRoleFilter("all");
+                      setStatusFilter("all");
+                      setSortBy("created_at");
+                      setSortOrder("desc");
+                      setSearch("");
+                      setPage(1);
+                      setSelectedIds(new Set());
+                    }}
+                  >
+                    Reset filters
+                  </Button>
+                </WorkspaceMoreFilters>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) => {
+                    setStatusFilter(v as typeof statusFilter);
+                    setPage(1);
+                    setSelectedIds(new Set());
+                  }}
+                >
                   <SelectTrigger className="w-32">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -316,28 +424,6 @@ export default function UsersPage() {
                     <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
-                <div className="flex items-center gap-1">
-                  <Select value={sortBy} onValueChange={(v) => { setSortBy(v as typeof sortBy); setPage(1); }}>
-                    <SelectTrigger className="w-36">
-                      <ArrowUpDown className="h-4 w-4 mr-1.5" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SORT_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 shrink-0"
-                    onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                    aria-label={`Sort ${sortOrder === "asc" ? "descending" : "ascending"}`}
-                  >
-                    {sortOrder === "asc" ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-                  </Button>
-                </div>
               </div>
             }
             itemName="users"
@@ -352,24 +438,52 @@ export default function UsersPage() {
           >
             {someSelected && (canUpdateUsers || canDeleteUsers) && (
               <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-b bg-muted/50">
-                <span className="text-sm font-medium">{selectedIds.size} selected</span>
-                {canUpdateUsers && <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setConfirmMode("deactivate");
-                    setDeleteTargets(users.filter((u) => selectedIds.has(u.profileId)));
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-1.5" />
-                  Deactivate Selected
-                </Button>}
-                {canDeleteUsers && <Button variant="destructive" size="sm"
-                  disabled={!users.some(u => selectedIds.has(u.profileId) && u.userId !== currentUser?.userId && !u.role.includes("super_admin"))}
-                  onClick={() => {
-                    setConfirmMode("delete");
-                    setDeleteTargets(users.filter(u => selectedIds.has(u.profileId) && u.userId !== currentUser?.userId && !u.role.includes("super_admin")));
-                  }}><Trash2 className="h-4 w-4 mr-1.5" />Delete Selected</Button>}
+                <span className="text-sm font-medium">
+                  {selectedIds.size} selected
+                </span>
+                {canUpdateUsers && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setConfirmMode("deactivate");
+                      setDeleteTargets(
+                        users.filter((u) => selectedIds.has(u.profileId)),
+                      );
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    Deactivate Selected
+                  </Button>
+                )}
+                {canDeleteUsers && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={
+                      !users.some(
+                        (u) =>
+                          selectedIds.has(u.profileId) &&
+                          u.userId !== currentUser?.userId &&
+                          !u.role.includes("super_admin"),
+                      )
+                    }
+                    onClick={() => {
+                      setConfirmMode("delete");
+                      setDeleteTargets(
+                        users.filter(
+                          (u) =>
+                            selectedIds.has(u.profileId) &&
+                            u.userId !== currentUser?.userId &&
+                            !u.role.includes("super_admin"),
+                        ),
+                      );
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1.5" />
+                    Delete Selected
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -385,86 +499,93 @@ export default function UsersPage() {
                 <EmptyState
                   icon={<Users className="h-12 w-12" />}
                   title="No users found"
-                  description={search || roleFilter !== "all" || statusFilter !== "all"
-                    ? "Try adjusting your filters."
-                    : "Invite your first user to get started."}
+                  description={
+                    search || roleFilter !== "all" || statusFilter !== "all"
+                      ? "Try adjusting your filters."
+                      : "Invite your first user to get started."
+                  }
                 />
               </div>
             ) : (
               <Table exportable={false} tableId="users">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <UserCheckboxCell
-                            checked={allSelected}
-                            onCheckedChange={handleSelectAll}
-                          />
-                        </TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Created Date</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Access</TableHead>
-                        {canManageUsers && (
-                          <TableHead className="text-right">Actions</TableHead>
-                        )}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.map((user) => (
-                        <TableRow
-                          key={user.profileId}
-                          className="cursor-pointer"
-                          onClick={() => handleRowClick(user.profileId)}
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <UserCheckboxCell
+                        checked={allSelected}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Created Date</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Access</TableHead>
+                    {canManageUsers && (
+                      <TableHead className="text-right">Actions</TableHead>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {users.map((user) => (
+                    <TableRow
+                      key={user.profileId}
+                      className="cursor-pointer"
+                      onClick={() => handleRowClick(user.profileId)}
+                    >
+                      <TableCell
+                        className="w-12"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <UserCheckboxCell
+                          checked={selectedIds.has(user.profileId)}
+                          onCheckedChange={(checked) =>
+                            handleSelectRow(user.profileId, checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <UserNameCell user={user} />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {user.email || "-"}
+                      </TableCell>
+                      <TableCell>
+                        <UserCreatedCell createdAt={user.createdAt} />
+                      </TableCell>
+                      <TableCell>
+                        <UserRoleCell roles={user.role} />
+                      </TableCell>
+                      <TableCell>
+                        <UserStatusCell status={user.status} />
+                      </TableCell>
+                      <TableCell>
+                        <UserAdminHqCell isAdminHq={user.isAdminHq} />
+                      </TableCell>
+                      {canManageUsers && (
+                        <TableCell
+                          className="text-right"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <TableCell
-                            className="w-12"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <UserCheckboxCell
-                              checked={selectedIds.has(user.profileId)}
-                              onCheckedChange={(checked) => handleSelectRow(user.profileId, checked)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <UserNameCell user={user} />
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {user.email || "-"}
-                          </TableCell>
-                          <TableCell>
-                            <UserCreatedCell createdAt={user.createdAt} />
-                          </TableCell>
-                          <TableCell>
-                            <UserRoleCell roles={user.role} />
-                          </TableCell>
-                          <TableCell>
-                            <UserStatusCell status={user.status} />
-                          </TableCell>
-                          <TableCell>
-                            <UserAdminHqCell isAdminHq={user.isAdminHq} />
-                          </TableCell>
-                          {canManageUsers && (
-                            <TableCell
-                              className="text-right"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <UserActionsCell
-                                user={user}
-                                onEditRole={handleEditRole}
-                                onDeactivate={handleDeactivate}
-                                onDelete={(user) => { setConfirmMode("delete"); setDeleteTargets([user]); }}
-                                onReactivate={handleReactivate}
-                                onResetPassword={handleResetPassword}
-                                onForceSignout={handleForceSignout}
-                              />
-                            </TableCell>
-                          )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          <UserActionsCell
+                            user={user}
+                            onEditRole={handleEditRole}
+                            onDeactivate={handleDeactivate}
+                            onDelete={(user) => {
+                              setConfirmMode("delete");
+                              setDeleteTargets([user]);
+                            }}
+                            onReactivate={handleReactivate}
+                            onResetPassword={handleResetPassword}
+                            onForceSignout={handleForceSignout}
+                          />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             )}
           </TableCard>
         </>
@@ -481,7 +602,10 @@ export default function UsersPage() {
       {selectedUser && editRoleDialogOpen && (
         <UserFormDialog
           open={editRoleDialogOpen}
-          onOpenChange={(open) => { setEditRoleDialogOpen(open); if (!open) setSelectedUser(null); }}
+          onOpenChange={(open) => {
+            setEditRoleDialogOpen(open);
+            if (!open) setSelectedUser(null);
+          }}
           mode="edit-role"
           user={selectedUser}
         />

@@ -19,7 +19,7 @@ import { toast } from "@/lib/toast";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { DepartmentAttendancePanel } from "./department-attendance-panel";
 import { ArrowLeft, UserPlus, X } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { PermissionLink } from "@/components/shared/permission-link";
 import { ErrorState } from "@/components/shared/error-state";
 import { Button } from "@/components/ui/button";

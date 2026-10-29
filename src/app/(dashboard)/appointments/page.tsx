@@ -1,22 +1,35 @@
 "use client";
-import { ReportDateRange, type ReportRange } from "@/components/reports/report-date-range";
+import {
+  ReportDateRange,
+  type ReportRange,
+} from "@/components/reports/report-date-range";
 import { ErrorState } from "@/components/shared/error-state";
 
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 
 import * as React from "react";
 import { format } from "date-fns";
 import {
   CalendarClock,
   CalendarPlus,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Archive,
   ArchiveRestore,
   Trash2,
   Eye,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,17 +48,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { StatsCard } from "@/components/shared/stats-card";
+import { SummaryMetric as StatsCard } from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import { ArchiveConfirmDialog } from "@/components/shared/archive-confirm-dialog";
-import {
-  AppointmentFormDialog,
-} from "@/components/appointments/appointment-form-dialog";
-import {
-  AppointmentDetailDialog,
-} from "@/components/appointments/appointment-detail-dialog";
+import { AppointmentFormDialog } from "@/components/appointments/appointment-form-dialog";
+import { AppointmentDetailDialog } from "@/components/appointments/appointment-detail-dialog";
 import {
   useAppointments,
   useArchiveAppointment,
@@ -85,13 +97,18 @@ function AppointmentsContent() {
   const [search, setSearch] = React.useState("");
   const [debouncedSearch, setDebouncedSearch] = React.useState("");
   const [page, setPage] = React.useState(1);
-  const [range, setRange] = React.useState<ReportRange>({startDate:"",endDate:""});
+  const [range, setRange] = React.useState<ReportRange>({
+    startDate: "",
+    endDate: "",
+  });
   const [branchId, setBranchId] = React.useState("");
 
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Appointment | null>(null);
   const [detailOpen, setDetailOpen] = React.useState(false);
-  const [detailTarget, setDetailTarget] = React.useState<Appointment | null>(null);
+  const [detailTarget, setDetailTarget] = React.useState<Appointment | null>(
+    null,
+  );
   const [archiveDialog, setArchiveDialog] = React.useState<{
     kind: "archive" | "restore" | "purge";
     appointment: Appointment;
@@ -102,7 +119,11 @@ function AppointmentsContent() {
     return () => clearTimeout(t);
   }, [search]);
 
-  const { data: list, isLoading, error } = useAppointments({
+  const {
+    data: list,
+    isLoading,
+    error,
+  } = useAppointments({
     page,
     limit: 15,
     startDate: range.startDate || undefined,
@@ -118,7 +139,12 @@ function AppointmentsContent() {
   const deleteMutation = useDeleteAppointment();
 
   const items = list?.data ?? [];
-  const summary = list?.summary ?? { pending: 0, confirmed: 0, completed: 0, cancelled: 0 };
+  const summary = list?.summary ?? {
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
+    cancelled: 0,
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -164,79 +190,147 @@ function AppointmentsContent() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Pending"
-          value={error ? "—" : summary.pending ?? 0}
+          value={error ? "—" : (summary.pending ?? 0)}
           icon={<CalendarClock className="size-5" />}
           variant="warning"
         />
         <StatsCard
           title="Confirmed"
-          value={error ? "—" : summary.confirmed ?? 0}
+          value={error ? "—" : (summary.confirmed ?? 0)}
           icon={<CalendarClock className="size-5" />}
           variant="primary"
         />
         <StatsCard
           title="Completed"
-          value={error ? "—" : summary.completed ?? 0}
+          value={error ? "—" : (summary.completed ?? 0)}
           icon={<CalendarClock className="size-5" />}
           variant="success"
         />
         <StatsCard
           title="Cancelled"
-          value={error ? "—" : summary.cancelled ?? 0}
+          value={error ? "—" : (summary.cancelled ?? 0)}
           icon={<CalendarClock className="size-5" />}
         />
       </div>
 
-      <ReportDateRange value={range} onChange={next=>{setRange(next);setPage(1);}} />
+      <ReportDateRange
+        value={range}
+        onChange={(next) => {
+          setRange(next);
+          setPage(1);
+        }}
+      />
       <TableCard
         title="Appointments"
-        description={error ? "Appointment count unavailable" : `${list?.total ?? 0} total ${archived === "archived" ? "archived" : "active"} appointment${(list?.total ?? 0) === 1 ? "" : "s"}`}
+        description={
+          error
+            ? "Appointment count unavailable"
+            : `${list?.total ?? 0} total ${archived === "archived" ? "archived" : "active"} appointment${(list?.total ?? 0) === 1 ? "" : "s"}`
+        }
         itemName="appointments"
         page={page}
         perPage={15}
         total={list?.total ?? 0}
         onPageChange={setPage}
         toolbar={
-          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(archived !== "all") + Number(status !== "all") + Number(search !== "") + Number(branchId !== "")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setRange({startDate:"",endDate:""});setArchived("all");setStatus("all");setSearch("");setDebouncedSearch("");setBranchId("");setPage(1);}}>Reset filters</Button></div><div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter
-              value={archived}
-              onChange={(v) => {
-                setArchived(v);
-                setPage(1);
-              }}
-            />
-            <Select
-              value={status}
-              onValueChange={(v) => {
-                setStatus(v);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="w-full xl:w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                {APPOINTMENT_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {APPOINTMENT_STATUS_LABELS[s]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <div className="flex-1">
-              <Input
-                placeholder="Search by title, location, or notes…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full sm:max-w-xs"
-              />
+          <div
+            role="group"
+            aria-label="Collection filters"
+            className="space-y-3"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                aria-live="polite"
+                className="text-xs text-muted-foreground"
+              >
+                {Number(archived !== "all") +
+                  Number(status !== "all") +
+                  Number(search !== "") +
+                  Number(branchId !== "")}{" "}
+                active filters
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setRange({ startDate: "", endDate: "" });
+                  setArchived("all");
+                  setStatus("all");
+                  setSearch("");
+                  setDebouncedSearch("");
+                  setBranchId("");
+                  setPage(1);
+                }}
+              >
+                Reset filters
+              </Button>
             </div>
-          </div></div>
+            <div className="flex min-w-0 flex-col gap-3 xl:flex-row xl:flex-wrap xl:items-center">
+              <BranchFilter
+                value={branchId}
+                onChange={(value) => {
+                  setBranchId(value);
+                  setPage(1);
+                }}
+              />
+              <WorkspaceMoreFilters count={Number(archived !== "all")}>
+                <ArchivedFilter
+                  value={archived}
+                  onChange={(v) => {
+                    setArchived(v);
+                    setPage(1);
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setArchived("all");
+                    setRange({ startDate: "", endDate: "" });
+                    setStatus("all");
+                    setSearch("");
+                    setDebouncedSearch("");
+                    setBranchId("");
+                    setPage(1);
+                  }}
+                >
+                  Reset filters
+                </Button>
+              </WorkspaceMoreFilters>
+              <Select
+                value={status}
+                onValueChange={(v) => {
+                  setStatus(v);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-full xl:w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  {APPOINTMENT_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {APPOINTMENT_STATUS_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex-1">
+                <Input
+                  placeholder="Search by title, location, or notes…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full sm:max-w-xs"
+                />
+              </div>
+            </div>
+          </div>
         }
       >
-        {error ? <ErrorState title="Unable to load appointments" /> : isLoading ? (
+        {error ? (
+          <ErrorState title="Unable to load appointments" />
+        ) : isLoading ? (
           <div className="space-y-3 p-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -267,19 +361,34 @@ function AppointmentsContent() {
           <Table className="w-full text-sm">
             <TableHeader>
               <TableRow className="border-b bg-muted/50">
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Appointment</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Staff host</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Attendee</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Scheduled</TableHead>
-                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">Status</TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Appointment
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Staff host
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Attendee
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Scheduled
+                </TableHead>
+                <TableHead className="px-4 py-3 text-left font-medium text-muted-foreground">
+                  Status
+                </TableHead>
                 {(canUpdate || canDelete) && (
-                  <TableHead className="px-4 py-3 text-right font-medium text-muted-foreground">Actions</TableHead>
+                  <TableHead className="px-4 py-3 text-right font-medium text-muted-foreground">
+                    Actions
+                  </TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody className="divide-y">
               {items.map((a) => (
-                <TableRow key={a.id} className="hover:bg-muted/40 transition-colors">
+                <TableRow
+                  key={a.id}
+                  className="hover:bg-muted/40 transition-colors"
+                >
                   <TableCell className="px-4 py-3">
                     <button
                       type="button"
@@ -304,11 +413,15 @@ function AppointmentsContent() {
                     <span className="inline-flex items-center gap-1.5">
                       <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">
                         {initials(
-                          a.whoKind === "visitor" ? a.visitorName || "" : a.personName || ""
+                          a.whoKind === "visitor"
+                            ? a.visitorName || ""
+                            : a.personName || "",
                         ) || "?"}
                       </span>
                       <span className="font-medium">
-                        {a.whoKind === "visitor" ? a.visitorName : a.personName || "—"}
+                        {a.whoKind === "visitor"
+                          ? a.visitorName
+                          : a.personName || "—"}
                       </span>
                       {a.whoKind === "visitor" && (
                         <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
@@ -324,12 +437,14 @@ function AppointmentsContent() {
                     <Badge
                       variant="secondary"
                       className={
-                        APPOINTMENT_STATUS_TEXT[a.status as keyof typeof APPOINTMENT_STATUS_TEXT] ??
-                        "bg-gray-100 text-gray-800"
+                        APPOINTMENT_STATUS_TEXT[
+                          a.status as keyof typeof APPOINTMENT_STATUS_TEXT
+                        ] ?? "bg-gray-100 text-gray-800"
                       }
                     >
-                      {APPOINTMENT_STATUS_LABELS[a.status as keyof typeof APPOINTMENT_STATUS_LABELS] ??
-                        a.status}
+                      {APPOINTMENT_STATUS_LABELS[
+                        a.status as keyof typeof APPOINTMENT_STATUS_LABELS
+                      ] ?? a.status}
                     </Badge>
                   </TableCell>
                   {(canUpdate || canDelete) && (
@@ -341,7 +456,10 @@ function AppointmentsContent() {
                               variant="outline"
                               size="sm"
                               onClick={() =>
-                                setArchiveDialog({ kind: "restore", appointment: a })
+                                setArchiveDialog({
+                                  kind: "restore",
+                                  appointment: a,
+                                })
                               }
                             >
                               <ArchiveRestore className="size-4" /> Restore
@@ -353,7 +471,10 @@ function AppointmentsContent() {
                               size="sm"
                               className="text-destructive hover:text-destructive"
                               onClick={() =>
-                                setArchiveDialog({ kind: "purge", appointment: a })
+                                setArchiveDialog({
+                                  kind: "purge",
+                                  appointment: a,
+                                })
                               }
                             >
                               <Trash2 className="size-4" /> Delete Forever
@@ -363,8 +484,12 @@ function AppointmentsContent() {
                       ) : (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-8">
-                              <MoreHorizontal className="size-4" />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8"
+                            >
+                              <MoreVertical className="size-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -381,7 +506,10 @@ function AppointmentsContent() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   onClick={() =>
-                                    setArchiveDialog({ kind: "archive", appointment: a })
+                                    setArchiveDialog({
+                                      kind: "archive",
+                                      appointment: a,
+                                    })
                                   }
                                 >
                                   <Archive className="size-4" /> Archive

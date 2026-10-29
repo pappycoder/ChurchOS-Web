@@ -40,6 +40,7 @@ type CategoryFormValues = z.infer<typeof categorySchema>;
 interface CategoryFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  returnFocusRef?: React.RefObject<HTMLElement | null>;
   /** When provided the dialog edits this category; otherwise it creates one. */
   category?: AssetCategory | null;
   onSaved?: () => void;
@@ -55,6 +56,7 @@ function toFormValues(category?: AssetCategory | null): CategoryFormValues {
 export function CategoryFormDialog({
   open,
   onOpenChange,
+  returnFocusRef,
   category,
   onSaved,
 }: CategoryFormDialogProps) {
@@ -82,15 +84,20 @@ export function CategoryFormDialog({
     mutation.mutate(payload as never, {
       onSuccess: () => {
         toast.success(
-          isEdit ? "Category updated successfully" : "Category created successfully"
+          isEdit
+            ? "Category updated successfully"
+            : "Category created successfully",
         );
         onOpenChange(false);
         onSaved?.();
       },
       onError: (error) => {
-        toast.error(isEdit ? "Failed to update category" : "Failed to create category", {
-          description: error?.message || "Please try again.",
-        });
+        toast.error(
+          isEdit ? "Failed to update category" : "Failed to create category",
+          {
+            description: error?.message || "Please try again.",
+          },
+        );
       },
     });
   };
@@ -99,7 +106,20 @@ export function CategoryFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent
+        onCloseAutoFocus={
+          returnFocusRef
+            ? (event) => {
+                const target = returnFocusRef.current;
+                if (target?.isConnected) {
+                  event.preventDefault();
+                  requestAnimationFrame(() => target.focus());
+                }
+              }
+            : undefined
+        }
+        className="sm:max-w-[480px]"
+      >
         <DialogHeader>
           <DialogTitle>{isEdit ? "Edit Category" : "New Category"}</DialogTitle>
           <DialogDescription>

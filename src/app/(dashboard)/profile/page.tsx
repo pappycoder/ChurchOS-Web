@@ -22,9 +22,15 @@ import {
   ShieldOff,
 } from "lucide-react";
 import { RecoveryCodesPanel } from "@/components/shared/recovery-codes-panel";
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { WorkspaceAvatar } from "@/components/workspace/workspace-presentation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,15 +59,13 @@ import { ChangePasswordDialog } from "@/components/settings/change-password-dial
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
-function getInitials(firstName?: string, lastName?: string): string {
-  return `${firstName?.charAt(0) ?? ""}${lastName?.charAt(0) ?? ""}`.toUpperCase() || "?";
-}
-
 function DataRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex justify-between gap-6 py-2 border-b border-border/50 last:border-0">
       <span className="text-sm text-muted-foreground shrink-0">{label}</span>
-      <span className="text-sm font-medium text-right break-words">{value}</span>
+      <span className="text-sm font-medium text-right break-words">
+        {value}
+      </span>
     </div>
   );
 }
@@ -77,12 +81,12 @@ function IdentityCard({ profile }: { profile: CurrentProfile }) {
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col items-center text-center">
-          <Avatar className="h-24 w-24">
-            <AvatarImage src={profile.avatarUrl} alt={`${profile.firstName} ${profile.lastName}`} />
-            <AvatarFallback className="text-2xl">
-              {getInitials(profile.firstName, profile.lastName)}
-            </AvatarFallback>
-          </Avatar>
+          <WorkspaceAvatar
+            id={profile.profileId}
+            name={`${profile.firstName} ${profile.lastName}`}
+            photoUrl={profile.avatarUrl}
+            className="size-16"
+          />
           <h2 className="mt-3 text-lg font-semibold">
             {profile.firstName} {profile.lastName}
           </h2>
@@ -90,11 +94,16 @@ function IdentityCard({ profile }: { profile: CurrentProfile }) {
             <Badge variant={isActive ? "default" : "destructive"}>
               {isActive ? "Active" : "Inactive"}
             </Badge>
-            {profile.twoFactorEnabled && <Badge variant="secondary">2FA Enabled</Badge>}
+            {profile.twoFactorEnabled && (
+              <Badge variant="secondary">2FA Enabled</Badge>
+            )}
           </div>
           <div className="flex flex-wrap justify-center gap-1.5 mt-3">
             {roles.map((role) => (
-              <Badge key={role} variant={role === "super_admin" ? "destructive" : "secondary"}>
+              <Badge
+                key={role}
+                variant={role === "super_admin" ? "destructive" : "secondary"}
+              >
                 {resolveRoleLabel(role, labels)}
               </Badge>
             ))}
@@ -196,9 +205,12 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
   // Only include fields the user actually changed — mirrors PATCH semantics.
   const handleSave = (values: BasicInfoFormValues) => {
     const payload: Record<string, string> = {};
-    if (values.firstName !== profile.firstName) payload.firstName = values.firstName;
-    if (values.lastName !== profile.lastName) payload.lastName = values.lastName;
-    if ((values.phone ?? "") !== (profile.phone ?? "")) payload.phone = values.phone ?? "";
+    if (values.firstName !== profile.firstName)
+      payload.firstName = values.firstName;
+    if (values.lastName !== profile.lastName)
+      payload.lastName = values.lastName;
+    if ((values.phone ?? "") !== (profile.phone ?? ""))
+      payload.phone = values.phone ?? "";
 
     if (Object.keys(payload).length === 0) {
       setIsEditing(false);
@@ -220,11 +232,17 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
         <div>
           <CardTitle>Basic Information</CardTitle>
           {!isEditing && (
-            <CardDescription>Your personal details as they appear across the app.</CardDescription>
+            <CardDescription>
+              Your personal details as they appear across the app.
+            </CardDescription>
           )}
         </div>
         {!isEditing && (
-          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+          >
             <Pencil className="h-3.5 w-3.5 mr-1.5" />
             Edit
           </Button>
@@ -233,7 +251,10 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
       <CardContent className={isEditing ? "pt-6" : "pt-4"}>
         {isEditing ? (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleSave)}
+              className="space-y-4"
+            >
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -293,7 +314,10 @@ function BasicInfoCard({ profile }: { profile: CurrentProfile }) {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateMutation.isPending || !form.formState.isDirty}>
+                <Button
+                  type="submit"
+                  disabled={updateMutation.isPending || !form.formState.isDirty}
+                >
                   {updateMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
@@ -356,14 +380,18 @@ function PhotoCard({ profile }: { profile: CurrentProfile }) {
     <Card>
       <CardHeader className="border-b">
         <CardTitle>Profile Photo</CardTitle>
-        <CardDescription>A square image works best. Automatically optimized to WebP.</CardDescription>
+        <CardDescription>
+          A square image works best. Automatically optimized to WebP.
+        </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
         <div className="flex items-center gap-4 flex-wrap">
-          <Avatar className="h-16 w-16 border">
-            <AvatarImage src={profile.avatarUrl} alt={`${profile.firstName} ${profile.lastName}`} />
-            <AvatarFallback>{getInitials(profile.firstName, profile.lastName)}</AvatarFallback>
-          </Avatar>
+          <WorkspaceAvatar
+            id={profile.profileId}
+            name={`${profile.firstName} ${profile.lastName}`}
+            photoUrl={profile.avatarUrl}
+            className="size-16"
+          />
           <input
             ref={inputRef}
             type="file"
@@ -397,18 +425,25 @@ function PhotoCard({ profile }: { profile: CurrentProfile }) {
 
 function SecurityCard() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [step, setStep] = React.useState<"idle" | "enable" | "disable" | "recovery">("idle");
+  const [step, setStep] = React.useState<
+    "idle" | "enable" | "disable" | "recovery"
+  >("idle");
   const [code, setCode] = React.useState("");
   const [recoveryCodes, setRecoveryCodes] = React.useState<string[]>([]);
   const [useRecovery, setUseRecovery] = React.useState(false);
   const regenerate = useRegenerateRecoveryCodes();
   const setupAuthenticator = useSetupAuthenticator();
   const toggle = useToggleTwoFactor();
-  const { data: factors = [], isPending: factorsPending, error: factorsError } = useAuthenticatorFactors();
-  const [setup, setSetup] = React.useState<import("@/hooks/use-profile").AuthenticatorSetup>();
+  const {
+    data: factors = [],
+    isPending: factorsPending,
+    error: factorsError,
+  } = useAuthenticatorFactors();
+  const [setup, setSetup] =
+    React.useState<import("@/hooks/use-profile").AuthenticatorSetup>();
   const [factorId, setFactorId] = React.useState("");
 
-  const enabled = factors.some(f => f.status === "verified");
+  const enabled = factors.some((f) => f.status === "verified");
 
   const reset = React.useCallback(() => {
     setStep("idle");
@@ -419,24 +454,48 @@ function SecurityCard() {
   }, []);
 
   const handleSend = (purpose: "enable" | "disable") => {
-    if (purpose === "disable") { setStep(purpose); setFactorId(factors.find(f => f.status === "verified")?.id ?? ""); return; }
+    if (purpose === "disable") {
+      setStep(purpose);
+      setFactorId(factors.find((f) => f.status === "verified")?.id ?? "");
+      return;
+    }
     setupAuthenticator.mutate(undefined, {
-      onSuccess: (data) => { setSetup(data); setFactorId(data.factorId); setStep("enable"); setCode(""); },
+      onSuccess: (data) => {
+        setSetup(data);
+        setFactorId(data.factorId);
+        setStep("enable");
+        setCode("");
+      },
       onError: (err: Error) => toast.error(err.message),
     });
   };
 
   const handleToggle = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!(useRecovery ? /^[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{8}){3}$/ : /^\d{6}$/).test(code)) {
-      toast.error("Invalid code", { description: useRecovery ? "Enter a saved recovery code." : "Enter the current 6-digit code from your authenticator." });
+    if (
+      !(
+        useRecovery ? /^[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{8}){3}$/ : /^\d{6}$/
+      ).test(code)
+    ) {
+      toast.error("Invalid code", {
+        description: useRecovery
+          ? "Enter a saved recovery code."
+          : "Enter the current 6-digit code from your authenticator.",
+      });
       return;
     }
     if (step === "recovery") {
-      regenerate.mutate({ code, factorId }, {
-        onSuccess: data => { reset(); setRecoveryCodes(data.recoveryCodes); toast.success("Recovery codes replaced"); },
-        onError: (err: Error) => toast.error(err.message),
-      });
+      regenerate.mutate(
+        { code, factorId },
+        {
+          onSuccess: (data) => {
+            reset();
+            setRecoveryCodes(data.recoveryCodes);
+            toast.success("Recovery codes replaced");
+          },
+          onError: (err: Error) => toast.error(err.message),
+        },
+      );
       return;
     }
     const purpose = step === "enable" ? "enable" : "disable";
@@ -446,12 +505,14 @@ function SecurityCard() {
         onSuccess: (data) => {
           if (data.recoveryCodes) setRecoveryCodes(data.recoveryCodes);
           toast.success(
-            purpose === "enable" ? "Two-factor authentication enabled." : "Two-factor authentication disabled."
+            purpose === "enable"
+              ? "Two-factor authentication enabled."
+              : "Two-factor authentication disabled.",
           );
           reset();
         },
         onError: (err: Error) => toast.error(err.message),
-      }
+      },
     );
   };
 
@@ -459,7 +520,9 @@ function SecurityCard() {
     <Card>
       <CardHeader className="border-b">
         <CardTitle>Security</CardTitle>
-        <CardDescription>Manage your sign-in credentials and two-factor auth.</CardDescription>
+        <CardDescription>
+          Manage your sign-in credentials and two-factor auth.
+        </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
         <div className="flex items-center justify-between gap-4 py-1">
@@ -479,64 +542,171 @@ function SecurityCard() {
             </div>
           </div>
           {enabled ? (
-            <Button variant="outline" size="sm" onClick={() => handleSend("disable")} disabled={setupAuthenticator.isPending || factorsPending || !!factorsError || recoveryCodes.length > 0 || step !== "idle"} loading={setupAuthenticator.isPending || factorsPending}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSend("disable")}
+              disabled={
+                setupAuthenticator.isPending ||
+                factorsPending ||
+                !!factorsError ||
+                recoveryCodes.length > 0 ||
+                step !== "idle"
+              }
+              loading={setupAuthenticator.isPending || factorsPending}
+            >
               Disable
             </Button>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => handleSend("enable")} disabled={setupAuthenticator.isPending || factorsPending || !!factorsError || recoveryCodes.length > 0 || step !== "idle"} loading={setupAuthenticator.isPending || factorsPending}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSend("enable")}
+              disabled={
+                setupAuthenticator.isPending ||
+                factorsPending ||
+                !!factorsError ||
+                recoveryCodes.length > 0 ||
+                step !== "idle"
+              }
+              loading={setupAuthenticator.isPending || factorsPending}
+            >
               Enable
             </Button>
           )}
         </div>
 
-        {factorsError && <p role="alert" className="mt-3 text-sm text-destructive">Unable to load authenticator settings. Please reload this page.</p>}
-        {recoveryCodes.length > 0 && <div className="mt-4"><RecoveryCodesPanel codes={recoveryCodes} onDone={() => setRecoveryCodes([])} /></div>}
-        {enabled && step === "idle" && recoveryCodes.length === 0 && <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{factors[0]?.recoveryCodesRemaining ?? 0} recovery codes remaining</span>
-          <Button variant="outline" size="sm" onClick={() => { setStep("recovery"); setFactorId(factors[0]?.id ?? ""); setCode(""); }}>Replace recovery codes</Button>
-        </div>}
-        {step !== "idle" && (
-        <form onSubmit={handleToggle} className="mt-4 rounded-md border p-4 space-y-3">
-          <p className="text-sm text-muted-foreground">
-            {step === "enable"
-              ? "Scan the QR code using your authenticator app, then enter its current 6-digit code."
-              : step === "recovery" ? "Verify a current code to replace all existing recovery codes." : "Enter the current code from your authenticator app to remove it."}
+        {factorsError && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            Unable to load authenticator settings. Please reload this page.
           </p>
-          {setup && <div className="space-y-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt="Authenticator setup QR code" width={200} height={200} className="rounded-lg bg-white p-2" src={setup.qrCode.startsWith("data:") ? setup.qrCode : `data:image/svg+xml;charset=utf-8,${encodeURIComponent(setup.qrCode)}`} />
-            <p className="text-xs text-muted-foreground">Manual setup key</p>
-            <code className="block break-all select-all text-sm">{setup.secret}</code>
-            <p className="text-xs text-muted-foreground">Keep an encrypted backup in your password manager for recovery. Never share this key.</p>
-          </div>}
-          <div className="flex flex-wrap items-center gap-2">
-            <Input
-              aria-label={useRecovery ? "Recovery code" : "Authenticator code"}
-              autoComplete="one-time-code"
-              inputMode={useRecovery ? "text" : "numeric"}
-              pattern={useRecovery ? undefined : "[0-9]*"}
-              maxLength={useRecovery ? 35 : 6}
-              placeholder={useRecovery ? "Recovery code" : "6-digit code"}
-              value={code}
-              onChange={(e) => setCode(useRecovery ? e.target.value.toUpperCase().replace(/[^A-F0-9-]/g, "").slice(0, 35) : e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className={useRecovery ? "min-w-0 flex-1" : "max-w-[160px]"}
+        )}
+        {recoveryCodes.length > 0 && (
+          <div className="mt-4">
+            <RecoveryCodesPanel
+              codes={recoveryCodes}
+              onDone={() => setRecoveryCodes([])}
             />
-            <Button type="submit" disabled={toggle.isPending || regenerate.isPending} loading={toggle.isPending || regenerate.isPending}>
-              {(toggle.isPending || regenerate.isPending) ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
-                  Verifying...
-                </>
-              ) : (
-                "Confirm"
-              )}
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={toggle.isPending || regenerate.isPending} loading={toggle.isPending}>
-              Cancel
+          </div>
+        )}
+        {enabled && step === "idle" && recoveryCodes.length === 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-muted-foreground">
+              {factors[0]?.recoveryCodesRemaining ?? 0} recovery codes remaining
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStep("recovery");
+                setFactorId(factors[0]?.id ?? "");
+                setCode("");
+              }}
+            >
+              Replace recovery codes
             </Button>
           </div>
-          {step !== "enable" && <Button type="button" variant="link" className="px-0" onClick={() => { setUseRecovery(value => !value); setCode(""); }}>{useRecovery ? "Use authenticator code" : "Use a recovery code"}</Button>}
-        </form>
+        )}
+        {step !== "idle" && (
+          <form
+            onSubmit={handleToggle}
+            className="mt-4 rounded-md border p-4 space-y-3"
+          >
+            <p className="text-sm text-muted-foreground">
+              {step === "enable"
+                ? "Scan the QR code using your authenticator app, then enter its current 6-digit code."
+                : step === "recovery"
+                  ? "Verify a current code to replace all existing recovery codes."
+                  : "Enter the current code from your authenticator app to remove it."}
+            </p>
+            {setup && (
+              <div className="space-y-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt="Authenticator setup QR code"
+                  width={200}
+                  height={200}
+                  className="rounded-lg bg-white p-2"
+                  src={
+                    setup.qrCode.startsWith("data:")
+                      ? setup.qrCode
+                      : `data:image/svg+xml;charset=utf-8,${encodeURIComponent(setup.qrCode)}`
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Manual setup key
+                </p>
+                <code className="block break-all select-all text-sm">
+                  {setup.secret}
+                </code>
+                <p className="text-xs text-muted-foreground">
+                  Keep an encrypted backup in your password manager for
+                  recovery. Never share this key.
+                </p>
+              </div>
+            )}
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                aria-label={
+                  useRecovery ? "Recovery code" : "Authenticator code"
+                }
+                autoComplete="one-time-code"
+                inputMode={useRecovery ? "text" : "numeric"}
+                pattern={useRecovery ? undefined : "[0-9]*"}
+                maxLength={useRecovery ? 35 : 6}
+                placeholder={useRecovery ? "Recovery code" : "6-digit code"}
+                value={code}
+                onChange={(e) =>
+                  setCode(
+                    useRecovery
+                      ? e.target.value
+                          .toUpperCase()
+                          .replace(/[^A-F0-9-]/g, "")
+                          .slice(0, 35)
+                      : e.target.value.replace(/\D/g, "").slice(0, 6),
+                  )
+                }
+                className={useRecovery ? "min-w-0 flex-1" : "max-w-[160px]"}
+              />
+              <Button
+                type="submit"
+                disabled={toggle.isPending || regenerate.isPending}
+                loading={toggle.isPending || regenerate.isPending}
+              >
+                {toggle.isPending || regenerate.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Confirm"
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={reset}
+                disabled={toggle.isPending || regenerate.isPending}
+                loading={toggle.isPending}
+              >
+                Cancel
+              </Button>
+            </div>
+            {step !== "enable" && (
+              <Button
+                type="button"
+                variant="link"
+                className="px-0"
+                onClick={() => {
+                  setUseRecovery((value) => !value);
+                  setCode("");
+                }}
+              >
+                {useRecovery ? "Use authenticator code" : "Use a recovery code"}
+              </Button>
+            )}
+          </form>
         )}
 
         <Separator className="my-3" />
@@ -547,7 +717,11 @@ function SecurityCard() {
               Choose a strong password you don&apos;t use anywhere else.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDialogOpen(true)}
+          >
             <KeyRound className="h-3.5 w-3.5 mr-1.5" />
             Change Password
           </Button>
@@ -578,10 +752,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="My Profile"
-        breadcrumbs={[{ label: "Profile" }]}
-      />
+      <PageHeader title="My Profile" breadcrumbs={[{ label: "Profile" }]} />
 
       {error ? (
         <ErrorState title="Failed to load your profile." />
@@ -590,10 +761,30 @@ export default function ProfilePage() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-3">
           <IdentityCard profile={profile} />
-          <UrlTabs className="lg:col-span-2 space-y-6" defaultValue="account" values={["account", "security"]}>
-            <TabsList aria-label="Profile views"><TabsTrigger value="account">Account</TabsTrigger><TabsTrigger value="security">Security</TabsTrigger></TabsList>
-            <TabsContent value="account" forceMount className="space-y-6 data-[state=inactive]:hidden"><BasicInfoCard profile={profile} /><PhotoCard profile={profile} /></TabsContent>
-            <TabsContent value="security" forceMount className="data-[state=inactive]:hidden"><SecurityCard /></TabsContent>
+          <UrlTabs
+            className="lg:col-span-2 space-y-6"
+            defaultValue="account"
+            values={["account", "security"]}
+          >
+            <TabsList aria-label="Profile views">
+              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="account"
+              forceMount
+              className="space-y-6 data-[state=inactive]:hidden"
+            >
+              <BasicInfoCard profile={profile} />
+              <PhotoCard profile={profile} />
+            </TabsContent>
+            <TabsContent
+              value="security"
+              forceMount
+              className="data-[state=inactive]:hidden"
+            >
+              <SecurityCard />
+            </TabsContent>
           </UrlTabs>
         </div>
       )}

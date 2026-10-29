@@ -10,19 +10,10 @@ import * as React from "react";
 import { Suspense } from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { useRouter } from "next/navigation";
-import {
-  CalendarClock,
-  CheckCircle2,
-  Eye,
-  Megaphone,
-  MoreHorizontal,
-  Plus,
-  XCircle,
-} from "lucide-react";
+import { Eye, Megaphone, MoreVertical, Plus, XCircle } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { TableCard } from "@/components/shared/table-card";
 import {
   Dialog,
@@ -79,14 +70,18 @@ function BroadcastsListContent() {
   const canUpdate = can("broadcasts", "update");
   const canManage = canCreate || canUpdate;
 
-  const [statusFilter, setStatusFilter] = React.useState<BroadcastStatus | "">("");
+  const [statusFilter, setStatusFilter] = React.useState<BroadcastStatus | "">(
+    "",
+  );
   const [channel, setChannel] = React.useState<BroadcastChannel | "">("");
   const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [editing, setEditing] = React.useState<Broadcast | null>(null);
   const [viewing, setViewing] = React.useState<Broadcast | null>(null);
-  const [cancelTarget, setCancelTarget] = React.useState<Broadcast | null>(null);
+  const [cancelTarget, setCancelTarget] = React.useState<Broadcast | null>(
+    null,
+  );
 
   const queryParams: ListBroadcastsParams = React.useMemo(
     () => ({
@@ -96,20 +91,13 @@ function BroadcastsListContent() {
       status: statusFilter || undefined,
       channel: channel || undefined,
     }),
-    [page, perPage, branchId, statusFilter, channel]
+    [page, perPage, branchId, statusFilter, channel],
   );
 
   const { data, isLoading, error } = useBroadcastsList(queryParams);
 
-  const allQuery = useBroadcastsList({ limit: 100, branchId: branchId || undefined });
-  const allBroadcasts = React.useMemo(() => allQuery.data?.data ?? [], [allQuery.data]);
-
   const total = data?.meta?.total ?? 0;
   const broadcasts = React.useMemo(() => data?.data ?? [], [data]);
-
-  const sent = allBroadcasts.filter((b) => b.status === "sent").length;
-  const scheduled = allBroadcasts.filter((b) => b.status === "scheduled").length;
-  const failed = allBroadcasts.filter((b) => b.status === "failed").length;
 
   const cancelMutation = useCancelBroadcast();
 
@@ -122,7 +110,9 @@ function BroadcastsListContent() {
       await cancelMutation.mutateAsync(cancelTarget.broadcastId);
       toast.success("Broadcast cancelled");
       setCancelTarget(null);
-      setViewing((v) => (v && v.broadcastId === cancelTarget.broadcastId ? null : v));
+      setViewing((v) =>
+        v && v.broadcastId === cancelTarget.broadcastId ? null : v,
+      );
     } catch (err) {
       toast.error("Failed to cancel broadcast", {
         description: getToastErrorMessage(err, "Please try again."),
@@ -136,7 +126,10 @@ function BroadcastsListContent() {
       <div>
         <PageHeader
           title="Broadcasts"
-          breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Broadcasts" }]}
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Broadcasts" },
+          ]}
         />
         <ErrorState title="Failed to load broadcasts." />
       </div>
@@ -146,11 +139,20 @@ function BroadcastsListContent() {
   return (
     <div className="space-y-4">
       <PageHeader
+        count={total}
         title="Broadcasts"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Broadcasts" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Broadcasts" },
+        ]}
         action={
           canCreate && (
-            <Button onClick={() => { if (confirmDiscardChanges()) router.push("/communication/broadcasts/new"); }}>
+            <Button
+              onClick={() => {
+                if (confirmDiscardChanges())
+                  router.push("/communication/broadcasts/new");
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Broadcast
             </Button>
@@ -158,40 +160,18 @@ function BroadcastsListContent() {
         }
       />
 
-      <p className="text-sm text-muted-foreground">Status metrics cover {allBroadcasts.length} loaded broadcasts (up to 100) in the selected branch. The paginated table and export contain the matching records.</p>
-      {allQuery.error && <ErrorState title="Unable to load broadcast metrics" />}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total Broadcasts"
-          value={allQuery.error ? "—" : allQuery.data?.meta?.total ?? allBroadcasts.length}
-          icon={<Megaphone className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Sent"
-          value={allQuery.error ? "—" : sent}
-          icon={<CheckCircle2 className="h-4 w-4" />}
-          variant="success"
-        />
-        <StatsCard
-          title="Scheduled"
-          value={allQuery.error ? "—" : scheduled}
-          icon={<CalendarClock className="h-4 w-4" />}
-          variant="warning"
-        />
-        <StatsCard
-          title="Failed"
-          value={allQuery.error ? "—" : failed}
-          icon={<XCircle className="h-4 w-4" />}
-          variant="default"
-        />
-      </div>
-
       <TableCard
         toolbar={
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <select
+              <BranchFilter
+                value={branchId}
+                onChange={(value) => {
+                  setBranchId(value);
+                  setPage(1);
+                }}
+              />
+              <select
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value as BroadcastStatus | "");
@@ -258,7 +238,9 @@ function BroadcastsListContent() {
                 <TableHead>Status</TableHead>
                 <TableHead>Schedule</TableHead>
                 <TableHead>Recipients</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -268,17 +250,23 @@ function BroadcastsListContent() {
                   className="cursor-pointer"
                   onClick={() => setViewing(broadcast)}
                 >
-                  <TableCell className="font-medium">{broadcast.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {broadcast.name}
+                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {broadcast.templateName || "-"}
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center gap-1 ${BROADCAST_CHANNEL_TEXT[broadcast.channel]}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 ${BROADCAST_CHANNEL_TEXT[broadcast.channel]}`}
+                    >
                       {BROADCAST_CHANNEL_LABELS[broadcast.channel]}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-sm font-medium ${BROADCAST_STATUS_TEXT[broadcast.status]}`}>
+                    <span
+                      className={`text-sm font-medium ${BROADCAST_STATUS_TEXT[broadcast.status]}`}
+                    >
                       {BROADCAST_STATUS_LABELS[broadcast.status]}
                     </span>
                   </TableCell>
@@ -293,16 +281,25 @@ function BroadcastsListContent() {
                     {broadcast.totalRecipients}
                   </TableCell>
                   {canManage && (
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="h-4 w-4" />
                             <span className="sr-only">More actions</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setViewing(broadcast)}>
+                          <DropdownMenuItem
+                            onClick={() => setViewing(broadcast)}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
@@ -326,19 +323,29 @@ function BroadcastsListContent() {
         )}
       </TableCard>
 
-      <BroadcastBranchDialog broadcast={editing} onClose={() => setEditing(null)} />
+      <BroadcastBranchDialog
+        broadcast={editing}
+        onClose={() => setEditing(null)}
+      />
 
       {/* View detail */}
-      <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
+      <Dialog
+        open={!!viewing}
+        onOpenChange={(open) => !open && setViewing(null)}
+      >
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
             <DialogTitle>{viewing?.name}</DialogTitle>
             <DialogDescription className="flex flex-wrap items-center gap-2">
               {viewing && (
-                <Badge variant="secondary">{BROADCAST_CHANNEL_LABELS[viewing.channel]}</Badge>
+                <Badge variant="secondary">
+                  {BROADCAST_CHANNEL_LABELS[viewing.channel]}
+                </Badge>
               )}
               {viewing && (
-                <span className={`text-sm font-medium ${BROADCAST_STATUS_TEXT[viewing.status]}`}>
+                <span
+                  className={`text-sm font-medium ${BROADCAST_STATUS_TEXT[viewing.status]}`}
+                >
                   {BROADCAST_STATUS_LABELS[viewing.status]}
                 </span>
               )}
@@ -346,21 +353,30 @@ function BroadcastsListContent() {
           </DialogHeader>
           {viewing && (
             <div className="space-y-4 text-sm">
-          <BranchDetail record={viewing} />
+              <BranchDetail record={viewing} />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                  <p className="text-muted-foreground text-xs mb-0.5">Template</p>
+                  <p className="text-muted-foreground text-xs mb-0.5">
+                    Template
+                  </p>
                   <p className="font-medium">{viewing.templateName || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs mb-0.5">Recipients</p>
+                  <p className="text-muted-foreground text-xs mb-0.5">
+                    Recipients
+                  </p>
                   <p className="font-medium">{viewing.totalRecipients}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground text-xs mb-0.5">Scheduled</p>
+                  <p className="text-muted-foreground text-xs mb-0.5">
+                    Scheduled
+                  </p>
                   <p className="font-medium">
                     {viewing.scheduledAt
-                      ? format(new Date(viewing.scheduledAt), "MMM d, yyyy h:mm a")
+                      ? format(
+                          new Date(viewing.scheduledAt),
+                          "MMM d, yyyy h:mm a",
+                        )
                       : "Immediately"}
                   </p>
                 </div>
@@ -374,13 +390,24 @@ function BroadcastsListContent() {
                 </div>
               </div>
               <div className="rounded-md border bg-muted/40 p-4 text-xs text-muted-foreground">
-                Created {format(new Date(viewing.createdAt), "MMM d, yyyy h:mm a")}
+                Created{" "}
+                {format(new Date(viewing.createdAt), "MMM d, yyyy h:mm a")}
               </div>
               {canUpdate && isCancelable(viewing) && (
                 <DialogFooter>
-                  {viewing.status === "scheduled" && viewing.scheduledAt && new Date(viewing.scheduledAt) > new Date() && (
-                    <Button variant="outline" onClick={() => { setEditing(viewing); setViewing(null); }}>Edit Branch</Button>
-                  )}
+                  {viewing.status === "scheduled" &&
+                    viewing.scheduledAt &&
+                    new Date(viewing.scheduledAt) > new Date() && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditing(viewing);
+                          setViewing(null);
+                        }}
+                      >
+                        Edit Branch
+                      </Button>
+                    )}
                   <Button
                     variant="destructive"
                     onClick={() => {
@@ -399,7 +426,10 @@ function BroadcastsListContent() {
       </Dialog>
 
       {/* Cancel confirmation */}
-      <Dialog open={!!cancelTarget} onOpenChange={(open) => !open && setCancelTarget(null)}>
+      <Dialog
+        open={!!cancelTarget}
+        onOpenChange={(open) => !open && setCancelTarget(null)}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
@@ -408,8 +438,10 @@ function BroadcastsListContent() {
             <DialogTitle className="text-center">Cancel Broadcast</DialogTitle>
             <DialogDescription className="text-center">
               Are you sure you want to cancel{" "}
-              <span className="font-medium text-foreground">{cancelTarget?.name}</span>?
-              It will not be sent.
+              <span className="font-medium text-foreground">
+                {cancelTarget?.name}
+              </span>
+              ? It will not be sent.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

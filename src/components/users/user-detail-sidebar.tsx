@@ -1,25 +1,20 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { WorkspaceAvatar } from "@/components/workspace/workspace-presentation";
 import { Separator } from "@/components/ui/separator";
-import {
-  type UserProfile,
-} from "@/hooks/use-users";
+import { type UserProfile } from "@/hooks/use-users";
 import { useRoleLabelMap, resolveRoleLabel } from "@/hooks/use-roles";
-import {
-  Mail,
-  Phone,
-  Calendar,
-  Shield,
-  Church,
-  MapPin,
-} from "lucide-react";
+import { Mail, Phone, Calendar, Shield, Church, MapPin } from "lucide-react";
 
-function getInitials(firstName: string, lastName: string) {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
-
-function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
   return (
     <div className="flex items-start gap-3">
       <span className="text-muted-foreground mt-0.5">{icon}</span>
@@ -31,7 +26,13 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
   );
 }
 
-function RoleBadge({ role, labels }: { role: string; labels: Map<string, string> }) {
+function RoleBadge({
+  role,
+  labels,
+}: {
+  role: string;
+  labels: Map<string, string>;
+}) {
   const variant = role === "super_admin" ? "destructive" : "secondary";
   return (
     <Badge variant={variant} className="text-xs">
@@ -49,20 +50,25 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
   return (
     <Card>
       <CardHeader className="text-center">
-        <Avatar className="mx-auto h-20 w-20">
-          <AvatarImage src={user.avatarUrl} alt={`${user.firstName} ${user.lastName}`} />
-          <AvatarFallback className="text-xl">{getInitials(user.firstName, user.lastName)}</AvatarFallback>
-        </Avatar>
-        <h1 className="mt-2 text-xl font-semibold">{user.firstName} {user.lastName}</h1>
+        <WorkspaceAvatar
+          id={user.profileId}
+          name={`${user.firstName} ${user.lastName}`}
+          photoUrl={user.avatarUrl}
+          className="mx-auto size-14"
+        />
+        <h1 className="mt-2 text-xl font-semibold">
+          {user.firstName} {user.lastName}
+        </h1>
         <div className="flex justify-center gap-2 mt-1">
           <Badge variant={user.status === "active" ? "default" : "destructive"}>
             {user.status}
           </Badge>
-          {user.mfaEnabled && (
-            <Badge variant="secondary">MFA Enabled</Badge>
-          )}
+          {user.mfaEnabled && <Badge variant="secondary">MFA Enabled</Badge>}
           {user.isAdminHq && (
-            <Badge variant="secondary" title="Admin HQ — cross-branch access enabled">
+            <Badge
+              variant="secondary"
+              title="Admin HQ — cross-branch access enabled"
+            >
               Admin HQ
             </Badge>
           )}
@@ -77,9 +83,11 @@ export function UserDetailSidebar({ user }: UserDetailSidebarProps) {
             <div>
               <p className="text-sm text-muted-foreground">Roles</p>
               <div className="flex flex-wrap gap-1.5 mt-1">
-                {(user.role?.length ? user.role : ["No role assigned"]).map((role) => (
-                  <RoleBadge key={role} role={role} labels={labels} />
-                ))}
+                {(user.role?.length ? user.role : ["No role assigned"]).map(
+                  (role) => (
+                    <RoleBadge key={role} role={role} labels={labels} />
+                  ),
+                )}
               </div>
             </div>
           </div>

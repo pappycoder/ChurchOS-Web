@@ -14,7 +14,7 @@ import {
   type FormSubmission,
   type SubmissionStatus,
 } from "@/hooks/use-forms";
-import { PageHeader } from "@/components/shared/page-header";
+import { WorkspaceHeader as PageHeader } from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { SubmissionDetailDialog } from "@/components/forms/submission-detail-dialog";
 import { SubmissionStatusDialog } from "@/components/forms/submission-status-dialog";
@@ -38,21 +38,30 @@ function SubmissionsPageContent() {
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [statusValue, setStatusValue] = useUrlQueryState<SubmissionStatus | "">("status", "", ["pending", "approved", "rejected", ""]);
+  const [statusValue, setStatusValue] = useUrlQueryState<SubmissionStatus | "">(
+    "status",
+    "",
+    ["pending", "approved", "rejected", ""],
+  );
   const statusFilter = statusValue || undefined;
-  const setStatusFilter = (status: SubmissionStatus | undefined) => setStatusValue(status ?? "");
+  const setStatusFilter = (status: SubmissionStatus | undefined) =>
+    setStatusValue(status ?? "");
   const [selectedFormId, setSelectedFormId] = useUrlQueryState("formId");
   const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
-  const [selectedSubmission, setSelectedSubmission] = React.useState<FormSubmission | undefined>(
-    undefined,
-  );
-  const [reviewSubmission, setReviewSubmission] = React.useState<FormSubmission | undefined>(
-    undefined,
-  );
+  const [selectedSubmission, setSelectedSubmission] = React.useState<
+    FormSubmission | undefined
+  >(undefined);
+  const [reviewSubmission, setReviewSubmission] = React.useState<
+    FormSubmission | undefined
+  >(undefined);
 
-  const { data: formsData, isLoading: formsLoading, error: formsError } = useFormsList({
+  const {
+    data: formsData,
+    isLoading: formsLoading,
+    error: formsError,
+  } = useFormsList({
     limit: 200,
     search: search || undefined,
     branchId: branchId || undefined,
@@ -83,11 +92,15 @@ function SubmissionsPageContent() {
     [page, perPage, statusFilter],
   );
 
-  const { data: submissionsData, isLoading: submissionsLoading, error: submissionsError } = useFormSubmissions(
-    selectedFormId || undefined,
-    queryParams,
+  const {
+    data: submissionsData,
+    isLoading: submissionsLoading,
+    error: submissionsError,
+  } = useFormSubmissions(selectedFormId || undefined, queryParams);
+  const submissions = React.useMemo(
+    () => submissionsData?.data ?? [],
+    [submissionsData],
   );
-  const submissions = React.useMemo(() => submissionsData?.data ?? [], [submissionsData]);
   const submissionsMeta = submissionsData?.meta;
 
   const statusMutation = useUpdateSubmissionStatus(selectedFormId);
@@ -134,6 +147,7 @@ function SubmissionsPageContent() {
   return (
     <div>
       <PageHeader
+        count={selectedFormId ? (submissionsMeta?.total ?? 0) : undefined}
         title="Submissions"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -191,7 +205,9 @@ function SubmissionsPageContent() {
             <Select
               value={statusFilter ?? "all"}
               onValueChange={(v) => {
-                setStatusFilter(v === "all" ? undefined : (v as SubmissionStatus));
+                setStatusFilter(
+                  v === "all" ? undefined : (v as SubmissionStatus),
+                );
                 setPage(1);
               }}
             >
@@ -206,14 +222,17 @@ function SubmissionsPageContent() {
               </SelectContent>
             </Select>
             <SearchInput
-              aria-label="Search available forms" placeholder="Search available forms..."
+              aria-label="Search available forms"
+              placeholder="Search available forms..."
               value={searchInput}
               onChange={setSearchInput}
             />
           </div>
         }
       >
-        {formsError ? <ErrorState title="Unable to load forms" /> : formsLoading ? (
+        {formsError ? (
+          <ErrorState title="Unable to load forms" />
+        ) : formsLoading ? (
           <div className="px-4 py-4">
             <Skeleton className="h-24 w-full" />
           </div>
@@ -227,7 +246,9 @@ function SubmissionsPageContent() {
                   ? "No forms match your search."
                   : "Create a form to start collecting submissions."
               }
-              action={search ? undefined : { label: "Add Form", href: "/forms/new" }}
+              action={
+                search ? undefined : { label: "Add Form", href: "/forms/new" }
+              }
             />
           </div>
         ) : !selectedForm ? (
@@ -238,7 +259,9 @@ function SubmissionsPageContent() {
               description="Choose a form above to view its submissions."
             />
           </div>
-        ) : submissionsError ? <ErrorState title="Unable to load submissions" /> : submissionsLoading ? (
+        ) : submissionsError ? (
+          <ErrorState title="Unable to load submissions" />
+        ) : submissionsLoading ? (
           <SubmissionsTable
             key={selectedForm.id}
             form={selectedForm}
@@ -287,4 +310,10 @@ function SubmissionsPageContent() {
   );
 }
 
-export default function SubmissionsPage() { return <React.Suspense fallback={<p role="status">Loading workspace…</p>}><SubmissionsPageContent /></React.Suspense>; }
+export default function SubmissionsPage() {
+  return (
+    <React.Suspense fallback={<p role="status">Loading workspace…</p>}>
+      <SubmissionsPageContent />
+    </React.Suspense>
+  );
+}

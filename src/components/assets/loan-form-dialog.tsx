@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceFormSection } from "@/components/workspace/workspace-presentation";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -128,101 +129,113 @@ export function LoanFormDialog({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="borrowerMemberId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Borrower (Member)</FormLabel>
-                  <FormControl>
-                    <MemberCombobox
-                      value={field.value ?? ""}
-                      onChange={(memberId, member) => {
-                        field.onChange(memberId || undefined);
-                        setBorrowerName(
-                          member ? `${member.firstName} ${member.lastName}` : ""
-                        );
-                      }}
-                      selectedName={borrowerName || undefined}
-                      placeholder="Select member..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="borrowedByName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Or Borrower (External)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g. External Vendor Ltd (member optional)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <WorkspaceFormSection title="Borrower">
               <FormField
                 control={form.control}
-                name="expectedReturnDate"
+                name="borrowerMemberId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Expected Return Date *</FormLabel>
+                    <FormLabel>Borrower (Member)</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <MemberCombobox
+                        value={field.value ?? ""}
+                        onChange={(memberId, member) => {
+                          field.onChange(memberId || undefined);
+                          setBorrowerName(
+                            member
+                              ? `${member.firstName} ${member.lastName}`
+                              : "",
+                          );
+                        }}
+                        selectedName={borrowerName || undefined}
+                        placeholder="Select member..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="conditionBefore"
+                name="borrowedByName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Condition Before</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select condition" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {CONDITION_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Or Borrower (External)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. External Vendor Ltd (member optional)"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="notes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Notes</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Any loan notes" rows={2} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Loan details">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="expectedReturnDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expected Return Date *</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="conditionBefore"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Condition Before</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select condition" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {CONDITION_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </WorkspaceFormSection>
+            <WorkspaceFormSection title="Additional information">
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Any loan notes"
+                        rows={2}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </WorkspaceFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

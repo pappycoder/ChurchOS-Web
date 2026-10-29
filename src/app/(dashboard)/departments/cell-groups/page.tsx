@@ -1,4 +1,5 @@
 "use client";
+import { WorkspaceRowMenu } from "@/components/workspace/workspace-management-menu";
 import { ErrorState } from "@/components/shared/error-state";
 
 import { EmptyState } from "@/components/shared/empty-state";
@@ -12,16 +13,16 @@ import {
   Pencil,
   Plus,
   Trash2,
-  UsersRound,
-  Users,
   RotateCcw,
   Archive,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { PageHeader } from "@/components/shared/page-header";
-import { StatsCard } from "@/components/shared/stats-card";
+import {
+  WorkspaceMoreFilters,
+  WorkspaceHeader as PageHeader,
+} from "@/components/workspace/workspace-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +35,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -51,12 +55,15 @@ import {
 } from "@/hooks/use-admin";
 
 export default function CellGroupsPage() {
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const { can, canAny } = usePermissions();
   const { data: profile } = useCurrentProfile();
   // Own-group grants limit edits and attendance; HQ additionally permits creation.
-  const isCellLeader = canAny("cell_groups:own:read") && !canAny("cell_groups:delete");
+  const isCellLeader =
+    canAny("cell_groups:own:read") && !canAny("cell_groups:delete");
 
-  const canCreate = can("cell_groups", "create") && (!isCellLeader || !!profile?.isAdminHq);
+  const canCreate =
+    can("cell_groups", "create") && (!isCellLeader || !!profile?.isAdminHq);
   const canUpdate = can("cell_groups", "update");
   const canDelete = can("cell_groups", "delete");
 
@@ -68,7 +75,8 @@ export default function CellGroupsPage() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CellGroup | null>(null);
   const [deleting, setDeleting] = React.useState<CellGroup | null>(null);
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -80,7 +88,11 @@ export default function CellGroupsPage() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const { data: groups, isLoading, error } = useCellGroupsList({
+  const {
+    data: groups,
+    isLoading,
+    error,
+  } = useCellGroupsList({
     archived: archivedView ? true : undefined,
     branchId: branchId || undefined,
   });
@@ -95,25 +107,23 @@ export default function CellGroupsPage() {
     return rows.filter(
       (g) =>
         g.name.toLowerCase().includes(q) ||
-        `${g.leaderFirstName ?? ""} ${g.leaderLastName ?? ""}`.toLowerCase().includes(q) ||
+        `${g.leaderFirstName ?? ""} ${g.leaderLastName ?? ""}`
+          .toLowerCase()
+          .includes(q) ||
         (g.branchName ?? "").toLowerCase().includes(q) ||
-        (g.address ?? "").toLowerCase().includes(q)
+        (g.address ?? "").toLowerCase().includes(q),
     );
   }, [groups, search]);
 
   const paged = React.useMemo(
     () => filtered.slice((page - 1) * perPage, page * perPage),
-    [filtered, page, perPage]
-  );
-
-  const branchesWithGroups = React.useMemo(
-    () => new Set((groups ?? []).map((g) => g.branchId).filter(Boolean)).size,
-    [groups]
+    [filtered, page, perPage],
   );
 
   return (
     <div>
       <PageHeader
+        count={filtered.length}
         title="Cell Groups"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -139,25 +149,6 @@ export default function CellGroupsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <StatsCard
-          title="Total Cell Groups"
-          value={error ? "—" : (groups ?? []).length}
-          icon={<UsersRound className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Branches Covered"
-          value={error ? "—" : branchesWithGroups}
-          subtitle="With at least one group"
-          icon={<MapPin className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Unassigned Groups"
-          value={error ? "—" : (groups ?? []).filter((g) => !g.branchId).length}
-          icon={<Users className="h-4 w-4" />}
-        />
-      </div>
-
       <TableCard
         title="All Cell Groups"
         itemName="cell groups"
@@ -171,10 +162,37 @@ export default function CellGroupsPage() {
         }}
         toolbar={
           <div className="flex items-center gap-2 flex-wrap">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            {!isCellLeader && (
-              <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
-            )}
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
+                setPage(1);
+              }}
+            />
+            <WorkspaceMoreFilters count={Number(archivedFilter !== "all")}>
+              {!isCellLeader && (
+                <ArchivedFilter
+                  value={archivedFilter}
+                  onChange={(value) => {
+                    setArchivedFilter(value);
+                    setPage(1);
+                  }}
+                />
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setArchivedFilter("all");
+                  setSearchInput("");
+                  setSearch("");
+                  setBranchId("");
+                  setPage(1);
+                }}
+              >
+                Reset filters
+              </Button>
+            </WorkspaceMoreFilters>
             <div className="relative sm:w-72">
               <input
                 type="text"
@@ -195,14 +213,26 @@ export default function CellGroupsPage() {
             <TableRow>
               <TableHead exportKeys={["name", "leader"]}>Group</TableHead>
               <TableHead>Branch</TableHead>
-              <TableHead exportKeys={["address", "latitude", "longitude"]}>Location</TableHead>
-              <TableHead exportKeys={["meetingDay", "meetingTime"]}>Meeting</TableHead>
+              <TableHead exportKeys={["address", "latitude", "longitude"]}>
+                Location
+              </TableHead>
+              <TableHead exportKeys={["meetingDay", "meetingTime"]}>
+                Meeting
+              </TableHead>
               <TableHead className="text-right">Date Added</TableHead>
-              {canUpdate || canDelete ? <TableHead className="text-right">Actions</TableHead> : null}
+              {canUpdate || canDelete ? (
+                <TableHead className="text-right">Actions</TableHead>
+              ) : null}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {error ? <TableRow><TableCell colSpan={20}><ErrorState title="Unable to load cell groups" /></TableCell></TableRow> : isLoading ? (
+            {error ? (
+              <TableRow>
+                <TableCell colSpan={20}>
+                  <ErrorState title="Unable to load cell groups" />
+                </TableCell>
+              </TableRow>
+            ) : isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell colSpan={canUpdate || canDelete ? 6 : 5}>
@@ -212,26 +242,40 @@ export default function CellGroupsPage() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canUpdate || canDelete ? 6 : 5} className="h-32 text-center">
-                  <EmptyState title="No results" description={archivedView
-                      ? "No archived cell groups."
-                      : search
-                        ? "No cell groups match your search."
-                        : "No cell groups yet. Create your first one to get started."} />
+                <TableCell
+                  colSpan={canUpdate || canDelete ? 6 : 5}
+                  className="h-32 text-center"
+                >
+                  <EmptyState
+                    title="No results"
+                    description={
+                      archivedView
+                        ? "No archived cell groups."
+                        : search
+                          ? "No cell groups match your search."
+                          : "No cell groups yet. Create your first one to get started."
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ) : (
               paged.map((group) => (
                 <TableRow key={group.id} className="cursor-pointer">
                   <TableCell>
-                    <Link href={`/departments/cell-groups/${group.id}`} className="block group">
+                    <Link
+                      href={`/departments/cell-groups/${group.id}`}
+                      className="block group"
+                    >
                       <p className="font-medium group-hover:text-primary flex items-center gap-1">
                         {group.name}
                         <ChevronRight className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100" />
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {group.leaderFirstName || group.leaderLastName
-                          ? `Leader: ${[group.leaderFirstName, group.leaderLastName]
+                          ? `Leader: ${[
+                              group.leaderFirstName,
+                              group.leaderLastName,
+                            ]
                               .filter(Boolean)
                               .join(" ")}`
                           : "No leader assigned"}
@@ -242,7 +286,9 @@ export default function CellGroupsPage() {
                     {group.branchName ? (
                       <Badge variant="secondary">{group.branchName}</Badge>
                     ) : (
-                      <span className="text-xs text-muted-foreground">Unassigned</span>
+                      <span className="text-xs text-muted-foreground">
+                        Unassigned
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -252,7 +298,9 @@ export default function CellGroupsPage() {
                         <span className="line-clamp-1">{group.address}</span>
                       </span>
                     ) : (
-                      <span className="text-xs text-muted-foreground">No address</span>
+                      <span className="text-xs text-muted-foreground">
+                        No address
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
@@ -268,7 +316,9 @@ export default function CellGroupsPage() {
                         )}
                       </span>
                     ) : (
-                      <span className="text-xs text-muted-foreground">Not scheduled</span>
+                      <span className="text-xs text-muted-foreground">
+                        Not scheduled
+                      </span>
                     )}
                   </TableCell>
                   <TableCell className="text-right text-sm text-muted-foreground">
@@ -277,7 +327,10 @@ export default function CellGroupsPage() {
                   {canUpdate || canDelete ? (
                     <TableCell className="text-right">
                       {archivedView ? (
-                        <div className="flex justify-end gap-1.5">
+                        <WorkspaceRowMenu
+                          label={`Manage ${group.name}`}
+                          returnFocusRef={managementRef}
+                        >
                           {canUpdate && (
                             <Button
                               variant="outline"
@@ -303,9 +356,12 @@ export default function CellGroupsPage() {
                               Delete Forever
                             </Button>
                           )}
-                        </div>
+                        </WorkspaceRowMenu>
                       ) : (
-                        <div className="flex justify-end gap-1">
+                        <WorkspaceRowMenu
+                          label={`Manage ${group.name}`}
+                          returnFocusRef={managementRef}
+                        >
                           {canUpdate && (
                             <Button
                               variant="ghost"
@@ -322,29 +378,33 @@ export default function CellGroupsPage() {
                           )}
                           {(canUpdate || canDelete) && (
                             <>
-                              {canUpdate && (<Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label={`Archive ${group.name}`}
-                                onClick={() =>
-                                  setArchiveTarget({ kind: "archive", group })
-                                }
-                              >
-                                <Archive className="h-4 w-4" />
-                              </Button>)}
-                              {canDelete && (<Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                aria-label={`Delete ${group.name}`}
-                                onClick={() => setDeleting(group)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>)}
+                              {canUpdate && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  aria-label={`Archive ${group.name}`}
+                                  onClick={() =>
+                                    setArchiveTarget({ kind: "archive", group })
+                                  }
+                                >
+                                  <Archive className="h-4 w-4" />
+                                </Button>
+                              )}
+                              {canDelete && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  aria-label={`Delete ${group.name}`}
+                                  onClick={() => setDeleting(group)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
                             </>
                           )}
-                        </div>
+                        </WorkspaceRowMenu>
                       )}
                     </TableCell>
                   ) : null}
@@ -356,12 +416,14 @@ export default function CellGroupsPage() {
       </TableCard>
 
       <CellGroupFormDialog
+        returnFocusRef={editing ? managementRef : undefined}
         open={formOpen}
         onOpenChange={setFormOpen}
         group={editing}
       />
 
       <DeleteCellGroupDialog
+        returnFocusRef={managementRef}
         open={!!deleting}
         onOpenChange={(open) => {
           if (!open) setDeleting(null);
@@ -370,6 +432,7 @@ export default function CellGroupsPage() {
       />
 
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

@@ -1,0 +1,78 @@
+.workspace {
+  min-width: 0;
+  --section-icon-background: color-mix(
+    in srgb,
+    var(--chart-2) 10%,
+    transparent
+  );
+}
+.workspace :global([data-workspace-header]) {
+  margin-bottom: 1rem;
+}
+.workspace :global([data-workspace-header] h1) {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 650;
+  margin-bottom: 0.375rem;
+}
+.workspace :global([data-slot="card"]) {
+  gap: 0.875rem;
+  padding-block: 1rem;
+  box-shadow: none;
+}
+.workspace :global([data-slot="card-header"]),
+.workspace :global([data-slot="card-content"]) {
+  padding-inline: 1rem;
+}
+.workspace :global([data-slot="card-title"]) {
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.workspace :global([data-slot="table-head"]) {
+  height: 2.5rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+.workspace :global([data-slot="table-cell"]) {
+  padding-block: 0.625rem;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.workspace :global([data-slot="table-row"]:hover) {
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
+}
+.workspace :global([data-slot="badge"]) {
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+.workspace :global(fieldset) {
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.workspace :global(legend h2),
+.workspace :global([data-settings-section] h3) {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.workspace :global([data-settings-section]) {
+  padding-block: 1rem;
+}
+/* These portals opt in only while a remaining workspace route is mounted. */
+:global(body):has(.workspace) :global([data-slot="dialog-content"]),
+:global(body):has(.workspace) :global([data-slot="sheet-content"]) {
+  gap: 1rem;
+}
+:global(body):has(.workspace) :global([data-slot="dialog-title"]),
+:global(body):has(.workspace) :global([data-slot="sheet-title"]) {
+  font-size: 1rem;
+}
+:global(body):has(.workspace) :global([data-slot="dialog-content"] fieldset) {
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+@media (max-width: 639px) {
+  .workspace :global([data-slot="card-header"]),
+  .workspace :global([data-slot="card-content"]) {
+    padding-inline: 0.875rem;
+  }
+}
