@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Menu, type LucideIcon } from "lucide-react";
+import { MoreVertical, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,7 +39,7 @@ export function DetailManagementMenu({
           aria-label={label}
           tooltip={label}
         >
-          <Menu className="size-4" />
+          <MoreVertical className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

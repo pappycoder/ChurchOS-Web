@@ -80,6 +80,7 @@ interface MemberFormDialogProps {
   /** When provided the dialog edits this member; otherwise it creates one. */
   member?: Member | null;
   onSaved?: (member: Member) => void;
+  returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 function toFormValues(member?: Member | null): MemberFormValues {
@@ -106,6 +107,7 @@ export function MemberFormDialog({
   onOpenChange,
   member,
   onSaved,
+  returnFocusRef,
 }: MemberFormDialogProps) {
   const isEdit = !!member;
   const createMutation = useCreateMember();
@@ -183,6 +185,14 @@ export function MemberFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        onCloseAutoFocus={returnFocusRef ? event => {
+          if (returnFocusRef.current) {
+            event.preventDefault();
+            // Restore after the submitted dialog's focus scope is removed.
+            const target = returnFocusRef.current;
+            requestAnimationFrame(() => { if (target.isConnected) target.focus(); });
+          }
+        } : undefined}
         className={`${peopleWorkspaceClass} sm:max-w-[600px] max-h-[90vh] overflow-y-auto rounded-2xl`}
       >
         <DialogHeader>

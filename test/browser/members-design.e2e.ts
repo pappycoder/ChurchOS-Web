@@ -344,13 +344,19 @@ test("quick add keeps validation and member creation payloads", async ({
     .toBe(true);
 });
 
-test("profile edit is prominent and destructive actions still require confirmation", async ({
+test("member management opens the existing editor and destructive actions still require confirmation", async ({
   page,
   context,
 }) => {
   const state = await fixture(context);
   await page.goto("/members/member-a");
-  await page.getByRole("button", { name: "Edit Member", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Edit Member", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Member management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit Member", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Member management", exact: true })).toBeFocused();
+  await page.getByRole("button", { name: "Member management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit Member", exact: true }).click();
   await page
     .getByRole("dialog")
     .getByLabel("First Name", { exact: false })
@@ -359,6 +365,7 @@ test("profile edit is prominent and destructive actions still require confirmati
   await expect(
     page.getByRole("heading", { name: "Gracie Adeyemi", exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Member management", exact: true })).toBeFocused();
   await expect(
     page.getByRole("tab", { name: "Giving", exact: true }),
   ).toBeVisible();
@@ -561,6 +568,7 @@ test("archived member controls retain restore and permanent-delete confirmation"
     page.getByRole("button", { name: "Edit Member", exact: true }),
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Member management", exact: true }).click();
+  await expect(page.getByRole("menuitem", { name: "Edit Member", exact: true })).toHaveCount(0);
   await page.getByRole("menuitem", { name: "Restore", exact: true }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("button", { name: "Cancel", exact: true }).click();

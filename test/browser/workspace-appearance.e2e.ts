@@ -230,9 +230,11 @@ test("neutral workspace, live preview, validation, Cancel, Save and reload", asy
   ).toEqual({ accent: "#ab12ef" });
   await page.reload();
   await expectAccent(page, "#ab12ef");
+  await openAppearance(page);
   await expect(
-    page.getByRole("button", { name: "Edit Member", exact: true }),
+    page.getByRole("button", { name: "Primary action", exact: true }),
   ).toHaveCSS("background-color", "rgb(171, 18, 239)");
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
   expect(calls.some((call) => call.method !== "GET")).toBe(false);
 });
 

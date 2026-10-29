@@ -112,6 +112,14 @@ export default function MemberDetailPage({
   const purgeMutation = useDeleteMember();
 
   const [editOpen, setEditOpen] = React.useState(false);
+  const restoreEditFocus = React.useRef(false);
+  React.useEffect(() => {
+    // Saving invalidates the member cache and can briefly remount the header.
+    if (!editOpen && !isLoading && restoreEditFocus.current && managementRef.current) {
+      managementRef.current.focus();
+      restoreEditFocus.current = false;
+    }
+  }, [editOpen, isLoading]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [archiveAction, setArchiveAction] =
     React.useState<ArchiveDialogKind | null>(null);
@@ -239,12 +247,6 @@ export default function MemberDetailPage({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {!display.archivedAt && canUpdateMembers && (
-              <Button onClick={() => setEditOpen(true)}>
-                <Pencil className="mr-2 size-4" />
-                Edit Member
-              </Button>
-            )}
             <LiveCallButton
               memberId={display.memberId}
               memberName={`${display.firstName} ${display.lastName}`}
@@ -279,6 +281,11 @@ export default function MemberDetailPage({
                   : [
                       ...(canUpdateMembers
                         ? [
+                            {
+                              label: "Edit Member",
+                              icon: Pencil,
+                              onSelect: () => setEditOpen(true),
+                            },
                             {
                               label: "Archive",
                               icon: Archive,
@@ -614,10 +621,11 @@ export default function MemberDetailPage({
         </TabsContent>
       </UrlTabs>
       <MemberFormDialog
+        returnFocusRef={managementRef}
         open={editOpen}
         onOpenChange={(open) => {
+          if (!open) restoreEditFocus.current = true;
           setEditOpen(open);
-          if (!open) setEditOpen(false);
         }}
         member={display}
         onSaved={(saved) => setDisplay(saved)}
