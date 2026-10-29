@@ -71,6 +71,14 @@ export default function FamilyDetailPage({
   const purgeMutation = useDeleteFamily();
 
   const [editOpen, setEditOpen] = React.useState(false);
+  const restoreEditFocus = React.useRef(false);
+  React.useEffect(() => {
+    // Saving invalidates the family cache and can briefly remount the header.
+    if (!editOpen && !isLoading && restoreEditFocus.current && managementRef.current) {
+      managementRef.current.focus();
+      restoreEditFocus.current = false;
+    }
+  }, [editOpen, isLoading]);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [addMemberOpen, setAddMemberOpen] = React.useState(false);
   const [removeTarget, setRemoveTarget] =
@@ -156,12 +164,6 @@ export default function FamilyDetailPage({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {!display.archivedAt && canUpdateFamilies && (
-              <Button onClick={() => setEditOpen(true)}>
-                <Pencil className="mr-2 size-4" />
-                Edit
-              </Button>
-            )}
             <DetailManagementMenu
               label="Family management"
               triggerRef={managementRef}
@@ -191,6 +193,11 @@ export default function FamilyDetailPage({
                   : [
                       ...(canUpdateFamilies
                         ? [
+                            {
+                              label: "Edit Family",
+                              icon: Pencil,
+                              onSelect: () => setEditOpen(true),
+                            },
                             {
                               label: "Archive",
                               icon: Archive,
@@ -311,8 +318,12 @@ export default function FamilyDetailPage({
       </TableCard>
 
       <FamilyFormDialog
+        returnFocusRef={managementRef}
         open={editOpen}
-        onOpenChange={setEditOpen}
+        onOpenChange={(open) => {
+          if (!open) restoreEditFocus.current = true;
+          setEditOpen(open);
+        }}
         family={display}
       />
       <DeleteFamilyDialog

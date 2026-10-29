@@ -436,11 +436,20 @@ test("family detail preserves head labels, member links and add-member validatio
   await expect(
     page.getByRole("link", { name: /Grace Adeyemi/ }),
   ).toHaveAttribute("href", "/members/member-a");
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Family management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit Family", exact: true }).click();
   await expect(
     page.getByRole("dialog").getByLabel("Family Name", { exact: false }),
   ).toHaveValue("Adeyemi Family");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Family management", exact: true })).toBeFocused();
+  await page.getByRole("button", { name: "Family management", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit Family", exact: true }).click();
+  await page.getByRole("dialog").getByLabel("Family Name", { exact: false }).fill("Adeyemi Household");
+  await page.getByRole("button", { name: "Save Changes", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Adeyemi Household", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Family management", exact: true })).toBeFocused();
   await page.getByRole("button", { name: "Add Member", exact: true }).click();
   await page
     .getByRole("dialog")

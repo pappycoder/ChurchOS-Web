@@ -47,6 +47,7 @@ interface FamilyFormDialogProps {
   /** When provided the dialog edits this family; otherwise it creates one. */
   family?: Family | null;
   branchId?: string;
+  returnFocusRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
 function toFormValues(family?: Family | null): FamilyFormValues {
@@ -62,6 +63,7 @@ export function FamilyFormDialog({
   onOpenChange,
   family,
   branchId,
+  returnFocusRef,
 }: FamilyFormDialogProps) {
   const isEdit = !!family;
   const createMutation = useCreateFamily();
@@ -115,6 +117,13 @@ export function FamilyFormDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        onCloseAutoFocus={returnFocusRef ? event => {
+          if (returnFocusRef.current) {
+            event.preventDefault();
+            const target = returnFocusRef.current;
+            requestAnimationFrame(() => { if (target.isConnected) target.focus(); });
+          }
+        } : undefined}
         className={`${peopleWorkspaceClass} sm:max-w-[520px] max-h-[90vh] overflow-y-auto rounded-2xl`}
       >
         <DialogHeader>

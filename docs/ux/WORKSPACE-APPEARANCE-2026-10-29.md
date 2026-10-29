@@ -8,7 +8,7 @@ Account → Appearance is available from header and sidebar account menus withou
 
 Preferences use `churchos:appearance:v1:<profileId>:<churchId>` in localStorage with `{ "accent": "#rrggbb" }`. They are personal to that user/church/browser, never written to the API. Missing/malformed values use teal. Scope changes discard the previous scope before loading its replacement; matching storage events synchronize tabs. Failed storage writes keep the chosen accent for the session and explicitly report that it could not be persisted.
 
-Member, family and service details now use compact identity headers and labelled vertical-ellipsis management menus. Member editing is included in Member management; family Edit and common contact actions stay visible. Existing mutation grants, confirmations and handlers remain; destructive menu items are separated. Confirmation cancellation and closing the member editor return focus to the menu trigger. Member/family delete dialogs add an optional focus-return ref with unchanged behavior for other callers. Other pages retain their existing administration controls.
+Member, family and service details now use compact identity headers and labelled vertical-ellipsis management menus. Member and family editing are the first items in their respective management menus; common contact actions stay visible. Existing mutation grants, confirmations and handlers remain; destructive menu items are separated. Confirmation cancellation and closing the member/family editors return focus to the menu trigger. Member/family delete dialogs add an optional focus-return ref with unchanged behavior for other callers. Other pages retain their existing administration controls.
 
 ## Verification
 
@@ -16,6 +16,7 @@ Member, family and service details now use compact identity headers and labelled
 - 41 unique browser cases passed across the existing member/attendance/service suites and the focused appearance suite. Coverage includes Save/Cancel/reset/reload, both account entry points, dark-mode independence, public-page cleanup, account/church isolation, cross-tab updates, invalid/unavailable storage, keyboard menus, focus return, archived/read-only views, and existing edit/family/check-in/export workflows.
 - Targeted lint, TypeScript, production build and whitespace checks passed.
 - Follow-up: Edit Member is the first management item and all three triggers use vertical dots. Six targeted browser checks passed for saving, Escape/focus return across the member-cache refresh, restricted/archived views, saved colors and desktop/mobile previews; lint, TypeScript and the production build passed again.
+- Family follow-up: Edit Family is first in Family management, with no separate header Edit button. Six targeted checks passed for editing/saving, focus return, directory creation, family linking, management confirmations, restricted/archived views and refreshed previews; lint, TypeScript and production build passed.
 - Reviewed mock-data desktop/mobile and light/dark previews at `/tmp/churchos-workspace-previews/` (all three detail pages, menus and Appearance dialog).
 
 ## Release

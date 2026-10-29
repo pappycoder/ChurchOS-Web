@@ -530,6 +530,7 @@ test("archived details retain labelled restore and permanent-delete confirmation
     await expect(
       page.getByRole("menuitem", { name: "Archive", exact: true }),
     ).toHaveCount(0);
+    await expect(page.getByRole("menuitem", { name: "Edit Family", exact: true })).toHaveCount(0);
     await page.getByRole("menuitem", { name: "Restore", exact: true }).click();
     await expect(page.getByRole("dialog")).toContainText("Restore");
     await page.getByRole("button", { name: "Cancel", exact: true }).click();
