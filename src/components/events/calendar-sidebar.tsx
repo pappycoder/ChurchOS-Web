@@ -1,133 +1,116 @@
 "use client";
 
-import { useMemo } from "react";
-import { format, isAfter } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  EventItem,
-  EventType,
-  EVENT_TYPE_MAP,
-} from "@/hooks/use-events";
-export const EVENT_TYPE_COLORS: Record<EventType | "service", string> = {
-  service: "bg-blue-500",
-  conference: "bg-purple-500",
-  lifecycle: "bg-pink-500",
-  training: "bg-amber-500",
-  social: "bg-green-500",
-};
-
-const EVENT_TYPE_BORDER_COLORS: Record<EventType, string> = {
-  service: "border-l-blue-500",
-  conference: "border-l-purple-500",
-  lifecycle: "border-l-pink-500",
-  training: "border-l-amber-500",
-  social: "border-l-green-500",
-};
-
-const LEGEND_ITEMS: { label: string; key: string; colorClass: string }[] = [
-  { label: EVENT_TYPE_MAP.service, key: "service", colorClass: EVENT_TYPE_COLORS.service },
-  { label: EVENT_TYPE_MAP.conference, key: "conference", colorClass: EVENT_TYPE_COLORS.conference },
-  { label: EVENT_TYPE_MAP.lifecycle, key: "lifecycle", colorClass: EVENT_TYPE_COLORS.lifecycle },
-  { label: EVENT_TYPE_MAP.training, key: "training", colorClass: EVENT_TYPE_COLORS.training },
-  { label: EVENT_TYPE_MAP.social, key: "social", colorClass: EVENT_TYPE_COLORS.social },
-  { label: "Attendance Service", key: "services", colorClass: "bg-slate-400" },
-];
-
-interface CalendarSidebarProps {
-  selectedDate: Date;
-  onDateSelect: (date: Date) => void;
-  events: EventItem[];
-  isLoading: boolean;
-}
+import type { CalendarEntry } from "@/lib/event-calendar";
+import { EVENT_TYPE_MAP, type EventItem } from "@/hooks/use-events";
+import { eventTones } from "./event-presentation";
+import { cn } from "@/lib/utils";
+import { PermissionLink } from "@/components/shared/permission-link";
+import { usePermissions } from "@/hooks/use-permissions";
 
 export function CalendarSidebar({
   selectedDate,
-  onDateSelect,
-  events,
+  entries,
+  onEventClick,
+  onCreate,
   isLoading,
-}: CalendarSidebarProps) {
-  const upcomingEvents = useMemo(() => {
-    const now = new Date();
-    return events
-      .filter((e) => isAfter(new Date(e.startDate), now))
-      .sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-      )
-      .slice(0, 5);
-  }, [events]);
-
-  const eventDates = useMemo(
-    () => events.map((e) => format(new Date(e.startDate), "yyyy-MM-dd")),
-    [events],
-  );
-
+  incomplete,
+}: {
+  selectedDate: Date;
+  entries: CalendarEntry[];
+  onEventClick: (event: EventItem) => void;
+  onCreate?: () => void;
+  isLoading: boolean;
+  incomplete: boolean;
+}) {
+  const { can } = usePermissions();
   return (
-    <Card className="sticky top-4">
-      <CardContent className="space-y-0 divide-y">
-        <div className="pb-4">
-          <p className="text-xs font-semibold text-muted-foreground mb-2">
-            Datepicker
-          </p>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              if (date) onDateSelect(date);
-            }}
-            eventDates={eventDates}
-            className="w-full"
-          />
+    <Card
+      tabIndex={-1}
+      aria-label="Selected day agenda"
+      className="min-w-0 self-start lg:sticky lg:top-4"
+    >
+      <CardHeader className="flex flex-row items-start justify-between gap-2">
+        <div>
+          <p className="mb-1 text-xs text-muted-foreground">Selected day</p>
+          <CardTitle>{format(selectedDate, "EEEE, MMM d")}</CardTitle>
         </div>
-
-        <div className="py-4">
-          <p className="text-xs font-semibold text-muted-foreground mb-3">
-            Event Types
+        {onCreate && (
+          <Button
+            size="icon"
+            variant="outline"
+            aria-label="Create event on selected day"
+            onClick={onCreate}
+          >
+            <Plus className="size-4" />
+          </Button>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {isLoading && entries.length === 0 ? (
+          <Skeleton className="h-24" />
+        ) : entries.length === 0 ? (
+          <p className="py-6 text-sm text-muted-foreground">
+            {incomplete
+              ? "Some calendar data is unavailable. Retry above to check this day."
+              : "No loaded events or services on this day."}
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            {LEGEND_ITEMS.map((item) => (
-              <div key={item.key} className="flex items-center gap-2 text-sm">
-                <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${item.colorClass}`} />
-                <span className="truncate">{item.label}</span>
+        ) : (
+          entries.map((entry) => {
+            const type =
+              entry.type === "event" ? entry.item.type : "attendance";
+            const content = (
+              <>
+                <p className="text-[11px] font-medium opacity-80">
+                  {format(entry.start, "h:mm a")}
+                  {entry.end ? ` – ${format(entry.end, "h:mm a")}` : ""}
+                </p>
+                <p className="mt-1 break-words text-sm font-semibold">
+                  {entry.title}
+                </p>
+                <p className="mt-1 text-[11px] opacity-80">
+                  {entry.type === "event"
+                    ? EVENT_TYPE_MAP[entry.item.type]
+                    : "Attendance service"}
+                </p>
+              </>
+            );
+            const classes = cn(
+              "block w-full rounded-xl border p-3 text-left transition-colors hover:brightness-95 focus-visible:outline-2 focus-visible:outline-ring",
+              eventTones[type],
+            );
+            return entry.type === "event" ? (
+              <button
+                key={entry.id}
+                className={classes}
+                onClick={() => onEventClick(entry.item)}
+              >
+                {content}
+              </button>
+            ) : can("attendance:services", "read") ? (
+              <PermissionLink
+                key={entry.id}
+                className={classes}
+                href={`/attendance/services/${entry.item.serviceId}`}
+              >
+                {content}
+              </PermissionLink>
+            ) : (
+              <div key={entry.id} className={classes}>
+                {content}
               </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="pt-4">
-          <p className="text-xs font-semibold text-muted-foreground mb-3">
-            Upcoming Events
+            );
+          })
+        )}
+        {incomplete && entries.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Showing available calendar data.
           </p>
-          {isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-              ))}
-            </div>
-          ) : upcomingEvents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No upcoming events.
-            </p>
-          ) : (
-            <div data-export-list className="space-y-2">
-              {upcomingEvents.map((event) => (
-                <div
-                  key={event.eventId}
-                  className={`border-l-4 ${EVENT_TYPE_BORDER_COLORS[event.type]} pl-3 py-1.5`}
-                >
-                  <p className="text-sm font-medium leading-snug line-clamp-1">
-                    {event.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {format(new Date(event.startDate), "MMM d, yyyy")}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </CardContent>
     </Card>
   );

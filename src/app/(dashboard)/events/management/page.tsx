@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 import { AvailableSelect } from "@/components/shared/available-select";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
@@ -19,7 +20,13 @@ import {
   UserCheck,
 } from "lucide-react";
 import { UrlTabs } from "@/components/shared/url-tabs";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  EventsHeader as PageHeader,
+  eventsWorkspaceClass,
+  EventsFormSection,
+  EventRowActions,
+  EventStateBadge,
+} from "@/components/events/event-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,20 +80,7 @@ import { useIsTicketMember } from "@/hooks/use-is-member";
 
 // ─── Status Badge ─────────────────────────────────────────
 
-const STATUS_COLORS: Record<string, string> = {
-  reserved: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  paid: "bg-green-100 text-green-800 border-green-200",
-  cancelled: "bg-gray-100 text-gray-600 border-gray-200",
-  refunded: "bg-red-100 text-red-800 border-red-200",
-};
-
-function TicketStatusBadge({ status }: { status: string }) {
-  return (
-    <Badge variant="outline" className={STATUS_COLORS[status] ?? ""}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </Badge>
-  );
-}
+const TicketStatusBadge = EventStateBadge;
 
 // ─── Main Page ────────────────────────────────────────────
 
@@ -95,14 +89,17 @@ export default function ManagementPage() {
   const { isTicketMember } = useIsTicketMember();
   const canCreate = can("events:tickets", "create");
 
-  const canManageTypes = canCreate || can("events:tickets", "update") || can("events:tickets", "delete");
+  const canManageTypes =
+    canCreate ||
+    can("events:tickets", "update") ||
+    can("events:tickets", "delete");
 
   // Members and cell group leaders share the member-like ticket surface, so
   // both get the "My Tickets" title.
   const title = isTicketMember ? "My Tickets" : "Tickets";
 
   return (
-    <div className="space-y-4">
+    <div className={`${eventsWorkspaceClass} space-y-4`}>
       <PageHeader
         title={title}
         breadcrumbs={[
@@ -112,7 +109,10 @@ export default function ManagementPage() {
         ]}
       />
 
-      <UrlTabs defaultValue={canManageTypes ? "types" : "assigned"} values={canManageTypes ? ["types", "assigned"] : ["assigned"]}>
+      <UrlTabs
+        defaultValue={canManageTypes ? "types" : "assigned"}
+        values={canManageTypes ? ["types", "assigned"] : ["assigned"]}
+      >
         {canManageTypes && (
           <TabsList aria-label="Ticket workspace">
             <TabsTrigger value="types">Ticket Types</TabsTrigger>
@@ -121,12 +121,20 @@ export default function ManagementPage() {
         )}
 
         {canManageTypes && (
-          <TabsContent value="types" forceMount className="data-[state=inactive]:hidden">
+          <TabsContent
+            value="types"
+            forceMount
+            className="data-[state=inactive]:hidden"
+          >
             <TicketTypesTab />
           </TabsContent>
         )}
 
-        <TabsContent value="assigned" forceMount className="data-[state=inactive]:hidden">
+        <TabsContent
+          value="assigned"
+          forceMount
+          className="data-[state=inactive]:hidden"
+        >
           <AssignedTicketsTab />
         </TabsContent>
       </UrlTabs>
@@ -152,6 +160,7 @@ const defaultTierForm: TierFormData = {
 
 function TicketTypesTab() {
   const { can } = usePermissions();
+  const tierActionRef = React.useRef<HTMLButtonElement | null>(null);
   const canCreate = can("events:tickets", "create");
   const canUpdate = can("events:tickets", "update");
   const canDelete = can("events:tickets", "delete");
@@ -166,14 +175,18 @@ function TicketTypesTab() {
   const deleteTier = useDeleteTier(selectedEventId);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editingTier, setEditingTier] = React.useState<EventTicketTier | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<EventTicketTier | null>(null);
+  const [editingTier, setEditingTier] = React.useState<EventTicketTier | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] =
+    React.useState<EventTicketTier | null>(null);
   const [form, setForm] = React.useState<TierFormData>(defaultTierForm);
   const [saving, setSaving] = React.useState(false);
 
   const tiers = tiersQuery.data ?? [];
 
   const openCreate = () => {
+    tierActionRef.current = null;
     setEditingTier(null);
     setForm(defaultTierForm);
     setDialogOpen(true);
@@ -251,7 +264,12 @@ function TicketTypesTab() {
       title={
         <span className="flex items-center gap-2">
           <Ticket className="h-5 w-5" />
-          Ticket Types
+          Ticket Types{" "}
+          <span className="text-xs font-normal tabular-nums text-muted-foreground">
+            {selectedEventId && !tiersQuery.isLoading && !tiersQuery.isError
+              ? `(${tiers.length})`
+              : ""}
+          </span>
         </span>
       }
       description="Create and manage ticket types (inventory) for your events."
@@ -267,7 +285,13 @@ function TicketTypesTab() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <AvailableSelect
             disabled={eventsQuery.isLoading}
-            unavailableMessage={eventsQuery.isError ? "Unable to load events. Please try again." : events.length === 0 ? "No events are available for ticket types." : undefined}
+            unavailableMessage={
+              eventsQuery.isError
+                ? "Unable to load events. Please try again."
+                : events.length === 0
+                  ? "No events are available for ticket types."
+                  : undefined
+            }
             value={selectedEventId}
             onValueChange={setSelectedEventId}
           >
@@ -285,110 +309,138 @@ function TicketTypesTab() {
         </div>
       }
     >
-        {!selectedEventId ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Ticket className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">Select an event to manage its ticket types.</p>
-          </div>
-        ) : tiersQuery.isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : tiers.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No ticket types yet.</p>
-            {canCreate && (
-              <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Type
-              </Button>
-            )}
-          </div>
-        ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Capacity</TableHead>
-                  <TableHead>Description</TableHead>
-                  {(canUpdate || canDelete) && (
-                    <TableHead className="text-right">Actions</TableHead>
+      {!selectedEventId ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <Ticket className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Select an event to manage its ticket types.</p>
+        </div>
+      ) : tiersQuery.isError ? (
+        <ErrorState
+          title="Unable to load ticket types"
+          onRetry={() => {
+            void tiersQuery.refetch();
+          }}
+        />
+      ) : tiersQuery.isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      ) : tiers.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No ticket types yet.</p>
+          {canCreate && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3"
+              onClick={openCreate}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add First Type
+            </Button>
+          )}
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead className="text-right">Price (NGN)</TableHead>
+              <TableHead>Capacity</TableHead>
+              <TableHead>Description</TableHead>
+              {(canUpdate || canDelete) && (
+                <TableHead className="text-right">Actions</TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tiers.map((tier) => (
+              <TableRow key={tier.id}>
+                <TableCell className="font-medium">{tier.name}</TableCell>
+                <TableCell className="text-right">
+                  <span className="whitespace-nowrap font-medium tabular-nums">
+                    NGN{" "}
+                    {tier.price.toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {tier.capacity != null ? (
+                    <span className="flex items-center gap-1 text-sm">
+                      <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                      {tier.capacity}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">
+                      Unlimited
+                    </span>
                   )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tiers.map((tier) => (
-                  <TableRow key={tier.id}>
-                    <TableCell className="font-medium">{tier.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        <DollarSign className="h-3 w-3 mr-1" />
-                        {tier.price.toLocaleString()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {tier.capacity != null ? (
-                        <span className="flex items-center gap-1 text-sm">
-                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                          {tier.capacity}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Unlimited</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                      {tier.description || "-"}
-                    </TableCell>
-                    {(canUpdate || canDelete) && (
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {canUpdate && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => openEdit(tier)}
-                              aria-label="Edit tier"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {canDelete && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => setDeleteTarget(tier)}
-                              aria-label="Delete tier"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-        )}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                  {tier.description || "-"}
+                </TableCell>
+                {(canUpdate || canDelete) && (
+                  <TableCell className="text-right">
+                    <EventRowActions
+                      label={`Manage ${tier.name}`}
+                      returnFocusRef={tierActionRef}
+                      actions={[
+                        ...(canUpdate
+                          ? [
+                              {
+                                label: "Edit tier",
+                                icon: Pencil,
+                                onSelect: () => openEdit(tier),
+                              },
+                            ]
+                          : []),
+                        ...(canDelete
+                          ? [
+                              {
+                                label: "Delete tier",
+                                icon: Trash2,
+                                destructive: true,
+                                onSelect: () => setDeleteTarget(tier),
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent
+          className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto`}
+          onCloseAutoFocus={(event) => {
+            if (tierActionRef.current?.isConnected) {
+              event.preventDefault();
+              requestAnimationFrame(() => tierActionRef.current?.focus());
+            }
+          }}
+        >
           <DialogHeader>
-            <DialogTitle>{editingTier ? "Edit Ticket Type" : "Create Ticket Type"}</DialogTitle>
+            <DialogTitle>
+              {editingTier ? "Edit Ticket Type" : "Create Ticket Type"}
+            </DialogTitle>
             <DialogDescription>
               {editingTier
                 ? "Update the ticket type details below."
                 : "Create a new ticket type for this event."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <EventsFormSection title="Ticket details">
             <div className="space-y-2">
               <Label htmlFor="tier-name">Name *</Label>
               <Input
@@ -418,7 +470,9 @@ function TicketTypesTab() {
                   placeholder="Unlimited"
                   min="1"
                   value={form.capacity}
-                  onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, capacity: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -429,12 +483,18 @@ function TicketTypesTab() {
                 placeholder="Optional description"
                 rows={2}
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
               />
             </div>
-          </div>
+          </EventsFormSection>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={() => setDialogOpen(false)}
+              disabled={saving}
+            >
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
@@ -446,13 +506,24 @@ function TicketTypesTab() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent
+          className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto`}
+          onCloseAutoFocus={(event) => {
+            if (tierActionRef.current?.isConnected) {
+              event.preventDefault();
+              requestAnimationFrame(() => tierActionRef.current?.focus());
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Delete Ticket Type</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action
-              cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;?
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -467,15 +538,15 @@ function TicketTypesTab() {
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteTier.isPending}
-             loading={deleteTier.isPending}>
+              loading={deleteTier.isPending}
+            >
               {deleteTier.isPending ? "Deleting..." : "Delete"}
-</Button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </TableCard>
   );
-
 }
 
 // ─── Tab 2: Assigned Tickets ──────────────────────────────
@@ -531,10 +602,12 @@ function AssignedTicketsTab() {
         canCreate ? (
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setClaimOpen(true)}>
-              <Ticket className="h-4 w-4 mr-2" />Claim for Myself
+              <Ticket className="h-4 w-4 mr-2" />
+              Claim for Myself
             </Button>
             <Button onClick={() => setAssignOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />Assign Ticket
+              <Plus className="h-4 w-4 mr-2" />
+              Assign Ticket
             </Button>
           </div>
         ) : (
@@ -555,7 +628,14 @@ function AssignedTicketsTab() {
       }}
       toolbar={
         <div className="flex flex-wrap items-center gap-3">
-          <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setEventFilter(""); setPage(1); }} />
+          <BranchFilter
+            value={branchId}
+            onChange={(value) => {
+              setBranchId(value);
+              setEventFilter("");
+              setPage(1);
+            }}
+          />
           <Input
             placeholder="Search by ticket code or member name..."
             value={search}
@@ -602,39 +682,46 @@ function AssignedTicketsTab() {
         </div>
       }
     >
-        {ticketsQuery.isLoading ? (
-          <div className="space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
+      {ticketsQuery.isError ? (
+        <ErrorState
+          title="Unable to load tickets"
+          onRetry={() => {
+            void ticketsQuery.refetch();
+          }}
+        />
+      ) : ticketsQuery.isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </div>
+      ) : tickets.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <Ticket className="h-12 w-12 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No tickets found.</p>
+        </div>
+      ) : (
+        <Table exportable>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Code</TableHead>
+              <TableHead>Event</TableHead>
+              <TableHead>Attendee</TableHead>
+              <TableHead>Tier</TableHead>
+              <TableHead className="text-right">Price (NGN)</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Used</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tickets.map((ticket) => (
+              <TicketRow key={ticket.ticketId} ticket={ticket} />
             ))}
-          </div>
-        ) : tickets.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Ticket className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No tickets found.</p>
-          </div>
-        ) : (
-            <Table exportable>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Attendee</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Used</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tickets.map((ticket) => (
-                  <TicketRow key={ticket.ticketId} ticket={ticket} />
-                ))}
-              </TableBody>
-            </Table>
-        )}
+          </TableBody>
+        </Table>
+      )}
 
       <AssignTicketDialog
         open={assignOpen}
@@ -646,7 +733,9 @@ function AssignedTicketsTab() {
         open={claimOpen}
         onOpenChange={setClaimOpen}
         events={events}
-        assignedEventIds={assignedEventIds(tickets.filter((ticket) => ticket.memberId === profile?.memberId))}
+        assignedEventIds={assignedEventIds(
+          tickets.filter((ticket) => ticket.memberId === profile?.memberId),
+        )}
       />
     </TableCard>
   );
@@ -669,7 +758,9 @@ function TicketRow({ ticket }: { ticket: AllTicketItem }) {
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await (await import("@/lib/ticket-pdf")).generateTicketPDF(ticket, await resolveBranding());
+      await (
+        await import("@/lib/ticket-pdf")
+      ).generateTicketPDF(ticket, await resolveBranding());
       toast.success("Ticket PDF downloaded");
     } catch {
       toast.error("Failed to generate PDF");
@@ -699,7 +790,10 @@ function TicketRow({ ticket }: { ticket: AllTicketItem }) {
           <span className="flex items-center gap-1.5">
             <UserPlus className="h-3.5 w-3.5 text-purple-500" />
             {ticket.visitorName}
-            <Badge variant="outline" className="text-[10px] ml-1 bg-purple-50 text-purple-700 border-purple-200">
+            <Badge
+              variant="outline"
+              className="text-[10px] ml-1 border-violet-500/20 bg-violet-500/10 text-violet-800 dark:text-violet-200"
+            >
               Visitor
             </Badge>
           </span>
@@ -708,9 +802,9 @@ function TicketRow({ ticket }: { ticket: AllTicketItem }) {
         )}
       </TableCell>
       <TableCell className="text-sm">{ticket.tierName || "-"}</TableCell>
-      <TableCell className="text-sm">
+      <TableCell className="text-right text-sm tabular-nums">
         {ticket.pricePaid != null
-          ? `₦${ticket.pricePaid.toLocaleString()}`
+          ? `NGN ${ticket.pricePaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           : "Free"}
       </TableCell>
       <TableCell>
@@ -718,13 +812,9 @@ function TicketRow({ ticket }: { ticket: AllTicketItem }) {
       </TableCell>
       <TableCell>
         {ticket.isUsed ? (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            Used
-          </Badge>
+          <EventStateBadge status="Used" />
         ) : (
-          <Badge variant="outline" className="bg-gray-50 text-gray-500">
-            Unused
-          </Badge>
+          <EventStateBadge status="Unused" />
         )}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
@@ -766,7 +856,9 @@ function AssignTicketDialog({
 
   const [selectedEventId, setSelectedEventId] = React.useState("");
   const [selectedTierId, setSelectedTierId] = React.useState("");
-  const [assigneeType, setAssigneeType] = React.useState<"member" | "visitor">("member");
+  const [assigneeType, setAssigneeType] = React.useState<"member" | "visitor">(
+    "member",
+  );
 
   // Member selection
   const [selectedMemberId, setSelectedMemberId] = React.useState("");
@@ -819,7 +911,9 @@ function AssignTicketDialog({
 
   const hasSelectedVisitor =
     (assigneeType === "visitor" && selectedVisitorId) ||
-    (assigneeType === "visitor" && showNewVisitor && newVisitor.firstName.trim());
+    (assigneeType === "visitor" &&
+      showNewVisitor &&
+      newVisitor.firstName.trim());
 
   const canSubmit =
     selectedEventId &&
@@ -834,7 +928,11 @@ function AssignTicketDialog({
       let visitorId = selectedVisitorId;
 
       // Create new visitor if needed
-      if (assigneeType === "visitor" && showNewVisitor && newVisitor.firstName.trim()) {
+      if (
+        assigneeType === "visitor" &&
+        showNewVisitor &&
+        newVisitor.firstName.trim()
+      ) {
         const created = await createVisitor.mutateAsync({
           firstName: newVisitor.firstName.trim(),
           lastName: newVisitor.lastName.trim() || undefined,
@@ -862,18 +960,29 @@ function AssignTicketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent
+        className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto sm:max-w-[540px]`}
+      >
         <DialogHeader>
           <DialogTitle>Assign Ticket</DialogTitle>
           <DialogDescription>
-            Assign a ticket to a member or visitor. This creates an individual ticket with a unique code.
+            Assign a ticket to a member or visitor. This creates an individual
+            ticket with a unique code.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <EventsFormSection title="Event and ticket">
           <div className="space-y-2">
             <Label>Event *</Label>
-            <AvailableSelect value={selectedEventId} onValueChange={setSelectedEventId} unavailableMessage={events.length === 0 ? "No events are available to assign tickets. Please try again later." : undefined}>
+            <AvailableSelect
+              value={selectedEventId}
+              onValueChange={setSelectedEventId}
+              unavailableMessage={
+                events.length === 0
+                  ? "No events are available to assign tickets. Please try again later."
+                  : undefined
+              }
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select an event" />
               </SelectTrigger>
@@ -881,7 +990,9 @@ function AssignTicketDialog({
                 {events.map((ev) => (
                   <SelectItem key={ev.eventId} value={ev.eventId}>
                     {ev.title}
-                    {ev.isFree ? " (Free)" : ` (₦${ev.price?.toLocaleString() ?? 0})`}
+                    {ev.isFree
+                      ? " (Free)"
+                      : ` (₦${ev.price?.toLocaleString() ?? 0})`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -893,7 +1004,9 @@ function AssignTicketDialog({
               <Label>Ticket Type</Label>
               <Select value={selectedTierId} onValueChange={setSelectedTierId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={tiers[0]?.name ?? "Select a type"} />
+                  <SelectValue
+                    placeholder={tiers[0]?.name ?? "Select a type"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {tiers.map((tier) => (
@@ -906,13 +1019,15 @@ function AssignTicketDialog({
               </Select>
             </div>
           )}
-
+        </EventsFormSection>
+        <EventsFormSection title="Ticket holder">
           {/* Assignee Type Toggle */}
           <div className="space-y-2">
             <Label>Assign To *</Label>
             <div className="flex gap-2">
               <Button
                 type="button"
+                aria-pressed={assigneeType === "member"}
                 variant={assigneeType === "member" ? "default" : "outline"}
                 size="sm"
                 className="flex-1"
@@ -923,6 +1038,7 @@ function AssignTicketDialog({
               </Button>
               <Button
                 type="button"
+                aria-pressed={assigneeType === "visitor"}
                 variant={assigneeType === "visitor" ? "default" : "outline"}
                 size="sm"
                 className="flex-1"
@@ -1011,7 +1127,10 @@ function AssignTicketDialog({
                           id="nv-first"
                           value={newVisitor.firstName}
                           onChange={(e) =>
-                            setNewVisitor({ ...newVisitor, firstName: e.target.value })
+                            setNewVisitor({
+                              ...newVisitor,
+                              firstName: e.target.value,
+                            })
                           }
                           placeholder="First name"
                         />
@@ -1024,7 +1143,10 @@ function AssignTicketDialog({
                           id="nv-last"
                           value={newVisitor.lastName}
                           onChange={(e) =>
-                            setNewVisitor({ ...newVisitor, lastName: e.target.value })
+                            setNewVisitor({
+                              ...newVisitor,
+                              lastName: e.target.value,
+                            })
                           }
                           placeholder="Last name"
                         />
@@ -1039,7 +1161,10 @@ function AssignTicketDialog({
                           id="nv-phone"
                           value={newVisitor.phone}
                           onChange={(e) =>
-                            setNewVisitor({ ...newVisitor, phone: e.target.value })
+                            setNewVisitor({
+                              ...newVisitor,
+                              phone: e.target.value,
+                            })
                           }
                           placeholder="Phone number"
                         />
@@ -1053,7 +1178,10 @@ function AssignTicketDialog({
                           type="email"
                           value={newVisitor.email}
                           onChange={(e) =>
-                            setNewVisitor({ ...newVisitor, email: e.target.value })
+                            setNewVisitor({
+                              ...newVisitor,
+                              email: e.target.value,
+                            })
                           }
                           placeholder="Email"
                         />
@@ -1064,7 +1192,7 @@ function AssignTicketDialog({
               )}
             </div>
           )}
-        </div>
+        </EventsFormSection>
 
         <DialogFooter>
           <Button
@@ -1175,16 +1303,18 @@ function ClaimTicketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent
+        className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto sm:max-w-[540px]`}
+      >
         <DialogHeader>
           <DialogTitle>Claim a Ticket</DialogTitle>
           <DialogDescription>
-            Claim an available ticket for yourself. You can hold at most one ticket
-            per event, for events in your branch.
+            Claim an available ticket for yourself. You can hold at most one
+            ticket per event, for events in your branch.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
+        <EventsFormSection title="Event and ticket">
           <div className="space-y-2">
             <Label>Event *</Label>
             <Select
@@ -1194,7 +1324,8 @@ function ClaimTicketDialog({
               onOpenChange={(nextOpen) => {
                 if (nextOpen && claimableEvents.length === 0) {
                   toast.error("No tickets are available to claim.", {
-                    description: "You may already hold a ticket for each eligible event.",
+                    description:
+                      "You may already hold a ticket for each eligible event.",
                   });
                   return;
                 }
@@ -1232,21 +1363,22 @@ function ClaimTicketDialog({
               <Label>Ticket Type</Label>
               <Select value={selectedTierId} onValueChange={setSelectedTierId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={tiers[0]?.name ?? "Select a type"} />
+                  <SelectValue
+                    placeholder={tiers[0]?.name ?? "Select a type"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {tiers.map((tier) => (
                     <SelectItem key={tier.id} value={tier.id}>
                       {tier.name} — ₦{tier.price.toLocaleString()}
-                      {tier.capacity != null &&
-                        ` (${tier.capacity} capacity)`}
+                      {tier.capacity != null && ` (${tier.capacity} capacity)`}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           )}
-        </div>
+        </EventsFormSection>
 
         <DialogFooter>
           <Button
@@ -1256,10 +1388,7 @@ function ClaimTicketDialog({
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-          >
+          <Button onClick={handleSubmit} disabled={!canSubmit}>
             {createTicket.isPending ? "Claiming..." : "Claim Ticket"}
           </Button>
         </DialogFooter>

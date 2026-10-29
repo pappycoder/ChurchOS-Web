@@ -18,17 +18,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, DollarSign } from "lucide-react";
-import { EventItem, EVENT_TYPE_MAP, useDeleteEvent } from "@/hooks/use-events";
+import { EventItem, useDeleteEvent } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
-import { EVENT_TYPE_COLORS } from "./calendar-sidebar";
-
-const BADGE_TEXT_CLASSES: Record<string, string> = {
-  "bg-blue-500": "text-blue-700 bg-blue-50 border-blue-200",
-  "bg-purple-500": "text-purple-700 bg-purple-50 border-purple-200",
-  "bg-pink-500": "text-pink-700 bg-pink-50 border-pink-200",
-  "bg-amber-500": "text-amber-700 bg-amber-50 border-amber-200",
-  "bg-green-500": "text-green-700 bg-green-50 border-green-200",
-};
+import { EventTypeBadge, eventsWorkspaceClass } from "./event-presentation";
+import { DetailManagementMenu } from "@/components/shared/detail-management-menu";
 
 interface EventDetailModalProps {
   open: boolean;
@@ -63,12 +56,11 @@ export function EventDetailModal({
   const canUpdate = can("events", "update");
   const canDelete = can("events", "delete");
   const deleteMutation = useDeleteEvent();
+  const managementRef = React.useRef<HTMLButtonElement>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
   if (!event) return null;
 
-  const colorClass = EVENT_TYPE_COLORS[event.type];
-  const badgeClasses = BADGE_TEXT_CLASSES[colorClass] ?? "";
   const timeRange = formatTimeRange(event.startDate, event.endDate);
 
   const handleDelete = () => {
@@ -89,128 +81,143 @@ export function EventDetailModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-        <DialogHeader className="bg-gray-900 text-white px-6 py-5">
-          <DialogTitle className="text-white text-xl leading-tight">
-            {event.title}
-          </DialogTitle>
-        </DialogHeader>
+        <DialogContent
+          className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto p-0 sm:max-w-md`}
+        >
+          <DialogHeader className="border-b bg-muted/25 px-6 py-5 pr-12">
+            <DialogTitle className="text-lg leading-tight">
+              {event.title}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4">
-          <BranchDetail record={event} />
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className={badgeClasses}>
-              {EVENT_TYPE_MAP[event.type]}
-            </Badge>
-            <Badge variant={event.isFree ? "secondary" : "outline"}>
-              {event.isFree ? "Free" : "Paid"}
-            </Badge>
-          </div>
+          <div className="px-6 py-5 space-y-4">
+            <BranchDetail record={event} />
+            <div className="flex flex-wrap items-center gap-2">
+              <EventTypeBadge type={event.type} />
+              <Badge variant={event.isFree ? "secondary" : "outline"}>
+                {event.isFree ? "Free" : "Paid"}
+              </Badge>
+            </div>
 
-          <div className="space-y-3 text-sm">
-            <div className="flex items-start gap-2.5">
-              <Calendar className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              <div>
-                <span className="font-medium">
-                  {formatDateRange(event.startDate, event.endDate)}
+            <div className="space-y-3 text-sm">
+              <div className="flex items-start gap-2.5">
+                <Calendar className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <div>
+                  <span className="font-medium">
+                    {formatDateRange(event.startDate, event.endDate)}
+                  </span>
+                  {timeRange && (
+                    <p className="text-muted-foreground">{timeRange}</p>
+                  )}
+                </div>
+              </div>
+
+              {event.location && (
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <span>{event.location}</span>
+                </div>
+              )}
+
+              <div className="flex items-start gap-2.5">
+                <Users className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <span>
+                  {event.registrationCount} registered
+                  {event.capacity ? ` / ${event.capacity} capacity` : ""}
                 </span>
-                {timeRange && (
-                  <p className="text-muted-foreground">{timeRange}</p>
-                )}
               </div>
+
+              {!event.isFree && event.price != null && (
+                <div className="flex items-start gap-2.5">
+                  <DollarSign className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <span>₦{event.price.toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
-            {event.location && (
-              <div className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <span>{event.location}</span>
-              </div>
-            )}
-
-            <div className="flex items-start gap-2.5">
-              <Users className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-              <span>
-                {event.registrationCount} registered
-                {event.capacity ? ` / ${event.capacity} capacity` : ""}
-              </span>
-            </div>
-
-            {!event.isFree && event.price != null && (
-              <div className="flex items-start gap-2.5">
-                <DollarSign className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <span>₦{event.price.toLocaleString()}</span>
-              </div>
+            {event.description && (
+              <p className="text-sm text-muted-foreground leading-relaxed border-t pt-4">
+                {event.description}
+              </p>
             )}
           </div>
 
-          {event.description && (
-            <p className="text-sm text-muted-foreground leading-relaxed border-t pt-4">
-              {event.description}
-            </p>
-          )}
-        </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 px-6 py-4 border-t">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+            <DetailManagementMenu
+              label="Event preview management"
+              triggerRef={managementRef}
+              actions={[
+                ...(canUpdate
+                  ? [
+                      {
+                        label: "Edit",
+                        icon: Pencil,
+                        onSelect: () => {
+                          onOpenChange(false);
+                          router.push(`/events/${event.eventId}/edit`);
+                        },
+                      },
+                    ]
+                  : []),
+                ...(canDelete
+                  ? [
+                      {
+                        label: "Delete",
+                        icon: Trash2,
+                        destructive: true,
+                        onSelect: () => setDeleteOpen(true),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+            {can("events:all", "read") && (
+              <Button asChild>
+                <Link href={`/events/${event.eventId}`}>View Details</Link>
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
-        <div className="flex flex-wrap items-center justify-end gap-2 px-6 py-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-          {canUpdate && (
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent
+          onCloseAutoFocus={(event) => {
+            if (managementRef.current?.isConnected) {
+              event.preventDefault();
+              requestAnimationFrame(() => managementRef.current?.focus());
+            }
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Delete Event</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{event.title}&quot;? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => {
-                onOpenChange(false);
-                router.push(`/events/${event.eventId}/edit`);
-              }}
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleteMutation.isPending}
             >
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
+              Cancel
             </Button>
-          )}
-          {canDelete && (
             <Button
               variant="destructive"
-              onClick={() => setDeleteOpen(true)}
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              loading={deleteMutation.isPending}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
-          )}
-          {can("events:all", "read") && (
-            <Button asChild>
-              <Link href={`/events/${event.eventId}`}>View Details</Link>
-            </Button>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete Event</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete &quot;{event.title}&quot;? This action cannot be
-            undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => setDeleteOpen(false)}
-            disabled={deleteMutation.isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-           loading={deleteMutation.isPending}>
-            {deleteMutation.isPending ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

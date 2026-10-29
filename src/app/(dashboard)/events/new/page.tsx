@@ -1,7 +1,10 @@
 "use client";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
-import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+import {
+  BranchAssignmentField,
+  useBranchAssignment,
+} from "@/components/shared/branch-assignment";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -10,7 +13,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import { ArrowLeft, CalendarPlus, Loader2 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  EventsHeader as PageHeader,
+  EventsFormSection,
+  eventsWorkspaceClass,
+} from "@/components/events/event-presentation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +72,7 @@ const newEventSchema = z
       }
       return true;
     },
-    { message: "Price is required for paid events", path: ["price"] }
+    { message: "Price is required for paid events", path: ["price"] },
   );
 
 type NewEventFormValues = z.infer<typeof newEventSchema>;
@@ -110,7 +117,8 @@ export default function CreateEventPage() {
         isFree: values.isFree,
       };
 
-      if (values.description?.trim()) input.description = values.description.trim();
+      if (values.description?.trim())
+        input.description = values.description.trim();
       if (values.endDate) input.endDate = values.endDate;
       if (values.location?.trim()) input.location = values.location.trim();
       if (values.capacity) input.capacity = Number(values.capacity);
@@ -130,7 +138,7 @@ export default function CreateEventPage() {
 
   if (!canCreate) {
     return (
-      <div className="space-y-4">
+      <div className={`${eventsWorkspaceClass} space-y-4`}>
         <PageHeader
           title="Create Event"
           breadcrumbs={[
@@ -149,7 +157,7 @@ export default function CreateEventPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${eventsWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Create Event"
         description="Set up the event, then manage registrations and attendance from its workspace."
@@ -159,7 +167,12 @@ export default function CreateEventPage() {
           { label: "Create" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/events"); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/events");
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Events
           </Button>
@@ -167,10 +180,14 @@ export default function CreateEventPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-6">
-          <p className="text-sm text-muted-foreground">Fields marked * are required. Optional details can be added later.</p>
-          <fieldset className="min-w-0 space-y-5 border-b pb-6">
-            <legend className="mb-1 text-lg font-semibold">Event details</legend>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="max-w-3xl space-y-6"
+        >
+          <p className="text-sm text-muted-foreground">
+            Fields marked * are required. Optional details can be added later.
+          </p>
+          <EventsFormSection title="Event details">
             <div className="space-y-5">
               <FormField
                 control={form.control}
@@ -179,45 +196,61 @@ export default function CreateEventPage() {
                   <FormItem>
                     <FormLabel>Title *</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Youth Conference 2026" {...field} />
+                      <Input
+                        placeholder="e.g. Youth Conference 2026"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <div className="grid items-start gap-5 sm:grid-cols-2">
-              <BranchAssignmentField assignment={branchAssignment} disabled={saving} />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type *</FormLabel>
-                    <Select onValueChange={(value) => { if (value) field.onChange(value); }} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select event type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {EVENT_TYPES.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <BranchAssignmentField
+                  assignment={branchAssignment}
+                  disabled={saving}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type *</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          if (value) field.onChange(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select event type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EVENT_TYPES.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <FormField
                 control={form.control}
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description <span className="font-normal text-muted-foreground">(optional)</span></FormLabel>
+                    <FormLabel>
+                      Description{" "}
+                      <span className="font-normal text-muted-foreground">
+                        (optional)
+                      </span>
+                    </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Describe the event, agenda, speakers, etc."
@@ -230,9 +263,8 @@ export default function CreateEventPage() {
                 )}
               />
             </div>
-          </fieldset>
-          <fieldset className="min-w-0 space-y-5 border-b pb-6">
-            <legend className="mb-1 text-lg font-semibold">Schedule and location</legend>
+          </EventsFormSection>
+          <EventsFormSection title="Schedule and location">
             <div className="grid items-start gap-5 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -262,22 +294,21 @@ export default function CreateEventPage() {
                 )}
               />
             </div>
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Main Auditorium" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-          </fieldset>
-          <fieldset className="min-w-0 space-y-5 border-b pb-6">
-            <legend className="mb-1 text-lg font-semibold">Registration and pricing</legend>
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. Main Auditorium" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </EventsFormSection>
+          <EventsFormSection title="Registration and pricing">
             <div className="max-w-sm">
               <FormField
                 control={form.control}
@@ -286,54 +317,76 @@ export default function CreateEventPage() {
                   <FormItem>
                     <FormLabel>Capacity</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g. 500" min="1" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="e.g. 500"
+                        min="1"
+                        {...field}
+                      />
                     </FormControl>
-                    <FormDescription>Leave blank for unlimited places.</FormDescription>
+                    <FormDescription>
+                      Leave blank for unlimited places.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="isFree"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <FormLabel>Free Event</FormLabel>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {canManageTickets
+                          ? "Toggle off to set a ticket price."
+                          : "Paid events require Network or above and ticket management access."}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        disabled={!canManageTickets}
+                        checked={!!field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {!isFree && (
               <FormField
                 control={form.control}
-                name="isFree"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <FormLabel>Free Event</FormLabel>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {canManageTickets ? "Toggle off to set a ticket price." : "Paid events require Network or above and ticket management access."}
-                        </p>
-                      </div>
-                      <FormControl><Switch disabled={!canManageTickets} checked={!!field.value} onCheckedChange={field.onChange} /></FormControl>
-                    </div>
+                    <FormLabel>Price *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g. 5000"
+                        min="1"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {!isFree && (
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Price *</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="e.g. 5000" min="1" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-          </fieldset>
+            )}
+          </EventsFormSection>
 
           <div className="flex items-center justify-end gap-2 pb-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => { if (confirmDiscardChanges()) router.push("/events"); }}
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push("/events");
+              }}
               disabled={saving}
             >
               Cancel

@@ -11,7 +11,7 @@ import {
   AlertTriangle,
   CalendarDays,
   Eye,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Plus,
   Trash2,
@@ -19,9 +19,13 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  EventsHeader as PageHeader,
+  eventsWorkspaceClass,
+  EventsMoreFilters,
+  EventTypeBadge,
+} from "@/components/events/event-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 
 import { TableCard } from "@/components/shared/table-card";
@@ -43,7 +47,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,12 +60,14 @@ import {
   useArchiveEvent,
   useRestoreArchiveEvent,
   EVENT_TYPES,
-  EVENT_TYPE_MAP,
   type EventItem,
   type ListEventsParams,
 } from "@/hooks/use-events";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import {
   ArchiveConfirmDialog,
   type ArchiveDialogKind,
@@ -85,15 +90,19 @@ export default function EventsListPage() {
   // Filters
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
-  const [sortBy, setSortBy] = React.useState<ListEventsParams["sortBy"]>("startDate");
+  const [sortBy, setSortBy] =
+    React.useState<ListEventsParams["sortBy"]>("startDate");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [branchId, setBranchId] = React.useState("");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
-  const [deleteTarget, setDeleteTarget] = React.useState<EventItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<EventItem | null>(
+    null,
+  );
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
     event: EventItem;
@@ -119,26 +128,22 @@ export default function EventsListPage() {
       sortBy,
       sortOrder,
     }),
-    [page, perPage, branchId, search, typeFilter, archivedView, sortBy, sortOrder]
+    [
+      page,
+      perPage,
+      branchId,
+      search,
+      typeFilter,
+      archivedView,
+      sortBy,
+      sortOrder,
+    ],
   );
 
   const { data, isLoading, error } = useEventsList(queryParams);
   const deleteMutation = useDeleteEvent();
   const archiveMutation = useArchiveEvent();
   const restoreArchiveMutation = useRestoreArchiveEvent();
-
-  // Stats: unfiltered total, upcoming, past.
-  const totalsQuery = useEventsList({ limit: 1, branchId: branchId || undefined });
-  const upcomingQuery = useEventsList({
-    branchId: branchId || undefined,
-    limit: 1,
-    status: "upcoming",
-  });
-  const pastQuery = useEventsList({
-    branchId: branchId || undefined,
-    limit: 1,
-    status: "past",
-  });
 
   const events = React.useMemo(() => data?.data ?? [], [data]);
   const total = data?.total ?? 0;
@@ -177,14 +182,22 @@ export default function EventsListPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${eventsWorkspaceClass} space-y-4`}>
       <PageHeader
+        count={isLoading ? undefined : total}
         title="Events"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Events" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Events" },
+        ]}
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
-              <Button onClick={() => { if (confirmDiscardChanges()) router.push("/events/new"); }}>
+              <Button
+                onClick={() => {
+                  if (confirmDiscardChanges()) router.push("/events/new");
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Event
               </Button>
@@ -192,25 +205,6 @@ export default function EventsListPage() {
           </div>
         }
       />
-
-      {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatsCard
-          title="Total Events"
-          value={totalsQuery.data?.total ?? 0}
-          icon={<CalendarDays className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Upcoming"
-          value={upcomingQuery.data?.total ?? 0}
-          icon={<CalendarDays className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Past"
-          value={pastQuery.data?.total ?? 0}
-          icon={<CalendarDays className="h-4 w-4" />}
-        />
-      </div>
 
       <TableCard
         title="All Events"
@@ -224,235 +218,271 @@ export default function EventsListPage() {
           setPage(1);
         }}
         toolbar={
-          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(searchInput !== "") + Number(archivedFilter !== "all") + Number(sortBy !== "startDate") + Number(sortOrder !== "desc") + Number(branchId !== "")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setArchivedFilter("all");setSortBy("startDate");setSortOrder("desc");setBranchId("");setPage(1);}}>Reset filters</Button></div><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2 flex-wrap">
-            <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-            <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
+          <div
+            role="group"
+            aria-label="Collection filters"
+            className="flex flex-wrap items-center gap-3"
+          >
             <SearchInput
               value={searchInput}
-              onChange={(v) => setSearchInput(v)}
+              onChange={setSearchInput}
               placeholder="Search events..."
               className="w-full sm:w-64"
             />
-            {/* Type filter chips */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <Button
-                variant={typeFilter === "all" ? "default" : "outline"}
-                size="sm"
-                className="h-8"
-                onClick={() => {
-                  setTypeFilter("all");
-                  setPage(1);
-                }}
-              >
-                All
-              </Button>
-              {EVENT_TYPES.map((t) => (
-                <Button
-                  key={t.value}
-                  variant={typeFilter === t.value ? "default" : "outline"}
-                  size="sm"
-                  className="h-8"
-                  onClick={() => {
-                    setTypeFilter(t.value);
-                    setPage(1);
-                  }}
-                >
-                  {t.label}
-                </Button>
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <select
-              value={sortBy}
-              onChange={(e) => {
-                setSortBy(e.target.value as ListEventsParams["sortBy"]);
+            <BranchFilter
+              value={branchId}
+              onChange={(value) => {
+                setBranchId(value);
                 setPage(1);
               }}
-              className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            />
+            <select
+              aria-label="Event type"
+              value={typeFilter}
+              onChange={(e) => {
+                setTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="h-9 rounded-lg border bg-background px-3 text-sm"
             >
-              {SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  Sort: {opt.label}
+              <option value="all">All event types</option>
+              {EVENT_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
                 </option>
               ))}
             </select>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-2"
-              onClick={toggleSortOrder}
+            <EventsMoreFilters
+              count={
+                Number(archivedFilter !== "all") +
+                Number(sortBy !== "startDate") +
+                Number(sortOrder !== "desc")
+              }
             >
-              {sortOrder === "asc" ? "Asc" : "Desc"}
-            </Button>
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(value) => {
+                  setArchivedFilter(value);
+                  setPage(1);
+                }}
+              />
+              <select
+                aria-label="Sort events"
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value as ListEventsParams["sortBy"]);
+                  setPage(1);
+                }}
+                className="h-9 rounded-lg border bg-background px-2 text-sm"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    Sort: {option.label}
+                  </option>
+                ))}
+              </select>
+              <Button variant="outline" size="sm" onClick={toggleSortOrder}>
+                {sortOrder === "asc" ? "Asc" : "Desc"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearch("");
+                  setArchivedFilter("all");
+                  setTypeFilter("all");
+                  setSortBy("startDate");
+                  setSortOrder("desc");
+                  setBranchId("");
+                  setPage(1);
+                }}
+              >
+                Reset filters
+              </Button>
+            </EventsMoreFilters>
           </div>
-          </div></div>
         }
       >
-          {isLoading ? (
-            <LoadingState variant="table" />
-          ) : events.length === 0 ? (
-            <div className="py-8">
-              <EmptyState
-                icon={<CalendarDays className="h-12 w-12" />}
-                title={archivedView ? "No archived events" : "No events yet"}
-                description={
-                  archivedView
-                    ? "Archive an event to move it here."
-                    : search || typeFilter !== "all"
-                      ? "Try adjusting your filters."
-                      : "Create your first event to get started."
-                }
-              />
-            </div>
-          ) : (
-            <div className="overflow-x-auto px-4">
-              <Table exportable={false} tableId="events">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead exportKeys={["startDate"]}>Date</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead exportKeys={["registrations", "capacity"]}>Registrations</TableHead>
-                    {canManage && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow
-                      key={event.eventId}
-                      className="cursor-pointer"
-                      onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${event.eventId}`); }}
-                    >
-                      <TableCell className="font-medium">{event.title}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          {EVENT_TYPE_MAP[event.type] ?? event.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(event.startDate), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {event.location || "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {event.capacity
-                          ? `${event.registrationCount} / ${event.capacity}`
-                          : event.registrationCount}
-                      </TableCell>
-                      {canManage && !archivedView && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+        {isLoading ? (
+          <LoadingState variant="table" />
+        ) : events.length === 0 ? (
+          <div className="py-8">
+            <EmptyState
+              icon={<CalendarDays className="h-12 w-12" />}
+              title={archivedView ? "No archived events" : "No events yet"}
+              description={
+                archivedView
+                  ? "Archive an event to move it here."
+                  : search || typeFilter !== "all"
+                    ? "Try adjusting your filters."
+                    : "Create your first event to get started."
+              }
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto px-4">
+            <Table exportable={false} tableId="events">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead exportKeys={["startDate"]}>Date</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead exportKeys={["registrations", "capacity"]}>
+                    Registrations
+                  </TableHead>
+                  {canManage && (
+                    <TableHead className="text-right">Actions</TableHead>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {events.map((event) => (
+                  <TableRow
+                    key={event.eventId}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      if (confirmDiscardChanges())
+                        router.push(`/events/${event.eventId}`);
+                    }}
+                  >
+                    <TableCell className="font-medium">{event.title}</TableCell>
+                    <TableCell>
+                      <EventTypeBadge type={event.type} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {format(new Date(event.startDate), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {event.location || "-"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {event.capacity
+                        ? `${event.registrationCount} / ${event.capacity}`
+                        : event.registrationCount}
+                    </TableCell>
+                    {canManage && !archivedView && (
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                              <span className="sr-only">More actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                if (confirmDiscardChanges())
+                                  router.push(`/events/${event.eventId}`);
+                              }}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              View
+                            </DropdownMenuItem>
+                            {canUpdate && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  if (confirmDiscardChanges())
+                                    router.push(
+                                      `/events/${event.eventId}/edit`,
+                                    );
+                                }}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
+                            {canUpdate && !event.archivedAt && (
                               <DropdownMenuItem
                                 onClick={() =>
-                                  { if (confirmDiscardChanges()) router.push(`/events/${event.eventId}`); }
-                                }
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View
-                              </DropdownMenuItem>
-                              {canUpdate && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    { if (confirmDiscardChanges()) router.push(`/events/${event.eventId}/edit`); }
-                                  }
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                              )}
-                              {canUpdate && !event.archivedAt && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setArchiveTarget({
-                                      kind: "archive",
-                                      event,
-                                    })
-                                  }
-                                >
-                                  <Archive className="mr-2 h-4 w-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              )}
-                              {canDelete && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setDeleteTarget(event)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                      {canManage && archivedView && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-end gap-2">
-                            {canUpdate && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
                                   setArchiveTarget({
-                                    kind: "restore",
+                                    kind: "archive",
                                     event,
                                   })
                                 }
                               >
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Restore
-                              </Button>
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
                             )}
                             {canDelete && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() =>
-                                  setArchiveTarget({
-                                    kind: "purge",
-                                    event,
-                                  })
-                                }
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Forever
-                              </Button>
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setDeleteTarget(event)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </>
                             )}
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
+                    {canManage && archivedView && (
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-end gap-2">
+                          {canUpdate && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                setArchiveTarget({
+                                  kind: "restore",
+                                  event,
+                                })
+                              }
+                            >
+                              <RotateCcw className="mr-2 h-4 w-4" />
+                              Restore
+                            </Button>
+                          )}
+                          {canDelete && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() =>
+                                setArchiveTarget({
+                                  kind: "purge",
+                                  event,
+                                })
+                              }
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Forever
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </TableCard>
 
       {/* Delete confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <DialogContent className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">

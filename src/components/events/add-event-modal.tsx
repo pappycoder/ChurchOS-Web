@@ -1,6 +1,10 @@
 "use client";
 
-import { BranchAssignmentField, useBranchAssignment } from "@/components/shared/branch-assignment";
+import { EventsFormSection, eventsWorkspaceClass } from "./event-presentation";
+import {
+  BranchAssignmentField,
+  useBranchAssignment,
+} from "@/components/shared/branch-assignment";
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -71,7 +75,11 @@ function buildDefaults(defaultDate?: Date): AddEventFormValues {
   };
 }
 
-export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModalProps) {
+export function AddEventModal({
+  open,
+  onOpenChange,
+  defaultDate,
+}: AddEventModalProps) {
   const { can } = usePermissions();
   const canCreate = can("events", "create");
 
@@ -104,7 +112,8 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
         startDate: startIso,
       };
 
-      if (values.description?.trim()) input.description = values.description.trim();
+      if (values.description?.trim())
+        input.description = values.description.trim();
       if (values.location?.trim()) input.location = values.location.trim();
       if (values.endTime) {
         input.endDate = `${values.startDate}T${values.endTime}:00`;
@@ -124,128 +133,135 @@ export function AddEventModal({ open, onOpenChange, defaultDate }: AddEventModal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent
+        className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto sm:max-w-[560px]`}
+      >
         <DialogHeader>
           <DialogTitle>Add New Event</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <BranchAssignmentField assignment={branchAssignment} />
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Youth Conference 2026" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Type *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select event type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {EVENT_TYPES.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="startDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Event Date *</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <EventsFormSection title="Event details">
+              <BranchAssignmentField assignment={branchAssignment} />
               <FormField
                 control={form.control}
-                name="startTime"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time *</FormLabel>
+                    <FormLabel>Event Name *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input
+                        placeholder="e.g. Youth Conference 2026"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name="endTime"
+                name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time</FormLabel>
+                    <FormLabel>Event Type *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select event type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {EVENT_TYPES.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </EventsFormSection>
+            <EventsFormSection title="Schedule and location">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Event Date *</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
 
-            <FormField
-              control={form.control}
-              name="location"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Main Auditorium" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Time *</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="endTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Time</FormLabel>
+                      <FormControl>
+                        <Input type="time" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe the event, agenda, speakers, etc."
-                      rows={3}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Main Auditorium" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe the event, agenda, speakers, etc."
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </EventsFormSection>
             <DialogFooter className="pt-2">
               <Button
                 type="button"

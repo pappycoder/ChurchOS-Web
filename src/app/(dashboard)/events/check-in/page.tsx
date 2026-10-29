@@ -14,8 +14,16 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle,
+import {
+  EventsHeader as PageHeader,
+  eventsWorkspaceClass,
+} from "@/components/events/event-presentation";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,11 +61,7 @@ const walkInSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   phone: z.string().min(1, "Phone number is required"),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .optional()
-    .or(z.literal("")),
+  email: z.string().email("Invalid email address").optional().or(z.literal("")),
   gender: z.string().optional(),
 });
 
@@ -66,23 +70,32 @@ type WalkInFormValues = z.infer<typeof walkInSchema>;
 export default function EventsCheckInPage() {
   const { can } = usePermissions();
   const [checkingIn, setCheckingIn] = React.useState(false);
-  const [attendanceDate, setAttendanceDate] = React.useState(() => format(new Date(), "yyyy-MM-dd"));
+  const [attendanceDate, setAttendanceDate] = React.useState(() =>
+    format(new Date(), "yyyy-MM-dd"),
+  );
   const canCreate = can("events:checkin", "create");
 
   // Event selector.
-  const eventsQuery = useEventsList({ limit: 50, sortBy: "startDate", sortOrder: "asc",
+  const eventsQuery = useEventsList({
+    limit: 50,
+    sortBy: "startDate",
+    sortOrder: "asc",
   });
   const events = eventsQuery.data?.data ?? [];
   const [eventId, setEventId] = React.useState("");
   React.useEffect(() => {
-    setEventId(new URLSearchParams(window.location.search).get("eventId") ?? "");
+    setEventId(
+      new URLSearchParams(window.location.search).get("eventId") ?? "",
+    );
   }, []);
   const eventQuery = useEvent(eventId);
 
-  const selectedEvent = events.find((e) => e.eventId === eventId) ?? eventQuery.data;
-  const eventOptions = selectedEvent && !events.some((e) => e.eventId === selectedEvent.eventId)
-    ? [selectedEvent, ...events]
-    : events;
+  const selectedEvent =
+    events.find((e) => e.eventId === eventId) ?? eventQuery.data;
+  const eventOptions =
+    selectedEvent && !events.some((e) => e.eventId === selectedEvent.eventId)
+      ? [selectedEvent, ...events]
+      : events;
 
   // Mode switch.
   const [mode, setMode] = React.useState<"members" | "walkIn">("members");
@@ -156,7 +169,7 @@ export default function EventsCheckInPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${eventsWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Event Check-In"
         breadcrumbs={[
@@ -178,8 +191,12 @@ export default function EventsCheckInPage() {
         <CardContent>
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Event *</p>
-            <Select disabled={checkingIn} value={eventId} onValueChange={setEventId}>
-              <SelectTrigger className="w-full">
+            <Select
+              disabled={checkingIn}
+              value={eventId}
+              onValueChange={setEventId}
+            >
+              <SelectTrigger className="w-full" aria-label="Event">
                 <SelectValue placeholder="Select an event" />
               </SelectTrigger>
               <SelectContent>
@@ -228,9 +245,14 @@ export default function EventsCheckInPage() {
       />
 
       {/* Mode tabs */}
-      <div className="flex gap-2">
+      <div
+        className="flex flex-wrap gap-2 rounded-xl border bg-card p-2"
+        role="group"
+        aria-label="Check-in mode"
+      >
         <Button
-          variant={mode === "members" ? "default" : "outline"}
+          aria-pressed={mode === "members"}
+          variant={mode === "members" ? "default" : "ghost"}
           size="sm"
           disabled={checkingIn}
           onClick={() => setMode("members")}
@@ -239,7 +261,8 @@ export default function EventsCheckInPage() {
           Members (Roster)
         </Button>
         <Button
-          variant={mode === "walkIn" ? "default" : "outline"}
+          aria-pressed={mode === "walkIn"}
+          variant={mode === "walkIn" ? "default" : "ghost"}
           size="sm"
           disabled={checkingIn}
           onClick={() => setMode("walkIn")}
@@ -275,12 +298,17 @@ export default function EventsCheckInPage() {
                 required
                 className="w-full sm:w-52"
               />
-              <span className="block text-xs text-muted-foreground">Attendance will be recorded for this date.</span>
+              <span className="block text-xs text-muted-foreground">
+                Attendance will be recorded for this date.
+              </span>
             </label>
           }
           branchId={selectedEvent?.branchId}
           onSubmit={async (memberIds) => {
-            const result = await bulkMutation.mutateAsync({ memberIds, attendanceDate });
+            const result = await bulkMutation.mutateAsync({
+              memberIds,
+              attendanceDate,
+            });
             return { recorded: result.checkedIn, skipped: result.skipped };
           }}
         />
@@ -297,7 +325,7 @@ export default function EventsCheckInPage() {
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(handleWalkInSubmit)}
-                className="space-y-4"
+                className={`${eventsWorkspaceClass} space-y-4`}
               >
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField

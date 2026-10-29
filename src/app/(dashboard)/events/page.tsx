@@ -3,8 +3,15 @@ import { ErrorState } from "@/components/shared/error-state";
 import { BranchFilter } from "@/components/shared/branch-filter";
 
 import * as React from "react";
+import { format, parseISO } from "date-fns";
+import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  EventsWorkspace,
+  EventsHeader as PageHeader,
+} from "@/components/events/event-presentation";
+import { calendarEntries, entriesForDay } from "@/lib/event-calendar";
+import { PermissionLink } from "@/components/shared/permission-link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useEventsList, type EventItem } from "@/hooks/use-events";
@@ -58,7 +65,7 @@ export default function EventsDashboardPage() {
   }, [selectedDate]);
 
   return (
-    <div className="space-y-4">
+    <EventsWorkspace>
       <PageHeader
         title="Events"
         breadcrumbs={[
@@ -76,41 +83,83 @@ export default function EventsDashboardPage() {
           </div>
         }
       />
-      <p className="text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <BranchFilter value={branchId} onChange={setBranchId} />
+          <Input
+            type="date"
+            aria-label="Jump to date"
+            className="w-40"
+            value={format(selectedDate, "yyyy-MM-dd")}
+            onChange={(event) => {
+              if (event.target.value)
+                setSelectedDate(parseISO(event.target.value));
+            }}
+          />
+        </div>
+        <nav aria-label="Event shortcuts" className="flex flex-wrap gap-2">
+          {[
+            ["/events/list", "Directory"],
+            ["/events/registrations", "Registrations"],
+            ["/events/check-in", "Check-In"],
+            ["/events/management", "Tickets"],
+          ].map(([href, label]) => (
+            <PermissionLink
+              key={href}
+              href={href}
+              className="rounded-lg border px-3 py-2 text-xs font-medium hover:bg-muted"
+            >
+              {label}
+            </PermissionLink>
+          ))}
+        </nav>
+      </div>
+      {eventsQuery.isError && (
+        <ErrorState
+          title="Unable to load calendar events"
+          onRetry={() => {
+            void eventsQuery.refetch();
+          }}
+          className="py-4 sm:py-4"
+        />
+      )}
+      {servicesQuery.isError && (
+        <ErrorState
+          title="Unable to load calendar services"
+          onRetry={() => {
+            void servicesQuery.refetch();
+          }}
+          className="py-4 sm:py-4"
+        />
+      )}
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <Card className="min-w-0 overflow-hidden p-0">
+          <CalendarView
+            events={listEvents}
+            services={services}
+            selectedDate={selectedDate}
+            onDateClick={handleDateClick}
+            onEventClick={handleEventClick}
+            isLoading={eventsQuery.isLoading || servicesQuery.isLoading}
+          />
+        </Card>
+        <CalendarSidebar
+          selectedDate={selectedDate}
+          entries={entriesForDay(
+            calendarEntries(allEvents, services, selectedDate, selectedDate),
+            selectedDate,
+          )}
+          onEventClick={handleEventClick}
+          onCreate={canCreate ? handleCreateClick : undefined}
+          isLoading={eventsQuery.isLoading || servicesQuery.isLoading}
+          incomplete={eventsQuery.isError || servicesQuery.isError}
+        />
+      </div>
+      <p className="text-xs leading-relaxed text-muted-foreground">
         Calendar coverage: {allEvents.length} loaded events and{" "}
         {services.length} services (up to 100 of each). Open the event or
         service directory to search the complete collection.
       </p>
-
-      {(eventsQuery.isError || servicesQuery.isError) && (
-        <ErrorState title="Unable to load calendar data" />
-      )}
-      <BranchFilter value={branchId} onChange={setBranchId} />
-
-      <div className="grid gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
-        {/* Sidebar */}
-        <div>
-          <CalendarSidebar
-            selectedDate={selectedDate}
-            onDateSelect={setSelectedDate}
-            events={allEvents}
-            isLoading={eventsQuery.isLoading}
-          />
-        </div>
-
-        {/* Calendar */}
-        <div className="order-1 min-w-0 lg:order-none">
-          <Card className="p-0 overflow-hidden">
-            <CalendarView
-              events={listEvents}
-              services={services}
-              onDateClick={handleDateClick}
-              onEventClick={handleEventClick}
-              isLoading={eventsQuery.isLoading || servicesQuery.isLoading}
-            />
-          </Card>
-        </div>
-      </div>
 
       <AddEventModal
         open={addModalOpen}
@@ -123,6 +172,6 @@ export default function EventsDashboardPage() {
         onOpenChange={setDetailModalOpen}
         event={selectedEvent}
       />
-    </div>
+    </EventsWorkspace>
   );
 }

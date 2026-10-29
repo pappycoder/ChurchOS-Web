@@ -336,7 +336,7 @@ test("usher can open event editing and lifecycle controls", async ({
   page,
 }) => {
   await page.goto("/events/context-a");
-  await page.getByRole("button", { name: "Event actions", exact: true }).click();
+  await page.getByRole("button", { name: "Event management", exact: true }).click();
   await expect(
     page.getByRole("menuitem", { name: "Archive", exact: true }),
   ).toBeVisible();

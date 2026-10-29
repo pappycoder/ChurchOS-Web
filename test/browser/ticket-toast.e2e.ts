@@ -16,6 +16,7 @@ for (const { width, noEvents } of [{ width: 1280, noEvents: false }, { width: 39
         churchId: "22222222-2222-4222-8222-222222222222",
         branchId: "33333333-3333-4333-8333-333333333333",
         status: "active", firstName: "Test", lastName: "Leader", role: ["cell_leader", "member"], isAdminHq: false,
+        planFeatures: ["events", "tickets"],
         permissions: ["members:own:read", "events:view", "events:list:read", "events:calendar:read", "events:tickets:read"],
         branch: { branchId: "33333333-3333-4333-8333-333333333333", name: "Lekki" },
       };

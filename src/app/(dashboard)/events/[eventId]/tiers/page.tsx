@@ -1,4 +1,5 @@
 "use client";
+import { ErrorState } from "@/components/shared/error-state";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import * as React from "react";
@@ -14,13 +15,17 @@ import {
   Users,
   Loader2,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  EventsHeader as PageHeader,
+  eventsWorkspaceClass,
+  EventsFormSection,
+  EventRowActions,
+} from "@/components/events/event-presentation";
 import { TableCard } from "@/components/shared/table-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -64,6 +69,7 @@ const defaultFormData: TierFormData = {
 
 export default function EventTiersPage() {
   const { can } = usePermissions();
+  const tierActionRef = React.useRef<HTMLButtonElement | null>(null);
   const canCreate = can("events:tickets", "create");
   const canUpdate = can("events:tickets", "update");
   const canDelete = can("events:tickets", "delete");
@@ -78,8 +84,11 @@ export default function EventTiersPage() {
   const deleteTier = useDeleteTier(eventId);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const [editingTier, setEditingTier] = React.useState<EventTicketTier | null>(null);
-  const [deleteTarget, setDeleteTarget] = React.useState<EventTicketTier | null>(null);
+  const [editingTier, setEditingTier] = React.useState<EventTicketTier | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] =
+    React.useState<EventTicketTier | null>(null);
   const [form, setForm] = React.useState<TierFormData>(defaultFormData);
   const [saving, setSaving] = React.useState(false);
 
@@ -87,6 +96,7 @@ export default function EventTiersPage() {
   const tiers = tiersQuery.data ?? [];
 
   const openCreate = () => {
+    tierActionRef.current = null;
     setEditingTier(null);
     setForm(defaultFormData);
     setDialogOpen(true);
@@ -161,7 +171,7 @@ export default function EventTiersPage() {
 
   if (eventQuery.isLoading) {
     return (
-      <div className="space-y-4">
+      <div className={`${eventsWorkspaceClass} space-y-4`}>
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-64 w-full" />
       </div>
@@ -170,7 +180,7 @@ export default function EventTiersPage() {
 
   if (!event) {
     return (
-      <div className="space-y-4">
+      <div className={`${eventsWorkspaceClass} space-y-4`}>
         <PageHeader
           title="Event unavailable"
           breadcrumbs={[
@@ -184,9 +194,12 @@ export default function EventTiersPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${eventsWorkspaceClass} space-y-4`}>
       <PageHeader
         title={`Ticket Tiers: ${event.title}`}
+        count={
+          tiersQuery.isLoading || tiersQuery.isError ? undefined : tiers.length
+        }
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Events", href: "/events" },
@@ -195,7 +208,12 @@ export default function EventTiersPage() {
         ]}
         action={
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push(`/events/${eventId}`); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (confirmDiscardChanges()) router.push(`/events/${eventId}`);
+              }}
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
@@ -217,7 +235,14 @@ export default function EventTiersPage() {
             : `${tiers.length} tier(s) configured for this event.`
         }
       >
-        {tiersQuery.isLoading ? (
+        {tiersQuery.isError ? (
+          <ErrorState
+            title="Unable to load ticket tiers"
+            onRetry={() => {
+              void tiersQuery.refetch();
+            }}
+          />
+        ) : tiersQuery.isLoading ? (
           <div className="space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -228,7 +253,12 @@ export default function EventTiersPage() {
             <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No ticket tiers yet.</p>
             {canCreate && (
-              <Button variant="outline" size="sm" className="mt-3" onClick={openCreate}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={openCreate}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Tier
               </Button>
@@ -240,7 +270,7 @@ export default function EventTiersPage() {
               <TableRow>
                 <TableHead className="w-8" />
                 <TableHead>Name</TableHead>
-                <TableHead>Price</TableHead>
+                <TableHead className="text-right">Price (NGN)</TableHead>
                 <TableHead>Capacity</TableHead>
                 <TableHead>Description</TableHead>
                 {(canUpdate || canDelete) && (
@@ -249,61 +279,67 @@ export default function EventTiersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-                  {tiers.map((tier) => (
-                    <TableRow key={tier.id}>
-                      <TableCell>
-                        <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      </TableCell>
-                      <TableCell className="font-medium">{tier.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          <DollarSign className="h-3 w-3 mr-1" />
-                          {tier.price.toLocaleString()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {tier.capacity != null ? (
-                          <span className="flex items-center gap-1 text-sm">
-                            <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                            {tier.capacity}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">Unlimited</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                        {tier.description || "-"}
-                      </TableCell>
-                      {(canUpdate || canDelete) && (
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {canUpdate && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => openEdit(tier)}
-                                aria-label="Edit tier"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {canDelete && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={() => setDeleteTarget(tier)}
-                                aria-label="Delete tier"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
+              {tiers.map((tier) => (
+                <TableRow key={tier.id}>
+                  <TableCell>
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                  </TableCell>
+                  <TableCell className="font-medium">{tier.name}</TableCell>
+                  <TableCell className="text-right">
+                    <span className="whitespace-nowrap font-medium tabular-nums">
+                      NGN{" "}
+                      {tier.price.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {tier.capacity != null ? (
+                      <span className="flex items-center gap-1 text-sm">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                        {tier.capacity}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">
+                        Unlimited
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
+                    {tier.description || "-"}
+                  </TableCell>
+                  {(canUpdate || canDelete) && (
+                    <TableCell className="text-right">
+                      <EventRowActions
+                        label={`Manage ${tier.name}`}
+                        returnFocusRef={tierActionRef}
+                        actions={[
+                          ...(canUpdate
+                            ? [
+                                {
+                                  label: "Edit tier",
+                                  icon: Pencil,
+                                  onSelect: () => openEdit(tier),
+                                },
+                              ]
+                            : []),
+                          ...(canDelete
+                            ? [
+                                {
+                                  label: "Delete tier",
+                                  icon: Trash2,
+                                  destructive: true,
+                                  onSelect: () => setDeleteTarget(tier),
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         )}
@@ -311,7 +347,15 @@ export default function EventTiersPage() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent
+          className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto`}
+          onCloseAutoFocus={(event) => {
+            if (tierActionRef.current?.isConnected) {
+              event.preventDefault();
+              requestAnimationFrame(() => tierActionRef.current?.focus());
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>{editingTier ? "Edit Tier" : "Add Tier"}</DialogTitle>
             <DialogDescription>
@@ -320,7 +364,7 @@ export default function EventTiersPage() {
                 : "Create a new pricing tier for this event."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <EventsFormSection title="Ticket details">
             <div className="space-y-2">
               <Label htmlFor="tier-name">Name *</Label>
               <Input
@@ -350,7 +394,9 @@ export default function EventTiersPage() {
                   placeholder="Unlimited"
                   min="1"
                   value={form.capacity}
-                  onChange={(e) => setForm({ ...form, capacity: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, capacity: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -361,12 +407,18 @@ export default function EventTiersPage() {
                 placeholder="Optional tier description"
                 rows={2}
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
               />
             </div>
-          </div>
+          </EventsFormSection>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={saving}>
+            <Button
+              variant="outline"
+              onClick={() => setDialogOpen(false)}
+              disabled={saving}
+            >
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
@@ -380,13 +432,24 @@ export default function EventTiersPage() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent>
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent
+          className={`${eventsWorkspaceClass} max-h-[90dvh] overflow-y-auto`}
+          onCloseAutoFocus={(event) => {
+            if (tierActionRef.current?.isConnected) {
+              event.preventDefault();
+              requestAnimationFrame(() => tierActionRef.current?.focus());
+            }
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Delete Tier</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? This action
-              cannot be undone.
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;?
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -401,7 +464,8 @@ export default function EventTiersPage() {
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteTier.isPending}
-             loading={deleteTier.isPending}>
+              loading={deleteTier.isPending}
+            >
               {deleteTier.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
