@@ -190,7 +190,18 @@ function Sidebar({
           data-sidebar='sidebar'
           data-slot='sidebar'
           data-mobile='true'
-          className='w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden'
+          className='w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground'
+          onOpenAutoFocus={(event) => {
+            // Navigation should receive focus before utility buttons/tooltips.
+            const content = event.target;
+            if (!(content instanceof HTMLElement)) return;
+            const firstLink = Array.from(content.querySelectorAll<HTMLAnchorElement>('a[href]'))
+              .find(link => link.getClientRects().length > 0);
+            if (firstLink) {
+              event.preventDefault();
+              firstLink.focus();
+            }
+          }}
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE,

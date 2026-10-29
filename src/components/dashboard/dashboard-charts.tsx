@@ -94,7 +94,7 @@ function ChartCard({
   return (
     <Card
       data-dashboard-chart
-      className={`min-w-0 gap-3 rounded-2xl border-border/70 bg-gradient-to-br ${style.background} via-card to-card py-4 shadow-sm`}
+      className="min-w-0 gap-5 rounded-2xl border-border bg-card py-6 shadow-sm"
     >
       <CardHeader className="px-4 pb-0">
         <div className="flex items-center gap-2.5">
@@ -105,7 +105,7 @@ function ChartCard({
           </span>
           <div className="min-w-0 flex-1">
             <CardTitle className="text-sm font-semibold">{title}</CardTitle>
-            <CardDescription className="mt-0.5 text-[11px]">
+            <CardDescription className="mt-1 text-xs">
               {description}
             </CardDescription>
           </div>
@@ -122,7 +122,7 @@ function ChartCard({
         {query.error ? (
           <div
             role="alert"
-            className="flex h-44 flex-col items-center justify-center gap-2 text-center"
+            className="flex h-54 flex-col items-center justify-center gap-2 text-center"
           >
             <p className="text-xs text-muted-foreground">
               Unable to load {title.toLowerCase()}.
@@ -140,7 +140,7 @@ function ChartCard({
           </div>
         ) : query.isLoading ? (
           <Skeleton
-            className="h-44 w-full rounded-xl"
+            className="h-54 w-full rounded-xl"
             aria-label={`Loading ${title}`}
           />
         ) : (
@@ -204,11 +204,11 @@ export function DashboardCharts() {
     return null;
 
   return (
-    <section aria-label="Dashboard charts" className="space-y-3">
-      <p className="text-xs text-muted-foreground">
+    <section aria-label="Dashboard charts" className="space-y-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2"><h2 className="text-base font-semibold">Your church in perspective</h2><p className="text-xs text-muted-foreground">
         Last 30 days <span aria-hidden="true">·</span> {scope}
-      </p>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      </p></div>
+      <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
         {(showAttendance || showAttendanceTrend) && (
           <ChartCard
             title={

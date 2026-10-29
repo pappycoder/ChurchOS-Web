@@ -49,7 +49,7 @@ async function session(
         account_id: string | null;
         settings: Record<string, string>;
         updated_at: string;
-      }[] = [];
+      }[] = ["email", "sms", "whatsapp", "voice", "payment"].map(channel => ({ channel, mode: "disabled", account_id: null, settings: {}, updated_at: "2026-10-01T10:00:00Z" }));
       const requests: {
         path: string;
         method: string;
@@ -185,6 +185,7 @@ test("all external services default to disabled and cannot select platform crede
 }) => {
   await session(context, ["integrations:read", "integrations:update"]);
   await openSettings(page);
+  await page.getByRole("tab", { name: "Service routing", exact: true }).click();
   for (const channel of ["email", "sms", "whatsapp", "voice", "payment"]) {
     const mode = page.locator(`#${channel}-mode`);
     await expect(mode).toHaveValue("disabled");
@@ -203,7 +204,8 @@ for (const role of ["church_admin", "super_admin"])
       role,
       false,
     );
-    await page.goto("/docs");
+    await page.goto("/dashboard");
+    await page.getByRole("navigation", { name: "Workspace areas", exact: true }).filter({ visible: true }).getByRole("link", { name: "Administration", exact: true }).click();
     const link = page
       .getByRole("navigation", { name: "Workspace", exact: true })
       .getByRole("link", { name: "Integrations", exact: true });
@@ -323,6 +325,7 @@ test("independent email, WhatsApp, SMS and payment selection supports shared acc
 }) => {
   await session(context, ["integrations:read", "integrations:update"]);
   await openSettings(page);
+  await page.getByRole("tab", { name: "Service routing", exact: true }).click();
   const email = page.locator("#channel-email");
   await email.getByLabel("Account source").selectOption("custom");
   await email

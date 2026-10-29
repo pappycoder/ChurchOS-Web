@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import {
   PeopleFormSection,
   peopleWorkspaceClass,
@@ -182,9 +183,14 @@ export function MemberFormDialog({
 
   const pending = createMutation.isPending || updateMutation.isPending;
 
+  const requestClose = (next: boolean) => {
+    if (next || !form.formState.isDirty || confirmDiscardChanges()) onOpenChange(next);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={requestClose}>
       <DialogContent
+        data-workspace-editor={isEdit ? "member" : undefined}
         onCloseAutoFocus={returnFocusRef ? event => {
           if (returnFocusRef.current) {
             event.preventDefault();
@@ -464,7 +470,7 @@ export function MemberFormDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => requestClose(false)}
                 disabled={pending}
               >
                 Cancel

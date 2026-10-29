@@ -237,7 +237,7 @@ async function assertNoAnalytics(page: Page) {
   ).toEqual([]);
 }
 
-test("compact dashboard shows colorful charts without filters, KPI tiles or bulky feeds", async ({
+test("task-led dashboard shows scoped charts without filters, KPI tiles or bulky feeds", async ({
   page,
   context,
 }) => {
@@ -274,15 +274,15 @@ test("compact dashboard shows colorful charts without filters, KPI tiles or bulk
       return { height: box.height, y: box.y };
     }),
   );
-  expect(boxes.every((box) => box.height <= 300)).toBe(true);
-  expect(boxes[0].y).toBe(boxes[2].y);
+  expect(boxes.every((box) => box.height <= 370)).toBe(true);
+  expect(boxes[0].y).toBe(boxes[1].y);
   const colors = await page
     .locator("[data-dashboard-chart] svg [fill]")
     .evaluateAll((nodes) => [
       ...new Set(
         nodes
-          .map((node) => node.getAttribute("fill"))
-          .filter((fill) => fill?.startsWith("#")),
+          .map((node) => getComputedStyle(node).fill)
+          .filter((fill) => fill.startsWith("rgb")),
       ),
     ]);
   expect(colors.length).toBeGreaterThanOrEqual(5);
@@ -340,7 +340,7 @@ test("missing module grants prevent chart rendering and requests", async ({
 }) => {
   await setup(context, { modules: false });
   await page.goto("/dashboard");
-  await expect(page.getByRole("link", { name: "View profile" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Your profile" })).toBeVisible();
   await expect(page.locator("[data-dashboard-chart]")).toHaveCount(0);
   expect(await chartCalls(page)).toEqual([]);
   await assertNoAnalytics(page);
@@ -395,11 +395,11 @@ test("task shortcuts, profile and notification drawer actions remain available",
     ["Forms", "/forms"],
   ]) {
     await expect(
-      nav.getByRole("link", { name: label, exact: true }),
+      nav.getByRole("link", { name: new RegExp(`^${label}`) }),
     ).toHaveAttribute("href", href);
   }
   await expect(
-    page.getByRole("link", { name: "View profile", exact: true }),
+    page.getByRole("link", { name: "Your profile", exact: true }),
   ).toHaveAttribute("href", "/profile");
   await page
     .getByRole("button", { name: "Notifications", exact: true })

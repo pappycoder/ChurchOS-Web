@@ -56,13 +56,11 @@ import {
 } from "lucide-react";
 
 
-import { ChevronRight } from "lucide-react";
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { Sidebar as SidebarPrimitive, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail,
-  SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton,
-  SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, useSidebar } from "@/components/ui/sidebar";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { ArrowUpRight, CircleHelp, House, Layers3 } from "lucide-react";
+import { areaForPath, activeDestination, groupWorkspaceNavigation } from "@/lib/workspace-navigation";
+import { ColorModeToggle } from "@/components/shared/color-mode-toggle";
+import { Sidebar as SidebarPrimitive, SidebarContent, SidebarFooter, useSidebar } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AccountMenu } from "./account-menu";
 
 interface NavItem {
@@ -569,71 +567,96 @@ export function navigationLeaves(items: NavItem[]): NavItem[] {
   return items.flatMap((item) => item.children?.length ? navigationLeaves(item.children) : [item]);
 }
 
-function NavigationItem({ item, activeHref }: { item: NavItem; activeHref?: string }) {
-  const { state, isMobile, setOpenMobile } = useSidebar();
-  const pathname = usePathname();
-  const prefetch = usePrefetchRoute();
-  const children = item.children ?? [];
-  const Icon = item.icon ?? ICON_MAP[item.title];
-  const active = children.length ? navigationLeaves(children).some((child) => child.href === activeHref) : item.href === activeHref;
-  const [open, setOpen] = React.useState(active);
-  React.useEffect(() => { if (active) setOpen(true); }, [pathname, active]);
-  const content = <>{Icon && <Icon className="size-4" />}<span>{item.title}</span>{item.badge && <span className="ms-auto rounded-full bg-secondary px-1.5 text-xs">{item.badge}</span>}</>;
-  if (!children.length) return <SidebarMenuItem>
-    <SidebarMenuButton asChild isActive={active} tooltip={item.title}>
-      <Link href={item.href!} aria-current={active ? "page" : undefined} onClick={() => setOpenMobile(false)} onMouseEnter={() => prefetch(item.href)} onFocus={() => prefetch(item.href)}>{content}</Link>
-    </SidebarMenuButton>
-  </SidebarMenuItem>;
-  if (state === "collapsed" && !isMobile) return <SidebarMenuItem>
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild><SidebarMenuButton tooltip={item.title} isActive={active}>{content}<ChevronRight className="ms-auto size-4" /></SidebarMenuButton></DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" sideOffset={8}>
-        <DropdownMenuLabel>{item.title}</DropdownMenuLabel><DropdownMenuSeparator />
-        {navigationLeaves(children).map((child) => <DropdownMenuItem key={child.href} asChild>
-          <Link href={child.href!} aria-current={child.href === activeHref ? "page" : undefined} className={cn(child.href === activeHref && "bg-accent")} onClick={() => setOpenMobile(false)}>{child.title}</Link>
-        </DropdownMenuItem>)}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  </SidebarMenuItem>;
-  return <Collapsible asChild open={open} onOpenChange={setOpen} className="group/collapsible">
-    <SidebarMenuItem>
-      <CollapsibleTrigger asChild><SidebarMenuButton tooltip={item.title}>{content}<ChevronRight className="ms-auto size-4 transition-transform group-data-[state=open]/collapsible:rotate-90" /></SidebarMenuButton></CollapsibleTrigger>
-      <CollapsibleContent className="CollapsibleContent"><SidebarMenuSub>
-        {children.map((child) => child.children?.length ? <NavigationItem key={child.title} item={child} activeHref={activeHref} /> : <SidebarMenuSubItem key={child.title + child.href}>
-          <SidebarMenuSubButton asChild isActive={child.href === activeHref}>
-            <Link href={child.href!} aria-current={child.href === activeHref ? "page" : undefined} onClick={() => setOpenMobile(false)} onMouseEnter={() => prefetch(child.href)} onFocus={() => prefetch(child.href)}><span>{child.title}</span></Link>
-          </SidebarMenuSubButton>
-        </SidebarMenuSubItem>)}
-      </SidebarMenuSub></CollapsibleContent>
-    </SidebarMenuItem>
-  </Collapsible>;
-}
+const AREA_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  home: House, people: UsersRound, gatherings: Calendar, giving: HandCoins,
+  communication: MessageSquare, resources: Layers3, insights: BarChart3, administration: Settings,
+};
 
 export function Sidebar() {
   const pathname = usePathname();
   const groups = useVisibleNavigation();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, setOpen, open, isMobile } = useSidebar();
   const { data: profile } = useCurrentProfile();
+  const prefetch = usePrefetchRoute();
+  const items = React.useMemo(() => groups.flatMap(group => group.items), [groups]);
+  const areas = React.useMemo(() => groupWorkspaceNavigation(items), [items]);
+  const currentArea = areaForPath(areas, pathname);
+  const area = areas.find(candidate => candidate.id === currentArea?.id) ?? areas[0];
+  const activeHref = activeDestination(items, pathname)?.href;
+
   React.useEffect(() => { setOpenMobile(false); }, [pathname, setOpenMobile]);
-  const activeHref = navigationLeaves(groups.flatMap((group) => group.items))
-    .map((item) => item.href).filter((href): href is string => !!href && (pathname === href || pathname.startsWith(href + "/")))
-    .sort((a, b) => b.length - a.length)[0];
-  return <SidebarPrimitive collapsible="icon" variant="inset" aria-label="Main navigation">
-    <SidebarHeader><SidebarMenu><SidebarMenuItem>
-      <SidebarMenuButton size="lg" asChild className="gap-2">
-        <Link href="/dashboard" onClick={() => setOpenMobile(false)}>
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border bg-background"><BrandLogo variant="mark" emblemClassName="size-7 dark:brightness-0 dark:invert" /></div>
-          <div className="grid flex-1 text-start text-sm leading-tight"><span className="truncate font-semibold">{profile?.church?.name || "ChurchOS"}</span><span className="truncate text-xs text-sidebar-foreground/70">{profile?.isAdminHq ? "Headquarters workspace" : profile?.branch?.name || "Church workspace"}</span></div>
+  React.useEffect(() => {
+    if (window.matchMedia("(min-width: 768px) and (max-width: 1279px)").matches) setOpen(false);
+    // Set the initial tablet layout once; subsequent toggles belong to the user.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const close = () => setOpenMobile(false);
+  const areaLink = (entry: (typeof areas)[number], compact: boolean) => {
+    const Icon = AREA_ICONS[entry.id];
+    const href = navigationLeaves(entry.items)[0]?.href;
+    if (!href) return null;
+    const active = currentArea?.id === entry.id;
+    const link = <Link prefetch={false} href={href} aria-current={active ? "true" : undefined}
+      aria-label={entry.title} data-area={entry.id} data-active={active}
+      onClick={() => { close(); if (!isMobile) setOpen(true); }}
+      className={cn("workspace-area-link", compact ? "workspace-area-link-compact" : "workspace-area-link-mobile")}>
+      <Icon className="size-[19px] shrink-0" /><span>{compact && entry.id === "communication" ? "Connect" : compact && entry.id === "administration" ? "Admin" : entry.title}</span>
+    </Link>;
+    return compact ? <Tooltip key={entry.id}><TooltipTrigger asChild>{link}</TooltipTrigger><TooltipContent side="right">{entry.title}</TooltipContent></Tooltip> : <React.Fragment key={entry.id}>{link}</React.Fragment>;
+  };
+
+  return <SidebarPrimitive collapsible="icon" variant="sidebar" aria-label="Main navigation" className="workspace-sidebar">
+    <div className="flex min-h-0 flex-1">
+      <nav aria-label="Workspace areas" className="workspace-area-rail hidden md:flex">
+        <Link href="/dashboard" aria-label="ChurchOS home" className="workspace-brand-mark" onClick={close}>
+          <BrandLogo variant="mark" emblemClassName="!size-8 brightness-0 invert" />
         </Link>
-      </SidebarMenuButton>
-    </SidebarMenuItem></SidebarMenu></SidebarHeader>
-    <SidebarContent><nav id="sidebar-menu" aria-label="Workspace">
-      {groups.map((group) => <SidebarGroup key={group.section}>
-        <SidebarGroupLabel>{group.section === "MAIN MENU" ? "General" : group.section.charAt(0) + group.section.slice(1).toLowerCase()}</SidebarGroupLabel>
-        <SidebarMenu>{group.items.map((item) => <NavigationItem key={item.title} item={item} activeHref={activeHref} />)}</SidebarMenu>
-      </SidebarGroup>)}
-    </nav></SidebarContent>
-    <SidebarFooter><AccountMenu placement="sidebar" /></SidebarFooter>
-    <SidebarRail />
+        <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto py-3">{areas.map(entry => areaLink(entry, true))}</div>
+        <div className="flex flex-col items-center gap-2 border-t border-white/10 py-3">
+          <Tooltip><TooltipTrigger asChild><Link href="/support" aria-label="Contact support" className="workspace-rail-utility"><CircleHelp className="size-5" /></Link></TooltipTrigger><TooltipContent side="right">Contact support</TooltipContent></Tooltip>
+          <ColorModeToggle className="workspace-rail-utility" />
+          <AccountMenu />
+        </div>
+      </nav>
+      <div className={cn("workspace-context-panel flex min-h-0 flex-1 flex-col", !open && !isMobile && "hidden")}>
+        <div className="workspace-church-heading">
+          <span className="workspace-eyebrow">WORKSPACE</span>
+          <p className="truncate text-sm font-semibold" title={profile?.church?.name}>{profile?.church?.name || "ChurchOS"}</p>
+          <p className="truncate text-xs text-muted-foreground">{profile?.isAdminHq ? "Headquarters" : profile?.branch?.name || "Church workspace"}</p>
+        </div>
+        <SidebarContent>
+          <nav aria-label="Workspace areas" className="grid grid-cols-2 gap-1 border-b p-3 md:hidden">{areas.map(entry => areaLink(entry, false))}</nav>
+          <div className="px-5 pb-3 pt-6">
+            <p className="text-lg font-semibold tracking-tight">{area?.title ?? (pathname === "/profile" ? "Your account" : "Workspace")}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{area?.description ?? "Your personal workspace"}</p>
+          </div>
+          <nav id="sidebar-menu" aria-label="Workspace" className="space-y-5 px-3 pb-5">
+            {area?.items.map(item => <section key={item.title}>
+              {item.children?.length ? <>
+                <p className="workspace-nav-label">{item.title}</p>
+                <div className="space-y-1">{navigationLeaves(item.children).map(child => {
+                  const Icon = child.icon ?? ICON_MAP[child.title] ?? item.icon;
+                  return <Link prefetch={false} key={child.href} href={child.href!} onClick={close}
+                    aria-current={child.href === activeHref ? "page" : undefined}
+                    data-active={child.href === activeHref} className="workspace-destination"
+                    onMouseEnter={() => prefetch(child.href)} onFocus={() => prefetch(child.href)}>
+                    {Icon && <Icon className="size-4 shrink-0" />}<span>{child.title}</span>
+                  </Link>;
+                })}</div>
+              </> : <Link href={item.href!} onClick={close} aria-current={item.href === activeHref ? "page" : undefined}
+                data-active={item.href === activeHref} className="workspace-destination"
+                onMouseEnter={() => prefetch(item.href)} onFocus={() => prefetch(item.href)}>
+                {item.icon && <item.icon className="size-4 shrink-0" />}<span>{item.title}</span>
+              </Link>}
+            </section>)}
+          </nav>
+        </SidebarContent>
+        <SidebarFooter className="workspace-context-footer">
+          <Link href="/help" aria-label="Help Centre" className="flex items-center justify-between gap-2 rounded-xl border bg-background px-3 py-3 text-xs text-muted-foreground hover:text-foreground" onClick={close}>A little help, whenever you need it<ArrowUpRight className="size-4 shrink-0" /></Link>
+          <div className="flex items-center justify-between md:hidden"><Link href="/support" className="workspace-destination" onClick={close}>Contact support</Link><ColorModeToggle /><AccountMenu /></div>
+        </SidebarFooter>
+      </div>
+    </div>
   </SidebarPrimitive>;
 }

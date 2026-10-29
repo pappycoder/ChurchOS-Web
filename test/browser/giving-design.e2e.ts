@@ -842,7 +842,7 @@ test("read-only staff keep receipts and tables but no mutation controls", async 
   expect(calls.some((call) => call.method !== "GET")).toBe(false);
 });
 
-test("desktop/mobile and light/dark previews preserve the personal accent", async ({
+test("desktop/mobile and light/dark previews retain fixed teal branding", async ({
   page,
   context,
 }) => {
@@ -890,7 +890,6 @@ test("desktop/mobile and light/dark previews preserve the personal accent", asyn
       ),
     ).toBe(true);
     await page
-      .locator("header")
       .getByRole("button", { name: /dark mode/ })
       .click();
     await page.screenshot({
@@ -905,7 +904,6 @@ test("desktop/mobile and light/dark previews preserve the personal accent", asyn
       animations: "disabled",
     });
     await page
-      .locator("header")
       .getByRole("button", { name: /light mode/ })
       .click();
     if (name === "records") {

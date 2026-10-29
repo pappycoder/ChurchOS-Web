@@ -287,13 +287,13 @@ test("the first two identifiers remain aligned when scrolling, resizing and hidi
     .toBeLessThan(2);
 });
 
-test("desktop actions appear on row hover and keyboard focus", async ({ page, context }) => {
+test("desktop row actions stay discoverable through hover and keyboard focus", async ({ page, context }) => {
   await session(context);
   await page.goto("/forms/form-a");
   const action = page.getByRole("button", { name: `View submission ${responseId}`, exact: true });
   await expect
     .poll(() => action.evaluate((element) => getComputedStyle(element).opacity))
-    .toBe("0");
+    .toBe("1");
   await page.getByRole("row").filter({ hasText: "Grace Adeyemi" }).hover();
   await expect
     .poll(() => action.evaluate((element) => getComputedStyle(element).opacity))
@@ -301,7 +301,7 @@ test("desktop actions appear on row hover and keyboard focus", async ({ page, co
   await page.getByRole("heading", { name: "Volunteer application", exact: true }).hover();
   await expect
     .poll(() => action.evaluate((element) => getComputedStyle(element).opacity))
-    .toBe("0");
+    .toBe("1");
   await action.focus();
   await expect
     .poll(() => action.evaluate((element) => getComputedStyle(element).opacity))

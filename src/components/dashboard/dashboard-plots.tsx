@@ -20,19 +20,19 @@ import {
 } from "@/components/ui/chart";
 
 export const dashboardColors = [
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-  "#f59e0b",
-  "#14b8a6",
-  "#f97316",
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+  "var(--chart-6)",
 ];
-const height = 176;
+const height = 216;
 const number = (value: number) => value.toLocaleString("en-NG");
 
 function EmptyPlot() {
   return (
-    <div className="flex h-44 items-center justify-center text-xs text-muted-foreground">
+    <div className="flex min-h-54 items-center justify-center text-xs text-muted-foreground">
       No data yet.
     </div>
   );
@@ -77,6 +77,8 @@ export function DashboardTrend({
   return (
     <ChartContainer
       config={config}
+      role="group"
+      aria-label={`${split ? "Members and visitors" : "Total"} across ${data.length} periods. Latest: ${split ? `${number(data[data.length - 1].members ?? 0)} members, ${number(data[data.length - 1].visitors ?? 0)} visitors` : formatValue(data[data.length - 1].total)}.`}
       style={{ height }}
       className="w-full aspect-auto"
     >
@@ -177,6 +179,8 @@ export function DashboardBars({
   return (
     <ChartContainer
       config={{ value: { label: "Total", color: colors[0] } }}
+      role="group"
+      aria-label={data.map(item => `${item.label}: ${formatValue(item.value)}`).join(". ")}
       style={{ height }}
       className="w-full aspect-auto"
     >
@@ -237,7 +241,8 @@ export function DashboardDonut({
   const total = data.reduce((sum, item) => sum + item.value, 0);
   if (!data.length || data.every((d) => d.value === 0)) return <EmptyPlot />;
   return (
-    <div className="flex h-44 flex-col items-center justify-center gap-1">
+    <div className="flex min-h-54 flex-col items-center justify-center gap-2">
+      <p className="sr-only">{valueLabel}: {formatValue ? formatValue(total) : number(total)}. {data.map(item => `${item.name}: ${formatValue ? formatValue(item.value) : number(item.value)}`).join(". ")}</p>
       <ChartContainer
         config={{ value: { label: valueLabel } }}
         className="h-36 w-full aspect-auto"

@@ -58,6 +58,10 @@ async function fixture(context: BrowserContext, failWorklist = false) {
     route.fulfill({ json: { hasSession: true } }),
   );
   await context.route("https://**", (route) => route.abort());
+  await context.route("https://embed.tawk.to/**", route => route.fulfill({
+    contentType: "application/javascript",
+    body: "Object.assign(window.Tawk_API,{showWidget(){},hideWidget(){},maximize(){},shutdown(){}});window.Tawk_API?.onLoad?.();",
+  }));
   await context.route("**/api/backend/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname.replace("/api/backend", "");

@@ -48,7 +48,7 @@ export function TableCard({
   const paginated = typeof page === "number" && typeof onPageChange === "function";
 
   return (
-    <Card className={className}>
+    <Card data-table-card className={className}>
       {(title || description || action || exportAction) && (
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -62,8 +62,8 @@ export function TableCard({
         </CardHeader>
       )}
       <CardContent className="space-y-4">
-        {toolbar && <div className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">{toolbar}</div>}
-        <div className="min-w-0 overflow-x-auto rounded-md border">
+        {toolbar && <div data-table-toolbar className="min-w-0 [&>*]:max-w-full [&>div]:flex-wrap">{toolbar}</div>}
+        <div data-table-body className="min-w-0 overflow-x-auto rounded-md border">
           <TableExportScope.Provider value={Boolean(exportAction)}>
             {children}
           </TableExportScope.Provider>

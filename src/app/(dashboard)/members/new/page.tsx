@@ -255,9 +255,9 @@ export default function AddMemberPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form data-workspace-editor-page onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Profile photo */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <PeopleSectionHeading>Profile Photo</PeopleSectionHeading>
@@ -326,7 +326,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Personal information */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <PeopleSectionHeading>
@@ -442,7 +442,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Address & membership */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <PeopleSectionHeading>
@@ -524,7 +524,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Family membership */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <PeopleSectionHeading>Family Membership</PeopleSectionHeading>
@@ -612,7 +612,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Custom fields */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <PeopleSectionHeading>Custom Fields</PeopleSectionHeading>
@@ -634,7 +634,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Notes */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <PeopleSectionHeading>Notes</PeopleSectionHeading>
@@ -664,7 +664,7 @@ export default function AddMemberPage() {
           </Card>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-end gap-2 pb-2">
+          <div data-editor-actions className="flex items-center justify-end gap-2 pb-2">
             <Button
               type="button"
               variant="outline"

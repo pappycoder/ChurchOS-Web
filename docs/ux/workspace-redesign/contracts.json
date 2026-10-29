@@ -1,0 +1,774 @@
+{
+  "counts": {
+    "pages": 99,
+    "dashboardPages": 84,
+    "links": 515,
+    "controls": 846,
+    "navigation": 60,
+    "dynamicDestinations": 34
+  },
+  "issues": [],
+  "pages": [
+    {
+      "file": "src/app/(dashboard)/admin/branches/[branchId]/page.tsx",
+      "route": "/admin/branches/[branchId]"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/branches/page.tsx",
+      "route": "/admin/branches"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/integrations/page.tsx",
+      "route": "/admin/integrations"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/roles/[roleName]/page.tsx",
+      "route": "/admin/roles/[roleName]"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/roles/page.tsx",
+      "route": "/admin/roles"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/settings/page.tsx",
+      "route": "/admin/settings"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/users/[profileId]/page.tsx",
+      "route": "/admin/users/[profileId]"
+    },
+    {
+      "file": "src/app/(dashboard)/admin/users/page.tsx",
+      "route": "/admin/users"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/attendance/page.tsx",
+      "route": "/analytics/attendance"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/giving/page.tsx",
+      "route": "/analytics/giving"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/members/page.tsx",
+      "route": "/analytics/members"
+    },
+    {
+      "file": "src/app/(dashboard)/analytics/page.tsx",
+      "route": "/analytics"
+    },
+    {
+      "file": "src/app/(dashboard)/appointments/page.tsx",
+      "route": "/appointments"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/[assetId]/edit/page.tsx",
+      "route": "/assets/[assetId]/edit"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/[assetId]/page.tsx",
+      "route": "/assets/[assetId]"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/categories/page.tsx",
+      "route": "/assets/categories"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/loans/page.tsx",
+      "route": "/assets/loans"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/maintenance/page.tsx",
+      "route": "/assets/maintenance"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/new/page.tsx",
+      "route": "/assets/new"
+    },
+    {
+      "file": "src/app/(dashboard)/assets/page.tsx",
+      "route": "/assets"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/check-in/page.tsx",
+      "route": "/attendance/check-in"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/page.tsx",
+      "route": "/attendance"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/records/page.tsx",
+      "route": "/attendance/records"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/reports/page.tsx",
+      "route": "/attendance/reports"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/services/[serviceId]/page.tsx",
+      "route": "/attendance/services/[serviceId]"
+    },
+    {
+      "file": "src/app/(dashboard)/attendance/services/page.tsx",
+      "route": "/attendance/services"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/broadcasts/new/page.tsx",
+      "route": "/communication/broadcasts/new"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/broadcasts/page.tsx",
+      "route": "/communication/broadcasts"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/inbox/page.tsx",
+      "route": "/communication/inbox"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/messages/page.tsx",
+      "route": "/communication/messages"
+    },
+    {
+      "file": "src/app/(dashboard)/communication/templates/page.tsx",
+      "route": "/communication/templates"
+    },
+    {
+      "file": "src/app/(dashboard)/dashboard/page.tsx",
+      "route": "/dashboard"
+    },
+    {
+      "file": "src/app/(dashboard)/debug/sentry/page.tsx",
+      "route": "/debug/sentry"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/[departmentId]/page.tsx",
+      "route": "/departments/[departmentId]"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/cell-groups/[groupId]/page.tsx",
+      "route": "/departments/cell-groups/[groupId]"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/cell-groups/page.tsx",
+      "route": "/departments/cell-groups"
+    },
+    {
+      "file": "src/app/(dashboard)/departments/page.tsx",
+      "route": "/departments"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/edit/page.tsx",
+      "route": "/events/[eventId]/edit"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/page.tsx",
+      "route": "/events/[eventId]"
+    },
+    {
+      "file": "src/app/(dashboard)/events/[eventId]/tiers/page.tsx",
+      "route": "/events/[eventId]/tiers"
+    },
+    {
+      "file": "src/app/(dashboard)/events/check-in/page.tsx",
+      "route": "/events/check-in"
+    },
+    {
+      "file": "src/app/(dashboard)/events/list/page.tsx",
+      "route": "/events/list"
+    },
+    {
+      "file": "src/app/(dashboard)/events/management/page.tsx",
+      "route": "/events/management"
+    },
+    {
+      "file": "src/app/(dashboard)/events/new/page.tsx",
+      "route": "/events/new"
+    },
+    {
+      "file": "src/app/(dashboard)/events/page.tsx",
+      "route": "/events"
+    },
+    {
+      "file": "src/app/(dashboard)/events/registrations/page.tsx",
+      "route": "/events/registrations"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/edit/page.tsx",
+      "route": "/forms/[formId]/edit"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/fill/page.tsx",
+      "route": "/forms/[formId]/fill"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/[formId]/page.tsx",
+      "route": "/forms/[formId]"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/new/page.tsx",
+      "route": "/forms/new"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/page.tsx",
+      "route": "/forms"
+    },
+    {
+      "file": "src/app/(dashboard)/forms/submissions/page.tsx",
+      "route": "/forms/submissions"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/categories/page.tsx",
+      "route": "/giving/categories"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/page.tsx",
+      "route": "/giving"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/records/page.tsx",
+      "route": "/giving/records"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/recurring/page.tsx",
+      "route": "/giving/recurring"
+    },
+    {
+      "file": "src/app/(dashboard)/giving/reports/page.tsx",
+      "route": "/giving/reports"
+    },
+    {
+      "file": "src/app/(dashboard)/media/folders/page.tsx",
+      "route": "/media/folders"
+    },
+    {
+      "file": "src/app/(dashboard)/media/page.tsx",
+      "route": "/media"
+    },
+    {
+      "file": "src/app/(dashboard)/media/upload/page.tsx",
+      "route": "/media/upload"
+    },
+    {
+      "file": "src/app/(dashboard)/members/[memberId]/page.tsx",
+      "route": "/members/[memberId]"
+    },
+    {
+      "file": "src/app/(dashboard)/members/families/[familyId]/page.tsx",
+      "route": "/members/families/[familyId]"
+    },
+    {
+      "file": "src/app/(dashboard)/members/families/page.tsx",
+      "route": "/members/families"
+    },
+    {
+      "file": "src/app/(dashboard)/members/import/page.tsx",
+      "route": "/members/import"
+    },
+    {
+      "file": "src/app/(dashboard)/members/new/page.tsx",
+      "route": "/members/new"
+    },
+    {
+      "file": "src/app/(dashboard)/members/page.tsx",
+      "route": "/members"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/engagement/page.tsx",
+      "route": "/pastoral/engagement"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/life-events/page.tsx",
+      "route": "/pastoral/life-events"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/page.tsx",
+      "route": "/pastoral"
+    },
+    {
+      "file": "src/app/(dashboard)/pastoral/risk-scores/page.tsx",
+      "route": "/pastoral/risk-scores"
+    },
+    {
+      "file": "src/app/(dashboard)/profile/page.tsx",
+      "route": "/profile"
+    },
+    {
+      "file": "src/app/(dashboard)/reports/page.tsx",
+      "route": "/reports"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/[sermonId]/edit/page.tsx",
+      "route": "/sermons/[sermonId]/edit"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/[sermonId]/page.tsx",
+      "route": "/sermons/[sermonId]"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/new/page.tsx",
+      "route": "/sermons/new"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/page.tsx",
+      "route": "/sermons"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/series/page.tsx",
+      "route": "/sermons/series"
+    },
+    {
+      "file": "src/app/(dashboard)/sermons/speakers/page.tsx",
+      "route": "/sermons/speakers"
+    },
+    {
+      "file": "src/app/(dashboard)/support/page.tsx",
+      "route": "/support"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/[visitorId]/page.tsx",
+      "route": "/visitors/[visitorId]"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/follow-up/page.tsx",
+      "route": "/visitors/follow-up"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/import/page.tsx",
+      "route": "/visitors/import"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/new/page.tsx",
+      "route": "/visitors/new"
+    },
+    {
+      "file": "src/app/(dashboard)/visitors/page.tsx",
+      "route": "/visitors"
+    }
+  ],
+  "navigation": [
+    {
+      "location": "src/components/layouts/sidebar.tsx:83",
+      "href": "/dashboard",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:94",
+      "href": "/members",
+      "permission": "members:all:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:99",
+      "href": "/members/new",
+      "permission": "members:new:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:104",
+      "href": "/members/import",
+      "permission": "members:import:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:109",
+      "href": "/members/families",
+      "permission": "families:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:121",
+      "href": "/attendance",
+      "permission": "attendance:dashboard:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:126",
+      "href": "/attendance/services",
+      "permission": "attendance:services:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:131",
+      "href": "/attendance/check-in",
+      "permission": "attendance:checkin:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:136",
+      "href": "/attendance/records",
+      "permission": "attendance:records:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:141",
+      "href": "/attendance/reports",
+      "permission": "attendance:reports:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:153",
+      "href": "/giving",
+      "permission": "giving:dashboard:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:154",
+      "href": "/giving/categories",
+      "permission": "giving:categories:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:159",
+      "href": "/giving/records",
+      "permission": "giving:records:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:164",
+      "href": "/giving/reports",
+      "permission": "giving:reports:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:169",
+      "href": "/giving/recurring",
+      "permission": "giving:recurring:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:182",
+      "href": "/events",
+      "permission": "events:calendar:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:183",
+      "href": "/events/list",
+      "permission": "events:all:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:188",
+      "href": "/events/check-in",
+      "permission": "events:checkin:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:193",
+      "href": "/events/registrations",
+      "permission": "events:registrations:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:198",
+      "href": "/events/management",
+      "permission": "events:tickets:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:211",
+      "href": "/sermons",
+      "permission": "sermons:list:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:216",
+      "href": "/sermons/new",
+      "permission": "sermons:new:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:221",
+      "href": "/sermons/series",
+      "permission": "sermons:series:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:226",
+      "href": "/sermons/speakers",
+      "permission": "sermons:speakers:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:239",
+      "href": "/media",
+      "permission": "media:library:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:240",
+      "href": "/media/upload",
+      "permission": "media:upload:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:245",
+      "href": "/media/folders",
+      "permission": "media:folders:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:258",
+      "href": "/pastoral",
+      "permission": "pastoral:notes:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:259",
+      "href": "/pastoral/life-events",
+      "permission": "pastoral:life-events:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:264",
+      "href": "/pastoral/risk-scores",
+      "permission": "pastoral:risk-scores:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:269",
+      "href": "/pastoral/engagement",
+      "permission": "pastoral:engagement:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:282",
+      "href": "/visitors",
+      "permission": "visitors:list:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:287",
+      "href": "/visitors/new",
+      "permission": "visitors:new:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:292",
+      "href": "/visitors/import",
+      "permission": "visitors:new:create",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:297",
+      "href": "/visitors/follow-up",
+      "permission": "visitors:list:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:309",
+      "href": "/communication/templates",
+      "permission": "templates:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:315",
+      "href": "/communication/broadcasts",
+      "permission": "broadcasts:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:321",
+      "href": "/communication/messages",
+      "permission": "whatsapp:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:327",
+      "href": "/communication/inbox",
+      "permission": "emails:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:333",
+      "href": "/appointments",
+      "permission": "appointments:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:349",
+      "href": "/departments",
+      "permission": "departments:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:354",
+      "href": "/departments/cell-groups",
+      "permission": "cell_groups:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:367",
+      "href": "/assets",
+      "permission": "assets:list:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:368",
+      "href": "/assets/categories",
+      "permission": "assets:categories:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:373",
+      "href": "/assets/maintenance",
+      "permission": "assets:maintenance:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:378",
+      "href": "/assets/loans",
+      "permission": "assets:loans:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:387",
+      "href": "/forms",
+      "permission": "forms:list:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:388",
+      "href": "/forms/submissions",
+      "permission": "forms:submissions:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:402",
+      "href": "/reports",
+      "permission": "reports:view",
+      "anyOf": [
+        "reports:financial:read",
+        "reports:attendance:read",
+        "reports:members:read"
+      ],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:421",
+      "href": "/admin/users",
+      "permission": "users:read",
+      "anyOf": [],
+      "allOf": [
+        "profiles:read"
+      ]
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:422",
+      "href": "/admin/roles",
+      "permission": "roles:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:429",
+      "href": "/admin/settings",
+      "permission": "church_settings:update",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:435",
+      "href": "/admin/integrations",
+      "permission": "integrations:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:441",
+      "href": "/admin/branches",
+      "permission": "branches:directory:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:452",
+      "href": "/analytics",
+      "permission": "analytics:dashboard:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:457",
+      "href": "/analytics/giving",
+      "permission": "analytics:giving:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:462",
+      "href": "/analytics/attendance",
+      "permission": "analytics:attendance:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:467",
+      "href": "/analytics/members",
+      "permission": "analytics:members:read",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:479",
+      "href": "/help",
+      "anyOf": [],
+      "allOf": []
+    },
+    {
+      "location": "src/components/layouts/sidebar.tsx:484",
+      "href": "/support",
+      "anyOf": [],
+      "allOf": []
+    }
+  ]
+}

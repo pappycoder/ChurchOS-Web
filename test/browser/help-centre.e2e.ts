@@ -304,10 +304,7 @@ test("signed-in help articles stay separate and return directly to dashboard", a
   await staffSession(context);
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto("/dashboard");
-  await page
-    .getByRole("navigation", { name: "Workspace", exact: true })
-    .getByRole("link", { name: "Help Centre" })
-    .click();
+  await page.getByRole("link", { name: "Help Centre", exact: true }).click();
   await expect(page).toHaveURL(/\/help$/);
   await page
     .locator("#help-results")

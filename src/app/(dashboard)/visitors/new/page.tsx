@@ -188,9 +188,9 @@ export default function AddVisitorPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form data-workspace-editor-page onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Personal information */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <VisitorSectionHeading>
@@ -362,7 +362,7 @@ export default function AddVisitorPage() {
           </Card>
 
           {/* Visit & follow-up */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <VisitorSectionHeading>
@@ -443,7 +443,7 @@ export default function AddVisitorPage() {
           </Card>
 
           {/* Custom fields */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <VisitorSectionHeading>Custom Fields</VisitorSectionHeading>
@@ -465,7 +465,7 @@ export default function AddVisitorPage() {
           </Card>
 
           {/* Notes */}
-          <Card>
+          <Card className="workspace-editor-section">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-semibold">
                 <VisitorSectionHeading>Notes</VisitorSectionHeading>
@@ -495,7 +495,7 @@ export default function AddVisitorPage() {
           </Card>
 
           {/* Footer actions */}
-          <div className="flex items-center justify-end gap-2 pb-2">
+          <div data-editor-actions className="flex items-center justify-end gap-2 pb-2">
             <Button
               type="button"
               variant="outline"

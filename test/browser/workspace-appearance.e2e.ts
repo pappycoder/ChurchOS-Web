@@ -1,5 +1,4 @@
 import { test, expect, type BrowserContext, type Page } from "@playwright/test";
-import fs from "node:fs/promises";
 
 test.use({ serviceWorkers: "block" });
 const key = "churchos:appearance:v1:profile-a:church-a";
@@ -158,7 +157,7 @@ async function openAppearance(
   placement: "header" | "sidebar" = "header",
 ) {
   await page
-    .locator(placement === "header" ? "header" : "[data-sidebar=footer]")
+    .locator(placement === "header" ? "header" : ".workspace-area-rail")
     .getByRole("button", { name: "Account menu", exact: true })
     .click();
   await page.getByRole("menuitem", { name: "Appearance", exact: true }).click();
@@ -166,203 +165,35 @@ async function openAppearance(
     page.getByRole("dialog", { name: "Appearance", exact: true }),
   ).toBeVisible();
 }
-async function token(page: Page, name = "--primary") {
-  return page.evaluate((name) => {
-    const value = getComputedStyle(document.documentElement)
-      .getPropertyValue(name)
-      .trim();
-    return /^#[0-9a-f]{3}$/i.test(value)
-      ? "#" +
-          value
-            .slice(1)
-            .split("")
-            .map((c) => c + c)
-            .join("")
-      : value;
-  }, name);
-}
-async function expectAccent(page: Page, color: string) {
-  await expect.poll(() => token(page, "--workspace-accent")).toBe(color);
-}
-
-// Preferences belong to the signed-in browser scope and are never sent to the API.
-test("neutral workspace, live preview, validation, Cancel, Save and reload", async ({
-  page,
-  context,
-}) => {
-  const { calls } = await fixture(context);
-  await page.goto("/members/member-a");
-  await expect(
-    page.getByRole("heading", { name: "Grace Adeyemi", exact: true }),
-  ).toBeVisible();
-  expect(await token(page, "--background")).toBe("#fafafa");
-  expect(await token(page, "--sidebar")).toBe("#ffffff");
-  await openAppearance(page);
-  await page
-    .getByRole("button", { name: "Violet accent", exact: true })
-    .click();
-  await expectAccent(page, "#7c3aed");
-  expect(
-    await page
-      .getByRole("dialog")
-      .evaluate((el) =>
-        getComputedStyle(el).getPropertyValue("--primary").trim(),
-      ),
-  ).toBe("#7c3aed");
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expectAccent(page, "#0f766e");
-  expect(
-    await page.evaluate((key) => localStorage.getItem(key), key),
-  ).toBeNull();
-  await openAppearance(page);
-  await page.getByLabel("Hex color", { exact: true }).fill("#123");
-  await expect(
-    page.getByRole("button", { name: "Save", exact: true }),
-  ).toBeDisabled();
-  await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
-    "six-digit hex",
-  );
-  await page.getByLabel("Hex color", { exact: true }).fill("#AB12EF");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect(
-    await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), key),
-  ).toEqual({ accent: "#ab12ef" });
-  await page.reload();
-  await expectAccent(page, "#ab12ef");
-  await openAppearance(page);
-  await expect(
-    page.getByRole("button", { name: "Primary action", exact: true }),
-  ).toHaveCSS("background-color", "rgb(171, 18, 239)");
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  expect(calls.some((call) => call.method !== "GET")).toBe(false);
-});
-
-test("sidebar entry, default reset and existing dark mode stay independent", async ({
-  page,
-  context,
-}) => {
+test("fixed teal ignores saved accents and appearance offers light, dark and system", async ({ page, context }) => {
   await fixture(context);
-  await page.goto("/members/member-a");
-  await openAppearance(page, "sidebar");
-  await page.getByRole("button", { name: "Blue accent", exact: true }).click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await page
-    .locator("header")
-    .getByRole("button", { name: /dark mode/i })
-    .click();
-  await expect.poll(() => token(page, "--background")).toBe("#101012");
-  expect(await token(page, "--sidebar")).toBe("#161618");
-  await expectAccent(page, "#2563eb");
-  await page.reload();
-  await expect.poll(() => token(page, "--background")).toBe("#101012");
-  await expectAccent(page, "#2563eb");
-  await openAppearance(page);
-  await page
-    .getByRole("button", { name: "Reset to default", exact: true })
-    .click();
-  await expectAccent(page, "#0f766e");
-  expect(
-    await page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!).accent,
-      key,
-    ),
-  ).toBe("#2563eb");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  expect(
-    await page.evaluate(
-      (key) => JSON.parse(localStorage.getItem(key)!).accent,
-      key,
-    ),
-  ).toBe("#0f766e");
-});
-
-test("saved colors remain isolated across churches and accounts and clear on public routes", async ({
-  page,
-  context,
-}) => {
-  const { scope } = await fixture(context);
-  await page.goto("/members/member-a");
-  await openAppearance(page);
-  await page.getByRole("button", { name: "Rose accent", exact: true }).click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  scope.churchId = "church-b";
-  await page.reload();
-  await expect(page.locator("#main-content h1")).toBeVisible();
-  await expectAccent(page, "#0f766e");
-  scope.churchId = "church-a";
-  scope.profileId = "profile-b";
-  await page.reload();
-  await expect(page.locator("#main-content h1")).toBeVisible();
-  await expectAccent(page, "#0f766e");
-  scope.profileId = "profile-a";
-  await page.reload();
-  await expectAccent(page, "#e11d48");
-  await page.goto("/login");
-  await expect(page.locator("[data-workspace-root]")).toHaveCount(0);
-  expect(await token(page, "--background")).toBe("#fcfcf9");
-  expect(await token(page, "--workspace-accent")).toBe("");
-});
-
-test("invalid cache falls back and matching storage changes synchronize across tabs", async ({
-  page,
-  context,
-}) => {
-  await fixture(context);
-  await context.addInitScript((key) => {
-    if (!sessionStorage.getItem("seeded")) {
-      localStorage.setItem(key, "broken-json");
-      sessionStorage.setItem("seeded", "1");
-    }
+  await context.addInitScript(key => {
+    localStorage.setItem(key, JSON.stringify({ accent: "#7c3aed" }));
+    if (!localStorage.getItem("theme")) localStorage.setItem("theme", "light");
   }, key);
-  await page.goto("/members/member-a");
-  await expectAccent(page, "#0f766e");
-  const second = await context.newPage();
-  await second.goto("/members/families/family-a");
-  await expect(
-    second.getByRole("heading", { name: "Adeyemi Family", exact: true }),
-  ).toBeVisible();
+  await page.goto("/members");
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim())).toBe("#0f766e");
   await openAppearance(page);
-  await page.getByRole("button", { name: "Amber accent", exact: true }).click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expectAccent(second, "#d97706");
-  await second.evaluate(() =>
-    localStorage.setItem(
-      "churchos:appearance:v1:other:church-a",
-      JSON.stringify({ accent: "#ff0000" }),
-    ),
-  );
-  await expectAccent(page, "#d97706");
-  await second.close();
+  const dialog = page.getByRole("dialog", { name: "Appearance", exact: true });
+  await expect(dialog.getByRole("button", { name: "Violet accent" })).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Dark", exact: true }).click();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(page.locator("header").getByRole("button", { name: "Account menu", exact: true })).toBeFocused();
+  await page.reload();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await openAppearance(page);
+  await dialog.getByRole("button", { name: "System", exact: true }).click();
+  await expect(dialog.getByRole("button", { name: "System", exact: true })).toHaveAttribute("aria-pressed", "true");
 });
 
-test("unavailable browser storage allows a clearly labelled session-only accent", async ({
-  page,
-  context,
-}) => {
-  await fixture(context);
-  await context.addInitScript(() => {
-    const native = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (key, value) {
-      if (key.startsWith("churchos:appearance:"))
-        throw new DOMException("Unavailable", "QuotaExceededError");
-      return native.call(this, key, value);
-    };
-  });
+test("read-only staff retain appearance controls without record management", async ({ page, context }) => {
+  await fixture(context, { readOnly: true });
   await page.goto("/members/member-a");
+  await expect(page.getByRole("button", { name: "Member management", exact: true })).toHaveCount(0);
   await openAppearance(page);
-  await page
-    .getByRole("button", { name: "Violet accent", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByRole("dialog").getByRole("status")).toContainText(
-    "could not be saved",
-  );
-  await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expectAccent(page, "#7c3aed");
-  await page.reload();
-  await expect(page.locator("#main-content h1")).toBeVisible();
-  await expectAccent(page, "#0f766e");
+  await expect(page.getByRole("dialog").getByRole("button", { name: "Light", exact: true })).toBeEnabled();
 });
 
 for (const [route, label] of [
@@ -407,109 +238,6 @@ for (const [route, label] of [
     }
     expect(calls.some((call) => call.method !== "GET")).toBe(false);
   });
-
-test("read-only staff have personal Appearance but no management menu", async ({
-  page,
-  context,
-}) => {
-  await fixture(context, { readOnly: true });
-  for (const route of [
-    "/members/member-a",
-    "/members/families/family-a",
-    "/attendance/services/service-a",
-  ]) {
-    await page.goto(route);
-    await expect(page.locator("#main-content h1")).toBeVisible();
-    await expect(
-      page.getByRole("button", {
-        name: /^(Member|Family|Service) management$/,
-      }),
-    ).toHaveCount(0);
-  }
-  await openAppearance(page);
-  await expect(
-    page.getByRole("button", { name: "Save", exact: true }),
-  ).toBeEnabled();
-});
-
-test("white and black accents retain readable buttons, neutral surfaces and mobile previews", async ({
-  page,
-  context,
-}) => {
-  await fixture(context);
-  const directory = "/tmp/churchos-workspace-previews";
-  await fs.mkdir(directory, { recursive: true });
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  for (const [route, name] of [
-    ["/members/member-a", "member"],
-    ["/members/families/family-a", "family"],
-    ["/attendance/services/service-a", "service"],
-  ]) {
-    await page.goto(route);
-    await expect(page.locator("#main-content h1")).toBeVisible();
-    await page.screenshot({
-      path: `${directory}/${name}-light.png`,
-      fullPage: true,
-      animations: "disabled",
-    });
-    await page
-      .getByRole("button", { name: /^(Member|Family|Service) management$/ })
-      .click();
-    await page.screenshot({
-      path: `${directory}/${name}-menu.png`,
-      fullPage: true,
-      animations: "disabled",
-    });
-    await page.keyboard.press("Escape");
-    await page.setViewportSize({ width: 390, height: 844 });
-    expect(
-      await page.evaluate(
-        () => document.documentElement.scrollWidth <= innerWidth,
-      ),
-    ).toBe(true);
-    await page.screenshot({
-      path: `${directory}/${name}-mobile.png`,
-      fullPage: true,
-      animations: "disabled",
-    });
-    await page
-      .locator("header")
-      .getByRole("button", { name: /dark mode/i })
-      .click();
-    await expect.poll(() => token(page, "--background")).toBe("#101012");
-    await page.screenshot({
-      path: `${directory}/${name}-dark-mobile.png`,
-      fullPage: true,
-      animations: "disabled",
-    });
-    await page.setViewportSize({ width: 1440, height: 1000 });
-    await page.screenshot({
-      path: `${directory}/${name}-dark.png`,
-      fullPage: true,
-      animations: "disabled",
-    });
-    await page
-      .locator("header")
-      .getByRole("button", { name: /light mode/i })
-      .click();
-    await page.setViewportSize({ width: 1440, height: 1000 });
-  }
-  await openAppearance(page);
-  await page.getByLabel("Hex color", { exact: true }).fill("#ffffff");
-  const primary = page.getByRole("button", {
-    name: "Primary action",
-    exact: true,
-  });
-  await expect(primary).toHaveCSS("background-color", "rgb(255, 255, 255)");
-  await expect(primary).toHaveCSS("color", "rgb(0, 0, 0)");
-  await page.getByLabel("Hex color", { exact: true }).fill("#000000");
-  await expect(primary).toHaveCSS("color", "rgb(255, 255, 255)");
-  await page.screenshot({
-    path: `${directory}/appearance-dialog.png`,
-    fullPage: true,
-    animations: "disabled",
-  });
-});
 
 test("archived details retain labelled restore and permanent-delete confirmations", async ({
   page,

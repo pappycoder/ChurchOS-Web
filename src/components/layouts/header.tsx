@@ -17,11 +17,16 @@ import { useVisibleNavigation, navigationLeaves } from "./sidebar";
 import { ContextHelpMenu } from "@/components/help/context-help-menu";
 import { AskChurchOS } from "@/components/assistant/ask-churchos";
 import { AccountMenu } from "./account-menu";
+import { usePathname } from "next/navigation";
+import { areaForPath, groupWorkspaceNavigation } from "@/lib/workspace-navigation";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const router = useRouter();
   const groups = useVisibleNavigation();
+  const pathname = usePathname();
+  const area = areaForPath(groupWorkspaceNavigation(groups.flatMap(group => group.items)), pathname);
   const { ready, can } = usePermissions();
   const canViewInbox = ready && can("emails", "read");
   const { data: unread } = useEmailUnread(canViewInbox);
@@ -32,20 +37,21 @@ export function Header() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  return <header className="sticky top-0 z-30 flex min-h-16 shrink-0 items-center gap-2 border-b bg-background/95 px-3 py-2 backdrop-blur-sm sm:gap-3 sm:px-4 md:gap-4">
-    <SidebarTrigger variant="outline" /><Separator orientation="vertical" className="!h-6" />
-    <Button variant="outline" className="h-9 justify-start text-muted-foreground lg:w-60" onClick={() => setSearchOpen(true)} aria-label="Search navigation">
-      <Search className="size-4" /><span className="hidden lg:inline">Search navigation...</span><kbd className="ms-auto hidden rounded border px-1.5 font-mono text-[10px] lg:inline-flex">Ctrl K</kbd>
+  return <header className="workspace-topbar sticky top-0 z-30 flex shrink-0 items-center gap-2 sm:gap-3">
+    <SidebarTrigger variant="ghost" /><Separator orientation="vertical" className="!h-5" />
+    <span className="hidden text-sm font-medium text-muted-foreground sm:inline">{area?.title ?? (pathname === "/profile" ? "Your account" : "Workspace")}</span>
+    <Button variant="ghost" className="workspace-search h-9 justify-start text-muted-foreground lg:ms-5 lg:w-60" onClick={() => setSearchOpen(true)} aria-label="Search navigation">
+      <Search className="size-4" /><span className="hidden lg:inline">Jump to a page...</span><kbd className="ms-auto hidden rounded border px-1.5 font-mono text-[10px] lg:inline-flex">Ctrl K</kbd>
     </Button>
     <div className="ms-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1 sm:gap-2">
       <AskChurchOS /><ContextHelpMenu />{/* <OfflineHeaderButton /> */}
       {canViewInbox && <Button variant="ghost" size="icon" asChild tooltip="Inbox"><Link href="/communication/inbox" className="relative"><Mail className="size-4" />{(unread?.count ?? 0) > 0 && <span className="absolute end-0 top-0 rounded-full bg-destructive px-1 text-[10px] text-white">{unread!.count > 99 ? "99+" : unread!.count}</span>}</Link></Button>}
-      <NotificationBell compact /><ColorModeToggle /><AccountMenu />
+      <NotificationBell compact /><ColorModeToggle className="md:hidden" /><AccountMenu />
     </div>
     <CommandDialog open={searchOpen} onOpenChange={setSearchOpen} title="Search navigation" description="Find pages in your ChurchOS workspace.">
       <CommandInput placeholder="Search pages..." /><CommandList><CommandEmpty>No accessible pages found.</CommandEmpty>
         {groups.map((group) => <CommandGroup heading={group.section} key={group.section}>
-          {navigationLeaves(group.items).map((item) => <CommandItem key={item.href} value={`${item.title} ${item.href}`} onSelect={() => { setSearchOpen(false); router.push(item.href!); }}>{item.icon && <item.icon className="size-4" />}<span>{item.title}</span><span className="ms-auto text-xs text-muted-foreground">{item.href}</span></CommandItem>)}
+          {navigationLeaves(group.items).map((item) => <CommandItem key={item.href} value={`${item.title} ${item.href}`} onSelect={() => { if (!confirmDiscardChanges()) return; setSearchOpen(false); router.push(item.href!); }}>{item.icon && <item.icon className="size-4" />}<span>{item.title}</span><span className="ms-auto text-xs text-muted-foreground">{item.href}</span></CommandItem>)}
         </CommandGroup>)}
       </CommandList>
     </CommandDialog>
