@@ -5,7 +5,7 @@ import * as React from "react";
 import { getToastErrorMessage, toast } from "@/lib/toast";
 import {
   AlertTriangle,
-  MoreHorizontal,
+  MoreVertical,
   Pencil,
   Plus,
   Tags,
@@ -14,7 +14,14 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  GivingWorkspace,
+  GivingHeader,
+  GivingStatusBadge,
+  GivingMoreFilters,
+  GivingFormSection,
+  givingWorkspaceClass,
+} from "@/components/giving/giving-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
 import {
@@ -120,6 +127,7 @@ export default function GivingCategoriesPage() {
   const categories = data?.data ?? [];
   const meta = data?.meta;
 
+  const actionTriggerRef = React.useRef<HTMLButtonElement | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<GivingCategory | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<GivingCategory | null>(
@@ -156,7 +164,10 @@ export default function GivingCategoriesPage() {
     };
     try {
       if (editing) {
-        await updateMutation.mutateAsync({ categoryId: editing.categoryId, input: payload });
+        await updateMutation.mutateAsync({
+          categoryId: editing.categoryId,
+          input: payload,
+        });
         toast.success("Category updated");
       } else {
         await createMutation.mutateAsync(payload);
@@ -168,8 +179,7 @@ export default function GivingCategoriesPage() {
       toast.error(
         editing ? "Failed to update category" : "Failed to create category",
         {
-          description:
-            getToastErrorMessage(error, "Please try again."),
+          description: getToastErrorMessage(error, "Please try again."),
         },
       );
     }
@@ -192,9 +202,9 @@ export default function GivingCategoriesPage() {
   if (error) {
     return (
       <div>
-        <PageHeader
+        <GivingHeader
           title="Categories"
-        description="Giving categories are shared across all branches in your church. Each name must be unique."
+          description="Giving categories are shared across all branches in your church. Each name must be unique."
           breadcrumbs={[
             { label: "Home", href: "/dashboard" },
             { label: "Giving", href: "/giving" },
@@ -207,8 +217,9 @@ export default function GivingCategoriesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <GivingWorkspace>
+      <GivingHeader
+        count={meta?.total}
         title="Categories"
         description="Giving categories are shared across all branches in your church. Each name must be unique."
         breadcrumbs={[
@@ -244,10 +255,15 @@ export default function GivingCategoriesPage() {
         }}
         toolbar={
           <div className="flex flex-wrap items-center gap-2">
-            <ArchivedFilter
-              value={archivedFilter}
-              onChange={(value) => { setArchivedFilter(value); setPage(1); }}
-            />
+            <GivingMoreFilters count={Number(archivedView)}>
+              <ArchivedFilter
+                value={archivedFilter}
+                onChange={(value) => {
+                  setArchivedFilter(value);
+                  setPage(1);
+                }}
+              />
+            </GivingMoreFilters>
           </div>
         }
       >
@@ -304,16 +320,9 @@ export default function GivingCategoriesPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={category.isActive ? "default" : "secondary"}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            category.isActive ? "bg-green-500" : "bg-gray-400"
-                          }`}
-                        />
-                        {category.isActive ? "Active" : "Inactive"}
-                      </Badge>
+                      <GivingStatusBadge
+                        status={category.isActive ? "active" : "inactive"}
+                      />
                     </TableCell>
                     {canManage && !archivedView && (
                       <TableCell className="text-right">
@@ -322,9 +331,12 @@ export default function GivingCategoriesPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="size-10"
+                              onFocus={(event) => {
+                                actionTriggerRef.current = event.currentTarget;
+                              }}
                             >
-                              <MoreHorizontal className="h-4 w-4" />
+                              <MoreVertical className="h-4 w-4" />
                               <span className="sr-only">More actions</span>
                             </Button>
                           </DropdownMenuTrigger>
@@ -368,33 +380,47 @@ export default function GivingCategoriesPage() {
                     )}
                     {canManage && archivedView && (
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {canUpdate && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
                             <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                setArchiveTarget({ kind: "restore", category })
-                              }
+                              variant="ghost"
+                              size="icon"
+                              className="size-10"
+                              aria-label={`Manage category ${category.name}`}
+                              onFocus={(event) => {
+                                actionTriggerRef.current = event.currentTarget;
+                              }}
                             >
-                              <RotateCcw className="mr-2 h-4 w-4" />
-                              Restore
+                              <MoreVertical className="size-4" />
                             </Button>
-                          )}
-                          {canDelete && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() =>
-                                setArchiveTarget({ kind: "purge", category })
-                              }
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Forever
-                            </Button>
-                          )}
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {canUpdate && (
+                              <DropdownMenuItem
+                                onSelect={() =>
+                                  setArchiveTarget({
+                                    kind: "restore",
+                                    category,
+                                  })
+                                }
+                              >
+                                <RotateCcw className="size-4" />
+                                Restore
+                              </DropdownMenuItem>
+                            )}
+                            {canDelete && (
+                              <DropdownMenuItem
+                                variant="destructive"
+                                onSelect={() =>
+                                  setArchiveTarget({ kind: "purge", category })
+                                }
+                              >
+                                <Trash2 className="size-4" />
+                                Delete Forever
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     )}
                   </TableRow>
@@ -407,7 +433,9 @@ export default function GivingCategoriesPage() {
 
       {/* Create / edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[460px]">
+        <DialogContent
+          className={`${givingWorkspaceClass} sm:max-w-[500px] max-h-[90vh] overflow-y-auto rounded-2xl`}
+        >
           <DialogHeader>
             <DialogTitle>
               {editing ? "Edit Category" : "Add Category"}
@@ -418,56 +446,73 @@ export default function GivingCategoriesPage() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Building Fund" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea rows={2} placeholder="Optional" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField control={form.control} name="isRecurring" render={({ field }) => (
-                <FormItem><div className="flex items-center justify-between rounded-md border p-3"><FormLabel>Supports recurring giving</FormLabel><Switch checked={field.value} onCheckedChange={field.onChange} /></div><FormMessage /></FormItem>
-              )} />
-              <FormField
-                control={form.control}
-                name="isActive"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between rounded-md border p-3">
-                      <div>
-                        <FormLabel>Active</FormLabel>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          Inactive categories are hidden from new records.
-                        </p>
+              <GivingFormSection title="Category details">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Building Fund" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea rows={2} placeholder="Optional" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </GivingFormSection>
+              <GivingFormSection title="Availability">
+                <FormField
+                  control={form.control}
+                  name="isRecurring"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between rounded-md border p-3">
+                        <FormLabel>Supports recurring giving</FormLabel>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </div>
-                      <Switch
-                        checked={!!field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between rounded-md border p-3">
+                        <div>
+                          <FormLabel>Active</FormLabel>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Inactive categories are hidden from new records.
+                          </p>
+                        </div>
+                        <Switch
+                          checked={!!field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </GivingFormSection>
               <DialogFooter className="pt-2">
                 <Button
                   type="button"
@@ -539,6 +584,7 @@ export default function GivingCategoriesPage() {
 
       {/* Archive / Restore / Delete Forever confirmation */}
       <ArchiveConfirmDialog
+        returnFocusRef={actionTriggerRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}
@@ -553,6 +599,6 @@ export default function GivingCategoriesPage() {
               : deleteMutation
         }
       />
-    </div>
+    </GivingWorkspace>
   );
 }

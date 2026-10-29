@@ -1,140 +1,143 @@
 "use client";
-
-import { givingExportColumns, givingExportRows } from "@/lib/giving-export";
-
-import { getToastErrorMessage } from "@/lib/toast";
-import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { format } from "date-fns";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-import { AlertTriangle, CalendarRange } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import { CalendarRange } from "lucide-react";
+import {
+  GivingWorkspace,
+  GivingHeader,
+  givingMoney,
+} from "@/components/giving/giving-presentation";
+import { GivingChartCard } from "@/components/giving/giving-chart-card";
+import { GivingCategoryBars } from "@/components/giving/giving-category-bars";
+import {
+  DashboardDonut,
+  DashboardTrend,
+  dashboardColors,
+} from "@/components/dashboard/dashboard-plots";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
-import { StatsCard } from "@/components/shared/stats-card";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BranchFilter } from "@/components/shared/branch-filter";
+import { ErrorState } from "@/components/shared/error-state";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
-import {
-  useGivingTransactionsAll,
-} from "@/hooks/use-giving";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { givingExportColumns, givingExportRows } from "@/lib/giving-export";
+import { getToastErrorMessage } from "@/lib/toast";
+import { useGivingTransactionsAll } from "@/hooks/use-giving";
 import { useCurrentProfile } from "@/hooks/use-profile";
-import { useBranchesList } from "@/hooks/use-branches";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const categoryConfig = {
-  amount: { label: "Amount", color: "var(--chart-1)" },
-} satisfies ChartConfig;
-
+import { usePermissions } from "@/hooks/use-permissions";
 export default function GivingReportsPage() {
   const { data: profile } = useCurrentProfile();
-  const isAdminHq = !!profile?.isAdminHq;
+  const { can, ready } = usePermissions();
   const [branchId, setBranchId] = React.useState("");
-  const effectiveBranchId = isAdminHq ? branchId : profile?.branchId ?? "";
-  const branchesQuery = useBranchesList({ limit: 100 }, { enabled: isAdminHq });
   const [startDate, setStartDate] = React.useState("");
   const [endDate, setEndDate] = React.useState("");
-
-  // Everything below derives from a fetch-all of successful gifts in range.
-  const {
-    data: rows,
-    isLoading: loadingRows,
-    error,
-  } = useGivingTransactionsAll({
+  const effectiveBranchId = profile?.isAdminHq
+    ? branchId
+    : (profile?.branchId ?? "");
+  const query = useGivingTransactionsAll({
     startDate: startDate || undefined,
     endDate: endDate || undefined,
     branchId: effectiveBranchId || undefined,
   });
-
+  const rows = query.data;
   const [currencyFilter, setCurrencyFilter] = React.useState("");
-  const currencies = [...new Set((rows ?? []).map(row => row.currency))].sort();
-  const currency = currencies.includes(currencyFilter) ? currencyFilter : currencies[0] ?? "NGN";
-  const reportRows = React.useMemo(() => (rows ?? []).filter(row => row.currency === currency), [rows, currency]);
-
-  const totalAmount = React.useMemo(
-    () => reportRows.reduce((sum, t) => sum + t.amount, 0),
-    [reportRows]
+  const currencies = [
+    ...new Set((rows ?? []).map((row) => row.currency)),
+  ].sort();
+  const currency = currencies.includes(currencyFilter)
+    ? currencyFilter
+    : (currencies[0] ?? "NGN");
+  const reportRows = React.useMemo(
+    () => (rows ?? []).filter((row) => row.currency === currency),
+    [rows, currency],
   );
-
-  const byCategory = React.useMemo(() => {
-    const map = new Map<string, number>();
-    for (const t of reportRows) {
-      map.set(t.categoryName, (map.get(t.categoryName) ?? 0) + t.amount);
+  const report = React.useMemo(() => {
+    const category = new Map<string, number>(),
+      method = new Map<string, number>(),
+      days = new Map<string, number>();
+    let total = 0;
+    for (const row of reportRows) {
+      total += row.amount;
+      const name = row.categoryName || "Uncategorized";
+      category.set(name, (category.get(name) ?? 0) + row.amount);
+      const payment = (
+        row.paymentMethod ||
+        row.type ||
+        "Not supplied"
+      ).replaceAll("_", " ");
+      method.set(payment, (method.get(payment) ?? 0) + row.amount);
+      const date = (row.givingDate || row.createdAt).slice(0, 10);
+      days.set(date, (days.get(date) ?? 0) + row.amount);
     }
-    return Array.from(map.entries())
-      .map(([name, amount]) => ({ name, amount }))
-      .sort((a, b) => b.amount - a.amount);
+    return {
+      total,
+      byCategory: [...category]
+        .map(([name, amount]) => ({ name, amount }))
+        .sort((a, b) => b.amount - a.amount),
+      byMethod: [...method].map(([name, value]) => ({ name, value })),
+      trend: [...days]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, total]) => ({ date, total })),
+    };
   }, [reportRows]);
-
-  const byMethod = React.useMemo(() => {
-    const map = new Map<string, number>();
-    for (const t of reportRows) {
-      const key = (t.paymentMethod || t.type).replaceAll("_", " ");
-      map.set(key, (map.get(key) ?? 0) + t.amount);
-    }
-    return Array.from(map.entries()).map(([name, amount]) => ({ name, amount }));
-  }, [reportRows]);
-
-  const exportData = React.useMemo(() => givingExportRows(reportRows), [reportRows]);
-
-
+  const exportData = React.useMemo(
+    () => givingExportRows(reportRows),
+    [reportRows],
+  );
   return (
-    <div className="space-y-4">
-      <PageHeader
+    <GivingWorkspace>
+      <GivingHeader
         title="Reports"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
           { label: "Giving", href: "/giving" },
           { label: "Reports" },
         ]}
-
       />
-
-      {/* Date range */}
       <Card>
-        <CardContent className="flex flex-wrap items-end gap-3 py-4">
-          <div className="flex items-center gap-2">
-            <CalendarRange className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Range</span>
+        <CardContent className="flex flex-wrap items-end gap-3 py-0">
+          <span className="flex items-center gap-1.5 self-center text-xs font-medium">
+            <CalendarRange className="size-4 text-muted-foreground" />
+            Range
+          </span>
+          <div className="flex w-full min-w-0 items-center gap-1 sm:w-auto sm:gap-2">
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              className="min-w-0 flex-1 sm:w-40 sm:flex-none"
+              aria-label="Start date"
+            />
+            <span className="self-center text-xs text-muted-foreground">
+              to
+            </span>
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+              className="min-w-0 flex-1 sm:w-40 sm:flex-none"
+              aria-label="End date"
+            />
           </div>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-40"
-            aria-label="Start date"
-          />
-          <span className="text-xs text-muted-foreground">to</span>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-40"
-            aria-label="End date"
-          />
-          {isAdminHq ? (
-            <Select value={branchId || "all"} onValueChange={(value) => setBranchId(value === "all" ? "" : value)}>
-              <SelectTrigger className="w-44" aria-label="Branch filter"><SelectValue placeholder="All branches" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All branches</SelectItem>
-                {(branchesQuery.data?.data ?? []).map((branch) => <SelectItem key={branch.branchId} value={branch.branchId}>{branch.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Select value={profile?.branchId ?? "__no_branch__"} disabled>
-              <SelectTrigger className="w-44" aria-label="Branch filter locked to your branch"><SelectValue placeholder={profile?.branch?.name ?? "Your branch"} /></SelectTrigger>
-              <SelectContent><SelectItem value={profile?.branchId ?? "__no_branch__"}>{profile?.branch?.name ?? "Your branch"}</SelectItem></SelectContent>
-            </Select>
-          )}
+          <BranchFilter value={branchId} onChange={setBranchId} />
           <Select value={currency} onValueChange={setCurrencyFilter}>
-            <SelectTrigger className="w-32" aria-label="Giving report currency"><SelectValue /></SelectTrigger>
-            <SelectContent>{(currencies.length ? currencies : ["NGN"]).map(code => <SelectItem key={code} value={code}>{code}</SelectItem>)}</SelectContent>
+            <SelectTrigger className="w-28" aria-label="Giving report currency">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(currencies.length ? currencies : ["NGN"]).map((code) => (
+                <SelectItem key={code} value={code}>
+                  {code}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
           {(startDate || endDate) && (
             <Button
@@ -148,84 +151,86 @@ export default function GivingReportsPage() {
               Clear
             </Button>
           )}
-          <p className="text-xs text-muted-foreground ml-auto">
-            Successful transactions only.
+          <p className="self-center text-xs text-muted-foreground">
+            Successful transactions only. Leave dates empty for all time.
           </p>
         </CardContent>
       </Card>
-
-      {error ? <ErrorState title="Failed to load giving reports." description={getToastErrorMessage(error, "Please try again or narrow the date range.")} /> : <>
-      {/* Stats */}
-      <div className="flex justify-end"><ExportDropdown
-            columns={givingExportColumns}
-            data={exportData}
-            fetchAllRows={async () => exportData}
-            title={`Giving Report — ${currency}${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
-            filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
-            disabled={!rows || rows.length === 0}
-          /></div>
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatsCard
-          title="Total Given"
-          value={loadingRows ? "..." : `${currency} ${totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          icon={<AlertTriangle className="h-4 w-4 hidden" />}
+      {ready && !can("giving:records", "read") ? (
+        <p className="rounded-xl border p-5 text-sm text-muted-foreground">
+          Giving records access is required to load this report.
+        </p>
+      ) : query.error ? (
+        <ErrorState
+          title="Failed to load giving reports."
+          description={getToastErrorMessage(
+            query.error,
+            "Please try again or narrow the date range.",
+          )}
+          onRetry={() => {
+            void query.refetch();
+          }}
+          retrying={query.isFetching}
         />
-        <StatsCard title="Gifts" value={reportRows.length} icon={<CalendarRange className="h-4 w-4" />} />
-        <StatsCard
-          title="Categories Touched"
-          value={byCategory.length}
-          icon={<CalendarRange className="h-4 w-4" />}
-        />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* By category */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">By Category</CardTitle>
-            <CardDescription>Amount per giving category in range.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loadingRows ? (
-              <Skeleton className="h-64 w-full aspect-auto" />
-            ) : byCategory.length === 0 ? (
-              <div className="flex items-center justify-center h-64 text-sm text-muted-foreground">
-                No giving in the selected range.
-              </div>
-            ) : (
-              <ChartContainer config={categoryConfig} className="h-64 w-full aspect-auto">
-                <BarChart data={byCategory} layout="vertical" margin={{ left: 40 }}>
-                  <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                  <XAxis type="number" tickLine={false} axisLine={false} allowDecimals={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="amount" fill="var(--color-amount)" radius={[0, 3, 3, 0]} barSize={16} />
-                </BarChart>
-              </ChartContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* By method */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">By Method</CardTitle>
-            <CardDescription>How gifts were given.</CardDescription>
-          </CardHeader>
-          <CardContent className="divide-y">
-            {byMethod.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">No data yet.</p>
-            ) : (
-              byMethod.map((m) => (
-                <div key={m.name} className="flex items-center justify-between py-2.5 capitalize">
-                  <span className="text-sm text-muted-foreground">{m.name}</span>
-                  <span className="text-sm font-medium">{m.amount.toLocaleString()}</span>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      </>}
-    </div>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p aria-live="polite" className="text-xs text-muted-foreground">
+              {query.isLoading
+                ? "Loading successful gifts…"
+                : `${givingMoney(currency, report.total)} · ${reportRows.length.toLocaleString()} successful gifts`}{" "}
+              · {startDate || endDate ? "Selected range" : "All time"}
+            </p>
+            <ExportDropdown
+              columns={givingExportColumns}
+              data={exportData}
+              fetchAllRows={async () => exportData}
+              title={`Giving Report — ${currency}${startDate || endDate ? ` (${startDate || "start"} → ${endDate || "now"})` : ""}`}
+              filename={`giving-report-${format(new Date(), "yyyyMMdd")}`}
+              disabled={!rows || reportRows.length === 0}
+            />
+          </div>
+          <div className="grid gap-3 lg:grid-cols-3">
+            <GivingChartCard
+              title="Giving trend"
+              description={`Daily successful giving · ${currency}`}
+              query={query}
+              className="lg:col-span-2"
+            >
+              <DashboardTrend
+                data={report.trend}
+                colors={[dashboardColors[0]]}
+                formatValue={(value) => givingMoney(currency, value)}
+                showValueAxis
+              />
+            </GivingChartCard>
+            <GivingChartCard
+              title="By method"
+              description={`Share of successful giving amounts · ${currency}`}
+              query={query}
+              tone="teal"
+            >
+              <DashboardDonut
+                data={report.byMethod}
+                valueLabel={`Given (${currency})`}
+                formatValue={(value) => givingMoney(currency, value)}
+              />
+            </GivingChartCard>
+            <GivingChartCard
+              title="By Category"
+              description={`All successful giving categories in range · ${currency}`}
+              query={query}
+              tone="violet"
+              className="lg:col-span-3"
+            >
+              <GivingCategoryBars
+                data={report.byCategory}
+                currency={currency}
+              />
+            </GivingChartCard>
+          </div>
+        </>
+      )}
+    </GivingWorkspace>
   );
 }

@@ -51,11 +51,13 @@ export function DashboardTrend({
   split = false,
   monthly = false,
   formatValue = number,
+  showValueAxis = false,
 }: {
   data: TrendPoint[];
   colors: string[];
   split?: boolean;
   monthly?: boolean;
+  showValueAxis?: boolean;
   formatValue?: (value: number) => string;
 }) {
   const id = useId().replace(/:/g, "");
@@ -119,7 +121,20 @@ export function DashboardTrend({
             )
           }
         />
-        <YAxis hide domain={[0, "auto"]} />
+        <YAxis
+          hide={!showValueAxis}
+          width={44}
+          domain={[0, "auto"]}
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 10 }}
+          tickFormatter={(value) =>
+            new Intl.NumberFormat("en-NG", {
+              notation: "compact",
+              maximumFractionDigits: 1,
+            }).format(Number(value))
+          }
+        />
         <ChartTooltip
           content={
             <ChartTooltipContent
@@ -208,14 +223,18 @@ export function DashboardBars({
 
 export function DashboardDonut({
   data,
+  valueLabel = "Members",
+  formatValue,
 }: {
   data: { name: string; value: number }[];
+  valueLabel?: string;
+  formatValue?: (value: number) => string;
 }) {
   if (!data.length || data.every((d) => d.value === 0)) return <EmptyPlot />;
   return (
     <div className="flex h-44 flex-col items-center justify-center gap-1">
       <ChartContainer
-        config={{ value: { label: "Members" } }}
+        config={{ value: { label: valueLabel } }}
         className="h-36 w-full aspect-auto"
       >
         <PieChart>
@@ -238,7 +257,18 @@ export function DashboardDonut({
               />
             ))}
           </Pie>
-          <ChartTooltip content={<ChartTooltipContent nameKey="name" />} />
+          <ChartTooltip
+            content={
+              <ChartTooltipContent
+                nameKey="name"
+                formatter={
+                  formatValue
+                    ? (value) => formatValue(Number(value))
+                    : undefined
+                }
+              />
+            }
+          />
         </PieChart>
       </ChartContainer>
       <ul className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
