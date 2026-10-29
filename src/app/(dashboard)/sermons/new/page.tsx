@@ -3,7 +3,10 @@ import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  SermonHeader as PageHeader,
+  sermonWorkspaceClass,
+} from "@/components/sermons/sermon-presentation";
 import { Button } from "@/components/ui/button";
 import { SermonForm } from "@/components/sermons/sermon-form";
 import { useCreateSermon, type CreateSermonInput } from "@/hooks/use-sermons";
@@ -42,7 +45,7 @@ export default function NewSermonPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={`${sermonWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Add Sermon"
         breadcrumbs={[
@@ -51,7 +54,12 @@ export default function NewSermonPage() {
           { label: "Add Sermon" },
         ]}
         action={
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.back(); }}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.back();
+            }}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>

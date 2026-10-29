@@ -1,16 +1,18 @@
 "use client";
+import { SermonBrowseLink as Link } from "@/components/sermons/sermon-presentation";
+import { usePermissions } from "@/hooks/use-permissions";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import {
-  Calendar,
-  Users,
-} from "lucide-react";
+import { Calendar, Users } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  SermonHeader as PageHeader,
+  sermonWorkspaceClass,
+} from "@/components/sermons/sermon-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
 
@@ -27,13 +29,15 @@ import { useSermonsSpeakers } from "@/hooks/use-sermons";
 
 export default function SermonsSpeakersPage() {
   const router = useRouter();
+  const { can } = usePermissions();
+  const canBrowse = can("sermons:list", "read");
   const { data: speakers, isLoading, error } = useSermonsSpeakers();
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const pagedSpeakers = React.useMemo(
     () => (speakers ?? []).slice((page - 1) * perPage, page * perPage),
-    [speakers, page, perPage]
+    [speakers, page, perPage],
   );
 
   if (error) {
@@ -53,8 +57,9 @@ export default function SermonsSpeakersPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${sermonWorkspaceClass} space-y-4`}>
       <PageHeader
+        count={isLoading ? undefined : (speakers?.length ?? 0)}
         title="Speakers"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -64,12 +69,7 @@ export default function SermonsSpeakersPage() {
       />
 
       <TableCard
-        description={
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            {speakers?.length ?? 0} speakers
-          </div>
-        }
+        description="Select a speaker to browse its sermons."
         itemName="speakers"
         page={page}
         perPage={perPage}
@@ -103,14 +103,32 @@ export default function SermonsSpeakersPage() {
               {pagedSpeakers.map((s) => (
                 <TableRow
                   key={s.name}
-                  className="cursor-pointer"
-                  onClick={() =>
-                    { if (confirmDiscardChanges()) router.push(`/sermons?speaker=${encodeURIComponent(s.name)}`); }
-                  }
+                  className={canBrowse ? "cursor-pointer" : undefined}
+                  onClick={() => {
+                    if (canBrowse && confirmDiscardChanges())
+                      router.push(
+                        `/sermons?speaker=${encodeURIComponent(s.name)}`,
+                      );
+                  }}
                 >
-                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      enabled={canBrowse}
+                      href={`/sermons?speaker=${encodeURIComponent(s.name)}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-300">
+                        <Users className="size-3.5" aria-hidden="true" />
+                      </span>
+                      {s.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
+                    <Badge
+                      variant="outline"
+                      className="font-normal tabular-nums"
+                    >
                       {s.count} {s.count === 1 ? "sermon" : "sermons"}
                     </Badge>
                   </TableCell>

@@ -9,7 +9,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { mediaUploadPermissions } from "@/lib/media-upload-policy";
 import type { SermonRecordingDraft } from "@/lib/sermon-recording";
 
-/** Files and links stay in the form draft until its single Save action. */
+/** Files and links stay in this recording section until its Save action. */
 export function MediaUploadField({
   label,
   accept,
@@ -34,11 +34,15 @@ export function MediaUploadField({
   const mode = canUpload ? value.mode : "url";
   const Icon = mediaType === "audio" ? FileAudio : FileVideo;
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2" aria-label={`${label} source`}>
+    <div data-sermon-upload className="space-y-3">
+      <div
+        className="flex w-fit flex-wrap gap-1 rounded-lg border bg-muted/30 p-1"
+        aria-label={`${label} source`}
+      >
         {canUpload && (
           <Button
             type="button"
+            size="sm"
             variant={mode === "upload" ? "default" : "outline"}
             disabled={disabled}
             aria-pressed={mode === "upload"}
@@ -49,6 +53,7 @@ export function MediaUploadField({
         )}
         <Button
           type="button"
+          size="sm"
           variant={mode === "url" ? "default" : "outline"}
           disabled={disabled}
           aria-pressed={mode === "url"}
@@ -73,8 +78,12 @@ export function MediaUploadField({
             }}
           />
           {value.file ? (
-            <div className="flex min-w-0 items-center gap-2 rounded-md border bg-muted/50 p-3">
-              <Icon className="h-4 w-4 shrink-0" />
+            <div className="flex min-w-0 items-center gap-3 rounded-xl border bg-muted/30 p-3">
+              <span
+                className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${mediaType === "audio" ? "bg-blue-500/10 text-blue-600 dark:text-blue-300" : "bg-violet-500/10 text-violet-600 dark:text-violet-300"}`}
+              >
+                <Icon className="size-4" aria-hidden="true" />
+              </span>
               <span className="min-w-0 flex-1 truncate text-sm">
                 {value.file.name}
               </span>
@@ -93,8 +102,12 @@ export function MediaUploadField({
               </Button>
             </div>
           ) : value.url ? (
-            <div className="flex min-w-0 items-center gap-2 rounded-md border bg-muted/50 p-3">
-              <Icon className="h-4 w-4 shrink-0" />
+            <div className="flex min-w-0 items-center gap-3 rounded-xl border bg-muted/30 p-3">
+              <span
+                className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${mediaType === "audio" ? "bg-blue-500/10 text-blue-600 dark:text-blue-300" : "bg-violet-500/10 text-violet-600 dark:text-violet-300"}`}
+              >
+                <Icon className="size-4" aria-hidden="true" />
+              </span>
               <span
                 className="min-w-0 flex-1 truncate text-sm"
                 title={value.url}

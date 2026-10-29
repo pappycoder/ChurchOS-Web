@@ -3,7 +3,10 @@ import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  SermonHeader as PageHeader,
+  sermonWorkspaceClass,
+} from "@/components/sermons/sermon-presentation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SermonForm } from "@/components/sermons/sermon-form";
@@ -46,7 +49,7 @@ export default function EditSermonPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className={`${sermonWorkspaceClass} space-y-4`}>
         <Skeleton className="h-10 w-64" />
         <Skeleton className="h-96 w-full" />
       </div>
@@ -65,8 +68,15 @@ export default function EditSermonPage() {
           ]}
         />
         <div className="flex flex-col items-center justify-center py-20 gap-4">
-          <p className="text-destructive">Unable to load this sermon. Retry or return to the sermon directory.</p>
-          <Button variant="outline" onClick={() => { if (confirmDiscardChanges()) router.push("/sermons"); }}>
+          <p className="text-destructive">
+            Unable to load this sermon. Retry or return to the sermon directory.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push("/sermons");
+            }}
+          >
             Back to Sermons
           </Button>
         </div>
@@ -78,7 +88,7 @@ export default function EditSermonPage() {
     updateMutation.mutateAsync(input);
 
   return (
-    <div className="space-y-4">
+    <div className={`${sermonWorkspaceClass} space-y-4`}>
       <PageHeader
         title="Edit Sermon"
         breadcrumbs={[
@@ -90,7 +100,9 @@ export default function EditSermonPage() {
         action={
           <Button
             variant="outline"
-            onClick={() => { if (confirmDiscardChanges()) router.push(`/sermons/${sermonId}`); }}
+            onClick={() => {
+              if (confirmDiscardChanges()) router.push(`/sermons/${sermonId}`);
+            }}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             View Sermon

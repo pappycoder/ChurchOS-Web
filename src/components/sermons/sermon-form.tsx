@@ -9,7 +9,18 @@ import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, X } from "lucide-react";
+import {
+  SermonSectionHeading,
+  sermonWorkspaceClass,
+} from "./sermon-presentation";
+import {
+  FileAudio,
+  FileVideo,
+  Tags,
+  AlignLeft,
+  Loader2,
+  X,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -247,10 +258,11 @@ export function SermonForm({
             void saveRecording(stage as RecordingKind);
           }
         }}
-        className="space-y-6"
+        data-sermon-editor
+        className={`${sermonWorkspaceClass} space-y-4`}
         aria-busy={saving}
       >
-        <fieldset disabled={saving} className="min-w-0 space-y-6">
+        <fieldset disabled={saving} className="min-w-0 space-y-4">
           <Tabs value={stage} onValueChange={setStage}>
             <TabsList
               className="grid w-full grid-cols-3"
@@ -266,14 +278,16 @@ export function SermonForm({
                 3. Video
               </TabsTrigger>
             </TabsList>
-            <p className="text-sm text-muted-foreground">
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               Save each section separately. Audio and video are optional.
               {!sermon && " Save details first to add recordings."}
             </p>
-            <TabsContent value="details" className="space-y-6">
+            <TabsContent value="details" className="space-y-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Sermon Details</CardTitle>
+                  <CardTitle>
+                    <SermonSectionHeading>Sermon Details</SermonSectionHeading>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <BranchAssignmentField assignment={branchAssignment} />
@@ -339,7 +353,11 @@ export function SermonForm({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Series & Tags</CardTitle>
+                  <CardTitle>
+                    <SermonSectionHeading icon={Tags}>
+                      Series & Tags
+                    </SermonSectionHeading>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -404,7 +422,11 @@ export function SermonForm({
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Duration & Description</CardTitle>
+                  <CardTitle>
+                    <SermonSectionHeading icon={AlignLeft}>
+                      Duration & Description
+                    </SermonSectionHeading>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -469,7 +491,11 @@ export function SermonForm({
             <TabsContent value="audio">
               <Card>
                 <CardHeader>
-                  <CardTitle>Audio Recording</CardTitle>
+                  <CardTitle>
+                    <SermonSectionHeading icon={FileAudio}>
+                      Audio Recording
+                    </SermonSectionHeading>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <MediaUploadField
@@ -493,7 +519,11 @@ export function SermonForm({
             <TabsContent value="video">
               <Card>
                 <CardHeader>
-                  <CardTitle>Video Recording</CardTitle>
+                  <CardTitle>
+                    <SermonSectionHeading icon={FileVideo}>
+                      Video Recording
+                    </SermonSectionHeading>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <MediaUploadField

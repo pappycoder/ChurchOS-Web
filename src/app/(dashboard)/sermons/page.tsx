@@ -1,4 +1,5 @@
 "use client";
+import { PermissionLink as Link } from "@/components/shared/permission-link";
 import { useUrlQueryState } from "@/hooks/use-url-query-state";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
@@ -13,7 +14,6 @@ import {
   BookOpen,
   Clock,
   Eye,
-  MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
@@ -21,9 +21,14 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  SermonHeader as PageHeader,
+  sermonWorkspaceClass,
+  SermonMoreFilters,
+  SermonMediaBadges,
+  SermonRowMenu,
+} from "@/components/sermons/sermon-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
-import { StatsCard } from "@/components/shared/stats-card";
 import { SearchInput } from "@/components/shared/search-input";
 
 import { TableCard } from "@/components/shared/table-card";
@@ -47,13 +52,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   useSermonsList,
   useDeleteSermon,
   useArchiveSermon,
@@ -62,7 +60,10 @@ import {
   type ListSermonsParams,
 } from "@/hooks/use-sermons";
 import { usePermissions } from "@/hooks/use-permissions";
-import { ArchivedFilter, type ArchivedFilterValue } from "@/components/shared/archived-filter";
+import {
+  ArchivedFilter,
+  type ArchivedFilterValue,
+} from "@/components/shared/archived-filter";
 import { BranchFilter } from "@/components/shared/branch-filter";
 import {
   ArchiveConfirmDialog,
@@ -89,16 +90,19 @@ function SermonsListContent() {
   const canUpdate = can("sermons", "update");
   const canDelete = can("sermons", "delete");
   const canManage = canUpdate || canDelete;
+  const managementRef = React.useRef<HTMLButtonElement | null>(null);
 
   const [searchInput, setSearchInput] = React.useState("");
   const [search, setSearch] = React.useState("");
-  const [sortBy, setSortBy] = React.useState<ListSermonsParams["sortBy"]>("sermonDate");
+  const [sortBy, setSortBy] =
+    React.useState<ListSermonsParams["sortBy"]>("sermonDate");
   const [sortOrder, setSortOrder] = React.useState<"asc" | "desc">("desc");
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const [branchId, setBranchId] = React.useState("");
   const [deleteTarget, setDeleteTarget] = React.useState<Sermon | null>(null);
-  const [archivedFilter, setArchivedFilter] = React.useState<ArchivedFilterValue>("all");
+  const [archivedFilter, setArchivedFilter] =
+    React.useState<ArchivedFilterValue>("all");
   const archivedView = archivedFilter === "archived";
   const [archiveTarget, setArchiveTarget] = React.useState<{
     kind: ArchiveDialogKind;
@@ -134,16 +138,23 @@ function SermonsListContent() {
       sortBy,
       sortOrder,
     }),
-    [page, perPage, search, sortBy, sortOrder, speaker, series, archivedView, branchId]
+    [
+      page,
+      perPage,
+      search,
+      sortBy,
+      sortOrder,
+      speaker,
+      series,
+      archivedView,
+      branchId,
+    ],
   );
 
   const { data, isLoading, error } = useSermonsList(queryParams);
   const deleteMutation = useDeleteSermon();
   const archiveMutation = useArchiveSermon();
   const restoreArchiveMutation = useRestoreArchiveSermon();
-
-  const totalsQuery = useSermonsList({ limit: 1, branchId: branchId || undefined });
-  const seriesQuery = useSermonsList({ limit: 1, branchId: branchId || undefined, series: "__any__" });
 
   const sermons = React.useMemo(() => data?.data ?? [], [data]);
   const total = data?.total ?? 0;
@@ -171,7 +182,10 @@ function SermonsListContent() {
       <div>
         <PageHeader
           title="Sermons"
-          breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Sermons" }]}
+          breadcrumbs={[
+            { label: "Home", href: "/dashboard" },
+            { label: "Sermons" },
+          ]}
         />
         <ErrorState title="Failed to load sermons." />
       </div>
@@ -179,14 +193,22 @@ function SermonsListContent() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${sermonWorkspaceClass} space-y-4`}>
       <PageHeader
+        count={isLoading ? undefined : total}
         title="Sermons"
-        breadcrumbs={[{ label: "Home", href: "/dashboard" }, { label: "Sermons" }]}
+        breadcrumbs={[
+          { label: "Home", href: "/dashboard" },
+          { label: "Sermons" },
+        ]}
         action={
           <div className="flex items-center gap-2">
             {canCreate && (
-              <Button onClick={() => { if (confirmDiscardChanges()) router.push("/sermons/new"); }}>
+              <Button
+                onClick={() => {
+                  if (confirmDiscardChanges()) router.push("/sermons/new");
+                }}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Sermon
               </Button>
@@ -195,82 +217,97 @@ function SermonsListContent() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <StatsCard
-          title="Total Sermons"
-          value={totalsQuery.data?.total ?? 0}
-          icon={<BookOpen className="h-4 w-4" />}
-        />
-        <StatsCard
-          title="Series"
-          value={seriesQuery.data?.total ?? 0}
-          icon={<BookOpen className="h-4 w-4" />}
-        />
-      </div>
-
       <TableCard
         toolbar={
-          <div role="group" aria-label="Collection filters" className="space-y-3"><div className="flex flex-wrap items-center gap-2"><span aria-live="polite" className="text-xs text-muted-foreground">{Number(searchInput !== "") + Number(sortBy !== "sermonDate") + Number(sortOrder !== "desc") + Number(branchId !== "") + Number(archivedFilter !== "all")} active filters</span><Button variant="ghost" size="sm" onClick={()=>{setSearchInput("");setSearch("");setSortBy("sermonDate");setSortOrder("desc");setBranchId("");setArchivedFilter("all");setPage(1);setSpeaker("");setSeries("");}}>Reset filters</Button></div><div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <BranchFilter value={branchId} onChange={(value) => { setBranchId(value); setPage(1); }} />
-              {canManage && (
-                <ArchivedFilter value={archivedFilter} onChange={(value) => { setArchivedFilter(value); setPage(1); }} />
-              )}
-            {(speaker || series) && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground">Filtered by:</span>
-                {speaker && (
-                  <Badge variant="secondary" className="gap-1">
-                    Speaker: {speaker}
-                  </Badge>
+          <div
+            role="group"
+            aria-label="Collection filters"
+            className="space-y-3"
+          >
+            <div className="flex flex-wrap items-center gap-3">
+              <SearchInput
+                value={searchInput}
+                onChange={setSearchInput}
+                placeholder="Search sermons..."
+                className="w-full sm:w-64"
+              />
+              <BranchFilter
+                value={branchId}
+                onChange={(value) => {
+                  setBranchId(value);
+                  setPage(1);
+                }}
+              />
+              <SermonMoreFilters
+                count={
+                  Number(archivedFilter !== "all") +
+                  Number(sortBy !== "sermonDate") +
+                  Number(sortOrder !== "desc")
+                }
+              >
+                {canManage && (
+                  <ArchivedFilter
+                    value={archivedFilter}
+                    onChange={(value) => {
+                      setArchivedFilter(value);
+                      setPage(1);
+                    }}
+                  />
                 )}
-                {series && (
-                  <Badge variant="secondary" className="gap-1">
-                    Series: {series}
-                  </Badge>
-                )}
+                <select
+                  aria-label="Sort sermons"
+                  value={sortBy}
+                  onChange={(event) => {
+                    setSortBy(
+                      event.target.value as ListSermonsParams["sortBy"],
+                    );
+                    setPage(1);
+                  }}
+                  className="h-9 rounded-lg border bg-background px-2 text-sm"
+                >
+                  {SORT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      Sort: {option.label}
+                    </option>
+                  ))}
+                </select>
+                <Button variant="outline" size="sm" onClick={toggleSortOrder}>
+                  {sortOrder === "asc" ? "Asc" : "Desc"}
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-xs"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearch("");
+                    setSortBy("sermonDate");
+                    setSortOrder("desc");
+                    setBranchId("");
+                    setArchivedFilter("all");
+                    setPage(1);
+                    setSpeaker("");
+                    setSeries("");
+                  }}
+                >
+                  Reset filters
+                </Button>
+              </SermonMoreFilters>
+            </div>
+            {(speaker || series) && (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Filtered by:</span>
+                {speaker && <Badge variant="outline">Speaker: {speaker}</Badge>}
+                {series && <Badge variant="outline">Series: {series}</Badge>}
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={clearDeepLinkFilters}
                 >
                   Clear
                 </Button>
               </div>
             )}
-            </div>
-            <SearchInput
-              value={searchInput}
-              onChange={(v) => setSearchInput(v)}
-              placeholder="Search sermons..."
-              className="w-full sm:w-64"
-            />
-            <div className="flex items-center gap-2">
-              <select
-                value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value as ListSermonsParams["sortBy"]);
-                  setPage(1);
-                }}
-                className="h-8 rounded-md border border-input bg-background px-2 text-sm"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    Sort: {opt.label}
-                  </option>
-                ))}
-              </select>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 px-2"
-                onClick={toggleSortOrder}
-              >
-                {sortOrder === "asc" ? "Asc" : "Desc"}
-              </Button>
-            </div>
-          </div></div>
+          </div>
         }
         itemName="sermons"
         page={page}
@@ -300,156 +337,154 @@ function SermonsListContent() {
           </div>
         ) : (
           <Table exportable={false} tableId="sermons">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Speaker</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Series</TableHead>
-                    <TableHead>Duration</TableHead>
-                    {canManage && <TableHead className="text-right">Actions</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sermons.map((sermon) => (
-                    <TableRow
-                      key={sermon.sermonId}
-                      className="cursor-pointer"
-                      onClick={() => { if (confirmDiscardChanges()) router.push(`/sermons/${sermon.sermonId}`); }}
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Speaker</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Series</TableHead>
+                <TableHead>Duration</TableHead>
+                {canManage && (
+                  <TableHead className="text-right">Actions</TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sermons.map((sermon) => (
+                <TableRow
+                  key={sermon.sermonId}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    if (confirmDiscardChanges())
+                      router.push(`/sermons/${sermon.sermonId}`);
+                  }}
+                >
+                  <TableCell className="font-medium">
+                    <div className="space-y-1.5">
+                      <Link
+                        href={`/sermons/${sermon.sermonId}`}
+                        onClick={(event) => event.stopPropagation()}
+                        className="font-semibold"
+                      >
+                        {sermon.title}
+                      </Link>
+                      <SermonMediaBadges
+                        audioUrl={sermon.audioUrl}
+                        videoUrl={sermon.videoUrl}
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {sermon.speaker || "-"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {format(new Date(sermon.sermonDate), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell>
+                    {sermon.seriesName ? (
+                      <Badge variant="secondary">{sermon.seriesName}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {sermon.durationSeconds ? (
+                      <span className="inline-flex items-center gap-1 tabular-nums">
+                        <Clock className="h-3 w-3" />
+                        {formatDuration(sermon.durationSeconds)}
+                      </span>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  {canManage && (
+                    <TableCell
+                      className="text-right"
+                      onClick={(event) => event.stopPropagation()}
                     >
-                      <TableCell className="font-medium">{sermon.title}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {sermon.speaker || "-"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(sermon.sermonDate), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        {sermon.seriesName ? (
-                          <Badge variant="secondary">{sermon.seriesName}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {sermon.durationSeconds ? (
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {formatDuration(sermon.durationSeconds)}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </TableCell>
-                      {canManage && !archivedView && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">More actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  { if (confirmDiscardChanges()) router.push(`/sermons/${sermon.sermonId}`); }
-                                }
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View
-                              </DropdownMenuItem>
-                              {canUpdate && (
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    { if (confirmDiscardChanges()) router.push(`/sermons/${sermon.sermonId}/edit`); }
-                                  }
-                                >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                              )}
-                              {canUpdate && !sermon.archivedAt && (
-                                <DropdownMenuItem
-                                  onClick={() =>
+                      <SermonRowMenu
+                        label={`Manage ${sermon.title}`}
+                        returnFocusRef={managementRef}
+                        actions={[
+                          {
+                            label: "View",
+                            icon: Eye,
+                            onSelect: () => {
+                              if (confirmDiscardChanges())
+                                router.push(`/sermons/${sermon.sermonId}`);
+                            },
+                          },
+                          ...(!archivedView && canUpdate
+                            ? [
+                                {
+                                  label: "Edit",
+                                  icon: Pencil,
+                                  onSelect: () => {
+                                    if (confirmDiscardChanges())
+                                      router.push(
+                                        `/sermons/${sermon.sermonId}/edit`,
+                                      );
+                                  },
+                                },
+                              ]
+                            : []),
+                          ...(canUpdate
+                            ? [
+                                {
+                                  label: archivedView ? "Restore" : "Archive",
+                                  icon: archivedView ? RotateCcw : Archive,
+                                  onSelect: () =>
                                     setArchiveTarget({
-                                      kind: "archive",
+                                      kind: archivedView
+                                        ? "restore"
+                                        : "archive",
                                       sermon,
-                                    })
-                                  }
-                                >
-                                  <Archive className="mr-2 h-4 w-4" />
-                                  Archive
-                                </DropdownMenuItem>
-                              )}
-                              {canDelete && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem
-                                    className="text-destructive focus:text-destructive"
-                                    onClick={() => setDeleteTarget(sermon)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                      {canManage && archivedView && (
-                        <TableCell
-                          className="text-right"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-end gap-2">
-                            {canUpdate && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  setArchiveTarget({
-                                    kind: "restore",
-                                    sermon,
-                                  })
-                                }
-                              >
-                                <RotateCcw className="mr-2 h-4 w-4" />
-                                Restore
-                              </Button>
-                            )}
-                            {canDelete && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="text-destructive hover:text-destructive"
-                                onClick={() =>
-                                  setArchiveTarget({
-                                    kind: "purge",
-                                    sermon,
-                                  })
-                                }
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Forever
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))}
-                </TableBody>
-            </Table>
-          )}
+                                    }),
+                                },
+                              ]
+                            : []),
+                          ...(canDelete
+                            ? [
+                                {
+                                  label: archivedView
+                                    ? "Delete Forever"
+                                    : "Delete",
+                                  icon: Trash2,
+                                  destructive: true,
+                                  onSelect: () =>
+                                    archivedView
+                                      ? setArchiveTarget({
+                                          kind: "purge",
+                                          sermon,
+                                        })
+                                      : setDeleteTarget(sermon),
+                                },
+                              ]
+                            : []),
+                        ]}
+                      />
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </TableCard>
 
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-[420px]">
+      <Dialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent
+          className="sm:max-w-[420px]"
+          onCloseAutoFocus={(event) => {
+            if (managementRef.current?.isConnected) {
+              event.preventDefault();
+              requestAnimationFrame(() => managementRef.current?.focus());
+            }
+          }}
+        >
           <DialogHeader>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
               <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -484,6 +519,7 @@ function SermonsListContent() {
 
       {/* Archive / Restore / Delete Forever confirmation */}
       <ArchiveConfirmDialog
+        returnFocusRef={managementRef}
         open={!!archiveTarget}
         onOpenChange={(open) => !open && setArchiveTarget(null)}
         kind={archiveTarget?.kind ?? "archive"}

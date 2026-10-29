@@ -1,16 +1,18 @@
 "use client";
+import { SermonBrowseLink as Link } from "@/components/sermons/sermon-presentation";
+import { usePermissions } from "@/hooks/use-permissions";
 import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import {
-  BookOpen,
-  Calendar,
-} from "lucide-react";
+import { BookOpen, Calendar } from "lucide-react";
 import { format } from "date-fns";
-import { PageHeader } from "@/components/shared/page-header";
+import {
+  SermonHeader as PageHeader,
+  sermonWorkspaceClass,
+} from "@/components/sermons/sermon-presentation";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TableCard } from "@/components/shared/table-card";
 import {
@@ -26,13 +28,15 @@ import { useSermonsSeries } from "@/hooks/use-sermons";
 
 export default function SermonsSeriesPage() {
   const router = useRouter();
+  const { can } = usePermissions();
+  const canBrowse = can("sermons:list", "read");
   const { data: series, isLoading, error } = useSermonsSeries();
 
   const [page, setPage] = React.useState(1);
   const [perPage, setPerPage] = React.useState(15);
   const pagedSeries = React.useMemo(
     () => (series ?? []).slice((page - 1) * perPage, page * perPage),
-    [series, page, perPage]
+    [series, page, perPage],
   );
 
   if (error) {
@@ -52,8 +56,9 @@ export default function SermonsSeriesPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className={`${sermonWorkspaceClass} space-y-4`}>
       <PageHeader
+        count={isLoading ? undefined : (series?.length ?? 0)}
         title="Series"
         breadcrumbs={[
           { label: "Home", href: "/dashboard" },
@@ -63,12 +68,7 @@ export default function SermonsSeriesPage() {
       />
 
       <TableCard
-        description={
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            {series?.length ?? 0} series
-          </div>
-        }
+        description="Select a series to browse its sermons."
         itemName="series"
         page={page}
         perPage={perPage}
@@ -102,14 +102,32 @@ export default function SermonsSeriesPage() {
               {pagedSeries.map((s) => (
                 <TableRow
                   key={s.name}
-                  className="cursor-pointer"
-                  onClick={() =>
-                    { if (confirmDiscardChanges()) router.push(`/sermons?series=${encodeURIComponent(s.name)}`); }
-                  }
+                  className={canBrowse ? "cursor-pointer" : undefined}
+                  onClick={() => {
+                    if (canBrowse && confirmDiscardChanges())
+                      router.push(
+                        `/sermons?series=${encodeURIComponent(s.name)}`,
+                      );
+                  }}
                 >
-                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link
+                      enabled={canBrowse}
+                      href={`/sermons?series=${encodeURIComponent(s.name)}`}
+                      onClick={(event) => event.stopPropagation()}
+                      className="inline-flex items-center gap-2"
+                    >
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600 dark:text-violet-300">
+                        <BookOpen className="size-3.5" aria-hidden="true" />
+                      </span>
+                      {s.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">
+                    <Badge
+                      variant="outline"
+                      className="font-normal tabular-nums"
+                    >
                       {s.count} {s.count === 1 ? "sermon" : "sermons"}
                     </Badge>
                   </TableCell>
