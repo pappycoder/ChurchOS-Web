@@ -225,11 +225,16 @@ export function DashboardDonut({
   data,
   valueLabel = "Members",
   formatValue,
+  showCounts = false,
+  showPercentages = false,
 }: {
   data: { name: string; value: number }[];
   valueLabel?: string;
+  showCounts?: boolean;
+  showPercentages?: boolean;
   formatValue?: (value: number) => string;
 }) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
   if (!data.length || data.every((d) => d.value === 0)) return <EmptyPlot />;
   return (
     <div className="flex h-44 flex-col items-center justify-center gap-1">
@@ -262,8 +267,9 @@ export function DashboardDonut({
               <ChartTooltipContent
                 nameKey="name"
                 formatter={
-                  formatValue
-                    ? (value) => formatValue(Number(value))
+                  formatValue || showPercentages
+                    ? (value) =>
+                        `${(formatValue ?? number)(Number(value))}${showPercentages ? ` (${((Number(value) / total) * 100).toFixed(1)}%)` : ""}`
                     : undefined
                 }
               />
@@ -281,6 +287,11 @@ export function DashboardDonut({
               }}
             />
             {entry.name}
+            {showCounts && (
+              <span className="font-semibold tabular-nums text-foreground">
+                {(formatValue ?? number)(entry.value)}
+              </span>
+            )}
           </li>
         ))}
       </ul>

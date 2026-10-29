@@ -1,7 +1,15 @@
 "use client";
 
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
 import * as React from "react";
+import styles from "./general-attendance-panel.module.css";
 import { format } from "date-fns";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile } from "@/hooks/use-profile";
@@ -36,6 +44,8 @@ import {
 import { BranchFilter } from "@/components/shared/branch-filter";
 import { ExportDropdown } from "@/components/shared/export-dropdown";
 import { toast, getToastErrorMessage } from "@/lib/toast";
+import { TablePagination } from "@/components/shared/table-pagination";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { fetchAllPages } from "@/lib/export-all";
 
 const countFields = [
@@ -67,6 +77,10 @@ export function GeneralAttendancePanel({
   readOnly = false,
   filters = {},
   presentationClassName,
+  entryMode = "dialog",
+  showRecords = true,
+  onDirtyChange,
+  onBusyChange,
 }: {
   service?: ChurchService;
   context?: AttendanceSessionContext;
@@ -75,6 +89,10 @@ export function GeneralAttendancePanel({
   readOnly?: boolean;
   filters?: GeneralAttendanceParams;
   presentationClassName?: string;
+  entryMode?: "dialog" | "inline" | "hidden";
+  showRecords?: boolean;
+  onDirtyChange?: (dirty: boolean) => void;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const { canAny } = usePermissions();
   const target =
@@ -116,20 +134,38 @@ export function GeneralAttendancePanel({
     page,
     limit: 20,
   };
-  const query = useGeneralAttendance(params, !requireService || !!target);
+  const query = useGeneralAttendance(
+    params,
+    showRecords && (!requireService || !!target),
+  );
   const save = useSaveGeneralAttendance();
   const [open, setOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<GeneralAttendanceRecord | null>(
     null,
   );
   const [date, setDate] = React.useState(format(new Date(), "yyyy-MM-dd"));
-  const [recordBranch, setRecordBranch] = React.useState("");
+  const [recordBranch, setRecordBranch] = React.useState(
+    target?.branchId ?? profile?.branchId ?? "",
+  );
   const [values, setValues] = React.useState(emptyCounts);
   const [error, setError] = React.useState("");
   React.useEffect(
     () => setPage(1),
     [target?.id, filters.branchId, filters.startDate, filters.endDate],
   );
+  const inline = entryMode === "inline";
+  const fieldId = React.useId();
+  const dirty =
+    inline && canCreate && Object.values(values).some((value) => value !== "");
+  useUnsavedChanges(dirty);
+  React.useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
+  React.useEffect(() => {
+    onBusyChange?.(save.isPending);
+    return () => onBusyChange?.(false);
+  }, [save.isPending, onBusyChange]);
   function begin(record?: GeneralAttendanceRecord) {
     setEditing(record ?? null);
     setDate(record?.attendanceDate ?? format(new Date(), "yyyy-MM-dd"));
@@ -202,22 +238,121 @@ export function GeneralAttendancePanel({
         editing ? "General attendance updated" : "General attendance recorded",
       );
       setOpen(false);
+      if (inline && !editing) setValues({ ...emptyCounts });
     } catch (err) {
       setError(getToastErrorMessage(err, "Could not save general attendance."));
     }
   }
-  if ((!canRead && !canCreate) || (requireService && !target)) return null;
+  if (
+    (!canRead && !canCreate) ||
+    (requireService && !target) ||
+    (!showRecords && (!inline || !canCreate)) ||
+    (entryMode === "hidden" && !canRead)
+  )
+    return null;
   const rows = (query.data?.data ?? []).map((row) => ({
     ...row,
     contextName: row.contextName ?? row.serviceName,
   }));
-  return (
-    <Card>
-      <CardHeader>
+  function renderForm(compact: boolean) {
+    const id = (key: string) =>
+      compact ? `general-inline-${fieldId}-${key}` : `general-${key}`;
+    const countInput = (key: keyof typeof emptyCounts, label: string) => (
+      <div key={key} className="space-y-1.5">
+        <Label htmlFor={id(key)} className="text-xs">
+          {label}
+          {key === "total" ? " *" : " (optional)"}
+        </Label>
+        <Input
+          id={id(key)}
+          type="number"
+          min={0}
+          max={2147483647}
+          step={1}
+          required={key === "total"}
+          value={values[key]}
+          disabled={save.isPending}
+          onChange={(event) =>
+            setValues((previous) => ({
+              ...previous,
+              [key]: event.target.value,
+            }))
+          }
+        />
+      </div>
+    );
+    return (
+      <form
+        onSubmit={submit}
+        aria-label={compact ? "Reported headcount" : undefined}
+        className="space-y-3"
+      >
+        <div className="grid items-start gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor={id("date")}>Attendance date</Label>
+            <Input
+              id={id("date")}
+              type="date"
+              required
+              value={date}
+              disabled={!!editing || save.isPending}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          {compact && countInput("total", "Total attendance")}
+        </div>
+        {!editing && !target?.branchId && profile?.isAdminHq && (
+          <div>
+            <Label>Branch</Label>
+            <BranchFilter
+              value={recordBranch}
+              onChange={setRecordBranch}
+              allLabel="Select a branch"
+            />
+          </div>
+        )}
+        <div
+          className={
+            compact
+              ? "grid grid-cols-2 gap-3 lg:grid-cols-4"
+              : "grid grid-cols-2 gap-4"
+          }
+        >
+          {countFields
+            .filter(([key]) => !compact || key !== "total")
+            .map(([key, label]) => countInput(key, label))}
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle>General Attendance</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            {compact
+              ? "Only the total is required. Age and gender describe the same total."
+              : ""}
+          </p>
+          <Button type="submit" size="sm" disabled={save.isPending}>
+            {save.isPending ? "Saving…" : "Save attendance"}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+  return (
+    <Card className={`${styles.panel} py-4`}>
+      <CardHeader className="px-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <CardTitle className="text-sm">
+            {inline
+              ? "Reported headcount"
+              : entryMode === "hidden"
+                ? "Reported headcount records"
+                : "General Attendance"}
+          </CardTitle>
           <div className="flex gap-2">
-            {canRead && (
+            {canRead && showRecords && (
               <ExportDropdown
                 columns={columns}
                 data={rows.map((row) => ({ ...row }))}
@@ -236,19 +371,24 @@ export function GeneralAttendancePanel({
                 }}
               />
             )}
-            {canCreate && (
-              <Button onClick={() => begin()}>Record general attendance</Button>
+            {canCreate && entryMode === "dialog" && (
+              <Button size="sm" onClick={() => begin()}>
+                Record general attendance
+              </Button>
             )}
           </div>
         </div>
-        <CardDescription>
-          Meeting totals with optional breakdowns. Named attendees are optional
-          details. These are reported separately from individual check-ins. A
-          dash means a breakdown was not supplied.
+        <CardDescription className="text-xs leading-relaxed">
+          {inline
+            ? "Report totals separately from named check-ins. The headcount date is independent of the roster date."
+            : "Reported meeting totals, separate from named check-ins. A dash means a breakdown was not supplied."}
         </CardDescription>
       </CardHeader>
-      {canRead && (
-        <CardContent className="space-y-4">
+      {inline && canCreate && (
+        <CardContent className="px-4">{renderForm(true)}</CardContent>
+      )}
+      {canRead && showRecords && (
+        <CardContent className="space-y-3 px-4">
           <div className="flex flex-wrap gap-3">
             <div>
               <Label htmlFor={`general-start-${target?.id ?? "all"}`}>
@@ -302,25 +442,34 @@ export function GeneralAttendancePanel({
           ) : (
             <>
               <div className="overflow-x-auto">
-                <Table selectable
+                <Table
+                  selectable
                   aria-label="General attendance"
                   className="w-full text-sm"
                 >
                   <TableHeader>
                     <TableRow>
                       {columns.map((c) => (
-                        <TableHead className="p-2 text-left" key={c.key}>
+                        <TableHead
+                          className={`p-2 text-xs ${countFields.some(([key]) => key === c.key) ? "text-right" : "text-left"}`}
+                          key={c.key}
+                        >
                           {c.label}
                         </TableHead>
                       ))}
-                      {canUpdate && <TableHead className="p-2 text-left">Actions</TableHead>}
+                      {canUpdate && (
+                        <TableHead className="p-2 text-left">Actions</TableHead>
+                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rows.map((row) => (
                       <TableRow key={row.id} className="border-t">
                         {columns.map((c) => (
-                          <TableCell className="p-2" key={c.key}>
+                          <TableCell
+                            className={`p-2 text-xs ${countFields.some(([key]) => key === c.key) ? "text-right tabular-nums" : ""}`}
+                            key={c.key}
+                          >
                             {String(
                               row[c.key as keyof GeneralAttendanceRecord] ??
                                 "—",
@@ -353,25 +502,13 @@ export function GeneralAttendancePanel({
                   </TableBody>
                 </Table>
               </div>
-              <div className="flex items-center justify-end gap-3">
-                <span>
-                  {query.data?.meta.total ?? 0} records · Page {page}
-                </span>
-                <Button
-                  variant="outline"
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  disabled={page >= (query.data?.meta.totalPages ?? 0)}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Next
-                </Button>
-              </div>
+              <TablePagination
+                page={page}
+                perPage={20}
+                total={query.data?.meta.total ?? 0}
+                itemName="records"
+                onPageChange={setPage}
+              />
             </>
           )}
         </CardContent>
@@ -389,59 +526,7 @@ export function GeneralAttendancePanel({
               Only total attendance is required; all breakdowns are optional.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={submit} className="space-y-4">
-            <div>
-              <Label htmlFor="general-date">Attendance date</Label>
-              <Input
-                id="general-date"
-                type="date"
-                required
-                value={date}
-                disabled={!!editing}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-            {!editing && !target?.branchId && profile?.isAdminHq && (
-              <div>
-                <Label>Branch</Label>
-                <BranchFilter
-                  value={recordBranch}
-                  onChange={setRecordBranch}
-                  allLabel="Select a branch"
-                />
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4">
-              {countFields.map(([key, label]) => (
-                <div key={key}>
-                  <Label htmlFor={`general-${key}`}>
-                    {label}
-                    {key === "total" ? " *" : " (optional)"}
-                  </Label>
-                  <Input
-                    id={`general-${key}`}
-                    type="number"
-                    min={0}
-                    max={2147483647}
-                    step={1}
-                    required={key === "total"}
-                    value={values[key]}
-                    onChange={(e) =>
-                      setValues((prev) => ({ ...prev, [key]: e.target.value }))
-                    }
-                  />
-                </div>
-              ))}
-            </div>
-            {error && (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            )}
-            <Button type="submit" disabled={save.isPending}>
-              {save.isPending ? "Saving…" : "Save attendance"}
-            </Button>
-          </form>
+          {renderForm(false)}
         </DialogContent>
       </Dialog>
     </Card>

@@ -321,13 +321,7 @@ test("staff mixed service individual check-ins default to unspecified", async ({
     .getByRole("option", { name: "Family Service", exact: true })
     .click();
   await expect(page.getByRole("combobox").nth(1)).toContainText("Unspecified");
-  await page.getByText("Record reported headcounts (optional)", { exact: true }).click();
-  await expect(
-    page.getByRole("button", {
-      name: "Record general attendance",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expect(page.getByRole("form", { name: "Reported headcount", exact: true }).getByLabel("Total attendance *", { exact: true })).toBeVisible();
 });
 
 test("summary dashboard separates headcounts from individual check-ins", async ({
@@ -377,13 +371,7 @@ test("usher can open general attendance from service check-in", async ({
   await page.goto("/attendance/check-in");
   await page.getByRole("combobox").first().click();
   await page.getByRole("option", { name: /Family Service/ }).click();
-  await page.getByText("Record reported headcounts (optional)", { exact: true }).click();
-  await page
-    .getByRole("button", { name: "Record general attendance", exact: true })
-    .click();
-  await expect(
-    page.getByRole("dialog").getByLabel("Total attendance *", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByRole("form", { name: "Reported headcount", exact: true }).getByLabel("Total attendance *", { exact: true })).toBeVisible();
 });
 
 test("usher can open service creation", async ({ page }) => {

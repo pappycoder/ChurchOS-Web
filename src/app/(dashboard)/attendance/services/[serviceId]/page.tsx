@@ -20,6 +20,9 @@ import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
 
+import { AttendanceChartCard } from "@/components/attendance/attendance-chart-card";
+import { DashboardDonut } from "@/components/dashboard/dashboard-plots";
+import { serviceAttendanceBreakdown } from "@/lib/service-attendance-breakdown";
 import { ErrorState } from "@/components/shared/error-state";
 
 import * as React from "react";
@@ -67,15 +70,6 @@ import {
 const givingConfig = {
   amount: { label: "Amount", color: "var(--chart-1)" },
 } satisfies ChartConfig;
-
-function DataRow({ label, value }: { label: string; value?: string | null }) {
-  return (
-    <div className="flex items-center justify-between py-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium">{value || "-"}</span>
-    </div>
-  );
-}
 
 export default function ServiceDetailPage({
   params,
@@ -129,18 +123,8 @@ export default function ServiceDetailPage({
   }, [givingRows]);
 
   const attendance = attendanceQuery.data?.data ?? [];
-  const totalCheckIns = attendanceQuery.data?.total ?? 0;
-
-  const adultCount = attendance.filter(
-    (r) => (r.category ?? "adult") === "adult",
-  ).length;
-  const childrenCount = attendance.filter(
-    (r) => r.category === "children",
-  ).length;
-  const memberCount = attendance.filter((r) => !!r.memberId).length;
-  const visitorCount = attendance.length - memberCount;
-
-  const isLoading = serviceQuery.isLoading || attendanceQuery.isLoading;
+  const breakdown = serviceAttendanceBreakdown(attendance);
+  const isLoading = serviceQuery.isLoading;
   const service = serviceQuery.data;
   const latest = attendance[0];
 
@@ -190,21 +174,21 @@ export default function ServiceDetailPage({
       </Button>
 
       {/* Header */}
-      <Card className="py-4">
-        <CardContent className="flex flex-wrap items-start justify-between gap-4 px-5">
-          <div className="min-w-0 flex-1 space-y-2">
+      <Card className="gap-2 py-3">
+        <CardContent className="flex flex-wrap items-start justify-between gap-3 px-4">
+          <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="flex size-10 items-center justify-center rounded-xl border bg-muted/50 text-muted-foreground">
-                <CalendarDays className="size-5" aria-hidden="true" />
+              <span className="flex size-8 items-center justify-center rounded-xl border bg-muted/50 text-muted-foreground">
+                <CalendarDays className="size-4" aria-hidden="true" />
               </span>
-              <h1 className="text-xl font-semibold tracking-tight">
+              <h1 className="text-lg font-semibold tracking-tight">
                 {service.name}
               </h1>
               <AttendanceCategoryBadge category={service.category ?? "adult"} />
               {!service.isActive && <AttendanceStatusBadge status="inactive" />}
               {service.archivedAt && <AttendanceArchivedBadge />}
             </div>
-            <p className="text-sm text-muted-foreground mt-1.5 flex items-center gap-4 flex-wrap">
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-4 flex-wrap">
               <span>
                 {service.dayOfWeek !== undefined
                   ? [
@@ -282,63 +266,46 @@ export default function ServiceDetailPage({
           forceMount
           className="space-y-4 data-[state=inactive]:hidden"
         >
+          <section
+            aria-label="Service named check-in charts"
+            className="space-y-2"
+          >
+            <p className="text-xs text-muted-foreground">
+              All recorded named check-ins for this service
+            </p>
+            <div className="grid gap-3 md:grid-cols-2">
+              <AttendanceChartCard
+                title="Age category"
+                description="Adults, children and age not supplied"
+                tone="violet"
+                query={attendanceQuery}
+              >
+                <DashboardDonut
+                  data={breakdown.age}
+                  valueLabel="Check-ins"
+                  showCounts
+                  showPercentages
+                />
+              </AttendanceChartCard>
+              <AttendanceChartCard
+                title="Check-in identity"
+                description="Members and visitors / walk-ins"
+                tone="blue"
+                query={attendanceQuery}
+              >
+                <DashboardDonut
+                  data={breakdown.identity}
+                  valueLabel="Check-ins"
+                  showCounts
+                  showPercentages
+                />
+              </AttendanceChartCard>
+            </div>
+          </section>
           <GeneralAttendancePanel
             presentationClassName={attendanceWorkspaceClass}
             service={service}
           />
-
-          {attendanceQuery.isError ? (
-            <ErrorState title="Unable to load named service attendance" />
-          ) : (
-            <>
-              <dl className="flex flex-wrap gap-x-6 gap-y-2 rounded-xl border bg-card px-4 py-3 text-xs">
-                {[
-                  ["Total Check-Ins", totalCheckIns],
-                  ["Member Check-Ins", memberCount],
-                  ["Children Check-Ins", childrenCount],
-                ].map(([label, value]) => (
-                  <div key={String(label)} className="flex items-center gap-2">
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-semibold tabular-nums">
-                      {Number(value).toLocaleString()}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-
-              {/* Breakdowns */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-semibold">
-                      Attendance Breakdown
-                    </CardTitle>
-                    <CardDescription>
-                      Who checked in for this service.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="divide-y">
-                    <DataRow
-                      label="Adults"
-                      value={adultCount.toLocaleString()}
-                    />
-                    <DataRow
-                      label="Children"
-                      value={childrenCount.toLocaleString()}
-                    />
-                    <DataRow
-                      label="Members"
-                      value={memberCount.toLocaleString()}
-                    />
-                    <DataRow
-                      label="Visitors / Walk-ins"
-                      value={visitorCount.toLocaleString()}
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </>
-          )}
         </TabsContent>
         {canReadGiving && (
           <TabsContent

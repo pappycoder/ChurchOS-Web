@@ -1,4 +1,5 @@
 "use client";
+import { confirmDiscardChanges } from "@/hooks/use-unsaved-changes";
 import { ErrorState } from "@/components/shared/error-state";
 
 import { GeneralAttendancePanel } from "@/components/attendance/general-attendance-panel";
@@ -80,6 +81,8 @@ export default function CheckInPage() {
   const router = useRouter();
   const { can } = usePermissions();
   // Route gate already requires attendance:create; keep button-level checks consistent.
+  const [headcountDirty, setHeadcountDirty] = React.useState(false);
+  const [headcountSaving, setHeadcountSaving] = React.useState(false);
   const [checkingIn, setCheckingIn] = React.useState(false);
   const [attendanceDate, setAttendanceDate] = React.useState(() =>
     format(new Date(), "yyyy-MM-dd"),
@@ -210,8 +213,8 @@ export default function CheckInPage() {
 
       {/* Service picker */}
       {servicesQuery.isError && <ErrorState title="Unable to load services" />}
-      <Card>
-        <CardHeader className="pb-2">
+      <Card className="gap-3 py-4">
+        <CardHeader className="px-4 pb-0">
           <CardTitle className="text-sm font-semibold">
             <AttendanceSectionHeading>Service</AttendanceSectionHeading>
           </CardTitle>
@@ -219,13 +222,20 @@ export default function CheckInPage() {
             Pick today&apos;s service — its category pre-fills the check-ins.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
+        <CardContent className="grid gap-3 px-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <p className="text-sm font-medium">Service *</p>
             <Select
-              disabled={checkingIn}
+              disabled={checkingIn || headcountSaving}
               value={serviceId}
-              onValueChange={setServiceId}
+              onValueChange={(value) => {
+                if (
+                  value === serviceId ||
+                  (headcountDirty && !confirmDiscardChanges())
+                )
+                  return;
+                setServiceId(value);
+              }}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a service" />
@@ -264,25 +274,25 @@ export default function CheckInPage() {
         </CardContent>
       </Card>
 
-      <details className="rounded-lg border p-4">
-        <summary className="cursor-pointer font-medium">
-          <AttendanceSectionHeading>
-            Record reported headcounts (optional)
-          </AttendanceSectionHeading>
-        </summary>
-        <p className="my-3 text-sm text-muted-foreground">
-          Reported totals are separate from the named check-ins below.
-        </p>
-        <GeneralAttendancePanel
-          presentationClassName={attendanceWorkspaceClass}
-          service={selectedService}
-          requireService
-        />
-      </details>
+      <GeneralAttendancePanel
+        key={`entry-${serviceId}`}
+        presentationClassName={attendanceWorkspaceClass}
+        service={selectedService}
+        requireService
+        entryMode="inline"
+        showRecords={false}
+        onDirtyChange={setHeadcountDirty}
+        onBusyChange={setHeadcountSaving}
+      />
 
       {/* Mode tabs */}
-      <div className="flex gap-2">
+      <div
+        role="group"
+        aria-label="Named check-in mode"
+        className="flex flex-wrap gap-2"
+      >
         <Button
+          aria-pressed={mode === "members"}
           variant={mode === "members" ? "default" : "outline"}
           size="sm"
           disabled={checkingIn}
@@ -292,6 +302,7 @@ export default function CheckInPage() {
           Members (Roster)
         </Button>
         <Button
+          aria-pressed={mode === "visitor"}
           variant={mode === "visitor" ? "default" : "outline"}
           size="sm"
           disabled={checkingIn}
@@ -499,6 +510,13 @@ export default function CheckInPage() {
           </CardContent>
         </Card>
       )}
+      <GeneralAttendancePanel
+        key={`records-${serviceId}`}
+        presentationClassName={attendanceWorkspaceClass}
+        service={selectedService}
+        requireService
+        entryMode="hidden"
+      />
     </AttendanceWorkspace>
   );
 }
