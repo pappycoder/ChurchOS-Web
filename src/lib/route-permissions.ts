@@ -32,6 +32,11 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/support" },
 
   // Members
+  { prefix: "/people/members/new", permission: "members:new:create" },
+  { prefix: "/people/members/import", permission: "members:import:create" },
+  { prefix: "/people/families", permission: "families:read" },
+  { prefix: "/people/visitors", permission: "visitors:list:read" },
+  { prefix: "/people/pastoral", permission: "pastoral:notes:read" },
   { prefix: "/people/members", permission: "members:all:read" },
   { prefix: "/members/import", permission: "members:import:create" },
   { prefix: "/members/new", permission: "members:new:create" },

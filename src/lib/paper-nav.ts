@@ -84,9 +84,9 @@ export const PAPER_AREAS: PaperArea[] = [
         planPath: "/members",
         children: [
           { title: "Directory", href: "/people/members", description: "Everyone in the church", permission: "members:all:read", live: true, planPath: "/members" },
-          { title: "Add a member", href: "/people/members/new", description: "Create a profile", permission: "members:new:create", live: false, planPath: "/members/new" },
-          { title: "Import people", href: "/people/members/import", description: "Bring your list across", permission: "members:import:create", live: false, planPath: "/members/import" },
-          { title: "Families", href: "/people/families", description: "Households and relationships", permission: "families:read", live: false, planPath: "/members/families" },
+          { title: "Add a member", href: "/people/members/new", description: "Create a profile", permission: "members:new:create", live: true, planPath: "/members/new" },
+          { title: "Import people", href: "/people/members/import", description: "Bring your list across", permission: "members:import:create", live: true, planPath: "/members/import" },
+          { title: "Families", href: "/people/families", description: "Households and relationships", permission: "families:read", live: true, planPath: "/members/families" },
           { title: "Segments", href: "/people/segments", description: "Saved groups and lists", live: false, planPath: "/members" },
         ],
       },
@@ -95,7 +95,7 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/people/visitors",
         planPath: "/visitors",
         children: [
-          { title: "Pipeline", href: "/people/visitors", description: "First-time guests", permission: "visitors:list:read", live: false, planPath: "/visitors" },
+          { title: "Pipeline", href: "/people/visitors", description: "First-time guests", permission: "visitors:list:read", live: true, planPath: "/visitors" },
           { title: "Follow-up", href: "/people/visitors/follow-up", description: "Who to reach this week", permission: "visitors:list:read", live: false, planPath: "/visitors/follow-up" },
         ],
       },
@@ -104,7 +104,7 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/people/pastoral",
         planPath: "/pastoral",
         children: [
-          { title: "Notes", href: "/people/pastoral", description: "Care conversation log", permission: "pastoral:notes:read", live: false, planPath: "/pastoral" },
+          { title: "Notes", href: "/people/pastoral", description: "Care conversation log", permission: "pastoral:notes:read", live: true, planPath: "/pastoral" },
           { title: "Care calendar", href: "/people/pastoral/care", description: "Visits and check-ins", permission: "pastoral:notes:read", live: false, planPath: "/pastoral" },
           { title: "Risk radar", href: "/people/pastoral/risk", description: "Who may need attention", permission: "pastoral:risk-scores:read", live: false, planPath: "/pastoral/risk-scores" },
           { title: "Life events", href: "/people/pastoral/life-events", description: "Milestones to mark", permission: "pastoral:life-events:read", live: false, planPath: "/pastoral/life-events" },
