@@ -21,6 +21,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/dashboard" },
   // Paper (Abide IA) workspace shell — Home and Notifications are shared.
   { prefix: "/home" },
+  { prefix: "/search" },
+  { prefix: "/people/segments" },
   { prefix: "/notifications" },
   { prefix: "/subscription", permission: "billing:read" },
   { prefix: "/docs" },
@@ -114,6 +116,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   // Events
   { prefix: "/gatherings/events/new", permission: "events:create" },
   { prefix: "/gatherings/events/check-in", permission: "events:checkin:create" },
+  { prefix: "/gatherings/events/registrations", permission: "events:registrations:read" },
+  { prefix: "/gatherings/events/tiers", permission: "events:tickets:read" },
   { prefix: "/gatherings/events/[eventId]", permission: "events:all:read" },
   { prefix: "/gatherings/events", permission: "events:calendar:read" },
   { prefix: "/events/check-in", permission: "events:checkin:create" },

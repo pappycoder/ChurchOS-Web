@@ -65,7 +65,7 @@ export const PAPER_AREAS: PaperArea[] = [
         children: [
           { title: "Overview", href: "/home", description: "Today's rhythm", live: true, planPath: "/dashboard" },
           { title: "Notifications", href: "/notifications", description: "Everything waiting on you", live: true, planPath: "/dashboard" },
-          { title: "Search", href: "/search", description: "Find anyone or anything", live: false, planPath: "/dashboard" },
+          { title: "Search", href: "/search", description: "Find anyone or anything", live: true, planPath: "/dashboard" },
         ],
       },
     ],
@@ -87,7 +87,7 @@ export const PAPER_AREAS: PaperArea[] = [
           { title: "Add a member", href: "/people/members/new", description: "Create a profile", permission: "members:new:create", live: true, planPath: "/members/new" },
           { title: "Import people", href: "/people/members/import", description: "Bring your list across", permission: "members:import:create", live: true, planPath: "/members/import" },
           { title: "Families", href: "/people/families", description: "Households and relationships", permission: "families:read", live: true, planPath: "/members/families" },
-          { title: "Segments", href: "/people/segments", description: "Saved groups and lists", live: false, planPath: "/members" },
+          { title: "Segments", href: "/people/segments", description: "Saved groups and lists", live: true, planPath: "/members" },
         ],
       },
       {
@@ -129,8 +129,8 @@ export const PAPER_AREAS: PaperArea[] = [
           { title: "Calendar", href: "/gatherings/events", description: "Month, week, agenda", permission: "events:calendar:read", live: true, planPath: "/events" },
           { title: "Create event", href: "/gatherings/events/new", description: "Plan something new", permission: "events:create", live: true, planPath: "/events/new" },
           { title: "Check-in", href: "/gatherings/events/check-in", description: "Kiosk mode", permission: "events:checkin:create", live: true, planPath: "/events/check-in" },
-          { title: "Registrations", href: "/gatherings/events/registrations", description: "Who's coming", permission: "events:registrations:read", live: false, planPath: "/events/registrations" },
-          { title: "Ticket tiers", href: "/gatherings/events/tiers", description: "Pricing and capacity", permission: "events:tickets:read", live: false, planPath: "/events/management" },
+          { title: "Registrations", href: "/gatherings/events/registrations", description: "Who's coming", permission: "events:registrations:read", live: true, planPath: "/events/registrations" },
+          { title: "Ticket tiers", href: "/gatherings/events/tiers", description: "Pricing and capacity", permission: "events:tickets:read", live: true, planPath: "/events/management" },
         ],
       },
       {
