@@ -125,7 +125,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
               aria-label={`${area.label} — show sections`}
               aria-expanded={expanded}
               className={cn(
-                "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] transition-colors",
+                "relative flex min-w-0 flex-1 flex-col items-center gap-1 py-2.5 text-[10px] transition-colors",
                 active || expanded ? "text-brand" : "text-ink-faint",
               )}
             >
@@ -133,7 +133,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
                 <span className="absolute top-0 h-0.5 w-6 rounded-full bg-brand" />
               ) : null}
               <area.icon className="size-[18px]" strokeWidth={1.8} />
-              {area.label}
+              <span className="max-w-full truncate">{area.label}</span>
             </button>
           );
         })}
@@ -143,7 +143,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="flex w-14 flex-col items-center justify-center gap-1 py-2.5 text-[10px] text-ink-faint"
+                className="flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[10px] text-ink-faint"
                 aria-label="All areas"
               >
                 <LayoutGrid className="size-[18px]" strokeWidth={1.8} />
