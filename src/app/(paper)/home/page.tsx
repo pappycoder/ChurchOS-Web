@@ -60,13 +60,13 @@ export default function PaperHomePage() {
       <PageHeader
         eyebrow={
           <span className="flex items-center gap-2">
-            <Sparkles className="size-3 text-terracotta" />
+            <Sparkles className="size-3 text-brand" />
             {today?.date ?? "\u00A0"}
           </span>
         }
         title={
           <>
-            {today?.greeting ?? "Welcome back"}, <span className="text-terracotta">{firstName}</span>.
+            {today?.greeting ?? "Welcome back"}, <span className="text-brand">{firstName}</span>.
           </>
         }
         description="One quiet page for the whole church's rhythm — generosity, gathering, and the people waiting on a hello."
@@ -93,7 +93,7 @@ export default function PaperHomePage() {
               label="Giving · period"
               value={giving.data?.total ?? 0}
               prefix={givingCurrency === "NGN" ? "₦" : "$"}
-              tone="terracotta"
+              tone="brand"
               icon={<HandCoins className="size-4" />}
               deltaLabel={`${number(giving.data?.count ?? 0)} gifts`}
             />
@@ -206,7 +206,7 @@ export default function PaperHomePage() {
                   className={
                     item.readAt
                       ? "mt-1.5 size-1.5 shrink-0 rounded-full bg-line"
-                      : "mt-1.5 size-1.5 shrink-0 rounded-full bg-terracotta"
+                      : "mt-1.5 size-1.5 shrink-0 rounded-full bg-brand"
                   }
                 />
                 <div className="min-w-0 flex-1">

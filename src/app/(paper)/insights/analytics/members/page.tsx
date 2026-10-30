@@ -76,7 +76,7 @@ export default function MembersAnalyticsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Members" value={m.total} tone="terracotta" icon={<Users className="size-4" />} />
+            <StatCard label="Members" value={m.total} tone="brand" icon={<Users className="size-4" />} />
             <StatCard label="Active" value={activeCount} tone="moss" deltaLabel={m.total ? `${percent(activeCount, m.total)}% of the roll` : "—"} />
             <StatCard label="Age bands" value={ageData.length} tone="sky" deltaLabel="generation spread" />
             <StatCard label="Recorded growth" value={growthRows.length} tone="gold" deltaLabel="periods tracked" />
@@ -139,7 +139,7 @@ export default function MembersAnalyticsPage() {
               )}
               <p className="mt-4 text-[10px] leading-relaxed text-ink-faint">
                 Members in at least one group attend far more often — belonging precedes behaving.
-                The group roster lives at <Link href="/gatherings/groups" className="text-terracotta hover:underline">Gatherings · Groups</Link>.
+                The group roster lives at <Link href="/gatherings/groups" className="text-brand hover:underline">Gatherings · Groups</Link>.
               </p>
             </SectionCard>
           </div>

@@ -97,7 +97,7 @@ export default function AttendanceAnalyticsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Total counted" value={a.total} tone="terracotta" icon={<CalendarCheck className="size-4" />} deltaLabel={`${number(a.members)} members`} />
+            <StatCard label="Total counted" value={a.total} tone="brand" icon={<CalendarCheck className="size-4" />} deltaLabel={`${number(a.members)} members`} />
             <StatCard label="Guest visits" value={a.visitors} tone="gold" deltaLabel={`${number(a.firstTimeVisitors)} first-timers`} />
             <StatCard label="Returning guests" value={a.returningVisitors} tone="sky" deltaLabel={guestTotal ? `${percent(a.returningVisitors, guestTotal)}% of guest visits` : "—"} />
             <StatCard label="Services logged" value={a.byService?.length ?? 0} tone="moss" />
@@ -164,7 +164,7 @@ export default function AttendanceAnalyticsPage() {
                 <p className="py-12 text-center text-[11px] text-ink-faint">Branch splits arrive once services are tagged.</p>
               )}
               <p className="mt-4 flex items-center gap-1.5 text-[10px] text-ink-faint">
-                <Tag tone="gold" dot>Guests</Tag> follow them up at <Link href="/people/visitors" className="text-terracotta hover:underline">the visitor board</Link>
+                <Tag tone="gold" dot>Guests</Tag> follow them up at <Link href="/people/visitors" className="text-brand hover:underline">the visitor board</Link>
               </p>
             </SectionCard>
           </div>

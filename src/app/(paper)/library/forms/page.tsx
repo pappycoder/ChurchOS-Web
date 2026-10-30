@@ -94,7 +94,7 @@ export default function FormsListPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Forms" value={total} tone="terracotta" icon={<ClipboardList className="size-4" />} deltaLabel={archivedView ? "archived" : "matching"} />
+        <StatCard label="Forms" value={total} tone="brand" icon={<ClipboardList className="size-4" />} deltaLabel={archivedView ? "archived" : "matching"} />
         <StatCard label="Published" value={rows.filter((f) => f.status === "published" && !f.archivedAt).length} tone="moss" deltaLabel="this page" />
         <StatCard label="Public links" value={rows.filter((f) => f.isPublic && f.publicToken).length} tone="sky" deltaLabel="fillable by anyone" />
         <StatCard label="Answers this page" value={rows.reduce((sum, f) => sum + (f.submissionCount ?? 0), 0)} tone="gold" />
@@ -127,7 +127,7 @@ export default function FormsListPage() {
               <div className="paper-card flex h-full flex-col rounded-2xl p-4">
                 <div className="flex items-start justify-between gap-2">
                   <button type="button" onClick={() => router.push(`/library/forms/${form.id}`)} className="min-w-0 text-left">
-                    <p className="truncate text-xs font-semibold hover:text-terracotta">{form.title}</p>
+                    <p className="truncate text-xs font-semibold hover:text-brand">{form.title}</p>
                     <p className="mt-0.5 text-[10px] text-ink-faint">
                       {form.fields?.length ?? 0} questions · {form.branchName ?? "all branches"}
                     </p>

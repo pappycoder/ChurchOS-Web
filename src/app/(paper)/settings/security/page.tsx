@@ -291,7 +291,7 @@ export default function SettingsSecurityPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 rounded-2xl border border-dashed border-line px-4 py-3 text-[11px] text-ink-soft">
-        <KeyRound className="size-3.5 text-terracotta" />
+        <KeyRound className="size-3.5 text-brand" />
         This page guards the door, not the furniture — the account details live under Profile.
       </div>
       <PasswordCard />

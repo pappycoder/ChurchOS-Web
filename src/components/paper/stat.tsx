@@ -3,10 +3,10 @@ import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CountUp } from "./motion/primitives";
 
-export type Tone = "terracotta" | "moss" | "gold" | "sky" | "rose" | "neutral";
+export type Tone = "brand" | "moss" | "gold" | "sky" | "rose" | "neutral";
 
 const toneBg: Record<Tone, string> = {
-  terracotta: "bg-terracotta-soft text-terracotta",
+  brand: "bg-brand-soft text-brand",
   moss: "bg-moss-soft text-moss",
   gold: "bg-gold-soft text-gold",
   sky: "bg-sky-soft text-sky",
@@ -16,7 +16,7 @@ const toneBg: Record<Tone, string> = {
 
 export function ToneDot({ tone }: { tone: Tone }) {
   const map: Record<Tone, string> = {
-    terracotta: "bg-terracotta",
+    brand: "bg-brand",
     moss: "bg-moss",
     gold: "bg-gold",
     sky: "bg-sky",
@@ -56,7 +56,7 @@ export function StatCard({
   value,
   delta,
   deltaLabel,
-  tone = "terracotta",
+  tone = "brand",
   icon,
   footer,
   className,

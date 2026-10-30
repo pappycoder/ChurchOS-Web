@@ -139,7 +139,7 @@ export default function PastoralNotesPage() {
                       </div>
                     ) : null}
                     <div className="mt-3 flex items-center justify-between border-t border-line/70 pt-3 text-[11px]">
-                      <Link href={`/people/members/${note.memberId}`} className="flex min-w-0 items-center gap-2 hover:text-terracotta">
+                      <Link href={`/people/members/${note.memberId}`} className="flex min-w-0 items-center gap-2 hover:text-brand">
                         <PersonAvatar name={`${note.memberFirstName} ${note.memberLastName}`} size="xs" />
                         <span className="truncate font-medium">{note.memberFirstName} {note.memberLastName}</span>
                       </Link>
@@ -149,7 +149,7 @@ export default function PastoralNotesPage() {
                           <button
                             type="button"
                             onClick={() => { setEditTarget(note); setFormOpen(true); }}
-                            className="rounded-full px-2 py-0.5 text-[10px] text-terracotta opacity-0 transition-opacity hover:underline group-hover:opacity-100 [.paper-card:hover_&]:opacity-100"
+                            className="rounded-full px-2 py-0.5 text-[10px] text-brand opacity-0 transition-opacity hover:underline group-hover:opacity-100 [.paper-card:hover_&]:opacity-100"
                           >
                             Edit
                           </button>
@@ -178,7 +178,7 @@ export default function PastoralNotesPage() {
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           <SectionCard eyebrow="This month" title="Care at a glance">
             <div className="space-y-3">
-              <StatCard label="Notes on file" value={total} tone="terracotta" icon={<HeartHandshake className="size-4" />} />
+              <StatCard label="Notes on file" value={total} tone="brand" icon={<HeartHandshake className="size-4" />} />
             </div>
             <p className="mt-3 text-[10px] leading-relaxed text-ink-faint">
               {CONFIDENTIALITY_LABELS.confidential} and {CONFIDENTIALITY_LABELS.restricted} notes stay with the

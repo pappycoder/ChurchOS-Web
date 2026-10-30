@@ -83,7 +83,7 @@ export default function FormsSubmissionsPage() {
           <FilterChip key={s} active={status === s} onClick={() => { setStatus(s); setPage(1); }}>{SUBMISSION_STATUS_LABELS[s]}</FilterChip>
         ))}
         {formId && selected ? (
-          <Link href={`/library/forms/${formId}`} className="ml-auto text-[11px] text-terracotta hover:underline">Form settings →</Link>
+          <Link href={`/library/forms/${formId}`} className="ml-auto text-[11px] text-brand hover:underline">Form settings →</Link>
         ) : null}
       </div>
 
@@ -96,7 +96,7 @@ export default function FormsSubmissionsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Matching answers" value={total} tone="terracotta" icon={<Inbox className="size-4" />} />
+            <StatCard label="Matching answers" value={total} tone="brand" icon={<Inbox className="size-4" />} />
             <StatCard label="This form, all time" value={selected?.submissionCount ?? 0} tone="moss" />
             <StatCard label="On this page" value={rows.length} tone="sky" />
             <StatCard label="Pending in queue" value={status === "pending" ? total : rows.filter((r) => r.status === "pending").length} tone="gold" />

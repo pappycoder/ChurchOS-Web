@@ -97,7 +97,7 @@ export default function MessagesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Messages this view" value={messages.data?.total ?? rows.length} tone="terracotta" icon={<MessageCircle className="size-4" />} />
+        <StatCard label="Messages this view" value={messages.data?.total ?? rows.length} tone="brand" icon={<MessageCircle className="size-4" />} />
         <StatCard label="Outbound today" value={rows.filter((m) => m.direction === "outbound").length} tone="moss" deltaLabel="this page" />
         <StatCard label="Inbound waiting" value={rows.filter((m) => m.direction === "inbound").length} tone="gold" deltaLabel="worth a reply" />
         <StatCard label="Delivery failures" value={failed} tone={failed ? "rose" : "sky"} deltaLabel="recent sends" />
@@ -158,7 +158,7 @@ export default function MessagesPage() {
                 <button
                   type="button"
                   onClick={() => { setDraft({ to: message.phone, text: "" }); setSendOpen(true); }}
-                  className="shrink-0 rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity hover:underline md:opacity-100"
+                  className="shrink-0 rounded-full px-2 py-1 text-[10px] text-brand opacity-0 transition-opacity hover:underline md:opacity-100"
                 >
                   Reply
                 </button>

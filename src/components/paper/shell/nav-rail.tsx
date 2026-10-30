@@ -16,6 +16,7 @@ import { PersonAvatar } from "@/components/paper/primitives";
 import { spring } from "@/components/paper/motion/variants";
 import type { PaperArea } from "@/lib/paper-nav";
 import { useCurrentProfile } from "@/hooks/use-profile";
+import { BrandLogo } from "@/components/shared/brand-logo";
 
 export function NavRail({
   onOpenSearch,
@@ -76,10 +77,11 @@ export function NavRail({
         >
           <Link
             href="/home"
-            aria-label="Abide home"
+            aria-label="ChurchOS — home"
+            title="ChurchOS"
             className="mb-1 grid size-9 place-items-center rounded-[14px] bg-ink text-paper"
           >
-            <span className="font-display text-[15px] font-semibold leading-none">a</span>
+            <BrandLogo variant="mark" emblemClassName="size-[22px] brightness-0 invert" />
           </Link>
 
           <div className="my-1 h-px w-6 bg-line" />
@@ -102,7 +104,7 @@ export function NavRail({
                     className={cn(
                       "group relative grid size-10 place-items-center rounded-[14px] transition-colors duration-200",
                       isActive
-                        ? "bg-terracotta-soft text-terracotta"
+                        ? "bg-brand-soft text-brand"
                         : "text-ink-faint hover:bg-muted hover:text-ink",
                       isOpen && !isActive && "bg-muted text-ink",
                     )}
@@ -111,7 +113,7 @@ export function NavRail({
                     {isActive ? (
                       <motion.span
                         layoutId="dock-active"
-                        className="absolute -left-[7px] h-5 w-[3px] rounded-full bg-terracotta"
+                        className="absolute -left-[7px] h-5 w-[3px] rounded-full bg-brand"
                         transition={spring}
                       />
                     ) : null}
@@ -211,7 +213,7 @@ export function NavRail({
                             className={cn(
                               "group flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-xs transition-colors",
                               active
-                                ? "bg-terracotta-soft/70 text-terracotta"
+                                ? "bg-brand-soft/70 text-brand"
                                 : "text-ink-soft hover:bg-muted hover:text-ink",
                             )}
                           >

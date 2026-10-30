@@ -104,6 +104,15 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
         style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
       >
+        {/* Pre-paint accent application: the stored Paper brand (if any) is
+            resolved to <html> custom props before first paint; the pre-paint
+            next-themes script above has already applied .dark. Values mirror
+            src/lib/paper-brand.ts; PaperBrandSync re-applies after mount. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var s=JSON.parse(localStorage.getItem("churchos:paper-brand")||"null");if(s){var d=document.documentElement.classList.contains("dark");var b=d?s.brandDark:s.brand;var st=document.documentElement.style;st.setProperty("--brand",b);st.setProperty("--brand-soft",d?s.softDark:s.soft);st.setProperty("--ring","color-mix(in oklab, "+b+" 40%, transparent)")}}catch(e){}`,
+          }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

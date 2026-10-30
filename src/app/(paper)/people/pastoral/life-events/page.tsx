@@ -111,7 +111,7 @@ export default function LifeEventsPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="On the calendar" value={events.data?.meta?.total ?? rows.length} tone="terracotta" icon={<Gift className="size-4" />} />
+        <StatCard label="On the calendar" value={events.data?.meta?.total ?? rows.length} tone="brand" icon={<Gift className="size-4" />} />
         <StatCard label="Within seven days" value={upcomingSoon} tone="gold" deltaLabel="send something" />
         <StatCard label="Types tracked" value={LIFE_EVENT_TYPES.length} tone="sky" />
         <div className="paper-card flex flex-col justify-between gap-4 rounded-2xl p-5">
@@ -167,7 +167,7 @@ export default function LifeEventsPage() {
                         </div>
                         <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[11px] text-ink-faint">
                           <PersonAvatar name={`${event.memberFirstName} ${event.memberLastName}`} size="xs" />
-                          <Link href={`/people/members/${event.memberId}`} className="truncate hover:text-terracotta">
+                          <Link href={`/people/members/${event.memberId}`} className="truncate hover:text-brand">
                             {event.memberFirstName} {event.memberLastName}
                           </Link>
                         </div>

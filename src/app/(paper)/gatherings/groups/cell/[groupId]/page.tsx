@@ -136,7 +136,7 @@ export default function CellGroupDetailPage({
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="Members" value={memberRows.length} tone="terracotta" icon={<Users className="size-4" />} />
+        <StatCard label="Members" value={memberRows.length} tone="brand" icon={<Users className="size-4" />} />
         <StatCard label="Meetings held" value={summary.data?.totalMeetings ?? 0} tone="moss" deltaLabel="on record" />
         <StatCard label="Average turn-out" value={Math.round(summary.data?.averageAttendance ?? 0)} tone="sky" deltaLabel="per meeting" />
       </div>
@@ -195,8 +195,8 @@ export default function CellGroupDetailPage({
                       <span className="block truncate text-xs font-medium">{member.firstName} {member.lastName}</span>
                       <span className="block text-[10px] text-ink-faint">joined {formatDate(member.joinedAt)}</span>
                     </span>
-                    <Tag tone={member.role === "leader" ? "terracotta" : "neutral"}>{GROUP_ROLES.find((r) => r.value === member.role)?.label ?? member.role}</Tag>
-                    <Link href={`/people/members/${member.memberId}`} className="rounded-full px-2 py-1 text-[10px] text-ink-faint hover:text-terracotta">Profile</Link>
+                    <Tag tone={member.role === "leader" ? "brand" : "neutral"}>{GROUP_ROLES.find((r) => r.value === member.role)?.label ?? member.role}</Tag>
+                    <Link href={`/people/members/${member.memberId}`} className="rounded-full px-2 py-1 text-[10px] text-ink-faint hover:text-brand">Profile</Link>
                     {canManageMembers ? (
                       <button type="button" onClick={() => setRemoveTarget(member)} className="rounded-full px-2 py-1 text-[10px] text-rose opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-soft">
                         Remove

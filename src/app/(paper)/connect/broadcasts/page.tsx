@@ -147,7 +147,7 @@ export default function BroadcastsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Broadcasts" value={broadcasts.data?.meta?.total ?? rows.length} tone="terracotta" icon={<Megaphone className="size-4" />} />
+        <StatCard label="Broadcasts" value={broadcasts.data?.meta?.total ?? rows.length} tone="brand" icon={<Megaphone className="size-4" />} />
         <StatCard label="People reached" value={reach} tone="moss" deltaLabel="from sent sends" />
         <StatCard label="Scheduled" value={rows.filter((b) => b.status === "scheduled").length} tone="sky" icon={<CalendarClock className="size-4" />} />
         <StatCard label="Failed" value={rows.filter((b) => b.status === "failed").length} tone="gold" />
@@ -219,7 +219,7 @@ export default function BroadcastsPage() {
           </div>
           <div className="flex items-center justify-between border-t border-line px-5 py-2.5 text-[10px] text-ink-faint">
             <span>Recipients are computed when a scheduled send runs — branch and audience rules honoured at the server.</span>
-            <Button asChild variant="ghost" size="xs" className="rounded-full text-[10px] text-terracotta">
+            <Button asChild variant="ghost" size="xs" className="rounded-full text-[10px] text-brand">
               <Link href="/connect/templates">Manage templates</Link>
             </Button>
           </div>
@@ -257,7 +257,7 @@ export default function BroadcastsPage() {
               ) : (
                 <p className="rounded-lg border border-dashed border-line px-3 py-2.5 text-[11px] text-ink-faint">
                   No published {draft.channel} templates yet —{" "}
-                  <Link href="/connect/templates" className="text-terracotta underline">publish one first</Link>.
+                  <Link href="/connect/templates" className="text-brand underline">publish one first</Link>.
                 </p>
               )}
             </div>

@@ -165,7 +165,7 @@ export default function AttendanceCheckInPage() {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="In this service (today)" value={recent.data?.meta?.total ?? 0} tone="moss" icon={<Users className="size-4" />} />
         <StatCard label="Selected" value={selected.size} tone="gold" deltaLabel={selected.size ? "ready" : "tap faces"} />
-        <StatCard label="Active members" value={roster.data?.meta?.total ?? 0} tone="terracotta" deltaLabel="roster loaded" />
+        <StatCard label="Active members" value={roster.data?.meta?.total ?? 0} tone="brand" deltaLabel="roster loaded" />
         <div className="paper-card flex flex-col justify-between gap-4 rounded-2xl p-5">
           <span className="rule-label">Service</span>
           <span className="font-display text-sm font-semibold leading-tight">{activeService?.name ?? "—"}</span>
@@ -235,7 +235,7 @@ export default function AttendanceCheckInPage() {
               )}
             </div>
             {query.trim().length < 2 && (roster.data?.data?.length ?? 0) < (roster.data?.meta?.total ?? 0) ? (
-              <button type="button" onClick={() => setRosterLimit((n) => n + 50)} className="w-full border-t border-line py-2 text-[11px] text-terracotta hover:bg-muted/40">
+              <button type="button" onClick={() => setRosterLimit((n) => n + 50)} className="w-full border-t border-line py-2 text-[11px] text-brand hover:bg-muted/40">
                 Load {Math.min(50, (roster.data?.meta?.total ?? 0) - (roster.data?.data?.length ?? 0))} more
               </button>
             ) : null}

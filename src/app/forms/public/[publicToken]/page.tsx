@@ -112,7 +112,7 @@ function PublicFormContent({ token }: { token: string }) {
   }
 
   return (
-    <div className="min-h-svh bg-[#f5f5ef] text-[#183b40] dark:bg-background dark:text-foreground">
+    <div data-paper-root className="min-h-svh bg-background text-foreground">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-6 sm:px-8">
         <Link href="/" aria-label="ChurchOS home">
           <BrandLogo variant="full" emblemClassName="!h-9 dark:brightness-0 dark:invert" />

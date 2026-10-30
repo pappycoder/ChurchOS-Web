@@ -164,7 +164,7 @@ export default function TemplatesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Templates" value={templates.data?.meta?.total ?? 0} tone="terracotta" icon={<FileText className="size-4" />} />
+        <StatCard label="Templates" value={templates.data?.meta?.total ?? 0} tone="brand" icon={<FileText className="size-4" />} />
         <StatCard label="Published" value={published} tone="moss" deltaLabel="ready to send" />
         <StatCard label="WhatsApp" value={(templates.data?.data ?? []).filter((t) => t.channel === "whatsapp").length} tone="sky" />
         <StatCard label="Email" value={(templates.data?.data ?? []).filter((t) => t.channel === "email").length} tone="gold" />
@@ -211,7 +211,7 @@ export default function TemplatesPage() {
                 {t.variables?.length ? (
                   <p className="mt-2 flex flex-wrap gap-1">
                     {t.variables.slice(0, 4).map((v) => (
-                      <span key={v} className="rounded bg-terracotta-soft px-1.5 py-0.5 font-mono text-[9px] text-terracotta">{`{{${v}}}`}</span>
+                      <span key={v} className="rounded bg-brand-soft px-1.5 py-0.5 font-mono text-[9px] text-brand">{`{{${v}}}`}</span>
                     ))}
                   </p>
                 ) : null}

@@ -153,7 +153,7 @@ export default function EventCheckInPage() {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="In the room" value={attendedCount} tone="moss" icon={<Users className="size-4" />} deltaLabel="right now" />
-        <StatCard label="Expected" value={registeredCount} tone="terracotta" deltaLabel="registered" />
+        <StatCard label="Expected" value={registeredCount} tone="brand" deltaLabel="registered" />
         <StatCard label="Selected" value={selected.size} tone="gold" deltaLabel={selected.size ? "ready to check in" : "tap to select"} />
         <div className="paper-card flex flex-col justify-between gap-4 rounded-2xl p-5">
           <span className="rule-label">Event</span>

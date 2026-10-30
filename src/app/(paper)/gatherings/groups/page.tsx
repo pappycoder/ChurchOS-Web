@@ -75,7 +75,7 @@ export default function DepartmentsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Departments" value={departments.data?.length ?? 0} tone="terracotta" icon={<Layers className="size-4" />} />
+        <StatCard label="Departments" value={departments.data?.length ?? 0} tone="brand" icon={<Layers className="size-4" />} />
         <StatCard label="Serving people" value={covered} tone="moss" deltaLabel="across all teams" />
         <StatCard label="With a head" value={(departments.data ?? []).filter((d) => d.headMemberId).length} tone="sky" />
         <StatCard label="Branch-tied" value={(departments.data ?? []).filter((d) => d.branchId).length} tone="gold" />
@@ -215,7 +215,7 @@ export default function DepartmentsPage() {
                     max={4}
                   />
                 </div>
-                <Button asChild variant="ghost" size="sm" className="mt-2 h-8 justify-between rounded-lg text-[11px] text-terracotta">
+                <Button asChild variant="ghost" size="sm" className="mt-2 h-8 justify-between rounded-lg text-[11px] text-brand">
                   <Link href={`/gatherings/groups/${dept.id}`}>
                     Roster &amp; meeting attendance <CalendarPlus className="size-3" />
                   </Link>

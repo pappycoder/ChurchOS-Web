@@ -26,7 +26,7 @@ export default function SermonSeriesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="Series" value={rows.length} tone="terracotta" icon={<Layers className="size-4" />} />
+        <StatCard label="Series" value={rows.length} tone="brand" icon={<Layers className="size-4" />} />
         <StatCard label="Messages in series" value={total} tone="moss" deltaLabel="across the archive" />
         <StatCard label="Longest run" value={rows.reduce((max, s) => Math.max(max, s.count), 0)} tone="sky" deltaLabel="parts" />
       </div>
@@ -51,7 +51,7 @@ export default function SermonSeriesPage() {
                 className="paper-card lift flex h-full w-full flex-col rounded-2xl p-5 text-left"
               >
                 <div className="flex items-start justify-between">
-                  <span className="grid size-10 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+                  <span className="grid size-10 place-items-center rounded-xl bg-brand-soft text-brand">
                     <Radio className="size-4" />
                   </span>
                   <Tag tone="neutral">{new Date(item.lastDate).getFullYear() || "—"}</Tag>

@@ -108,7 +108,7 @@ export default function AnalyticsOverviewPage() {
       ) : (
         <>
           <StaggerGroup className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StaggerItem><StatCard label="Giving" value={giving.data?.total ?? d.totalGiving} prefix="₦" tone="terracotta" icon={<HandCoins className="size-4" />} deltaLabel="in this period" /></StaggerItem>
+            <StaggerItem><StatCard label="Giving" value={giving.data?.total ?? d.totalGiving} prefix="₦" tone="brand" icon={<HandCoins className="size-4" />} deltaLabel="in this period" /></StaggerItem>
             <StaggerItem><StatCard label="Attendance" value={attendance.data?.total ?? d.totalAttendance} tone="moss" icon={<CalendarCheck className="size-4" />} deltaLabel="people counted" /></StaggerItem>
             <StaggerItem><StatCard label="Members" value={d.totalMembers} tone="sky" icon={<Users className="size-4" />} deltaLabel={`${number(d.activeMembers)} active`} /></StaggerItem>
             <StaggerItem><StatCard label="New members" value={d.newMembers} tone="gold" deltaLabel="joined recently" /></StaggerItem>
@@ -167,7 +167,7 @@ export default function AnalyticsOverviewPage() {
 
           <StaggerGroup className="grid gap-3 md:grid-cols-3">
             {[
-              { title: "Giving", line: `${formatNaira(giving.data?.total ?? 0)} in this period, across ${number(giving.data?.count ?? 0)} gifts.`, tone: "terracotta" as const, href: "/insights/analytics/giving", cta: "Open giving analysis" },
+              { title: "Giving", line: `${formatNaira(giving.data?.total ?? 0)} in this period, across ${number(giving.data?.count ?? 0)} gifts.`, tone: "brand" as const, href: "/insights/analytics/giving", cta: "Open giving analysis" },
               { title: "Attendance", line: `${number(attendance.data?.visitors ?? 0)} guest visits — ${number(attendance.data?.firstTimeVisitors ?? 0)} of them first-timers.`, tone: "sky" as const, href: "/insights/analytics/attendance", cta: "Open attendance analysis" },
               { title: "Members", line: `${number(d.totalMembers)} on the roll, ${percent(d.activeMembers, d.totalMembers)}% active.`, tone: "moss" as const, href: "/insights/analytics/members", cta: "Open membership analysis" },
             ].map((insight) => (
@@ -175,7 +175,7 @@ export default function AnalyticsOverviewPage() {
                 <Link href={insight.href} className="paper-card lift flex h-full flex-col rounded-2xl p-5">
                   <Tag tone={insight.tone} dot>{insight.title}</Tag>
                   <p className="mt-3 flex-1 font-display text-sm leading-snug">{insight.line}</p>
-                  <span className="mt-3 flex items-center gap-1 text-[11px] text-terracotta">{insight.cta} <ArrowRight className="size-3" /></span>
+                  <span className="mt-3 flex items-center gap-1 text-[11px] text-brand">{insight.cta} <ArrowRight className="size-3" /></span>
                 </Link>
               </StaggerItem>
             ))}
@@ -202,7 +202,7 @@ export default function AnalyticsOverviewPage() {
 
           <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-line p-4 text-[11px] text-ink-soft">
             Numbers describe the field; they don&apos;t replace the shepherding.{" "}
-            <Link href="/insights/reports" className="text-terracotta underline">Compose a board-ready report</Link>
+            <Link href="/insights/reports" className="text-brand underline">Compose a board-ready report</Link>
           </div>
         </>
       )}

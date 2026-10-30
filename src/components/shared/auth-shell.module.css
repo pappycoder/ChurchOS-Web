@@ -19,13 +19,13 @@
   position: absolute;
   width: 600px;
   height: 600px;
-  border: 1px solid #e07a5214;
+  border: 1px solid #5ed5be14;
   border-radius: 50%;
   left: -210px;
   top: 20%;
   box-shadow:
-    0 0 0 75px #e07a5206,
-    0 0 0 150px #e07a5204;
+    0 0 0 75px #5ed5be06,
+    0 0 0 150px #5ed5be04;
   pointer-events: none;
 }
 .brand {
@@ -39,7 +39,7 @@
   width: fit-content;
 }
 .brandDot {
-  color: #e07a52;
+  color: #5ed5be;
 }
 .storyContent {
   position: relative;
@@ -54,14 +54,14 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #e07a52;
+  color: #5ed5be;
 }
 .eyebrow > span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #e07a52;
-  box-shadow: 0 0 0 4px #e07a5212;
+  background: #5ed5be;
+  box-shadow: 0 0 0 4px #5ed5be12;
 }
 .storyContent h2 {
   font-size: clamp(38px, 3.6vw, 59px);
@@ -73,7 +73,7 @@
 .storyContent h2 em {
   font-family: var(--font-fraunces), Georgia, serif; font-style: italic;
   font-weight: 400;
-  color: #e07a52;
+  color: #5ed5be;
   letter-spacing: -1.8px;
 }
 .storyContent > p {
@@ -161,7 +161,7 @@
   background: #d9e6ea;
 }
 .people > span:nth-child(4) {
-  background: #e07a52;
+  background: #5ed5be;
 }
 .people p {
   margin-left: 25px;

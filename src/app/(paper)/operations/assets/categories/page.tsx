@@ -63,7 +63,7 @@ export default function AssetCategoriesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="Categories" value={rows.length} tone="terracotta" deltaLabel={archivedView ? "archived" : "in rotation"} />
+        <StatCard label="Categories" value={rows.length} tone="brand" deltaLabel={archivedView ? "archived" : "in rotation"} />
         <StatCard label="In use" value={rows.filter((c) => !c.archivedAt).length} tone="moss" />
         <StatCard label="Recently added" value={rows.filter((c) => c.createdAt >= new Date(Date.now() - 30 * 86_400_000).toISOString()).length} tone="sky" deltaLabel="last 30 days" />
       </div>
@@ -87,7 +87,7 @@ export default function AssetCategoriesPage() {
           {rows.map((category) => (
             <StaggerItem key={category.id}>
               <div className="group flex items-center gap-4 px-5 py-3">
-                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-terracotta-soft text-terracotta font-display text-sm font-semibold">
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand font-display text-sm font-semibold">
                   {category.name.slice(0, 1).toUpperCase()}
                 </span>
                 <span className="min-w-0 flex-1">

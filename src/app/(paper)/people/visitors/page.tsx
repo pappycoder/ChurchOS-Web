@@ -47,11 +47,11 @@ const FOLLOW_UP_OPTIONS: { value: FollowUpStatus; label: string }[] = [
   { value: "dropped_off", label: "Dropped off" },
 ];
 
-const STATUS_TONES: Record<FollowUpStatus, "moss" | "neutral" | "rose" | "sky" | "gold" | "terracotta"> = {
+const STATUS_TONES: Record<FollowUpStatus, "moss" | "neutral" | "rose" | "sky" | "gold" | "brand"> = {
   new: "gold",
   contacted: "sky",
   follow_up_scheduled: "sky",
-  interested: "terracotta",
+  interested: "brand",
   converted: "moss",
   dropped_off: "neutral",
 };
@@ -169,7 +169,7 @@ export default function VisitorsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Total guests" value={stats.data?.total ?? 0} tone="terracotta" icon={<Users className="size-4" />} />
+        <StatCard label="Total guests" value={stats.data?.total ?? 0} tone="brand" icon={<Users className="size-4" />} />
         <StatCard label="New this month" value={stats.data?.newThisMonth ?? 0} tone="gold" icon={<CalendarDays className="size-4" />} deltaLabel="first visits" />
         <StatCard label="In follow-up" value={stats.data?.inFollowUp ?? 0} tone="sky" icon={<RefreshCw className="size-4" />} />
         <StatCard label="Converted" value={stats.data?.converted ?? 0} tone="moss" icon={<HandCoins className="size-4" />} deltaLabel="now members" />
@@ -223,12 +223,12 @@ export default function VisitorsPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <Link
                         href={`/people/visitors/${visitor.id}`}
-                        className="rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity group-hover:opacity-100 hover:underline"
+                        className="rounded-full px-2 py-1 text-[10px] text-brand opacity-0 transition-opacity group-hover:opacity-100 hover:underline"
                       >
                         Open
                       </Link>
                       {canUpdate ? (
-                        <button type="button" onClick={() => { setEditTarget(visitor); setFormOpen(true); }} className="rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity group-hover:opacity-100 hover:underline">
+                        <button type="button" onClick={() => { setEditTarget(visitor); setFormOpen(true); }} className="rounded-full px-2 py-1 text-[10px] text-brand opacity-0 transition-opacity group-hover:opacity-100 hover:underline">
                           Edit
                         </button>
                       ) : null}

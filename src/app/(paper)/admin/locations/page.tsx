@@ -87,7 +87,7 @@ export default function AdminBranchesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Branches" value={total} tone="terracotta" icon={<Building2 className="size-4" />} deltaLabel={archivedView ? "archived" : "active"} />
+        <StatCard label="Branches" value={total} tone="brand" icon={<Building2 className="size-4" />} deltaLabel={archivedView ? "archived" : "active"} />
         <StatCard label="Headquarters" value={rows.filter((b) => b.isHeadquarters).length} tone="gold" />
         <StatCard label="Members covered" value={membersCovered} tone="moss" icon={<Users className="size-4" />} deltaLabel="on this page" />
         <StatCard label="Locations named" value={rows.filter((b) => b.city).length} tone="sky" />

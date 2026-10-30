@@ -106,7 +106,7 @@ export default function SegmentsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Joined this month" value={canMembers ? freshFaces.length : 0} tone="terracotta" icon={<UserRoundSearch className="size-4" />} deltaLabel={canMembers && freshFaces.length >= 100 ? "page-capped" : "live count"} />
+            <StatCard label="Joined this month" value={canMembers ? freshFaces.length : 0} tone="brand" icon={<UserRoundSearch className="size-4" />} deltaLabel={canMembers && freshFaces.length >= 100 ? "page-capped" : "live count"} />
             <StatCard label="Active roll" value={canMembers ? active.data?.meta?.total ?? 0 : 0} tone="moss" />
             <StatCard label="On the quiet list" value={canMembers ? quiet.data?.meta?.total ?? 0 : 0} tone="sky" deltaLabel="inactive status" />
             <StatCard label="Guests in follow-up" value={canVisitors ? visitors.data?.inFollowUp ?? 0 : 0} tone="gold" icon={<HeartHandshake className="size-4" />} />
@@ -116,7 +116,7 @@ export default function SegmentsPage() {
             {canMembers ? (
               <StaggerItem>
                 <SegmentCard
-                  tone="terracotta"
+                  tone="brand"
                   title="New this month"
                   blurb="Everyone who joined recently — still learning the rhythms. A hello list, not a report."
                   rules={["Joined", "after", "1st of this month"]}
@@ -185,7 +185,7 @@ export default function SegmentsPage() {
             {canGiving ? (
               <StaggerItem>
                 <SegmentCard
-                  tone="terracotta"
+                  tone="brand"
                   title="Giving this year"
                   blurb={`Households that gave since January — ${giving.data ? `${number(giving.data.count)} gifts counted` : "the ledger is waiting"}.`}
                   rules={["Gift date", "after", "Jan 1"]}
@@ -200,10 +200,10 @@ export default function SegmentsPage() {
           <div className="paper-card rounded-2xl p-5">
             <p className="rule-label mb-2">Where rules actually live today</p>
             <div className="flex flex-wrap gap-2 text-[11px]">
-              <Link href="/people/members" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Members status &amp; branch filters</Link>
-              <Link href="/people/visitors" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Visitor follow-up chips</Link>
-              <Link href="/people/pastoral/risk" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Care level filters</Link>
-              <Link href="/connect/broadcasts" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Broadcast audience builder</Link>
+              <Link href="/people/members" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-brand/40">Members status &amp; branch filters</Link>
+              <Link href="/people/visitors" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-brand/40">Visitor follow-up chips</Link>
+              <Link href="/people/pastoral/risk" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-brand/40">Care level filters</Link>
+              <Link href="/connect/broadcasts" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-brand/40">Broadcast audience builder</Link>
             </div>
             <p className="mt-3 text-[10px] leading-relaxed text-ink-faint">
               The audience builder on a broadcast already does rule-based targeting ad hoc — saved segments make
@@ -229,7 +229,7 @@ function SegmentCard({
   cta,
   loading,
 }: {
-  tone: "terracotta" | "moss" | "gold" | "sky" | "rose";
+  tone: "brand" | "moss" | "gold" | "sky" | "rose";
   title: string;
   blurb: string;
   rules: string[];
@@ -260,7 +260,7 @@ function SegmentCard({
             {faces.map((face) => <PersonAvatar key={face.name} name={face.name} src={face.photoUrl} size="xs" className="ring-2 ring-card" />)}
           </span>
         ) : <span />}
-        <Link href={href} className="flex items-center gap-1 text-[11px] text-terracotta hover:underline">
+        <Link href={href} className="flex items-center gap-1 text-[11px] text-brand hover:underline">
           {cta} <ArrowRight className="size-3" />
         </Link>
       </div>
@@ -305,7 +305,7 @@ function NewSegmentDialog({ open, onOpenChange }: { open: boolean; onOpenChange:
             </div>
           </div>
           <div className="rounded-xl border border-dashed border-line px-3.5 py-2.5 text-[11px] text-ink-soft">
-            “<span className="font-medium text-ink">{name.trim() || "This segment"}</span>” = members where {field.toLowerCase()} {op} <span className="font-mono text-[10px] text-terracotta">{value || "…"}</span>
+            “<span className="font-medium text-ink">{name.trim() || "This segment"}</span>” = members where {field.toLowerCase()} {op} <span className="font-mono text-[10px] text-brand">{value || "…"}</span>
           </div>
           <Button
             className="h-10 w-full gap-2 rounded-lg text-sm"

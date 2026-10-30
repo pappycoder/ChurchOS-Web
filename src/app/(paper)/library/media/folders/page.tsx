@@ -37,7 +37,7 @@ export default function MediaFoldersPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="Folders" value={rows.length} tone="terracotta" icon={<FolderClosed className="size-4" />} />
+        <StatCard label="Folders" value={rows.length} tone="brand" icon={<FolderClosed className="size-4" />} />
         <StatCard label="Files inside" value={totalFiles} tone="moss" deltaLabel="counted" />
         <StatCard label="Most recent activity" value={rows.filter((f) => f.newestAt).length} tone="sky" deltaLabel="folders with new arrivals" />
       </div>

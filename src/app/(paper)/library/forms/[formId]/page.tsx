@@ -116,7 +116,7 @@ export default function FormDetailPage({
           <div className="min-w-0 space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <Tag tone={f.status === "published" ? "moss" : f.status === "draft" ? "gold" : "sky"} dot>{f.status}</Tag>
-              {f.isPublic ? <Tag tone="terracotta">Public</Tag> : <Tag tone="neutral">Members only</Tag>}
+              {f.isPublic ? <Tag tone="brand">Public</Tag> : <Tag tone="neutral">Members only</Tag>}
               {f.archivedAt ? <Tag tone="rose">Archived</Tag> : null}
               {f.branchName ? <Tag tone="sky">{f.branchName}</Tag> : null}
             </div>
@@ -169,7 +169,7 @@ export default function FormDetailPage({
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="Answers" value={f.submissionCount ?? 0} tone="terracotta" icon={<Inbox className="size-4" />} />
+        <StatCard label="Answers" value={f.submissionCount ?? 0} tone="brand" icon={<Inbox className="size-4" />} />
         <StatCard label="Questions" value={f.fields?.length ?? 0} tone="moss" icon={<Users className="size-4" />} deltaLabel={f.uniqueField ? "one response per person" : "unlimited responses"} />
         <StatCard label="Limit" value={f.submissionLimit ?? 0} tone="sky" deltaLabel={f.submissionLimit ? "caps at this many answers" : "no cap set"} />
       </div>

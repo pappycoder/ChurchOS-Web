@@ -220,7 +220,7 @@ export default function FamiliesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Households" value={total} tone="terracotta" icon={<Home className="size-4" />} deltaLabel={archivedView ? "archived" : "matching filters"} />
+        <StatCard label="Households" value={total} tone="brand" icon={<Home className="size-4" />} deltaLabel={archivedView ? "archived" : "matching filters"} />
         <StatCard label="People on this page" value={people} tone="moss" icon={<Users className="size-4" />} />
         <StatCard label="Average size" value={families.length ? Math.round((people / families.length) * 10) / 10 : 0} decimals={1} tone="sky" />
         <StatCard label="Page" value={page} suffix={` / ${totalPages}`} tone="gold" />

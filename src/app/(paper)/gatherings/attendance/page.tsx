@@ -74,7 +74,7 @@ export default function AttendanceDashboardPage() {
       />
 
       <StaggerGroup className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StaggerItem><StatCard label="Check-ins · 30 days" value={data?.totalCheckIns ?? 0} tone="terracotta" icon={<Users className="size-4" />} /></StaggerItem>
+        <StaggerItem><StatCard label="Check-ins · 30 days" value={data?.totalCheckIns ?? 0} tone="brand" icon={<Users className="size-4" />} /></StaggerItem>
         <StaggerItem><StatCard label="Members" value={data?.memberCheckIns ?? 0} tone="moss" /></StaggerItem>
         <StaggerItem><StatCard label="Visitors" value={data?.visitorCheckIns ?? 0} tone="gold" deltaLabel="new faces" /></StaggerItem>
         <StaggerItem><StatCard label="Daily average" value={avg} decimals={1} tone="sky" icon={<TrendingUp className="size-4" />} /></StaggerItem>
@@ -197,7 +197,7 @@ export default function AttendanceDashboardPage() {
               {!services.data?.data?.length ? <p className="px-5 py-8 text-center text-xs text-ink-faint">No active services yet.</p> : null}
             </div>
             <div className="border-t border-line px-5 py-2.5">
-              <Button asChild variant="ghost" size="sm" className="w-full justify-between rounded-lg text-[11px] text-terracotta">
+              <Button asChild variant="ghost" size="sm" className="w-full justify-between rounded-lg text-[11px] text-brand">
                 <Link href="/gatherings/attendance/services">Manage services</Link>
               </Button>
             </div>

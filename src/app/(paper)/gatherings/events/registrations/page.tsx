@@ -92,7 +92,7 @@ function RegistrationsInner() {
       {eventId ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Registrations" value={rows.length} tone="terracotta" icon={<ClipboardList className="size-4" />} />
+            <StatCard label="Registrations" value={rows.length} tone="brand" icon={<ClipboardList className="size-4" />} />
             <StatCard label="Paid" value={paid} tone="moss" />
             <StatCard label="Checked in" value={checkedIn} tone="sky" deltaLabel={rows.length ? `${Math.round((checkedIn / rows.length) * 100)}% of list` : "—"} />            <StatCard label="Awaiting payment" value={rows.filter((r) => r.paymentStatus === "pending").length} tone="gold" />
           </div>
@@ -138,10 +138,10 @@ function RegistrationsInner() {
           )}
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-[11px]">
-            <button type="button" onClick={() => router.push(`/gatherings/events/${eventId}`)} className="flex items-center gap-1.5 text-terracotta hover:underline">
+            <button type="button" onClick={() => router.push(`/gatherings/events/${eventId}`)} className="flex items-center gap-1.5 text-brand hover:underline">
               <CalendarDays className="size-3" /> Open the event
             </button>
-            <button type="button" onClick={() => router.push(`/gatherings/events/check-in?event=${encodeURIComponent(eventId)}`)} className="text-terracotta hover:underline">Run check-in</button>
+            <button type="button" onClick={() => router.push(`/gatherings/events/check-in?event=${encodeURIComponent(eventId)}`)} className="text-brand hover:underline">Run check-in</button>
           </div>
         </>
       ) : (

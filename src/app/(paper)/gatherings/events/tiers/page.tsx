@@ -101,7 +101,7 @@ function TiersInner() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Tiers" value={rows.length} tone="terracotta" icon={<Coins className="size-4" />} />
+            <StatCard label="Tiers" value={rows.length} tone="brand" icon={<Coins className="size-4" />} />
             <StatCard label="Tickets issued" value={ticketRows.length} tone="moss" deltaLabel={`page of ${number(tickets.data?.total ?? 0)}`} />
             <StatCard label="Tier capacity" value={capacity} tone="gold" deltaLabel={`${cappedCount} capped · ${rows.length - cappedCount} uncapped`} />
             <StatCard label="Event capacity" value={selected?.capacity ?? 0} tone="sky" deltaLabel="from the event itself" />

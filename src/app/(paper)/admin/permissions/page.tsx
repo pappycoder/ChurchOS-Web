@@ -68,7 +68,7 @@ export default function AdminRolesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Roles" value={all.length} tone="terracotta" icon={<KeyRound className="size-4" />} />
+        <StatCard label="Roles" value={all.length} tone="brand" icon={<KeyRound className="size-4" />} />
         <StatCard label="Custom to this church" value={all.filter((r) => r.isChurchOwned).length} tone="sky" />
         <StatCard label="Tweaked templates" value={all.filter((r) => r.isCustomized).length} tone="gold" />
         <StatCard label="Permissions available" value={totalPermissions} tone="moss" deltaLabel="across all surfaces" />
@@ -95,7 +95,7 @@ export default function AdminRolesPage() {
                   onClick={() => router.push(`/admin/permissions/${role.roleName}`)}
                   className="group flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-muted/40"
                 >
-                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
                     {role.roleName === "super_admin" || role.roleName === "church_admin" ? <Lock className="size-3.5" /> : <SlidersHorizontal className="size-3.5" />}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -110,7 +110,7 @@ export default function AdminRolesPage() {
                     {number(role.permissions.length)}
                     <span className="text-ink-faint"> / {number(totalPermissions || role.permissions.length)}</span>
                   </span>
-                  <span className="shrink-0 text-[10px] text-terracotta opacity-0 transition-opacity group-hover:opacity-100">
+                  <span className="shrink-0 text-[10px] text-brand opacity-0 transition-opacity group-hover:opacity-100">
                     {role.roleName === "super_admin" ? "View" : "Edit matrix"}
                   </span>
                 </button>

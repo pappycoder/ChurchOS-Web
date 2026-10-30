@@ -76,7 +76,7 @@ export default function CellGroupsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Circles" value={all.length} tone="terracotta" icon={<Heart className="size-4" />} />
+        <StatCard label="Circles" value={all.length} tone="brand" icon={<Heart className="size-4" />} />
         <StatCard label="Branches covered" value={branchesCovered} tone="moss" icon={<Users className="size-4" />} />
         <StatCard label="Gather weekly" value={all.filter((g) => g.meetingDay).length} tone="sky" deltaLabel="have a set day" />
         <StatCard label="With a host" value={all.filter((g) => g.leaderId).length} tone="gold" />
@@ -155,7 +155,7 @@ export default function CellGroupsPage() {
                   )}
                   {group.branchName ? <span className="shrink-0 text-[10px] text-ink-faint">{group.branchName}</span> : null}
                 </div>
-                <Button asChild variant="ghost" size="sm" className="mt-2 h-8 justify-between rounded-lg text-[11px] text-terracotta">
+                <Button asChild variant="ghost" size="sm" className="mt-2 h-8 justify-between rounded-lg text-[11px] text-brand">
                   <Link href={`/gatherings/groups/cell/${group.id}`}>
                     Roster &amp; attendance <AvatarStack people={[{ name: leader || group.name }]} size="xs" max={1} />
                   </Link>

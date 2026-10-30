@@ -111,7 +111,7 @@ export default function AttendanceReportsPage() {
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
       ) : (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="Total counted" value={s?.totalCheckIns ?? 0} tone="terracotta" icon={<TrendingUp className="size-4" />} deltaLabel={period.toLowerCase()} />
+          <StatCard label="Total counted" value={s?.totalCheckIns ?? 0} tone="brand" icon={<TrendingUp className="size-4" />} deltaLabel={period.toLowerCase()} />
           <StatCard label="Named members" value={s?.memberCheckIns ?? 0} tone="moss" />
           <StatCard label="Guests counted" value={s?.visitorCheckIns ?? 0} tone="gold" />
           <StatCard label="Days with a count" value={trendRows.length} tone="sky" deltaLabel="trend points" />

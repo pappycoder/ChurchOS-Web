@@ -141,7 +141,7 @@ export default function AdminTeamPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Seats filled" value={total} tone="terracotta" icon={<Users className="size-4" />} />
+        <StatCard label="Seats filled" value={total} tone="brand" icon={<Users className="size-4" />} />
         <StatCard label="Active this page" value={rows.filter((u) => u.status === "active").length} tone="moss" />
         <StatCard label="Two-factor on" value={rows.filter((u) => u.mfaEnabled).length} tone="gold" deltaLabel="this page" />
         <StatCard label="Admin HQ" value={rows.filter((u) => u.isAdminHq).length} tone="sky" deltaLabel="cross-branch readers" />

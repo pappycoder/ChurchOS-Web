@@ -71,7 +71,7 @@ export default function GivingOverviewPage() {
       ) : (
         <>
           <StaggerGroup className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StaggerItem><StatCard label="This month" value={s.monthTotal} prefix="₦" tone="terracotta" icon={<HandCoins className="size-4" />} deltaLabel={`${number(s.monthCount)} gifts`} /></StaggerItem>
+            <StaggerItem><StatCard label="This month" value={s.monthTotal} prefix="₦" tone="brand" icon={<HandCoins className="size-4" />} deltaLabel={`${number(s.monthCount)} gifts`} /></StaggerItem>
             <StaggerItem><StatCard label="All time" value={s.allTimeTotal} prefix="₦" tone="moss" deltaLabel={`${number(s.count)} recorded`} /></StaggerItem>
             <StaggerItem><StatCard label="Average gift" value={Math.round(s.monthTotal / Math.max(1, s.monthCount))} prefix="₦" tone="gold" /></StaggerItem>
             <StaggerItem><StatCard label="In the last 30 days" value={s.trend.reduce((sum, point) => sum + point.total, 0)} prefix="₦" tone="sky" icon={<PiggyBank className="size-4" />} deltaLabel="chart window" /></StaggerItem>
@@ -109,9 +109,9 @@ export default function GivingOverviewPage() {
           </div>
 
           <div className="flex flex-wrap gap-4 text-[11px]">
-            <Link href="/giving/donations" className="text-terracotta hover:underline">Donations ledger</Link>
-            <Link href="/giving/funds" className="text-terracotta hover:underline">Funds &amp; categories</Link>
-            <Link href="/giving/schedules" className="text-terracotta hover:underline">Recurring schedules</Link>
+            <Link href="/giving/donations" className="text-brand hover:underline">Donations ledger</Link>
+            <Link href="/giving/funds" className="text-brand hover:underline">Funds &amp; categories</Link>
+            <Link href="/giving/schedules" className="text-brand hover:underline">Recurring schedules</Link>
             <Link href="/insights/analytics/giving" className="ml-auto text-ink-faint hover:text-ink">Deep analysis →</Link>
           </div>
         </>
@@ -154,7 +154,7 @@ function FundsRail() {
   const categories = useGivingCategories({ limit: 100 });
   const active = (categories.data?.data ?? []).filter((c) => c.isActive && !c.archivedAt).slice(0, 5);
   return (
-    <SectionCard eyebrow="Funds" title="Where giving is aimed" actions={<Link href="/giving/funds" className="text-[11px] text-terracotta hover:underline">Manage</Link>} bodyClassName="p-0">
+    <SectionCard eyebrow="Funds" title="Where giving is aimed" actions={<Link href="/giving/funds" className="text-[11px] text-brand hover:underline">Manage</Link>} bodyClassName="p-0">
       <div className="divide-y divide-line/70">
         {(categories.data?.data ?? []).length === 0 ? (
           <p className="px-5 py-8 text-center text-[11px] text-ink-faint">No funds defined yet.</p>
@@ -175,7 +175,7 @@ function RecurringRail() {
   const active = rows.filter((r) => r.isActive);
   const monthly = active.reduce((sum, r) => sum + (r.frequency === "monthly" ? r.amount : r.frequency === "quarterly" ? Math.round(r.amount / 3) : Math.round(r.amount / 4)), 0);
   return (
-    <SectionCard eyebrow="Recurring" title="The floor under the year" actions={<Link href="/giving/schedules" className="text-[11px] text-terracotta hover:underline">Schedules</Link>}>
+    <SectionCard eyebrow="Recurring" title="The floor under the year" actions={<Link href="/giving/schedules" className="text-[11px] text-brand hover:underline">Schedules</Link>}>
       <div className="flex items-center gap-4">
         <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-sky-soft text-sky"><Repeat className="size-4" /></span>
         <div className="min-w-0">

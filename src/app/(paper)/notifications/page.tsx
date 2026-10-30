@@ -41,10 +41,10 @@ const TYPE_ICONS: Record<NotificationType, React.ElementType> = {
   broadcast: Megaphone,
 };
 
-const TYPE_TONES: Record<NotificationType, "sky" | "moss" | "terracotta" | "gold" | "rose" | "neutral"> = {
+const TYPE_TONES: Record<NotificationType, "sky" | "moss" | "brand" | "gold" | "rose" | "neutral"> = {
   system: "neutral",
   attendance: "moss",
-  giving: "terracotta",
+  giving: "brand",
   event: "sky",
   pastoral: "rose",
   broadcast: "gold",
@@ -149,7 +149,7 @@ export default function PaperNotificationsPage() {
                 >
                   <span className={cn(
                     "grid size-9 shrink-0 place-items-center rounded-xl",
-                    TYPE_TONES[item.type] === "terracotta" && "bg-terracotta-soft text-terracotta",
+                    TYPE_TONES[item.type] === "brand" && "bg-brand-soft text-brand",
                     TYPE_TONES[item.type] === "moss" && "bg-moss-soft text-moss",
                     TYPE_TONES[item.type] === "gold" && "bg-gold-soft text-gold",
                     TYPE_TONES[item.type] === "sky" && "bg-sky-soft text-sky",
@@ -161,7 +161,7 @@ export default function PaperNotificationsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-2 text-xs font-semibold">
                       {item.title}
-                      {!item.readAt ? <span className="size-1.5 rounded-full bg-terracotta" /> : null}
+                      {!item.readAt ? <span className="size-1.5 rounded-full bg-brand" /> : null}
                     </p>
                     <p className="mt-0.5 text-[11px] leading-relaxed text-ink-soft">{item.body}</p>
                     <div className="mt-1.5 flex items-center gap-2">

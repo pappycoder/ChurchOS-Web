@@ -27,7 +27,7 @@ export default function SpeakersPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="Speakers" value={rows.length} tone="terracotta" icon={<Mic2 className="size-4" />} />
+        <StatCard label="Speakers" value={rows.length} tone="brand" icon={<Mic2 className="size-4" />} />
         <StatCard label="Messages preached" value={total} tone="moss" icon={<Users className="size-4" />} />
         <StatCard label="Most heard" value={mostHeard?.count ?? 0} tone="sky" deltaLabel={mostHeard?.name ?? "—"} />
       </div>
@@ -57,7 +57,7 @@ export default function SpeakersPage() {
                 <div className="mt-4 flex-1" />
                 <div className="flex items-center justify-between border-t border-line/70 pt-3 text-[10px] text-ink-faint">
                   <span>latest {formatDate(item.lastDate)}</span>
-                  <span className="flex items-center gap-1 text-terracotta">
+                  <span className="flex items-center gap-1 text-brand">
                     <Tag tone="neutral">{item.name.split(" ").pop() ?? ""}</Tag>
                     <ChevronRight className="size-3" />
                   </span>

@@ -96,7 +96,7 @@ export default function SupportPage() {
 
       <div className="paper-card rounded-2xl p-5">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+          <span className="grid size-9 place-items-center rounded-xl bg-brand-soft text-brand">
             <Sparkles className="size-4" />
           </span>
           <div className="min-w-0 flex-1">

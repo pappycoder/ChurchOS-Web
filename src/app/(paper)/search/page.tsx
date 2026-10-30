@@ -106,7 +106,7 @@ function EventRail({ search, onSettled }: RailProps) {
       <div className="divide-y divide-line/70">
         {rows.map((event) => (
           <Link key={event.eventId} href={`/gatherings/events/${event.eventId}`} className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/40">
-            <span className="grid size-8 place-items-center rounded-lg bg-terracotta-soft text-terracotta">
+            <span className="grid size-8 place-items-center rounded-lg bg-brand-soft text-brand">
               <CalendarDays className="size-3.5" />
             </span>
             <span className="min-w-0 flex-1">
@@ -285,7 +285,7 @@ function SearchInner() {
               { icon: BookOpen, title: "Library" as Scope, line: "Sermons and forms, found by memory." },
             ].map((card) => (
               <button key={card.title} type="button" onClick={() => setScope(card.title)} className="paper-card lift flex flex-col items-start gap-2 rounded-2xl p-4 text-left">
-                <span className="grid size-9 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+                <span className="grid size-9 place-items-center rounded-xl bg-brand-soft text-brand">
                   <card.icon className="size-4" />
                 </span>
                 <span className="text-xs font-semibold">{card.title}</span>

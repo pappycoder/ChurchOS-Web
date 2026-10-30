@@ -194,7 +194,7 @@ export default function GivingDonationsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Matching gifts" value={total} tone="terracotta" icon={<HandCoins className="size-4" />} deltaLabel={anyFilter ? "filtered" : "all recorded"} />
+        <StatCard label="Matching gifts" value={total} tone="brand" icon={<HandCoins className="size-4" />} deltaLabel={anyFilter ? "filtered" : "all recorded"} />
         <StatCard label="On this page" value={pageSum} prefix="₦" tone="moss" deltaLabel="successful only" />
         <StatCard label="Pending" value={rows.filter((t) => t.status === "pending").length} tone="gold" deltaLabel="this page" />
         <StatCard label="Funds in use" value={activeCategories.length} tone="sky" />
@@ -247,7 +247,7 @@ export default function GivingDonationsPage() {
                   <span className="flex items-center gap-1.5 truncate text-[10px] text-ink-faint">
                     {tx.givingType === "cell_group" ? <Tag tone="gold">cell group</Tag> : null}
                     {tx.serviceName ? <Tag tone="sky">{tx.serviceName}</Tag> : null}
-                    {tx.eventName ? <Tag tone="terracotta">{tx.eventName}</Tag> : null}
+                    {tx.eventName ? <Tag tone="brand">{tx.eventName}</Tag> : null}
                     {tx.cellGroupName ? <span className="truncate">{tx.cellGroupName}</span> : null}
                     {!tx.memberName && !tx.serviceName && !tx.eventName && !tx.cellGroupName ? "Sunday collection" : null}
                   </span>

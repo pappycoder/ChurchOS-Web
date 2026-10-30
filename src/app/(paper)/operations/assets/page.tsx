@@ -133,7 +133,7 @@ export default function AssetsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Tracked items" value={total} tone="terracotta" icon={<Boxes className="size-4" />} deltaLabel={archivedView ? "archived" : "in the register"} />
+        <StatCard label="Tracked items" value={total} tone="brand" icon={<Boxes className="size-4" />} deltaLabel={archivedView ? "archived" : "in the register"} />
         <StatCard label="Purchase value" value={stats.data?.totalPurchaseValue ?? 0} prefix="₦" tone="moss" />
         <StatCard label="Current value" value={stats.data?.totalCurrentValue ?? 0} prefix="₦" tone="sky" deltaLabel="after depreciation" />
         <StatCard label="Needs service" value={maintenanceTotal} tone="gold" deltaLabel="see schedule" />
@@ -219,9 +219,9 @@ export default function AssetsPage() {
       )}
 
       <div className="flex flex-wrap gap-4 text-[11px]">
-        <Link href="/operations/assets/categories" className="flex items-center gap-1.5 text-terracotta hover:underline"><Boxes className="size-3" /> Categories</Link>
-        <Link href="/operations/assets/maintenance" className="text-terracotta hover:underline">Maintenance schedule</Link>
-        <Link href="/operations/assets/loans" className="text-terracotta hover:underline">Loans &amp; checkouts</Link>
+        <Link href="/operations/assets/categories" className="flex items-center gap-1.5 text-brand hover:underline"><Boxes className="size-3" /> Categories</Link>
+        <Link href="/operations/assets/maintenance" className="text-brand hover:underline">Maintenance schedule</Link>
+        <Link href="/operations/assets/loans" className="text-brand hover:underline">Loans &amp; checkouts</Link>
         <Download className="ml-auto size-3 self-center text-ink-faint" />
       </div>
 

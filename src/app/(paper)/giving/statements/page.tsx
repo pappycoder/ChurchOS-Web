@@ -158,7 +158,7 @@ export default function GivingStatementsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label={`Given · ${rangeLabel}`} value={totals.total} prefix="₦" tone="terracotta" icon={<HandCoins className="size-4" />} deltaLabel={`${number(rows.length)} gifts`} />
+            <StatCard label={`Given · ${rangeLabel}`} value={totals.total} prefix="₦" tone="brand" icon={<HandCoins className="size-4" />} deltaLabel={`${number(rows.length)} gifts`} />
             <StatCard label="Average gift" value={Math.round(totals.total / rows.length)} prefix="₦" tone="gold" />
             <StatCard label="Named givers" value={totals.givers.length} tone="moss" icon={<Users className="size-4" />} deltaLabel="at least one gift" />
             <StatCard label="Funds moved" value={totals.byCategory.length} tone="sky" deltaLabel="received something" />
@@ -222,7 +222,7 @@ export default function GivingStatementsPage() {
               </div>
               <div className="flex items-center justify-between border-t border-line px-5 py-2.5 text-[10px] text-ink-faint">
                 <span>Year-end statements for each giver open from the ledger rows.</span>
-                <Tag tone="terracotta">handle with care</Tag>
+                <Tag tone="brand">handle with care</Tag>
               </div>
             </SectionCard>
           </div>

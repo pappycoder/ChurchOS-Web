@@ -104,7 +104,7 @@ export default function SettingsProfilePage() {
           <p className="font-display text-base font-semibold">{p.firstName} {p.lastName}</p>
           <p className="text-[11px] text-ink-faint">{p.email ?? "No email on file"}</p>
           <p className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {p.role.map((r) => <Tag key={r} tone={r === "super_admin" || r === "church_admin" ? "terracotta" : "neutral"}>{resolveRoleLabel(r, labelMap)}</Tag>)}
+            {p.role.map((r) => <Tag key={r} tone={r === "super_admin" || r === "church_admin" ? "brand" : "neutral"}>{resolveRoleLabel(r, labelMap)}</Tag>)}
             {p.isAdminHq ? <Tag tone="sky">Admin HQ</Tag> : null}
             {p.twoFactorEnabled ? <Tag tone="moss" dot>2FA on</Tag> : null}
           </p>
@@ -174,13 +174,13 @@ export default function SettingsProfilePage() {
 
           <SectionCard eyebrow="Locked doors" title="Security lives elsewhere">
             <div className="space-y-2 text-[11px] text-ink-soft">
-              <button type="button" onClick={() => router.push("/settings/security")} className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2 text-left hover:border-terracotta/40">
-                <KeyRound className="size-3.5 text-terracotta" /> Password &amp; two-factor
+              <button type="button" onClick={() => router.push("/settings/security")} className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2 text-left hover:border-brand/40">
+                <KeyRound className="size-3.5 text-brand" /> Password &amp; two-factor
               </button>
-              <Link href="/settings/notifications" className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 hover:border-terracotta/40">
+              <Link href="/settings/notifications" className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 hover:border-brand/40">
                 <Mail className="size-3.5 text-moss" /> What reaches you, and when
               </Link>
-              <Link href="/settings/appearance" className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 hover:border-terracotta/40">
+              <Link href="/settings/appearance" className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 hover:border-brand/40">
                 <ShieldCheck className="size-3.5 text-sky" /> Light, dark, and rhythm
               </Link>
               <p className="flex items-center gap-1.5 pt-1 text-[10px] text-ink-faint">

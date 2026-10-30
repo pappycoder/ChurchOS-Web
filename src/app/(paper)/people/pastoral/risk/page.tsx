@@ -213,7 +213,7 @@ export default function RiskRadarPage() {
       )}
 
       <p className="mx-auto flex max-w-2xl items-start gap-2 rounded-xl border border-dashed border-line p-4 text-[11px] leading-relaxed text-ink-soft">
-        <Sparkles className="mt-0.5 size-3.5 shrink-0 text-terracotta" />
+        <Sparkles className="mt-0.5 size-3.5 shrink-0 text-brand" />
         This radar is a prompt for presence, not prediction. Scores are heuristic
         signals — the real discernment is yours. Nobody should ever be
         contacted because a number said so, only because a person cared.

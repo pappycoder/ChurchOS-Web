@@ -121,7 +121,7 @@ export default function AttendanceRecordsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Matching records" value={total} tone="terracotta" icon={<CalendarDays className="size-4" />} deltaLabel={`page ${page} of ${totalPages}`} />
+        <StatCard label="Matching records" value={total} tone="brand" icon={<CalendarDays className="size-4" />} deltaLabel={`page ${page} of ${totalPages}`} />
         <StatCard label="Members this page" value={rows.filter((r) => r.memberId).length} tone="moss" icon={<Users className="size-4" />} />
         <StatCard label="Visitors this page" value={rows.filter((r) => !r.memberId).length} tone="gold" icon={<UserRound className="size-4" />} />
         <StatCard label="Children this page" value={rows.filter((r) => r.category === "children").length} tone="sky" />

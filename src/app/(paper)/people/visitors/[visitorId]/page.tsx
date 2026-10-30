@@ -119,7 +119,7 @@ export default function VisitorDetailPage({
                 </Tag>
                 {v.convertedMemberId ? (
                   <Link href={`/people/members/${v.convertedMemberId}`}>
-                    <Tag tone="terracotta">
+                    <Tag tone="brand">
                       <Sparkles className="size-2.5" /> Member profile
                     </Tag>
                   </Link>

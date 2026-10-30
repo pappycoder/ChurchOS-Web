@@ -98,7 +98,7 @@ export function ContextBar({ onOpenSearch }: { onOpenSearch: () => void }) {
         >
           <Bell className="size-4" />
           {unread?.count ? (
-            <span className="absolute right-1 top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-terracotta px-1 text-[9px] font-semibold text-paper ring-2 ring-background">
+            <span className="absolute right-1 top-1 grid min-h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-semibold text-paper ring-2 ring-background">
               {unread.count > 99 ? "99+" : unread.count}
             </span>
           ) : null}

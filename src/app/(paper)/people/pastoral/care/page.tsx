@@ -78,7 +78,7 @@ export default function CareCalendarPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Upcoming" value={rows.length} tone="terracotta" icon={<CalendarHeart className="size-4" />} />
+        <StatCard label="Upcoming" value={rows.length} tone="brand" icon={<CalendarHeart className="size-4" />} />
         <StatCard label="This week" value={thisWeek.length} tone="gold" deltaLabel="send something" />
         <StatCard label="Birthdays ahead" value={birthdays.length} tone="moss" icon={<Cake className="size-4" />} />
         <StatCard label="Acknowledged" value={acknowledged} tone="sky" />
@@ -94,10 +94,10 @@ export default function CareCalendarPage() {
                 key={slot.day}
                 className={cn(
                   "flex-1 rounded-xl px-3 py-3 text-center",
-                  slot.isToday ? "bg-terracotta-soft/70" : "hover:bg-muted/50",
+                  slot.isToday ? "bg-brand-soft/70" : "hover:bg-muted/50",
                 )}
               >
-                <p className={cn("text-[10px] uppercase tracking-wider", slot.isToday ? "font-semibold text-terracotta" : "text-ink-faint")}>
+                <p className={cn("text-[10px] uppercase tracking-wider", slot.isToday ? "font-semibold text-brand" : "text-ink-faint")}>
                   {slot.day}
                 </p>
                 <p className="num mt-0.5 text-sm font-semibold">{slot.number}</p>
@@ -154,7 +154,7 @@ export default function CareCalendarPage() {
                         </div>
                         <Link
                           href={`/people/members/${event.memberId}`}
-                          className="mt-0.5 flex items-center gap-1.5 text-[10px] text-ink-faint hover:text-terracotta"
+                          className="mt-0.5 flex items-center gap-1.5 text-[10px] text-ink-faint hover:text-brand"
                         >
                           <PersonAvatar name={`${event.memberFirstName} ${event.memberLastName}`} size="xs" />
                           {label(event.date)}

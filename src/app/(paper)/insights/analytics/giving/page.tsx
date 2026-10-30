@@ -88,7 +88,7 @@ export default function GivingAnalyticsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Total given" value={g.total} prefix="₦" tone="terracotta" deltaLabel={`${number(g.count)} gifts`} />
+            <StatCard label="Total given" value={g.total} prefix="₦" tone="brand" deltaLabel={`${number(g.count)} gifts`} />
             <StatCard label="Average gift" value={Math.round(g.average)} prefix="₦" tone="gold" />
             <StatCard label="Recurring givers" value={g.recurring.active} tone="moss" icon={<RefreshCcw className="size-4" />} deltaLabel={`${formatNaira(g.recurring.totalMonthlyAmount)}/month`} />
             <StatCard label="Scheduled gifts" value={g.recurring.totalScheduled} tone="sky" deltaLabel="in the book" />
@@ -164,7 +164,7 @@ export default function GivingAnalyticsPage() {
           </div>
 
           <div className="flex justify-end">
-            <Button variant="ghost" size="sm" className="gap-1.5 rounded-full text-xs text-terracotta" asChild>
+            <Button variant="ghost" size="sm" className="gap-1.5 rounded-full text-xs text-brand" asChild>
               <Link href="/insights/reports">Turn this into a board report</Link>
             </Button>
           </div>

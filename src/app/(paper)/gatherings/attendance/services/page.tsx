@@ -175,7 +175,7 @@ export default function AttendanceServicesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Services" value={total} tone="terracotta" icon={<CalendarClock className="size-4" />} deltaLabel={archivedView ? "archived" : "matching filters"} />
+        <StatCard label="Services" value={total} tone="brand" icon={<CalendarClock className="size-4" />} deltaLabel={archivedView ? "archived" : "matching filters"} />
         <StatCard label="Active here" value={rows.filter((s) => s.isActive).length} tone="moss" />
         <StatCard label="Check-ins all-time" value={rows.reduce((sum, s) => sum + (s.attendanceCount ?? 0), 0)} tone="sky" deltaLabel="on this page" />
         <StatCard label="Branches" value={new Set(rows.map((s) => s.branchId ?? "church-wide")).size} tone="gold" />
@@ -331,7 +331,7 @@ function ServiceRow({
     <div className="group flex items-center gap-4 px-5 py-3.5">
       <div className="min-w-0 flex-1">
         <Link href={`/gatherings/attendance/services/${service.serviceId}`} className="block">
-          <p className="flex items-center gap-2 truncate text-xs font-semibold hover:text-terracotta">
+          <p className="flex items-center gap-2 truncate text-xs font-semibold hover:text-brand">
             {service.name}
             {service.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
           </p>

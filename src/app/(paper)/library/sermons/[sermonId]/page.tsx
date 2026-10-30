@@ -99,13 +99,13 @@ export default function SermonDetailPage({
       </Link>
 
       <div className="paper-card overflow-hidden rounded-2xl">
-        <div className="h-2 bg-[linear-gradient(90deg,var(--terracotta),var(--gold)_55%,var(--moss))]" />
+        <div className="h-2 bg-[linear-gradient(90deg,var(--brand),var(--gold)_55%,var(--moss))]" />
         <div className="flex flex-wrap items-start justify-between gap-4 p-5 md:p-6">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               {s.seriesName ? (
                 <Link href={`/library/sermons?series=${encodeURIComponent(s.seriesName)}`}>
-                  <Tag tone="terracotta">{s.seriesName}</Tag>
+                  <Tag tone="brand">{s.seriesName}</Tag>
                 </Link>
               ) : null}
               <Tag tone="neutral">{fmtDate(s.sermonDate)}</Tag>
@@ -117,7 +117,7 @@ export default function SermonDetailPage({
             </h1>
             <p className="text-xs text-ink-soft">
               {s.speaker ?? "Unknown speaker"}
-              {s.scriptureReference ? <span className="ml-2 font-mono text-terracotta">{s.scriptureReference}</span> : null}
+              {s.scriptureReference ? <span className="ml-2 font-mono text-brand">{s.scriptureReference}</span> : null}
               {s.durationSeconds ? <span className="num ml-2 text-ink-faint">{duration(s.durationSeconds)}</span> : null}
             </p>
             {s.tags?.length ? (
@@ -153,7 +153,7 @@ export default function SermonDetailPage({
           <div className="space-y-4 border-t border-line px-5 py-5 md:px-6">
             {audio ? (
               <div className="flex items-center gap-3 rounded-xl border border-line bg-muted/20 p-4">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-terracotta text-paper">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-paper">
                   <PlayCircle className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">
@@ -161,7 +161,7 @@ export default function SermonDetailPage({
                     Listen
                     <button
                       type="button"
-                      className="flex items-center gap-1 normal-case tracking-normal text-terracotta hover:underline"
+                      className="flex items-center gap-1 normal-case tracking-normal text-brand hover:underline"
                       onClick={() => { navigator.clipboard?.writeText(audio).catch(() => undefined); toast("Audio link copied."); }}
                     >
                       <Link2 className="size-2.5" /> copy link
@@ -179,8 +179,8 @@ export default function SermonDetailPage({
               <video controls preload="metadata" src={video} className="aspect-video w-full rounded-xl bg-ink" />
             ) : null}
             <p className="flex flex-wrap gap-4 text-[11px]">
-              {video ? <a href={video} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-ink-faint hover:text-terracotta"><ExternalLink className="size-3" /> Original video</a> : null}
-              {audio ? <a href={audio} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-ink-faint hover:text-terracotta"><ExternalLink className="size-3" /> Download audio</a> : null}
+              {video ? <a href={video} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-ink-faint hover:text-brand"><ExternalLink className="size-3" /> Original video</a> : null}
+              {audio ? <a href={audio} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-ink-faint hover:text-brand"><ExternalLink className="size-3" /> Download audio</a> : null}
             </p>
           </div>
         ) : null}
@@ -215,7 +215,7 @@ export default function SermonDetailPage({
         <SectionCard
           eyebrow={`More in ${s.seriesName}`}
           title="The series continues"
-          actions={<Link href={`/library/sermons?series=${encodeURIComponent(s.seriesName)}`} className="flex items-center gap-1 text-[11px] text-terracotta hover:underline"><Layers className="size-3" /> All parts</Link>}
+          actions={<Link href={`/library/sermons?series=${encodeURIComponent(s.seriesName)}`} className="flex items-center gap-1 text-[11px] text-brand hover:underline"><Layers className="size-3" /> All parts</Link>}
           bodyClassName="p-0"
         >
           <div className="divide-y divide-line/70">

@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
 const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const TYPE_COLORS: Record<EventType, string> = {
-  service: "bg-terracotta",
+  service: "bg-brand",
   conference: "bg-sky",
   lifecycle: "bg-gold",
   training: "bg-moss",
@@ -136,7 +136,7 @@ export default function EventsCalendarPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Events loaded" value={rows.length} tone="terracotta" icon={<CalendarDays className="size-4" />} deltaLabel="next hundred" />
+        <StatCard label="Events loaded" value={rows.length} tone="brand" icon={<CalendarDays className="size-4" />} deltaLabel="next hundred" />
         <StatCard label="On the selected day" value={dayEvents.length} tone="gold" />
         <StatCard label="Registrations shown" value={rows.reduce((sum, e) => sum + (e.registrationCount ?? 0), 0)} tone="moss" />
         <StatCard label="Free events" value={rows.filter((e) => e.isFree).length} tone="sky" deltaLabel="no ticket required" />
@@ -219,12 +219,12 @@ export default function EventsCalendarPage() {
                       className={cn(
                         "min-h-20 border-b border-r border-line/40 p-1.5 text-left transition-colors",
                         !inMonth && "bg-paper-deep/30",
-                        isSelected ? "bg-terracotta-soft/40" : "hover:bg-muted/40",
+                        isSelected ? "bg-brand-soft/40" : "hover:bg-muted/40",
                       )}
                     >
                       <span className={cn(
                         "num inline-grid size-5 place-items-center rounded-full text-[10px]",
-                        isToday && "bg-terracotta font-semibold text-paper",
+                        isToday && "bg-brand font-semibold text-paper",
                         !isToday && inMonth && "text-ink",
                         !isToday && !inMonth && "text-ink-faint",
                       )}

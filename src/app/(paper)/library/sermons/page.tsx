@@ -143,7 +143,7 @@ function SermonsInner() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Sermons" value={total} tone="terracotta" icon={<BookOpen className="size-4" />} deltaLabel={archivedView ? "archived" : "matching"} />
+        <StatCard label="Sermons" value={total} tone="brand" icon={<BookOpen className="size-4" />} deltaLabel={archivedView ? "archived" : "matching"} />
         <StatCard label="Series" value={seriesAgg.data?.length ?? 0} tone="moss" />
         <StatCard label="Speakers" value={speakersAgg.data?.length ?? 0} tone="sky" />
         <StatCard label="With media" value={rows.filter((s) => s.audioUrl || s.videoUrl).length} tone="gold" deltaLabel="on this page" />
@@ -163,20 +163,20 @@ function SermonsInner() {
             { value: "grid", label: "Card view", icon: <LayoutGrid className="size-3.5" /> },
           ]}
         />
-        <Button asChild variant="ghost" size="sm" className="ml-auto gap-1.5 rounded-full text-[11px] text-terracotta">
+        <Button asChild variant="ghost" size="sm" className="ml-auto gap-1.5 rounded-full text-[11px] text-brand">
           <Link href="/library/sermons/series"><Rows3 className="size-3" /> Series</Link>
         </Button>
-        <Button asChild variant="ghost" size="sm" className="rounded-full text-[11px] text-terracotta">
+        <Button asChild variant="ghost" size="sm" className="rounded-full text-[11px] text-brand">
           <Link href="/library/sermons/speakers">Speakers</Link>
         </Button>
       </div>
 
       {(series || speaker) ? (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-terracotta/30 bg-terracotta-soft/30 px-4 py-2.5 text-[11px]">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-brand/30 bg-brand-soft/30 px-4 py-2.5 text-[11px]">
           <span className="font-medium text-ink">Filtered:</span>
-          {series ? <Tag tone="terracotta">series · {series}</Tag> : null}
-          {speaker ? <Tag tone="terracotta">speaker · {speaker}</Tag> : null}
-          <button type="button" onClick={clearDeepLinks} className="ml-auto text-terracotta hover:underline">Clear</button>
+          {series ? <Tag tone="brand">series · {series}</Tag> : null}
+          {speaker ? <Tag tone="brand">speaker · {speaker}</Tag> : null}
+          <button type="button" onClick={clearDeepLinks} className="ml-auto text-brand hover:underline">Clear</button>
         </div>
       ) : null}
 
@@ -201,7 +201,7 @@ function SermonsInner() {
                 className="paper-card lift flex h-full w-full flex-col rounded-2xl p-4 text-left"
               >
                 <span className="flex items-start justify-between gap-2">
-                  <span className="grid size-10 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+                  <span className="grid size-10 place-items-center rounded-xl bg-brand-soft text-brand">
                     {sermon.videoUrl ? <Video className="size-4" /> : <Headphones className="size-4" />}
                   </span>
                   {sermon.seriesName ? <Tag tone="gold">{sermon.seriesName}</Tag> : null}
@@ -209,7 +209,7 @@ function SermonsInner() {
                 </span>
                 <span className="mt-3 line-clamp-2 font-display text-sm font-semibold leading-snug">{sermon.title}</span>
                 <span className="mt-1 text-[11px] text-ink-soft">{sermon.speaker ?? "Unknown speaker"}</span>
-                {sermon.scriptureReference ? <span className="mt-1 font-mono text-[10px] text-terracotta">{sermon.scriptureReference}</span> : null}
+                {sermon.scriptureReference ? <span className="mt-1 font-mono text-[10px] text-brand">{sermon.scriptureReference}</span> : null}
                 <span className="num mt-auto pt-3 text-[10px] text-ink-faint">
                   {formatDate(sermon.sermonDate)} · {duration(sermon.durationSeconds) ?? "—"}
                   {sermon.audioUrl ? " · audio" : ""}{sermon.videoUrl ? " · video" : ""}
@@ -234,10 +234,10 @@ function SermonsInner() {
               <div className="group grid grid-cols-[minmax(0,2.4fr)_1fr_0.8fr_0.9fr_0.8fr_1fr_auto] items-center gap-3 px-5 py-3">
                 <button type="button" onClick={() => router.push(`/library/sermons/${sermon.sermonId}`)} className="min-w-0 text-left">
                   <span className="flex items-center gap-2">
-                    <span className="truncate text-xs font-semibold hover:text-terracotta">{sermon.title}</span>
+                    <span className="truncate text-xs font-semibold hover:text-brand">{sermon.title}</span>
                     {sermon.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
                   </span>
-                  <span className="block truncate font-mono text-[10px] text-terracotta">{sermon.scriptureReference ?? ""}</span>
+                  <span className="block truncate font-mono text-[10px] text-brand">{sermon.scriptureReference ?? ""}</span>
                 </button>
                 <span className="truncate text-[11px] text-ink-soft">{sermon.speaker ?? "—"}</span>
                 <span className="truncate">

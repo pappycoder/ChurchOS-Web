@@ -153,7 +153,7 @@ function MediaInner() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Files matched" value={total} tone="terracotta" icon={<ImageIcon className="size-4" />} deltaLabel={folder === "all" ? "all folders" : folder} />
+        <StatCard label="Files matched" value={total} tone="brand" icon={<ImageIcon className="size-4" />} deltaLabel={folder === "all" ? "all folders" : folder} />
         <StatCard label="Folders" value={folderList.length} tone="moss" />
         <StatCard label="This page" value={rows.length} tone="sky" deltaLabel={`page ${page}/${totalPages}`} />
         <div className="paper-card flex flex-col justify-between gap-4 rounded-2xl p-5">
@@ -203,7 +203,7 @@ function MediaInner() {
                     onClick={() => setPreview(asset)}
                     className={cn(
                       "paper-card lift group w-full overflow-hidden rounded-2xl text-left",
-                      folder !== "all" && "ring-1 ring-terracotta/30",
+                      folder !== "all" && "ring-1 ring-brand/30",
                     )}
                   >
                     {kindOf === "image" ? (
@@ -322,7 +322,7 @@ function MediaInner() {
       />
 
       <p className="text-center text-[10px] text-ink-faint">
-        Files are church-owned and branch-scoped where assigned. <button type="button" onClick={() => router.push("/library/media/folders")} className="text-terracotta hover:underline">Manage folders</button>.
+        Files are church-owned and branch-scoped where assigned. <button type="button" onClick={() => router.push("/library/media/folders")} className="text-brand hover:underline">Manage folders</button>.
       </p>
     </div>
   );
@@ -339,7 +339,7 @@ function MediaPreviewBody({ asset }: { asset: MediaAsset }) {
   return (
     <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-10">
       <FileText className="size-6 text-ink-faint" />
-      <a href={asset.url} target="_blank" rel="noreferrer" className="text-xs text-terracotta hover:underline">Open document</a>
+      <a href={asset.url} target="_blank" rel="noreferrer" className="text-xs text-brand hover:underline">Open document</a>
     </div>
   );
 }
@@ -390,7 +390,7 @@ function UploadDialog({ open, onOpenChange, folders }: { open: boolean; onOpenCh
           <DialogDescription className="text-xs">Images are optimised automatically; audio, video and documents go straight to the folder&apos;s store.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-muted/20 py-8 text-center transition-colors hover:border-terracotta/40">
+          <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed border-line bg-muted/20 py-8 text-center transition-colors hover:border-brand/40">
             <UploadCloud className="size-6 text-ink-faint" />
             <span className="text-xs font-medium">Choose files</span>
             <span className="text-[10px] text-ink-faint">JPG/PNG → WebP · audio/video/docs up to 50 MB</span>

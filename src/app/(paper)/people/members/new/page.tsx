@@ -294,7 +294,7 @@ export default function NewMemberPage() {
                     <p className="truncate text-[11px] text-ink-faint">{form.watch("email") || "no email yet"}</p>
                   </div>
                 </div>
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-line py-3 text-[11px] text-ink-soft transition-colors hover:border-terracotta/40">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-line py-3 text-[11px] text-ink-soft transition-colors hover:border-brand/40">
                   {photoPreview ? <Camera className="size-3.5" /> : <ImagePlus className="size-3.5" />}
                   {photoPreview ? "Replace photo" : "Add a photo"}
                   <input

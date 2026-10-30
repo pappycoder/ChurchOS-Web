@@ -89,7 +89,7 @@ export default function FamilyDetailPage({
       <div className="paper-card rounded-2xl p-5 md:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <span className="grid size-14 place-items-center rounded-2xl bg-terracotta-soft text-terracotta">
+            <span className="grid size-14 place-items-center rounded-2xl bg-brand-soft text-brand">
               <Home className="size-6" />
             </span>
             <div className="space-y-1.5">
@@ -124,7 +124,7 @@ export default function FamilyDetailPage({
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StatCard label="People together" value={f.members.length} tone="terracotta" icon={<Users className="size-4" />} />
+        <StatCard label="People together" value={f.members.length} tone="brand" icon={<Users className="size-4" />} />
         <StatCard label="Linked records" value={f.members.filter((m) => m.memberId).length} tone="moss" deltaLabel="with member profiles" />
         <div className="paper-card flex flex-col justify-between gap-4 rounded-2xl p-5">
           <span className="rule-label">Created</span>
@@ -143,7 +143,7 @@ export default function FamilyDetailPage({
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/people/members/${member.memberId}`}
-                      className="block truncate text-xs font-semibold hover:text-terracotta"
+                      className="block truncate text-xs font-semibold hover:text-brand"
                     >
                       {member.firstName} {member.lastName}
                     </Link>

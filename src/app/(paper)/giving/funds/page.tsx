@@ -70,7 +70,7 @@ export default function GivingFundsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Funds" value={categories.data?.meta?.total ?? rows.length} tone="terracotta" icon={<Layers className="size-4" />} deltaLabel={archivedView ? "archived" : "defined"} />
+        <StatCard label="Funds" value={categories.data?.meta?.total ?? rows.length} tone="brand" icon={<Layers className="size-4" />} deltaLabel={archivedView ? "archived" : "defined"} />
         <StatCard label="Accepting gifts" value={activeCount} tone="moss" />
         <StatCard label="Recurring-ready" value={rows.filter((c) => c.isRecurring).length} tone="sky" deltaLabel="schedules can point here" />
         <StatCard label="Church-wide" value={rows.length} tone="gold" deltaLabel="shared across branches" />
@@ -215,14 +215,14 @@ function FundFormDialog({
             onClick={() => setForm((f) => ({ ...f, isRecurring: !f.isRecurring }))}
             className={cn(
               "flex w-full items-center justify-between rounded-xl border px-3 py-2.5 text-left text-xs transition-colors",
-              form.isRecurring ? "border-terracotta/50 bg-terracotta-soft/40" : "border-line hover:border-ink/20",
+              form.isRecurring ? "border-brand/50 bg-brand-soft/40" : "border-line hover:border-ink/20",
             )}
           >
             <span>
               <span className="block font-medium">Accepts recurring schedules</span>
               <span className="block text-[10px] text-ink-faint">Monthly givers can point their standing order here.</span>
             </span>
-            <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider", form.isRecurring ? "bg-terracotta text-paper" : "bg-muted text-ink-faint")}>
+            <span className={cn("rounded-full px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider", form.isRecurring ? "bg-brand text-paper" : "bg-muted text-ink-faint")}>
               {form.isRecurring ? "on" : "off"}
             </span>
           </button>

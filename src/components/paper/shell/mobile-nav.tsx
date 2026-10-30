@@ -42,11 +42,11 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
               href={landing}
               className={cn(
                 "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] transition-colors",
-                active ? "text-terracotta" : "text-ink-faint",
+                active ? "text-brand" : "text-ink-faint",
               )}
             >
               {active ? (
-                <span className="absolute top-0 h-0.5 w-6 rounded-full bg-terracotta" />
+                <span className="absolute top-0 h-0.5 w-6 rounded-full bg-brand" />
               ) : null}
               <area.icon className="size-[18px]" strokeWidth={1.8} />
               {area.label}
@@ -83,7 +83,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
                       className={cn(
                         "flex items-start gap-3 rounded-xl border border-line p-3 transition-colors",
                         isActive(area)
-                          ? "border-terracotta/40 bg-terracotta-soft/50"
+                          ? "border-brand/40 bg-brand-soft/50"
                           : "bg-card hover:bg-muted",
                       )}
                     >

@@ -79,7 +79,7 @@ export default function GivingSchedulesPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Schedules" value={total} tone="terracotta" icon={<CalendarClock className="size-4" />} deltaLabel="in the book" />
+        <StatCard label="Schedules" value={total} tone="brand" icon={<CalendarClock className="size-4" />} deltaLabel="in the book" />
         <StatCard label="Projected / month" value={activeMonthly} prefix="₦" tone="moss" deltaLabel="this page" />
         <StatCard label="Paused" value={rows.filter((r) => !r.isActive).length} tone="gold" deltaLabel="this page" />
         <StatCard label="Needing attention" value={rows.filter((r) => r.failedAttemptCount > 0).length} tone="rose" icon={<ShieldOff className="size-4" />} deltaLabel="failed attempts" />

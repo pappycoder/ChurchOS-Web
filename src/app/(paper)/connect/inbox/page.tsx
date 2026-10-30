@@ -89,7 +89,7 @@ export default function SharedInboxPage() {
         </div>
         <div className="flex items-center gap-2">
           <FilterChip active={box === "inbox"} onClick={() => { setBox("inbox"); setSelectedId(null); }}>
-            Inbox {unread ? <span className="num ml-1 rounded-full bg-terracotta px-1.5 text-[9px] text-paper">{unread}</span> : null}
+            Inbox {unread ? <span className="num ml-1 rounded-full bg-brand px-1.5 text-[9px] text-paper">{unread}</span> : null}
           </FilterChip>
           <FilterChip active={box === "sent"} onClick={() => { setBox("sent"); setSelectedId(null); }}>Sent</FilterChip>
           {canAnswer ? (
@@ -101,7 +101,7 @@ export default function SharedInboxPage() {
       </div>
 
       <div className="grid gap-2 sm:grid-cols-3">
-        <StatCard label="Total here" value={emailEmailsTotal(rows)} tone="terracotta" icon={<InboxIcon className="size-4" />} />
+        <StatCard label="Total here" value={emailEmailsTotal(rows)} tone="brand" icon={<InboxIcon className="size-4" />} />
         <StatCard label="Unread" value={unread} tone="gold" icon={<Mail className="size-4" />} deltaLabel="answers waiting" />
         <div className="paper-card flex flex-col justify-between gap-4 rounded-2xl p-5">
           <span className="rule-label">One desk, many hands</span>
@@ -125,7 +125,7 @@ export default function SharedInboxPage() {
                 onClick={() => open(email.id, !!email.readAt)}
                 className={cn(
                   "flex w-full items-start gap-3 border-b border-line/50 px-4 py-3 text-left transition-colors",
-                  selectedId === email.id ? "bg-terracotta-soft/40" : "hover:bg-muted/50",
+                  selectedId === email.id ? "bg-brand-soft/40" : "hover:bg-muted/50",
                 )}
               >
                 <PersonAvatar name={email.senderName ?? "?"} src={email.senderAvatarUrl} size="sm" />
@@ -134,7 +134,7 @@ export default function SharedInboxPage() {
                     <span className={cn("min-w-0 flex-1 truncate text-xs", email.readAt ? "text-ink-soft" : "font-semibold text-ink")}>
                       {box === "inbox" ? email.senderName ?? "Member" : email.recipientName}
                     </span>
-                    {!email.readAt ? <span className="size-1.5 shrink-0 rounded-full bg-terracotta" /> : null}
+                    {!email.readAt ? <span className="size-1.5 shrink-0 rounded-full bg-brand" /> : null}
                     <span className="shrink-0 text-[9px] text-ink-faint">{stamp(email.createdAt)}</span>
                   </span>
                   <span className="mt-0.5 block truncate text-[11px] font-medium">{email.subject}</span>

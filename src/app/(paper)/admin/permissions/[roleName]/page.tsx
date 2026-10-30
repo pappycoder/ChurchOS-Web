@@ -153,7 +153,7 @@ export default function RoleMatrixPage({
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Permissions granted" value={role.data.permissions.length} tone="terracotta" icon={<ShieldCheck className="size-4" />} />
+        <StatCard label="Permissions granted" value={role.data.permissions.length} tone="brand" icon={<ShieldCheck className="size-4" />} />
         <StatCard label="Available surfaces" value={all.data?.length ?? 0} tone="moss" />
         <StatCard label="Added this session" value={addedCount} tone="gold" deltaLabel={isDirty ? "not yet saved" : "—"} />
         <StatCard label="Removed this session" value={removedCount} tone="rose" deltaLabel={isDirty ? "not yet saved" : "—"} />

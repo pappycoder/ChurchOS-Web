@@ -280,7 +280,7 @@ export default function PeopleMembersPage() {
       />
 
       <StaggerGroup className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <StaggerItem><StatCard label="In the register" value={total} tone="terracotta" icon={<Rows3 className="size-4" />} deltaLabel={archivedView ? "archived view" : "matching filters"} /></StaggerItem>
+        <StaggerItem><StatCard label="In the register" value={total} tone="brand" icon={<Rows3 className="size-4" />} deltaLabel={archivedView ? "archived view" : "matching filters"} /></StaggerItem>
         <StaggerItem>
           <div className="paper-card flex h-full flex-col justify-between gap-4 rounded-2xl p-5">
             <span className="rule-label">On this page</span>
@@ -447,7 +447,7 @@ export default function PeopleMembersPage() {
                       ) : null}
                       <Link
                         href={`/people/members/${member.memberId}`}
-                        className="rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity group-hover:opacity-100 hover:underline"
+                        className="rounded-full px-2 py-1 text-[10px] text-brand opacity-0 transition-opacity group-hover:opacity-100 hover:underline"
                       >
                         Open
                       </Link>

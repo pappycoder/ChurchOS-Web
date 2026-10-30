@@ -117,7 +117,7 @@ function TicketsInner() {
           </span>
         ) : null}
         {eventId ? (
-          <Link href={`/gatherings/events/tiers?event=${encodeURIComponent(eventId)}`} className="ml-auto text-[11px] text-terracotta hover:underline">
+          <Link href={`/gatherings/events/tiers?event=${encodeURIComponent(eventId)}`} className="ml-auto text-[11px] text-brand hover:underline">
             Manage tiers →
           </Link>
         ) : null}
@@ -126,7 +126,7 @@ function TicketsInner() {
       {eventId ? (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <StatCard label="Passes issued" value={total} tone="terracotta" icon={<Ticket className="size-4" />} />
+            <StatCard label="Passes issued" value={total} tone="brand" icon={<Ticket className="size-4" />} />
             <StatCard label="Used this page" value={usedCount} tone="moss" deltaLabel={rows.length ? `${Math.round((usedCount / rows.length) * 100)}%` : "—"} />
             <StatCard label="Open this page" value={rows.length - usedCount} tone="gold" />
             <StatCard label="Capacity" value={selected?.capacity ?? 0} tone="sky" deltaLabel="event seats" />

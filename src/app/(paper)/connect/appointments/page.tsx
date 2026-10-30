@@ -116,7 +116,7 @@ export default function AppointmentsPage() {
         <StatCard label="Pending" value={summary.pending ?? 0} tone="gold" icon={<CircleDashed className="size-4" />} deltaLabel="to confirm" />
         <StatCard label="Confirmed" value={summary.confirmed ?? 0} tone="moss" icon={<CheckCircle2 className="size-4" />} />
         <StatCard label="Completed · page" value={rows.filter((a) => a.status === "completed").length} tone="sky" icon={<CalendarClock className="size-4" />} />
-        <StatCard label="On the books" value={appointments.data?.total ?? 0} tone="terracotta" icon={<Clock className="size-4" />} />
+        <StatCard label="On the books" value={appointments.data?.total ?? 0} tone="brand" icon={<Clock className="size-4" />} />
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -176,7 +176,7 @@ export default function AppointmentsPage() {
                           {APPOINTMENT_STATUS_LABELS[appointment.status as keyof typeof APPOINTMENT_STATUS_LABELS] ?? appointment.status}
                         </Tag>
                         {canUpdate && !appointment.archivedAt ? (
-                          <span className="shrink-0 rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity [.paper-card:hover_&]:opacity-100 hover:underline">
+                          <span className="shrink-0 rounded-full px-2 py-1 text-[10px] text-brand opacity-0 transition-opacity [.paper-card:hover_&]:opacity-100 hover:underline">
                             Manage
                           </span>
                         ) : null}

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { LegalDocument } from "@/components/legal/legal-document";
+import { PublicPaperShell } from "@/components/shared/public-paper-shell";
 import { legalDocuments } from "@/lib/legal";
 import { publicPageMetadata } from "@/lib/seo";
 
@@ -31,5 +32,9 @@ export default async function LegalPage({
   const { legalPage } = await params;
   const document = legalDocuments.find((item) => item.slug === legalPage);
   if (!document) notFound();
-  return <LegalDocument document={document} />;
+  return (
+    <PublicPaperShell>
+      <LegalDocument document={document} />
+    </PublicPaperShell>
+  );
 }

@@ -123,7 +123,7 @@ export default function ServiceDetailPage({
         <SectionCard
           eyebrow="Named check-ins"
           title="People counted by name"
-          actions={<Link href={`/gatherings/attendance/check-in?service=${encodeURIComponent(s.serviceId)}`} className="flex items-center gap-1 text-[11px] text-terracotta hover:underline"><UserCheck className="size-3" /> Open the desk</Link>}
+          actions={<Link href={`/gatherings/attendance/check-in?service=${encodeURIComponent(s.serviceId)}`} className="flex items-center gap-1 text-[11px] text-brand hover:underline"><UserCheck className="size-3" /> Open the desk</Link>}
           bodyClassName="p-0"
         >
           {named.isLoading ? (
@@ -171,7 +171,7 @@ export default function ServiceDetailPage({
               ) : (
                 <>
                   <p className="num font-display text-lg font-semibold">{formatNaira(giftTotal)}</p>
-                  <p className="text-[10px] text-ink-faint">{number(giftRows.length)} gifts · full ledger at <Link href="/giving/donations" className="text-terracotta hover:underline">Donations</Link></p>
+                  <p className="text-[10px] text-ink-faint">{number(giftRows.length)} gifts · full ledger at <Link href="/giving/donations" className="text-brand hover:underline">Donations</Link></p>
                   <div className="mt-3 space-y-2">
                     {topCategories.map(([name, value]) => (
                       <div key={name}>

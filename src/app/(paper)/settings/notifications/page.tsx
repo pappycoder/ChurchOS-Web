@@ -19,12 +19,12 @@ import {
 } from "@/hooks/use-notifications";
 import { number } from "@/lib/paper/format";
 
-function typeTone(type: string): "terracotta" | "moss" | "gold" | "sky" | "rose" | "neutral" {
+function typeTone(type: string): "brand" | "moss" | "gold" | "sky" | "rose" | "neutral" {
   if (type.includes("member")) return "moss";
   if (type.includes("giving") || type.includes("payment")) return "gold";
   if (type.includes("event") || type.includes("attendance")) return "sky";
   if (type.includes("error") || type.includes("fail")) return "rose";
-  return "terracotta";
+  return "brand";
 }
 
 export default function SettingsNotificationsPage() {
@@ -53,7 +53,7 @@ export default function SettingsNotificationsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Waiting unread" value={unreadCount} tone="terracotta" icon={<Inbox className="size-4" />} deltaLabel="across the feed" />
+        <StatCard label="Waiting unread" value={unreadCount} tone="brand" icon={<Inbox className="size-4" />} deltaLabel="across the feed" />
         <StatCard label="Recent events" value={rows.length} tone="moss" deltaLabel="this snapshot" />
         <StatCard label="Event kinds seen" value={types.length} tone="sky" />
         <StatCard label="All caught up?" value={unreadCount === 0 ? 1 : 0} tone="gold" deltaLabel={unreadCount === 0 ? "yes — rare and lovely" : "not yet"} />
@@ -83,7 +83,7 @@ export default function SettingsNotificationsPage() {
               {rows.map((notification) => (
                 <StaggerItem key={notification.id}>
                   <div className="flex items-start gap-3 px-5 py-3">
-                    <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${notification.readAt ? "bg-line" : "bg-terracotta"}`} />
+                    <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${notification.readAt ? "bg-line" : "bg-brand"}`} />
                     <span className="min-w-0 flex-1">
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-xs font-medium">{notification.title}</span>
@@ -97,7 +97,7 @@ export default function SettingsNotificationsPage() {
               ))}
               <div className="flex items-center justify-between border-t border-line px-5 py-2.5 text-[11px] text-ink-faint">
                 <span>Showing <span className="num">{number(rows.length)}</span> of <span className="num">{number(list.data?.total ?? rows.length)}</span></span>
-                <Link href="/notifications" className="flex items-center gap-1 text-terracotta hover:underline">
+                <Link href="/notifications" className="flex items-center gap-1 text-brand hover:underline">
                   Day filters, unread-only and the drawer live in the feed <ArrowRight className="size-3" />
                 </Link>
               </div>

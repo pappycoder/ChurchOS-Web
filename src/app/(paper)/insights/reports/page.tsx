@@ -251,7 +251,7 @@ export default function ReportsStudioPage() {
                 onClick={() => toggleBlock(block.id)}
                 className={cn(
                   "flex shrink-0 items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors xl:w-full",
-                  blocks.includes(block.id) ? "border-terracotta/40 bg-terracotta-soft/30" : "border-line bg-card hover:border-terracotta/40",
+                  blocks.includes(block.id) ? "border-brand/40 bg-brand-soft/30" : "border-line bg-card hover:border-brand/40",
                 )}
               >
                 <span className="grid size-7 place-items-center rounded-lg bg-muted text-ink-soft">
@@ -293,7 +293,7 @@ export default function ReportsStudioPage() {
             </header>
 
             <div className="mt-6 grid grid-cols-2 gap-3">
-              {fin ? <StatCard label="Giving" value={fin.grandTotal} prefix="₦" tone="terracotta" deltaLabel={`${number(fin.transactionCount)} transactions`} /> : null}
+              {fin ? <StatCard label="Giving" value={fin.grandTotal} prefix="₦" tone="brand" deltaLabel={`${number(fin.transactionCount)} transactions`} /> : null}
               {att ? <StatCard label="Attendance" value={att.totalAttendance} tone="moss" deltaLabel={`avg ${number(Math.round(att.averagePerService))}/service`} /> : null}
               {mem ? <StatCard label="Members" value={mem.totalMembers} tone="sky" deltaLabel={`${number(mem.newMembersInPeriod)} new in period`} /> : null}
               {!fin && !att && !mem ? (

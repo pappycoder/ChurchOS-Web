@@ -1,13 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BarChart3,
+  House,
   BookOpen,
   Boxes,
   CalendarDays,
   HandCoins,
   MessageSquare,
   Settings2,
-  Sparkles,
   Users,
 } from "lucide-react";
 
@@ -55,7 +55,7 @@ export const PAPER_AREAS: PaperArea[] = [
     id: "today",
     label: "Today",
     href: "/home",
-    icon: Sparkles,
+    icon: House,
     blurb: "Your day, at a glance",
     planPath: "/dashboard",
     children: [

@@ -100,7 +100,7 @@ export default function EventDetailPage({
       </Link>
 
       <div className="paper-card overflow-hidden rounded-2xl">
-        <div className="h-2 bg-[linear-gradient(90deg,var(--terracotta),var(--gold)_55%,var(--moss))]" />
+        <div className="h-2 bg-[linear-gradient(90deg,var(--brand),var(--gold)_55%,var(--moss))]" />
         <div className="flex flex-wrap items-start justify-between gap-4 p-5 md:p-6">
           <div className="min-w-0 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
@@ -160,7 +160,7 @@ export default function EventDetailPage({
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Registered" value={stats.data.registered} tone="terracotta" icon={<Users className="size-4" />} />
+        <StatCard label="Registered" value={stats.data.registered} tone="brand" icon={<Users className="size-4" />} />
         <StatCard label="Attended" value={stats.data.attended} tone="moss" />
         <StatCard label="Walk-ins" value={stats.data.walkIns} tone="gold" />
         <StatCard label="No-shows" value={stats.data.noShows} tone="sky" deltaLabel="to follow up" />

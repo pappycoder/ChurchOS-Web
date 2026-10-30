@@ -98,7 +98,7 @@ export default function SettingsBillingPage() {
       <div className="paper-card overflow-hidden rounded-2xl">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-muted/30 px-5 py-4">
           <div className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+            <span className="grid size-10 place-items-center rounded-xl bg-brand-soft text-brand">
               <Sparkles className="size-4" />
             </span>
             <div>
@@ -137,7 +137,7 @@ export default function SettingsBillingPage() {
               <p className="text-[9px] uppercase tracking-wider text-ink-faint">{cell.label}</p>
               <p className="num mt-0.5 text-xs font-semibold">{cell.value}</p>
               <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-terracotta" style={{ width: `${Math.min(100, cell.pct)}%` }} />
+                <div className="h-full rounded-full bg-brand" style={{ width: `${Math.min(100, cell.pct)}%` }} />
               </div>
             </div>
           ))}
@@ -157,12 +157,12 @@ export default function SettingsBillingPage() {
                     key={entry.id}
                     className={cn(
                       "rounded-xl border p-4 transition-colors",
-                      current ? "border-terracotta/50 bg-terracotta-soft/40" : "border-line",
+                      current ? "border-brand/50 bg-brand-soft/40" : "border-line",
                     )}
                   >
                     <p className="flex items-center justify-between text-xs font-semibold">
                       {entry.name}
-                      {current ? <Tag tone="terracotta">Current</Tag> : null}
+                      {current ? <Tag tone="brand">Current</Tag> : null}
                     </p>
                     <p className="num mt-2 font-display text-2xl font-semibold">
                       {subscriptionMoney(entry.monthly, d.baseCurrency)}
@@ -223,7 +223,7 @@ export default function SettingsBillingPage() {
                   </StaggerItem>
                 ))}
                 <div className="bg-muted/20 px-5 py-2.5 text-[10px] text-ink-faint">
-                  <Link href="/help" className="flex items-center gap-1 text-terracotta hover:underline">
+                  <Link href="/help" className="flex items-center gap-1 text-brand hover:underline">
                     <Download className="size-3" /> How billing &amp; renewals work — the guide
                   </Link>
                 </div>

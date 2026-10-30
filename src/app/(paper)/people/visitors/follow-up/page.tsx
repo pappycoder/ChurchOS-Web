@@ -157,7 +157,7 @@ export default function VisitorFollowUpBoardPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="On the board" value={rows.length} tone="terracotta" />
+        <StatCard label="On the board" value={rows.length} tone="brand" />
         <StatCard label="Awaiting first hello" value={(byColumn.get("new") ?? []).length} tone="gold" deltaLabel="under 48h old" />
         <StatCard label="In conversation" value={(byColumn.get("interested") ?? []).length + (byColumn.get("scheduled") ?? []).length} tone="sky" />
         <StatCard label="Unassigned" value={unassigned} tone={unassigned ? "rose" : "moss"} />
@@ -196,7 +196,7 @@ export default function VisitorFollowUpBoardPage() {
                 </span>
               </Link>
               <span className="hidden w-36 truncate text-[11px] text-ink-soft md:block">
-                {visitor.assignedToName ?? <span className="text-terracotta">Unassigned</span>}
+                {visitor.assignedToName ?? <span className="text-brand">Unassigned</span>}
               </span>
               <span className="num hidden w-24 text-right text-[10px] text-ink-faint sm:block">{formatDate(visitor.firstVisitDate)}</span>
               <select
@@ -287,7 +287,7 @@ function BoardColumn({
       ref={setNodeRef}
       className={
         isOver
-          ? "flex flex-col rounded-2xl border-2 border-terracotta/50 bg-terracotta-soft/30 p-2"
+          ? "flex flex-col rounded-2xl border-2 border-brand/50 bg-brand-soft/30 p-2"
           : "flex flex-col rounded-2xl border-2 border-transparent bg-paper-deep/40 p-2"
       }
     >
@@ -373,7 +373,7 @@ function CardFace({
           <Link
             href={`/people/visitors/${visitor.id}`}
             onPointerDown={(event) => event.stopPropagation()}
-            className="block truncate text-[11px] font-semibold hover:text-terracotta"
+            className="block truncate text-[11px] font-semibold hover:text-brand"
           >
             {visitor.firstName} {visitor.lastName ?? ""}
           </Link>
