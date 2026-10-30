@@ -158,21 +158,21 @@ export const PAPER_AREAS: PaperArea[] = [
   {
     id: "giving",
     label: "Giving",
-    href: "/giving",
+    href: "/giving/overview",
     icon: HandCoins,
     blurb: "Generosity and stewardship",
     planPath: "/giving",
     children: [
       {
         title: "Stewardship",
-        href: "/giving",
+        href: "/giving/overview",
         planPath: "/giving",
         children: [
-          { title: "Overview", href: "/giving", description: "This season's generosity", permission: "giving:dashboard:read", live: false, planPath: "/giving" },
-          { title: "Donations", href: "/giving/donations", description: "Every gift, one feed", permission: "giving:records:read", live: false, planPath: "/giving/records" },
-          { title: "Funds", href: "/giving/funds", description: "Designated giving", permission: "giving:categories:read", live: false, planPath: "/giving/categories" },
-          { title: "Recurring", href: "/giving/recurring", description: "Scheduled gifts", permission: "giving:recurring:read", live: false, planPath: "/giving/recurring" },
-          { title: "Statements", href: "/giving/statements", description: "Year-end receipts", permission: "giving:reports:read", live: false, planPath: "/giving/reports" },
+          { title: "Overview", href: "/giving/overview", description: "This season's generosity", permission: "giving:dashboard:read", live: true, planPath: "/giving" },
+          { title: "Donations", href: "/giving/donations", description: "Every gift, one feed", permission: "giving:records:read", live: true, planPath: "/giving/records" },
+          { title: "Funds", href: "/giving/funds", description: "Designated giving", permission: "giving:categories:read", live: true, planPath: "/giving/categories" },
+          { title: "Recurring", href: "/giving/schedules", description: "Scheduled gifts", permission: "giving:recurring:read", live: true, planPath: "/giving/recurring" },
+          { title: "Statements", href: "/giving/statements", description: "Year-end receipts", permission: "giving:reports:read", live: true, planPath: "/giving/reports" },
         ],
       },
     ],

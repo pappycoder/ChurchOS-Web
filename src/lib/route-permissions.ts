@@ -69,6 +69,12 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/operations/assets/loans", permission: "assets:loans:read" },
   { prefix: "/operations/assets/new", permission: "assets:list:create" },
   { prefix: "/operations/assets", permission: "assets:list:read" },
+  // Giving workspace (Paper IA) — mirrors the legacy giving surface codes. Overview and
+  // schedules sit on interim paths because /giving and /giving/recurring are still legacy pages.
+  { prefix: "/giving/donations", permission: "giving:records:read" },
+  { prefix: "/giving/funds", permission: "giving:categories:read" },
+  { prefix: "/giving/statements", permission: "giving:reports:read" },
+  { prefix: "/giving/schedules", permission: "giving:recurring:read" },
   // Admin + Settings (Paper IA) — personal pages are login-only; billing mirrors /subscription.
   // Roles/branches/integrations land on interim prefixes because the Abide IA URLs are still
   // owned by the legacy pages; they consolidate to /admin/* in the redirect pass.
