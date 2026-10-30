@@ -47,6 +47,17 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/connect/broadcasts", permission: "broadcasts:read" },
   { prefix: "/connect/messages", permission: "whatsapp:read" },
   { prefix: "/connect/appointments", permission: "appointments:read" },
+  // Library (Paper IA) — mirrors the legacy sermon/media codes.
+  { prefix: "/library/sermons/new", permission: "sermons:new:create" },
+  { prefix: "/library/sermons/series", permission: "sermons:series:read" },
+  { prefix: "/library/sermons/speakers", permission: "sermons:speakers:read" },
+  { prefix: "/library/sermons", permission: "sermons:list:read" },
+  { prefix: "/library/media/folders", permission: "media:folders:read" },
+  { prefix: "/library/media", permission: "media:library:read" },
+  // Library · Forms (Paper IA) — mirrors legacy forms codes.
+  { prefix: "/library/forms/new", permission: "forms:list:create" },
+  { prefix: "/library/forms/submissions", permission: "forms:submissions:read" },
+  { prefix: "/library/forms", permission: "forms:list:read" },
   { prefix: "/people/members", permission: "members:all:read" },
   { prefix: "/members/import", permission: "members:import:create" },
   { prefix: "/members/new", permission: "members:new:create" },

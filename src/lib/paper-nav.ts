@@ -212,10 +212,10 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/library/sermons",
         planPath: "/sermons",
         children: [
-          { title: "All sermons", href: "/library/sermons", description: "Watch and listen", permission: "sermons:list:read", live: false, planPath: "/sermons" },
-          { title: "New sermon", href: "/library/sermons/new", description: "Publish a message", permission: "sermons:new:create", live: false, planPath: "/sermons/new" },
-          { title: "Series", href: "/library/sermons/series", description: "Collections", permission: "sermons:series:read", live: false, planPath: "/sermons/series" },
-          { title: "Speakers", href: "/library/sermons/speakers", description: "Voices in the room", permission: "sermons:speakers:read", live: false, planPath: "/sermons/speakers" },
+          { title: "All sermons", href: "/library/sermons", description: "Watch and listen", permission: "sermons:list:read", live: true, planPath: "/sermons" },
+          { title: "New sermon", href: "/library/sermons/new", description: "Publish a message", permission: "sermons:new:create", live: true, planPath: "/sermons/new" },
+          { title: "Series", href: "/library/sermons/series", description: "Collections", permission: "sermons:series:read", live: true, planPath: "/sermons/series" },
+          { title: "Speakers", href: "/library/sermons/speakers", description: "Voices in the room", permission: "sermons:speakers:read", live: true, planPath: "/sermons/speakers" },
         ],
       },
       {
@@ -223,8 +223,8 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/library/media",
         planPath: "/media",
         children: [
-          { title: "Gallery", href: "/library/media", description: "Images, audio, video", permission: "media:library:read", live: false, planPath: "/media" },
-          { title: "Folders", href: "/library/media/folders", description: "Organised by theme", permission: "media:folders:read", live: false, planPath: "/media/folders" },
+          { title: "Gallery", href: "/library/media", description: "Images, audio, video", permission: "media:library:read", live: true, planPath: "/media" },
+          { title: "Folders", href: "/library/media/folders", description: "Organised by theme", permission: "media:folders:read", live: true, planPath: "/media/folders" },
         ],
       },
       {
@@ -232,9 +232,9 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/library/forms",
         planPath: "/forms",
         children: [
-          { title: "All forms", href: "/library/forms", description: "Build and send", permission: "forms:list:read", live: false, planPath: "/forms" },
-          { title: "Builder", href: "/library/forms/new", description: "Start from a blank page", permission: "forms:list:create", live: false, planPath: "/forms/new" },
-          { title: "Submissions", href: "/library/forms/submissions", description: "Answers inbox", permission: "forms:submissions:read", live: false, planPath: "/forms/submissions" },
+          { title: "All forms", href: "/library/forms", description: "Build and send", permission: "forms:list:read", live: true, planPath: "/forms" },
+          { title: "Builder", href: "/library/forms/new", description: "Start from a blank page", permission: "forms:list:create", live: true, planPath: "/forms/new" },
+          { title: "Submissions", href: "/library/forms/submissions", description: "Answers inbox", permission: "forms:submissions:read", live: true, planPath: "/forms/submissions" },
         ],
       },
     ],
