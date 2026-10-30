@@ -18,7 +18,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
   const onboarding = pathname === "/register" || pathname === "/subscription";
   return (
     <MotionConfig reducedMotion="user">
-      <div className={styles.shell}>
+      <div className={styles.shell} data-paper-root>
         <aside className={styles.story}>
           <Link href="/" aria-label="ChurchOS home" className={styles.brand}>
             <BrandLogo

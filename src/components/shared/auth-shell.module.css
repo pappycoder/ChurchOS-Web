@@ -6,8 +6,8 @@
 }
 .story {
   display: none;
-  background: #173d3e;
-  color: #f1f5e9;
+  background: #191813;
+  color: #f3eee1;
   position: relative;
   overflow: hidden;
   padding: 40px 44px 28px;
@@ -19,13 +19,13 @@
   position: absolute;
   width: 600px;
   height: 600px;
-  border: 1px solid #d6ed9714;
+  border: 1px solid #e07a5214;
   border-radius: 50%;
   left: -210px;
   top: 20%;
   box-shadow:
-    0 0 0 75px #d6ed9706,
-    0 0 0 150px #d6ed9704;
+    0 0 0 75px #e07a5206,
+    0 0 0 150px #e07a5204;
   pointer-events: none;
 }
 .brand {
@@ -39,7 +39,7 @@
   width: fit-content;
 }
 .brandDot {
-  color: #d6ed97;
+  color: #e07a52;
 }
 .storyContent {
   position: relative;
@@ -54,14 +54,14 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #d6ed97;
+  color: #e07a52;
 }
 .eyebrow > span {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #d6ed97;
-  box-shadow: 0 0 0 4px #d6ed9712;
+  background: #e07a52;
+  box-shadow: 0 0 0 4px #e07a5212;
 }
 .storyContent h2 {
   font-size: clamp(38px, 3.6vw, 59px);
@@ -71,13 +71,13 @@
   margin: 23px 0 18px;
 }
 .storyContent h2 em {
-  font-family: Georgia, serif;
+  font-family: var(--font-fraunces), Georgia, serif; font-style: italic;
   font-weight: 400;
-  color: #d6ed97;
+  color: #e07a52;
   letter-spacing: -1.8px;
 }
 .storyContent > p {
-  color: #bed0c4;
+  color: #b3ac9c;
   line-height: 1.75;
   font-size: 14px;
   max-width: 330px;
@@ -88,10 +88,10 @@
   width: 94%;
   max-width: 390px;
   transform: rotate(-2deg);
-  background: #fbfcf6;
-  color: #183b40;
+  background: #fdfbf6;
+  color: #191813;
   border-radius: 18px;
-  box-shadow: 0 24px 65px #061b2430;
+  box-shadow: 0 24px 65px #241b1250;
   border: 1px solid #ffffff30;
 }
 .previewTop {
@@ -99,7 +99,7 @@
   align-items: center;
   gap: 11px;
   padding: 17px 20px;
-  border-bottom: 1px solid #dce4d6;
+  border-bottom: 1px solid #e2dbcb;
 }
 .previewIcon {
   display: grid;
@@ -107,7 +107,7 @@
   width: 38px;
   height: 38px;
   border-radius: 12px;
-  background: #e5efcf;
+  background: #f0dcd2;
 }
 .previewTop > div {
   flex: 1;
@@ -120,11 +120,11 @@
 .previewTop div > span {
   display: block;
   font-size: 10px;
-  color: #718477;
+  color: #8b8578;
   margin-top: 3px;
 }
 .previewTop > svg {
-  color: #718477;
+  color: #8b8578;
 }
 .previewBody {
   padding: 19px 22px 20px;
@@ -134,7 +134,7 @@
   justify-content: space-between;
   font-size: 8px;
   letter-spacing: 1.5px;
-  color: #6b8071;
+  color: #8b8578;
   font-weight: 600;
 }
 .people {
@@ -148,29 +148,29 @@
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  border: 3px solid #fbfcf6;
+  border: 3px solid #fdfbf6;
   margin-right: -9px;
   font-size: 10px;
   font-weight: 650;
-  background: #d9e6d4;
+  background: #dfe6d5;
 }
 .people > span:nth-child(2) {
-  background: #eaddc7;
+  background: #f2e6c8;
 }
 .people > span:nth-child(3) {
-  background: #cadcdf;
+  background: #d9e6ea;
 }
 .people > span:nth-child(4) {
-  background: #d6ed97;
+  background: #e07a52;
 }
 .people p {
   margin-left: 25px;
   font-size: 11px;
   line-height: 1.4;
-  color: #6b8071;
+  color: #8b8578;
 }
 .people p strong {
-  color: #183b40;
+  color: #191813;
   font-size: 15px;
   font-weight: 600;
 }
@@ -179,25 +179,25 @@
   display: flex;
   gap: 8px;
   align-items: end;
-  border-bottom: 1px solid #dce4d6;
+  border-bottom: 1px solid #e2dbcb;
 }
 .barChart span {
   flex: 1;
-  background: #dcebc0;
+  background: #dfe6d5;
   border-radius: 4px 4px 0 0;
 }
 .barChart span:nth-child(3n) {
-  background: #345654;
+  background: #2e2a22;
 }
 .barChart span:last-child {
-  background: #90b66c;
+  background: #4c5f3d;
 }
 .previewBottom {
   display: flex;
   gap: 16px;
   margin-top: 17px;
   font-size: 9px;
-  color: #587061;
+  color: #56514a;
 }
 .previewBottom > span {
   display: flex;
@@ -212,12 +212,12 @@
   align-items: center;
   gap: 8px;
   border: 1px solid #caddae;
-  background: #e8f2d5;
+  background: #dfe6d5;
   padding: 10px 13px;
   border-radius: 10px;
   font-size: 10px;
   font-weight: 600;
-  box-shadow: 0 8px 25px #173d3e15;
+  box-shadow: 0 8px 25px #342c2015;
   transform: rotate(4deg);
 }
 .note > span {
@@ -226,15 +226,15 @@
   border-radius: 50%;
   width: 22px;
   height: 22px;
-  color: #e8f2d5;
-  background: #345654;
+  color: #dfe6d5;
+  background: #2e2a22;
 }
 .storyFooter {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   font-size: 10px;
-  color: #adc4b6;
+  color: #7d7668;
   position: relative;
 }
 .storyFooter > span:first-child {

@@ -83,7 +83,7 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/people/members",
         planPath: "/members",
         children: [
-          { title: "Directory", href: "/people/members", description: "Everyone in the church", permission: "members:all:read", live: false, planPath: "/members" },
+          { title: "Directory", href: "/people/members", description: "Everyone in the church", permission: "members:all:read", live: true, planPath: "/members" },
           { title: "Add a member", href: "/people/members/new", description: "Create a profile", permission: "members:new:create", live: false, planPath: "/members/new" },
           { title: "Import people", href: "/people/members/import", description: "Bring your list across", permission: "members:import:create", live: false, planPath: "/members/import" },
           { title: "Families", href: "/people/families", description: "Households and relationships", permission: "families:read", live: false, planPath: "/members/families" },
