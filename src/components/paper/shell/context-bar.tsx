@@ -143,7 +143,7 @@ function AccountMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href="/profile" className="gap-2">Your profile</Link>
+            <Link href="/settings/profile" className="gap-2">Your profile</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/subscription" className="gap-2">Plan &amp; billing</Link>

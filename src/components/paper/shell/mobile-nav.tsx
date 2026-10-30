@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowUpRight, LayoutGrid } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import type { PaperArea } from "@/lib/paper-nav";
 import { cn } from "@/lib/utils";
 import {
@@ -94,6 +94,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
   const primary = areas.slice(0, 3);
   const rest = areas.slice(3);
   const [openAreaId, setOpenAreaId] = React.useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = React.useState(false);
   const openArea = openAreaId
     ? primary.find((area) => area.id === openAreaId) ?? null
     : null;
@@ -139,7 +140,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
         })}
 
         {rest.length ? (
-          <Sheet>
+          <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
             <SheetTrigger asChild>
               <button
                 type="button"
@@ -162,31 +163,19 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
               </SheetHeader>
               <div className="space-y-6 px-4 pt-4">
                 {rest.map((area) => (
-                  <section key={area.id} className="space-y-2.5">
-                    <Link
-                      href={landingOf(area)}
-                      onClick={() => setOpenAreaId(null)}
-                      className={cn(
-                        "flex items-center gap-2.5 rounded-xl border p-3 transition-colors",
-                        isAreaActive(area, pathname)
-                          ? "border-brand/40 bg-brand-soft/50"
-                          : "border-line bg-card hover:bg-muted",
-                      )}
-                    >
-                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-ink-soft">
-                        <area.icon className="size-4" />
+                  <section key={area.id} className="space-y-2">
+                    <div className="flex items-center gap-2.5 px-1">
+                      <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-muted text-ink-soft">
+                        <area.icon className="size-3.5" />
                       </span>
-                      <span className="min-w-0 flex-1">
+                      <span className="min-w-0">
                         <span className="block text-xs font-semibold">{area.label}</span>
                         <span className="block truncate text-[10px] text-ink-faint">
                           {area.blurb}
                         </span>
                       </span>
-                      <ArrowUpRight className="size-3.5 shrink-0 text-ink-faint" />
-                    </Link>
-                    <div className="pl-1">
-                      <AreaSubmenu area={area} pathname={pathname} onNavigate={() => setOpenAreaId(null)} />
                     </div>
+                    <AreaSubmenu area={area} pathname={pathname} onNavigate={() => setMoreOpen(false)} />
                   </section>
                 ))}
               </div>
@@ -214,14 +203,6 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
                 <SheetDescription className="text-left">{openArea.blurb}</SheetDescription>
               </SheetHeader>
               <div className="space-y-5 px-4 pt-4">
-                <Link
-                  href={landingOf(openArea)}
-                  onClick={() => setOpenAreaId(null)}
-                  className="flex items-center justify-between rounded-xl border border-brand/30 bg-brand-soft/30 p-3 text-xs font-semibold text-brand transition-colors hover:bg-brand-soft/50"
-                >
-                  Open {openArea.label}
-                  <ArrowUpRight className="size-4" />
-                </Link>
                 <AreaSubmenu area={openArea} pathname={pathname} onNavigate={() => setOpenAreaId(null)} />
               </div>
             </>

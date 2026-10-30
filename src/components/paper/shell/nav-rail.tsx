@@ -167,7 +167,7 @@ export function NavRail({
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
-                href="/profile"
+                href="/settings/profile"
                 aria-label="Your profile"
                 className="mt-1 rounded-full ring-offset-2 ring-offset-card transition-transform hover:scale-105"
               >
@@ -210,6 +210,7 @@ export function NavRail({
                           <Link
                             key={leaf.href}
                             href={leaf.href}
+                            onClick={() => setOpenArea(null)}
                             className={cn(
                               "group flex items-center gap-2 rounded-lg px-1.5 py-1.5 text-xs transition-colors",
                               active
