@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   CalendarDays,
   HandCoins,
@@ -220,6 +221,12 @@ export default function VisitorsPage() {
                     <span className="num text-[11px] text-ink-soft">{visitor.firstVisitDate.slice(0, 10)}</span>
                     <span className="truncate text-[11px] text-ink-faint">{visitor.assignedToName ?? "—"}</span>
                     <div className="flex items-center justify-end gap-1.5">
+                      <Link
+                        href={`/people/visitors/${visitor.id}`}
+                        className="rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity group-hover:opacity-100 hover:underline"
+                      >
+                        Open
+                      </Link>
                       {canUpdate ? (
                         <button type="button" onClick={() => { setEditTarget(visitor); setFormOpen(true); }} className="rounded-full px-2 py-1 text-[10px] text-terracotta opacity-0 transition-opacity group-hover:opacity-100 hover:underline">
                           Edit

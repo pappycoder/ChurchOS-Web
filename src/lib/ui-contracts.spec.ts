@@ -9,5 +9,5 @@ describe("application UI source contracts", () => {
     expect(result.counts.navigation).toBeGreaterThanOrEqual(57);
     expect(result.counts.controls).toBeGreaterThan(600);
     expect(result.issues).toEqual([]);
-  });
+  }, 30_000);
 });

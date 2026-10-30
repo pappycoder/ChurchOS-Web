@@ -96,7 +96,7 @@ export const PAPER_AREAS: PaperArea[] = [
         planPath: "/visitors",
         children: [
           { title: "Pipeline", href: "/people/visitors", description: "First-time guests", permission: "visitors:list:read", live: true, planPath: "/visitors" },
-          { title: "Follow-up", href: "/people/visitors/follow-up", description: "Who to reach this week", permission: "visitors:list:read", live: false, planPath: "/visitors/follow-up" },
+          { title: "Follow-up", href: "/people/visitors/follow-up", description: "Who to reach this week", permission: "visitors:list:read", live: true, planPath: "/visitors/follow-up" },
         ],
       },
       {
@@ -105,9 +105,10 @@ export const PAPER_AREAS: PaperArea[] = [
         planPath: "/pastoral",
         children: [
           { title: "Notes", href: "/people/pastoral", description: "Care conversation log", permission: "pastoral:notes:read", live: true, planPath: "/pastoral" },
-          { title: "Care calendar", href: "/people/pastoral/care", description: "Visits and check-ins", permission: "pastoral:notes:read", live: false, planPath: "/pastoral" },
-          { title: "Risk radar", href: "/people/pastoral/risk", description: "Who may need attention", permission: "pastoral:risk-scores:read", live: false, planPath: "/pastoral/risk-scores" },
-          { title: "Life events", href: "/people/pastoral/life-events", description: "Milestones to mark", permission: "pastoral:life-events:read", live: false, planPath: "/pastoral/life-events" },
+          { title: "Care calendar", href: "/people/pastoral/care", description: "Milestones and visits", permission: "pastoral:life-events:read", live: true, planPath: "/pastoral/life-events" },
+          { title: "Life events", href: "/people/pastoral/life-events", description: "Dates to mark", permission: "pastoral:life-events:read", live: true, planPath: "/pastoral/life-events" },
+          { title: "Risk radar", href: "/people/pastoral/risk", description: "Who may need attention", permission: "pastoral:risk-scores:read", live: true, planPath: "/pastoral/risk-scores" },
+          { title: "Engagement", href: "/people/pastoral/engagement", description: "Who we're reaching", permission: "pastoral:engagement:read", live: true, planPath: "/pastoral/engagement" },
         ],
       },
     ],
