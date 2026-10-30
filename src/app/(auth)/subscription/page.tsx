@@ -359,7 +359,7 @@ export default function SubscriptionPage() {
   if (!isAuthenticated)
     return (
       <div className="mx-auto max-w-lg space-y-4 p-8">
-        <h1 className="text-2xl font-semibold">Plan & Billing</h1>
+        <h1 className="font-display text-2xl font-semibold">Plan & Billing</h1>
         <p>
           Sign in to your church administrator account to manage subscriptions.
         </p>
@@ -371,7 +371,7 @@ export default function SubscriptionPage() {
   if (!status.allowed && status.accessReady)
     return (
       <div className="mx-auto max-w-lg space-y-5 p-8">
-        <h1 className="text-2xl font-semibold">Contact your administrator</h1>
+        <h1 className="font-display text-2xl font-semibold">Contact your administrator</h1>
         <p>
           Your church administrator manages the ChurchOS subscription. Please
           contact them to activate or renew your workspace.
@@ -732,7 +732,7 @@ export default function SubscriptionPage() {
                           </p>
                         ) : quote.data && !quote.isError ? (
                           <>
-                            <p className="text-2xl font-semibold">
+                            <p className="font-display text-2xl font-semibold">
                               {subscriptionMoney(
                                 quote.data.amount,
                                 quote.data.currency || paymentCurrency,

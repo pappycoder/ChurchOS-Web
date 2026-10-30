@@ -11,10 +11,12 @@ import { BrandLogo } from "@/components/shared/brand-logo";
 export function PublicPaperShell({ children }: { children: React.ReactNode }) {
   return (
     <div data-paper-root className="flex min-h-svh flex-col bg-background text-foreground">
-      <MarketingNavigation />
+      <div className="print:hidden">
+        <MarketingNavigation />
+      </div>
       {/* The landing header is fixed — clear it. */}
       <main className="flex-1 pt-20 sm:pt-24">{children}</main>
-      <footer className="border-t border-line">
+      <footer className="border-t border-line print:hidden">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-7">
           <span className="flex items-center gap-2.5">
             <BrandLogo variant="mark" emblemClassName="size-8" />
@@ -24,7 +26,7 @@ export function PublicPaperShell({ children }: { children: React.ReactNode }) {
           </span>
           <span className="flex items-center gap-4 text-[11px]">
             <Link href="/help" className="text-ink-soft hover:text-ink">Help centre</Link>
-            <Link href="/support" className="text-ink-soft hover:text-ink">Support</Link>
+            <Link href="/help/contact-support" className="text-ink-soft hover:text-ink">Contact support</Link>
             <Link href="/" className="text-ink-soft hover:text-ink">Home</Link>
           </span>
         </div>

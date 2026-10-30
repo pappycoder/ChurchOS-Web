@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, Mail, Scale } from "lucide-react";
-import { BrandLogo } from "@/components/shared/brand-logo";
 import { LegalNavigation } from "./legal-navigation";
 import { PrintDocument } from "./print-document";
 import {
@@ -13,31 +12,16 @@ import type { LegalDocument as Document } from "@/lib/legal/types";
 
 export function LegalDocument({ document }: { document: Document }) {
   return (
-    <div className="legal-document min-h-screen bg-background text-foreground">
+    <div className="legal-document text-foreground">
       <a
         href="#legal-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:p-3"
       >
         Skip to document
       </a>
-      <header className="border-b print:hidden">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-5 sm:px-8">
-          <Link
-            href="/"
-            aria-label="ChurchOS home"
-            className="flex items-center gap-3"
-          >
-            <BrandLogo variant="mark" emblemClassName="!size-9" />
-            <span className="text-xl font-semibold tracking-tight">
-              ChurchOS
-            </span>
-          </Link>
-          <LegalNavigation />
-        </div>
-      </header>
-      <main
+      <div
         id="legal-content"
-        className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14"
+        className="legal-body mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-10"
       >
         <div className="mb-10 max-w-4xl space-y-5">
           <Link
@@ -47,7 +31,7 @@ export function LegalDocument({ document }: { document: Document }) {
             <ArrowLeft className="size-4" />
             Back to ChurchOS
           </Link>
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.2em] text-primary">
+          <p className="rule-label flex items-center gap-2">
             <Scale className="size-4" />
             Legal centre
           </p>
@@ -79,7 +63,7 @@ export function LegalDocument({ document }: { document: Document }) {
           </div>
         </div>
         <div className="grid min-w-0 items-start gap-10 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-14">
-          <aside className="rounded-2xl border bg-muted/25 p-5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto print:hidden">
+          <aside className="paper-card rounded-2xl p-5 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto print:hidden">
             <nav aria-label="On this page">
               <h2 className="mb-4 text-sm font-semibold">On this page</h2>
               <ol className="space-y-3 text-xs leading-5 text-muted-foreground">
@@ -106,7 +90,7 @@ export function LegalDocument({ document }: { document: Document }) {
               ))}
             </div>
             <aside
-              className="rounded-2xl border border-primary/20 bg-accent/35 p-5 sm:p-7"
+              className="rounded-2xl border border-brand/25 bg-brand-soft/40 p-5 sm:p-7"
               aria-labelledby="important-points"
             >
               <h2 id="important-points" className="mb-3 text-lg font-semibold">
@@ -136,7 +120,7 @@ export function LegalDocument({ document }: { document: Document }) {
                   {section.title}
                 </h2>
                 {section.notice && (
-                  <p className="rounded-xl border-2 border-primary/30 bg-accent/40 p-5 font-semibold leading-7">
+                  <p className="rounded-xl border border-brand/30 bg-brand-soft/40 p-5 font-semibold leading-7">
                     {section.notice}
                   </p>
                 )}
@@ -197,7 +181,7 @@ export function LegalDocument({ document }: { document: Document }) {
               </section>
             ))}
             <section
-              className="rounded-2xl border bg-muted/25 p-5 sm:p-7"
+              className="paper-card rounded-2xl p-5 sm:p-7"
               aria-labelledby="legal-contact-title"
             >
               <h2 id="legal-contact-title" className="text-xl font-semibold">
@@ -222,24 +206,17 @@ export function LegalDocument({ document }: { document: Document }) {
             </section>
           </article>
         </div>
-      </main>
-      <footer className="mt-10 border-t print:hidden">
-        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 sm:px-8">
-          <LegalNavigation label="Related legal documents" />
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-            <p>
-              © {new Date().getFullYear()} {LEGAL_COMPANY.name}. ChurchOS.
-            </p>
-            <Link
-              href="/help"
-              className="inline-flex items-center gap-1 hover:text-primary"
-            >
-              Help Centre
-              <ArrowUpRight className="size-3" />
-            </Link>
-          </div>
-        </div>
-      </footer>
+      </div>
+      <div className="mx-auto mt-14 flex max-w-6xl flex-wrap items-center justify-between gap-4 border-t border-line px-4 pb-4 sm:px-6 print:hidden">
+        <LegalNavigation label="Related legal documents" />
+        <Link
+          href="/help"
+          className="inline-flex items-center gap-1 text-xs text-ink-faint transition-colors hover:text-brand"
+        >
+          Help Centre
+          <ArrowUpRight className="size-3" />
+        </Link>
+      </div>
     </div>
   );
 }

@@ -1,15 +1,16 @@
 "use client";
-import { LegalNavigation } from "@/components/legal/legal-navigation";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, BookOpen } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { BrandLogo } from "@/components/shared/brand-logo";
-import { ColorModeToggle } from "@/components/shared/color-mode-toggle";
-import { Button } from "@/components/ui/button";
+import { BookOpen } from "lucide-react";
 import { helpArticles, helpTopics } from "@/lib/help/catalog";
-import { SUPPORT_CONTACT_PATH } from "@/lib/support";
+
+/**
+ * @file Help Centre browser — the topic rail + article body. The page frame
+ * (marketing header, Paper tokens, footer) comes from PublicPaperShell in the
+ * help layout; this component only owns the two-column browse layout and the
+ * topic navigation, styled with the Paper grammar.
+ */
 
 function TopicNavigation() {
   const path = usePathname();
@@ -19,7 +20,7 @@ function TopicNavigation() {
       <Link
         href="/help"
         aria-current={path === "/help" ? "page" : undefined}
-        className="flex items-center gap-2 text-sm font-semibold text-primary"
+        className="flex items-center gap-2 font-display text-sm font-semibold text-brand"
       >
         <BookOpen className="size-4" />
         All guides
@@ -28,12 +29,12 @@ function TopicNavigation() {
         <div key={topic.id} className="space-y-2">
           <Link
             href={`/help?topic=${topic.id}`}
-            className="block text-sm font-medium hover:text-primary"
+            className="block text-sm font-medium transition-colors hover:text-brand"
           >
             {topic.title}
           </Link>
           {article?.topic === topic.id && (
-            <ul className="space-y-1 border-l pl-3">
+            <ul className="space-y-1 border-l border-line pl-3">
               {helpArticles
                 .filter((item) => item.topic === topic.id)
                 .map((item) => (
@@ -41,7 +42,11 @@ function TopicNavigation() {
                     <Link
                       href={`/help/${item.slug}`}
                       aria-current={item.slug === article.slug ? "page" : undefined}
-                      className={`block rounded-md px-2 py-2 text-sm leading-relaxed ${item.slug === article.slug ? "bg-accent font-medium text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`}
+                      className={`block rounded-lg px-2 py-1.5 text-[13px] leading-relaxed transition-colors ${
+                        item.slug === article.slug
+                          ? "bg-brand-soft/60 font-medium text-ink"
+                          : "text-ink-faint hover:bg-muted hover:text-ink"
+                      }`}
                     >
                       {item.title}
                     </Link>
@@ -56,80 +61,20 @@ function TopicNavigation() {
 }
 
 export function HelpShell({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
-  const content = (
-    <div className="space-y-6">
-      <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12">
-        <aside className="sticky top-24 hidden rounded-xl border bg-card p-5 lg:block">
-          <TopicNavigation />
-        </aside>
-        <div className="min-w-0 space-y-6">
-          <details className="rounded-xl border bg-card p-4 lg:hidden">
-            <summary className="cursor-pointer text-sm font-medium">Browse help topics</summary>
-            <div className="mt-5">
-              <TopicNavigation />
-            </div>
-          </details>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Public articles remain server-rendered and readable before session restoration or without JS.
   return (
-    <div className="min-h-svh bg-background text-foreground">
-      <a
-        href="#help-main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-card focus:p-3 focus:shadow"
-      >
-        Skip to content
-      </a>
-      <header className="border-b bg-card/60">
-        <nav
-          aria-label="Help Centre navigation"
-          className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8"
-        >
-          <Link href="/help" className="flex items-center gap-2" aria-label="ChurchOS Help Centre">
-            <BrandLogo variant="mark" emblemClassName="!size-8" />
-            <span className="font-semibold">
-              ChurchOS{" "}
-              <span className="text-sm font-normal text-muted-foreground">/ Help Centre</span>
-            </span>
-          </Link>
-          <div className="flex flex-wrap items-center gap-2">
-            <ColorModeToggle />
-            <Button asChild size="sm" variant="ghost"><Link href={isAuthenticated ? "/support" : SUPPORT_CONTACT_PATH}>Support</Link></Button>
-            <Button asChild size="sm" variant="outline">
-              <Link href={isAuthenticated ? "/dashboard" : "/"}>
-                <ArrowLeft className="size-4" />
-                {isAuthenticated ? "Back to dashboard" : "Back to home"}
-              </Link>
-            </Button>
+    <div className="grid min-w-0 items-start gap-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-12">
+      <aside className="paper-card sticky top-28 hidden rounded-2xl p-5 lg:block">
+        <TopicNavigation />
+      </aside>
+      <div className="min-w-0 space-y-6">
+        <details className="paper-card rounded-2xl p-4 lg:hidden">
+          <summary className="cursor-pointer font-display text-sm font-semibold">Browse help topics</summary>
+          <div className="mt-5">
+            <TopicNavigation />
           </div>
-        </nav>
-      </header>
-      <main
-        id="help-main"
-        tabIndex={-1}
-        className="mx-auto max-w-[1440px] px-4 py-6 outline-none sm:px-6 lg:px-8 lg:py-8"
-      >
-        {content}
-      </main>
-      <footer className="mt-10 border-t">
-        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm text-muted-foreground sm:px-6 lg:px-8">
-          <p>Practical help for the people behind your church.</p>
-          <nav aria-label="Help footer" className="flex flex-wrap gap-5">
-            <Link href={isAuthenticated ? "/dashboard" : "/"}>
-              {isAuthenticated ? "Dashboard" : "ChurchOS home"}
-            </Link>
-            <Link href="/help">All guides</Link>
-            <Link href="/help/get-help-and-report-a-problem">Get help</Link>
-            <Link href={isAuthenticated ? "/support" : SUPPORT_CONTACT_PATH}>Contact support</Link>
-          </nav>
-        </div>
-        <div className="mx-auto max-w-6xl px-5 pb-6"><LegalNavigation /></div>
-      </footer>
+        </details>
+        {children}
+      </div>
     </div>
   );
 }

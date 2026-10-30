@@ -43,7 +43,7 @@ export default function HelpPage() {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link href="/support">
+          <Link href="/help/contact-support">
             Contact ChurchOS Support
           </Link>
         </Button>

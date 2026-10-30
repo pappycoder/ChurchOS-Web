@@ -37,6 +37,7 @@ export default function RoleMatrixPage({
   const { roleName } = React.use(params);
   const { can, ready } = usePermissions();
   const canRead = ready && can("roles", "read");
+  const canManage = ready && can("roles", "update");
 
   const role = useRolePermissions(roleName);
   const all = useAllPermissions();
@@ -71,6 +72,10 @@ export default function RoleMatrixPage({
   useUnsavedChanges(isDirty);
 
   const handleToggle = (permission: Permission, next: boolean) => {
+    if (!canManage) {
+      toast("Your role can view the matrix, but only roles:update can change it.");
+      return;
+    }
     if (locked) {
       toast("The platform admin role is locked.");
       return;
@@ -165,6 +170,8 @@ export default function RoleMatrixPage({
           <p className="text-[10px] text-ink-faint">
             {locked
               ? "The platform admin holds everything — this view is read-only."
+              : !canManage
+                ? "Your role can read the matrix — changing it needs the roles update grant."
               : isOwned
                 ? "This role owns its own set — unticks revoke immediately on save."
                 : "Additions save for this church; global defaults cannot be revoked."}
@@ -174,13 +181,13 @@ export default function RoleMatrixPage({
           allPermissions={all.data ?? []}
           grantedIds={grantedIds}
           selectedIds={current}
-          locked={locked}
+          locked={locked || !canManage}
           blockedFromRemovalIds={blockedFromRemovalIds}
           onToggle={handleToggle}
         />
       </div>
 
-      {!locked && role.data.isCustomized && !isDirty ? (
+      {canManage && !locked && role.data.isCustomized && !isDirty ? (
         <div className="paper-card flex flex-wrap items-center justify-between gap-3 rounded-2xl p-5">
           <div>
             <p className="text-xs font-semibold">Reset to the global defaults?</p>

@@ -123,7 +123,7 @@ function PublicFormContent({ token }: { token: string }) {
         </span>
       </header>
       <main className="mx-auto grid w-full max-w-6xl min-w-0 gap-0 px-4 pb-10 sm:px-8 lg:grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)]">
-        <aside className="relative overflow-hidden rounded-t-3xl bg-[#173d3e] px-6 py-8 text-white sm:p-10 lg:rounded-l-3xl lg:rounded-tr-none">
+        <aside className="relative overflow-hidden rounded-t-3xl bg-[var(--brand)] px-6 py-8 text-white sm:p-10 lg:rounded-l-3xl lg:rounded-tr-none">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -right-28 -top-28 size-80 rounded-full border-[40px] border-white/5"
@@ -275,7 +275,7 @@ function PublicFormContent({ token }: { token: string }) {
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full rounded-xl bg-[#173d3e] text-white hover:bg-[#214e4f]"
+                  className="w-full rounded-xl bg-[var(--brand)] text-white transition hover:brightness-110"
                   disabled={sending}
                 >
                   {sending ? (

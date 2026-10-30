@@ -12,13 +12,13 @@ export default function OfflinePage() {
   // Keep this public route available as the service worker’s connection fallback.
   return (
     <PublicPaperShell>
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <div className="max-w-md space-y-4 text-center">
-        <h1 className="text-2xl font-semibold">Offline access is temporarily unavailable</h1>
-        <p className="text-muted-foreground">Please reconnect to continue using ChurchOS.</p>
-        <Link href="/" prefetch={false} className="inline-block text-primary underline">Return to ChurchOS</Link>
+    <div className="flex min-h-[60vh] items-center justify-center p-6">
+      <div className="paper-card max-w-md space-y-4 rounded-2xl p-8 text-center">
+        <h1 className="font-display text-2xl font-semibold">Offline access is temporarily unavailable</h1>
+        <p className="text-sm leading-relaxed text-ink-soft">Please reconnect to continue using ChurchOS.</p>
+        <Link href="/" prefetch={false} className="inline-block text-sm font-medium text-brand underline underline-offset-4">Return to ChurchOS</Link>
       </div>
-    </main>
+    </div>
     </PublicPaperShell>
   );
 }
