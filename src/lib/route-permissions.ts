@@ -51,6 +51,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/connect/appointments", permission: "appointments:read" },
   // Library (Paper IA) — mirrors the legacy sermon/media codes.
   { prefix: "/library/sermons/new", permission: "sermons:new:create" },
+  { prefix: "/library/sermons/[sermonId]/edit", permission: "sermons:update" },
+  { prefix: "/people/visitors/import", permission: "visitors:new:create" },
   { prefix: "/library/sermons/series", permission: "sermons:series:read" },
   { prefix: "/library/sermons/speakers", permission: "sermons:speakers:read" },
   { prefix: "/library/sermons", permission: "sermons:list:read" },
@@ -58,6 +60,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/library/media", permission: "media:library:read" },
   // Library · Forms (Paper IA) — mirrors legacy forms codes.
   { prefix: "/library/forms/new", permission: "forms:list:create" },
+  { prefix: "/library/forms/[formId]/edit", permission: "forms:list:update" },
+  { prefix: "/library/forms/[formId]/fill", permission: "forms:list:read" },
   { prefix: "/library/forms/submissions", permission: "forms:submissions:read" },
   { prefix: "/library/forms", permission: "forms:list:read" },
   // Insights + Operations (Paper IA) — mirror the legacy analytics/reports/assets codes.
@@ -70,6 +74,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/operations/assets/maintenance", permission: "assets:maintenance:read" },
   { prefix: "/operations/assets/loans", permission: "assets:loans:read" },
   { prefix: "/operations/assets/new", permission: "assets:list:create" },
+  { prefix: "/operations/assets/[assetId]/edit", permission: "assets:list:update", allOf: ["assets:list:read"] },
+  { prefix: "/admin/team/[profileId]", permission: "users:read", allOf: ["profiles:read"] },
   { prefix: "/operations/assets", permission: "assets:list:read" },
   // Giving workspace (Paper IA) — mirrors the legacy giving surface codes. Overview and
   // schedules sit on interim paths because /giving and /giving/recurring are still legacy pages.

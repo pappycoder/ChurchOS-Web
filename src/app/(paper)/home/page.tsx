@@ -286,7 +286,7 @@ function UpcomingEvents({ className }: { className?: string }) {
         {upcoming.map((event) => (
           <Link
             key={event.eventId}
-            href={`/events/${event.eventId}`}
+            href={`/gatherings/events/${event.eventId}`}
             className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-muted/50"
           >
             <div className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-card">

@@ -154,9 +154,14 @@ export default function FormDetailPage({
                 <RefreshCcw className="size-3.5" /> New link
               </Button>
             ) : null}
+            {f.status === "published" && ready && can("forms:list", "read") ? (
+              <Button asChild variant="outline" size="sm" className="h-8 rounded-full border-line bg-card text-xs">
+                <Link href={`/library/forms/${f.id}/fill`}>Open — fill as member</Link>
+              </Button>
+            ) : null}
             {canUpdate ? (
               <Button asChild variant="outline" size="sm" className="h-8 rounded-full border-line bg-card text-xs">
-                <Link href={`/forms/${f.id}/edit`}>Edit in builder</Link>
+                <Link href={`/library/forms/${f.id}/edit`}>Edit in builder</Link>
               </Button>
             ) : null}
           </div>

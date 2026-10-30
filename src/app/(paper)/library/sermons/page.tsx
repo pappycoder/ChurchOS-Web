@@ -256,7 +256,7 @@ function SermonsInner() {
                 </span>
                 <div className="flex justify-end gap-1">
                   {canUpdate && !sermon.archivedAt ? (
-                    <Link href={`/sermons/${sermon.sermonId}/edit`} className="rounded-full px-2 py-1 text-[10px] text-ink-faint opacity-0 transition-opacity hover:text-ink group-hover:opacity-100">
+                    <Link href={`/library/sermons/${sermon.sermonId}/edit`} className="rounded-full px-2 py-1 text-[10px] text-ink-faint opacity-0 transition-opacity hover:text-ink group-hover:opacity-100">
                       Edit
                     </Link>
                   ) : null}

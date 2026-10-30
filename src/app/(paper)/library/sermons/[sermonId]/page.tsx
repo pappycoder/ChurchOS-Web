@@ -141,7 +141,7 @@ export default function SermonDetailPage({
             </Button>
             {canUpdate ? (
               <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-full border-line bg-card text-xs">
-                <Link href={`/sermons/${s.sermonId}/edit`}>
+                <Link href={`/library/sermons/${s.sermonId}/edit`}>
                   <PencilLine className="size-3.5" /> Edit
                 </Link>
               </Button>

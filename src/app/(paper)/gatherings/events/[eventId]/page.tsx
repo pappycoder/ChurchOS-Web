@@ -126,7 +126,7 @@ export default function EventDetailPage({
             ) : null}
             {canManageTickets && !e.isFree ? (
               <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-full border-line bg-card text-xs">
-                <Link href={`/events/${e.eventId}/tiers`}>
+                <Link href={`/gatherings/events/tiers?event=${encodeURIComponent(e.eventId)}`}>
                   <Ticket className="size-3.5" /> Tiers
                 </Link>
               </Button>

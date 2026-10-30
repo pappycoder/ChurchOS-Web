@@ -26,7 +26,7 @@ export default function AssetDetailPage({
         </Link>
         {canUpdate && asset.data ? (
           <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-full border-line bg-card text-xs">
-            <Link href={`/assets/${assetId}/edit`}>
+            <Link href={`/operations/assets/${assetId}/edit`}>
               <PencilLine className="size-3.5" /> Edit asset
             </Link>
           </Button>

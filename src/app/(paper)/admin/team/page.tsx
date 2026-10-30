@@ -170,7 +170,7 @@ export default function AdminTeamPage() {
               <StaggerItem key={member.profileId}>
                 <div className="paper-card flex h-full flex-col rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <button type="button" onClick={() => router.push(`/admin/users/${member.profileId}`)} className="flex min-w-0 items-center gap-3 text-left">
+                    <button type="button" onClick={() => router.push(`/admin/team/${member.profileId}`)} className="flex min-w-0 items-center gap-3 text-left">
                       <PersonAvatar name={`${member.firstName} ${member.lastName}`} src={member.avatarUrl} size="md" />
                       <div className="min-w-0">
                         <p className="truncate text-xs font-semibold">{member.firstName} {member.lastName}</p>
@@ -191,7 +191,7 @@ export default function AdminTeamPage() {
                             </DropdownMenuItem>
                           ) : null}
                           {canUpdate ? (
-                            <DropdownMenuItem className="gap-2 text-xs" onClick={() => router.push(`/admin/users/${member.profileId}`)}>
+                            <DropdownMenuItem className="gap-2 text-xs" onClick={() => router.push(`/admin/team/${member.profileId}`)}>
                               <UserPlus className="size-3.5" /> Open full record
                             </DropdownMenuItem>
                           ) : null}

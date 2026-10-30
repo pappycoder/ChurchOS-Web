@@ -145,7 +145,7 @@ export default function FormsListPage() {
                           <Inbox className="size-3.5" /> Open &amp; answers
                         </DropdownMenuItem>
                         {canCreate && !form.archivedAt ? (
-                          <DropdownMenuItem className="gap-2 text-xs" onClick={() => router.push(`/forms/${form.id}/edit`)}>
+                          <DropdownMenuItem className="gap-2 text-xs" onClick={() => router.push(`/library/forms/${form.id}/edit`)}>
                             <Plus className="size-3.5" /> Edit in builder
                           </DropdownMenuItem>
                         ) : null}

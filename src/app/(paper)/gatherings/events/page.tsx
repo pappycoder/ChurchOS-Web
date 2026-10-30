@@ -328,7 +328,7 @@ export default function EventsCalendarPage() {
                 <Link href="/gatherings/attendance">Attendance &amp; reports</Link>
               </Button>
               <Button asChild variant="outline" size="sm" className="h-8 justify-start gap-2 rounded-full border-line bg-card text-[11px]">
-                <Link href="/events/registrations">All registrations</Link>
+                <Link href="/gatherings/events/registrations">All registrations</Link>
               </Button>
             </div>
           </aside>

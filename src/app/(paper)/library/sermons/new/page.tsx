@@ -32,7 +32,7 @@ export default function NewSermonPage() {
     try {
       const sermon = await create.mutateAsync(input);
       toast.success(`${sermon.title} saved — attach the recordings next.`);
-      router.replace(`/sermons/${sermon.sermonId}/edit`);
+      router.replace(`/library/sermons/${sermon.sermonId}/edit`);
       return sermon;
     } catch (error) {
       toast.error(getToastErrorMessage(error, "Couldn't save the sermon details."));
