@@ -41,6 +41,12 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/people/pastoral/risk", permission: "pastoral:risk-scores:read" },
   { prefix: "/people/pastoral/engagement", permission: "pastoral:engagement:read" },
   { prefix: "/people/pastoral", permission: "pastoral:notes:read" },
+  // Connect (Paper IA) — mirrors the legacy communication codes.
+  { prefix: "/connect/inbox", permission: "emails:read" },
+  { prefix: "/connect/templates", permission: "templates:read" },
+  { prefix: "/connect/broadcasts", permission: "broadcasts:read" },
+  { prefix: "/connect/messages", permission: "whatsapp:read" },
+  { prefix: "/connect/appointments", permission: "appointments:read" },
   { prefix: "/people/members", permission: "members:all:read" },
   { prefix: "/members/import", permission: "members:import:create" },
   { prefix: "/members/new", permission: "members:new:create" },
