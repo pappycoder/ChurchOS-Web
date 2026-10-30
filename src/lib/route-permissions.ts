@@ -102,6 +102,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   // Attendance
   { prefix: "/gatherings/attendance/check-in", permission: "attendance:checkin:create" },
   { prefix: "/gatherings/attendance/services", permission: "attendance:services:read" },
+  { prefix: "/gatherings/attendance/reports", permission: "attendance:reports:read" },
   { prefix: "/gatherings/attendance/records", permission: "attendance:records:read" },
   { prefix: "/gatherings/attendance", permission: "attendance:dashboard:read" },
   { prefix: "/gatherings/groups/cell", permission: "cell_groups:read" },
@@ -125,6 +126,8 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/gatherings/events/registrations", permission: "events:registrations:read" },
   { prefix: "/gatherings/events/tiers", permission: "events:tickets:read" },
   { prefix: "/gatherings/events/[eventId]", permission: "events:all:read" },
+  { prefix: "/gatherings/events/[eventId]/edit", permission: "events:update" },
+  { prefix: "/gatherings/events/tickets", permission: "events:tickets:read" },
   { prefix: "/gatherings/events", permission: "events:calendar:read" },
   { prefix: "/events/check-in", permission: "events:checkin:create" },
   { prefix: "/events/new", permission: "events:create" },

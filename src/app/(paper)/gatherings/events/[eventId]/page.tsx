@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   CalendarDays,
   MapPin,
+  PencilLine,
   ScanLine,
   Ticket,
   Users,
@@ -62,6 +63,7 @@ export default function EventDetailPage({
   const canSeeAttendance = ready && can("events:checkin", "read");
   const canCheckIn = ready && can("events:checkin", "create");
   const canManageTickets = ready && can("events:tickets", "read");
+  const canEditEvent = ready && can("events", "update");
 
   if (event.isLoading) {
     return (
@@ -128,6 +130,13 @@ export default function EventDetailPage({
               <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-full border-line bg-card text-xs">
                 <Link href={`/gatherings/events/tiers?event=${encodeURIComponent(e.eventId)}`}>
                   <Ticket className="size-3.5" /> Tiers
+                </Link>
+              </Button>
+            ) : null}
+            {canEditEvent && !e.archivedAt ? (
+              <Button asChild variant="outline" size="sm" className="h-8 gap-1.5 rounded-full border-line bg-card text-xs">
+                <Link href={`/gatherings/events/${e.eventId}/edit`}>
+                  <PencilLine className="size-3.5" /> Edit
                 </Link>
               </Button>
             ) : null}

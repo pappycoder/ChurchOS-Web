@@ -131,6 +131,7 @@ export const PAPER_AREAS: PaperArea[] = [
           { title: "Check-in", href: "/gatherings/events/check-in", description: "Kiosk mode", permission: "events:checkin:create", live: true, planPath: "/events/check-in" },
           { title: "Registrations", href: "/gatherings/events/registrations", description: "Who's coming", permission: "events:registrations:read", live: true, planPath: "/events/registrations" },
           { title: "Ticket tiers", href: "/gatherings/events/tiers", description: "Pricing and capacity", permission: "events:tickets:read", live: true, planPath: "/events/management" },
+          { title: "Passes", href: "/gatherings/events/tickets", description: "Assign, print, track", permission: "events:tickets:read", live: true, planPath: "/events/management" },
         ],
       },
       {
@@ -142,6 +143,7 @@ export const PAPER_AREAS: PaperArea[] = [
           { title: "Live check-in", href: "/gatherings/attendance/check-in", description: "Sunday morning", permission: "attendance:checkin:create", live: true, planPath: "/attendance/check-in" },
           { title: "Services", href: "/gatherings/attendance/services", description: "Every gathering", permission: "attendance:services:read", live: true, planPath: "/attendance/services" },
           { title: "Records", href: "/gatherings/attendance/records", description: "History and exports", permission: "attendance:records:read", live: true, planPath: "/attendance/records" },
+          { title: "Reports", href: "/gatherings/attendance/reports", description: "The room, reported", permission: "attendance:reports:read", live: true, planPath: "/attendance/reports" },
         ],
       },
       {

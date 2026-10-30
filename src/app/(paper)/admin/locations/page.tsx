@@ -112,7 +112,7 @@ export default function AdminBranchesPage() {
           {rows.map((branch) => (
             <StaggerItem key={branch.branchId}>
               <div className="group flex items-center gap-4 px-5 py-3.5">
-                <button type="button" onClick={() => router.push(`/admin/branches/${branch.branchId}`)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                <button type="button" onClick={() => router.push(`/admin/locations/${branch.branchId}`)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                   <PersonAvatar name={branch.name} size="md" />
                   <span className="min-w-0">
                     <span className="flex items-center gap-2">

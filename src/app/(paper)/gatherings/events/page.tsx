@@ -122,7 +122,7 @@ export default function EventsCalendarPage() {
         actions={
           <>
             <Button asChild variant="outline" className="h-9 gap-1.5 rounded-full border-line bg-card text-xs">
-              <Link href="/events/management">
+              <Link href="/gatherings/events/tickets">
                 <Tickets className="size-3.5" /> Tickets
               </Link>
             </Button>

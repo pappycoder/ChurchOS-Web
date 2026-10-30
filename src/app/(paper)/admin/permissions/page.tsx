@@ -92,7 +92,7 @@ export default function AdminRolesPage() {
               <StaggerItem key={role.roleName}>
                 <button
                   type="button"
-                  onClick={() => router.push(`/admin/roles/${role.roleName}`)}
+                  onClick={() => router.push(`/admin/permissions/${role.roleName}`)}
                   className="group flex w-full items-center gap-4 px-5 py-3.5 text-left transition-colors hover:bg-muted/40"
                 >
                   <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
@@ -127,7 +127,7 @@ export default function AdminRolesPage() {
         surface while the Paper version matures.
       </div>
 
-      <CreateRoleDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={(name) => router.push(`/admin/roles/${name}`)} />
+      <CreateRoleDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={(name) => router.push(`/admin/permissions/${name}`)} />
     </div>
   );
 }
