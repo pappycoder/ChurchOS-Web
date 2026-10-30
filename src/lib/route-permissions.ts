@@ -69,6 +69,16 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/operations/assets/loans", permission: "assets:loans:read" },
   { prefix: "/operations/assets/new", permission: "assets:list:create" },
   { prefix: "/operations/assets", permission: "assets:list:read" },
+  // Admin + Settings (Paper IA) — personal pages are login-only; billing mirrors /subscription.
+  // Roles/branches/integrations land on interim prefixes because the Abide IA URLs are still
+  // owned by the legacy pages; they consolidate to /admin/* in the redirect pass.
+  { prefix: "/admin/team", permission: "users:read", allOf: ["profiles:read"] },
+  { prefix: "/admin/permissions", permission: "roles:read" },
+  { prefix: "/admin/church", permission: "church_settings:update" },
+  { prefix: "/admin/locations", permission: "branches:directory:read" },
+  { prefix: "/admin/channels", permission: "integrations:read" },
+  { prefix: "/settings/billing", permission: "billing:read" },
+  { prefix: "/settings" },
   { prefix: "/people/members", permission: "members:all:read" },
   { prefix: "/members/import", permission: "members:import:create" },
   { prefix: "/members/new", permission: "members:new:create" },

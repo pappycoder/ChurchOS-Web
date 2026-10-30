@@ -1,0 +1,182 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Building2, MapPin, Plus, Users } from "lucide-react";
+import { toast } from "@/lib/toast";
+import { PageHeader } from "@/components/paper/section";
+import { StatCard, Tag } from "@/components/paper/stat";
+import {
+  EmptyState,
+  FilterChip,
+  PersonAvatar,
+  SearchField,
+} from "@/components/paper/primitives";
+import { StaggerGroup, StaggerItem } from "@/components/paper/motion/primitives";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArchiveConfirmDialog, type ArchiveDialogKind } from "@/components/shared/archive-confirm-dialog";
+import { BranchFormDialog } from "@/components/branches/branch-form-dialog";
+import { usePermissions } from "@/hooks/use-permissions";
+import {
+  useBranchesList,
+  useArchiveBranch,
+  useRestoreArchiveBranch,
+  useDeleteBranch,
+  type Branch,
+} from "@/hooks/use-branches";
+import { formatDate } from "@/hooks/use-media";
+import { number } from "@/lib/paper/format";
+
+type DialogState = { kind: ArchiveDialogKind; branch: Branch } | null;
+
+export default function AdminBranchesPage() {
+  const router = useRouter();
+  const { can, ready } = usePermissions();
+  const canCreate = ready && can("branches", "create");
+  const canUpdate = ready && can("branches", "update");
+  const canDelete = ready && can("branches", "delete");
+
+  const [query, setQuery] = React.useState("");
+  const [search, setSearch] = React.useState("");
+  const [archivedView, setArchivedView] = React.useState(false);
+  const [formTarget, setFormTarget] = React.useState<{ open: boolean; branch: Branch | null }>({ open: false, branch: null });
+  const [archiveState, setArchiveState] = React.useState<DialogState>(null);
+
+  React.useEffect(() => {
+    const t = setTimeout(() => setSearch(query), 350);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const branches = useBranchesList({ search: search || undefined, archived: archivedView ? true : undefined, limit: 100, sortBy: "name", sortOrder: "asc" });
+  const archive = useArchiveBranch();
+  const restore = useRestoreArchiveBranch();
+  const del = useDeleteBranch();
+
+  const rows = branches.data?.data ?? [];
+  const total = branches.data?.total ?? 0;
+  const membersCovered = rows.reduce((sum, b) => sum + (b.memberCount ?? 0), 0);
+
+  const archiveMutation =
+    archiveState?.kind === "restore" ? restore : archiveState?.kind === "purge" ? del : archive;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow={
+          <Link href="/admin/church" className="flex items-center gap-1.5 hover:text-ink">
+            <ArrowLeft className="size-3" /> Admin · Church
+          </Link>
+        }
+        title="Many rooms, one register."
+        description="Every campus and meeting place — members, services and reports follow the branch they belong to."
+        actions={
+          canCreate ? (
+            <Button className="h-9 gap-1.5 rounded-full text-xs" onClick={() => setFormTarget({ open: true, branch: null })}>
+              <Plus className="size-3.5" /> Add branch
+            </Button>
+          ) : null
+        }
+      />
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="Branches" value={total} tone="terracotta" icon={<Building2 className="size-4" />} deltaLabel={archivedView ? "archived" : "active"} />
+        <StatCard label="Headquarters" value={rows.filter((b) => b.isHeadquarters).length} tone="gold" />
+        <StatCard label="Members covered" value={membersCovered} tone="moss" icon={<Users className="size-4" />} deltaLabel="on this page" />
+        <StatCard label="Locations named" value={rows.filter((b) => b.city).length} tone="sky" />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchField value={query} onChange={setQuery} placeholder="Search name, city or address…" className="w-full max-w-xs" />
+        <FilterChip active={archivedView} onClick={() => setArchivedView((v) => !v)}>Archived</FilterChip>
+      </div>
+
+      {branches.isLoading ? (
+        <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
+      ) : rows.length === 0 ? (
+        <EmptyState
+          icon={<Building2 />}
+          title={archivedView ? "No archived branches" : "One church, no branches yet"}
+          description="A branch is a room people gather in — add one when the second Sunday service starts."
+          action={canCreate ? <Button size="sm" variant="outline" className="rounded-full border-line text-xs" onClick={() => setFormTarget({ open: true, branch: null })}>Add the first branch</Button> : undefined}
+        />
+      ) : (
+        <StaggerGroup className="paper-card divide-y divide-line/70 overflow-hidden rounded-2xl">
+          {rows.map((branch) => (
+            <StaggerItem key={branch.branchId}>
+              <div className="group flex items-center gap-4 px-5 py-3.5">
+                <button type="button" onClick={() => router.push(`/admin/branches/${branch.branchId}`)} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                  <PersonAvatar name={branch.name} size="md" />
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="truncate text-xs font-semibold">{branch.name}</span>
+                      {branch.isHeadquarters ? <Tag tone="gold">HQ</Tag> : null}
+                      {branch.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
+                    </span>
+                    <span className="mt-0.5 flex items-center gap-1.5 text-[10px] text-ink-faint">
+                      <MapPin className="size-2.5" />
+                      <span className="truncate">{[branch.city, branch.state].filter(Boolean).join(", ") || "No address on file"}</span>
+                      <span className="num ml-2 shrink-0">{number(branch.memberCount ?? 0)} members</span>
+                    </span>
+                  </span>
+                </button>
+                <span className="hidden text-[10px] text-ink-faint sm:block">added {formatDate(branch.createdAt)}</span>
+                {canUpdate || canDelete ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button type="button" aria-label={`Manage ${branch.name}`} className="grid size-7 place-items-center rounded-full text-ink-faint hover:bg-muted hover:text-ink">⋯</button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      {canUpdate && !branch.archivedAt ? (
+                        <DropdownMenuItem className="text-xs" onClick={() => setFormTarget({ open: true, branch })}>Edit</DropdownMenuItem>
+                      ) : null}
+                      {canDelete && !branch.archivedAt ? (
+                        <DropdownMenuItem className="text-xs" onClick={() => setArchiveState({ kind: "archive", branch })}>Archive</DropdownMenuItem>
+                      ) : null}
+                      {branch.archivedAt && canUpdate ? (
+                        <DropdownMenuItem className="text-xs" onClick={() => setArchiveState({ kind: "restore", branch })}>Restore</DropdownMenuItem>
+                      ) : null}
+                      {branch.archivedAt && canDelete ? (
+                        <DropdownMenuItem className="text-xs text-rose" onClick={() => setArchiveState({ kind: "purge", branch })}>Delete forever</DropdownMenuItem>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+              </div>
+            </StaggerItem>
+          ))}
+        </StaggerGroup>
+      )}
+
+      <div className="rounded-2xl border border-dashed border-line p-5 text-[11px] leading-relaxed text-ink-soft">
+        <p className="mb-1 font-display text-xs font-semibold text-ink">Branch scope is real</p>
+        Staff see their branch&apos;s people and numbers; Admin HQ reads across all of them. Archiving keeps the
+        history intact — deleting forever only works once no members are still assigned.
+      </div>
+
+      <BranchFormDialog
+        open={formTarget.open}
+        onOpenChange={(value) => setFormTarget({ open: value, branch: value ? formTarget.branch : null })}
+        branch={formTarget.branch}
+      />
+
+      <ArchiveConfirmDialog
+        open={!!archiveState}
+        onOpenChange={(value) => { if (!value) setArchiveState(null); }}
+        kind={archiveState?.kind ?? "archive"}
+        entityLabel="branch"
+        targetName={archiveState?.branch.name ?? null}
+        targetId={archiveState?.branch.branchId ?? ""}
+        mutation={archiveMutation}
+        onConfirmed={() => { setArchiveState(null); toast.success("Register updated."); }}
+      />
+    </div>
+  );
+}

@@ -293,7 +293,7 @@ export const PAPER_AREAS: PaperArea[] = [
   {
     id: "admin",
     label: "Admin",
-    href: "/admin/users",
+    href: "/admin/team",
     icon: Settings2,
     blurb: "People, roles, and settings",
     planPath: "/admin/users",
@@ -303,8 +303,8 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/admin/users",
         planPath: "/admin/users",
         children: [
-          { title: "Team members", href: "/admin/team", description: "Staff and volunteers", permission: "users:read", allOf: ["profiles:read"], live: false, planPath: "/admin/users" },
-          { title: "Roles", href: "/admin/roles", description: "What each role can do", permission: "roles:read", live: false, planPath: "/admin/roles" },
+          { title: "Team members", href: "/admin/team", description: "Staff and volunteers", permission: "users:read", allOf: ["profiles:read"], live: true, planPath: "/admin/users" },
+          { title: "Roles", href: "/admin/permissions", description: "What each role can do", permission: "roles:read", live: true, planPath: "/admin/roles" },
         ],
       },
       {
@@ -312,9 +312,21 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/admin/church",
         planPath: "/admin/settings",
         children: [
-          { title: "Church settings", href: "/admin/church", description: "Name, times, location", permission: "church_settings:update", live: false, planPath: "/admin/settings" },
-          { title: "Branches", href: "/admin/branches", description: "Locations and campuses", permission: "branches:directory:read", live: false, planPath: "/admin/branches" },
-          { title: "Integrations", href: "/admin/integrations", description: "Connect your tools", permission: "integrations:read", live: false, planPath: "/admin/integrations" },
+          { title: "Church settings", href: "/admin/church", description: "Name, times, location", permission: "church_settings:update", live: true, planPath: "/admin/settings" },
+          { title: "Branches", href: "/admin/locations", description: "Locations and campuses", permission: "branches:directory:read", live: true, planPath: "/admin/branches" },
+          { title: "Integrations", href: "/admin/channels", description: "Connect your tools", permission: "integrations:read", live: true, planPath: "/admin/integrations" },
+        ],
+      },
+      {
+        title: "Personal",
+        href: "/settings/profile",
+        planPath: "/profile",
+        children: [
+          { title: "Your profile", href: "/settings/profile", description: "Name, photo, phone", live: true, planPath: "/profile" },
+          { title: "Security", href: "/settings/security", description: "Password & two-factor", live: true, planPath: "/profile" },
+          { title: "Notifications", href: "/settings/notifications", description: "What reaches you", live: true, planPath: "/notifications" },
+          { title: "Appearance", href: "/settings/appearance", description: "Light, dark, rhythm", live: true, planPath: "/profile" },
+          { title: "Billing", href: "/settings/billing", description: "Plan & payments", permission: "billing:read", live: true, planPath: "/subscription" },
         ],
       },
     ],
