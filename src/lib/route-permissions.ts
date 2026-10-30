@@ -19,6 +19,9 @@ export interface RoutePermissionRule {
 export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   // Shared pages require an active authenticated profile, without a module grant.
   { prefix: "/dashboard" },
+  // Paper (Abide IA) workspace shell — Home and Notifications are shared.
+  { prefix: "/home" },
+  { prefix: "/notifications" },
   { prefix: "/subscription", permission: "billing:read" },
   { prefix: "/docs" },
   // Public Help Centre is also a workspace navigation destination.

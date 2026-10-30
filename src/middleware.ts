@@ -13,6 +13,16 @@ export function middleware(request: NextRequest) {
 
   const protectedPaths = [
     "/dashboard",
+    // Paper (Abide IA) routes — protected like the legacy workspace pages.
+    "/home",
+    "/people",
+    "/gatherings",
+    "/connect",
+    "/library",
+    "/insights",
+    "/operations",
+    "/settings",
+    "/search",
     "/docs",
     "/members",
     "/attendance",

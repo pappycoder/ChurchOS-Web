@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Fraunces, Inter_Tight } from "next/font/google";
 import "sonner/dist/styles.css";
 import "./globals.css";
 import "./modern-ui.css";
@@ -16,6 +17,20 @@ const inter = localFont({
   src: "../assets/fonts/inter-variable.ttf",
   weight: "100 900",
   variable: "--font-inter",
+  display: "swap",
+});
+
+// Abide "Paper" display + body faces (used only inside [data-paper-root])
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  axes: ["opsz"],
+  display: "swap",
+});
+
+const interTight = Inter_Tight({
+  subsets: ["latin"],
+  variable: "--font-inter-tight",
   display: "swap",
 });
 
@@ -82,7 +97,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(inter.variable, "h-full antialiased")}
+      className={cn(inter.variable, fraunces.variable, interTight.variable, "h-full antialiased")}
       suppressHydrationWarning
     >
       <body

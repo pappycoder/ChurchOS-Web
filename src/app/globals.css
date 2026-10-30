@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "./theme.css";
 @import "./workspace-theme.css";
+@import "./paper-tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -1,0 +1,285 @@
+"use client";
+
+import * as React from "react";
+import { Search, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+export { Tag } from "./stat";
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+const sizes = {
+  xs: "size-6 text-[9px]",
+  sm: "size-8 text-[10px]",
+  md: "size-10 text-xs",
+  lg: "size-14 text-base",
+  xl: "size-20 text-xl",
+};
+
+export function PersonAvatar({
+  name,
+  hue,
+  size = "md",
+  className,
+  ring = false,
+  src,
+}: {
+  name: string;
+  hue?: number;
+  size?: keyof typeof sizes;
+  className?: string;
+  ring?: boolean;
+  src?: string;
+}) {
+  const resolvedHue =
+    hue ??
+    Array.from(name).reduce((acc, char) => acc + char.charCodeAt(0), 0) % 360;
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={name}
+        className={cn(
+          "inline-block shrink-0 rounded-full object-cover",
+          sizes[size],
+          ring && "ring-2 ring-card",
+          className,
+        )}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "inline-grid shrink-0 place-items-center rounded-full font-semibold uppercase tracking-wide text-white/95",
+        sizes[size],
+        ring && "ring-2 ring-card",
+        className,
+      )}
+      style={{
+        background: `linear-gradient(145deg, hsl(${resolvedHue} 52% 52%), hsl(${
+          (resolvedHue + 28) % 360
+        } 46% 38%))`,
+      }}
+      aria-hidden
+    >
+      {initials(name)}
+    </span>
+  );
+}
+
+export function AvatarStack({
+  people,
+  max = 3,
+  size = "sm",
+}: {
+  people: { name: string; hue?: number; src?: string }[];
+  max?: number;
+  size?: keyof typeof sizes;
+}) {
+  const shown = people.slice(0, max);
+  const rest = people.length - shown.length;
+  return (
+    <div className="flex items-center">
+      {shown.map((person, i) => (
+        <PersonAvatar
+          key={person.name + i}
+          name={person.name}
+          hue={person.hue}
+          src={person.src}
+          size={size}
+          ring
+          className={i > 0 ? "-ml-2" : undefined}
+        />
+      ))}
+      {rest > 0 ? (
+        <span
+          className={cn(
+            "-ml-2 inline-grid shrink-0 place-items-center rounded-full bg-muted text-[10px] font-semibold text-ink-soft ring-2 ring-card",
+            sizes[size],
+          )}
+        >
+          +{rest}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+export function SearchField({
+  value,
+  onChange,
+  placeholder = "Search…",
+  className,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn("relative", className)}>
+      <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-ink-faint" />
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="h-9 rounded-lg border-line bg-card pl-9 pr-8 text-sm shadow-none"
+      />
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          aria-label="Clear search"
+          className="absolute right-2 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-full text-ink-faint hover:bg-muted hover:text-ink"
+        >
+          <X className="size-3" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+export function FilterChip({
+  active,
+  children,
+  onClick,
+  count,
+}: {
+  active?: boolean;
+  children: React.ReactNode;
+  onClick?: () => void;
+  count?: number;
+}) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={onClick}
+      className={cn(
+        "h-8 gap-1.5 rounded-full border-line bg-card px-3 text-xs font-medium shadow-none",
+        active && "border-ink/20 bg-ink text-paper hover:bg-ink/90 hover:text-paper",
+      )}
+    >
+      {children}
+      {count !== undefined ? (
+        <span
+          className={cn(
+            "num rounded-full px-1.5 text-[10px]",
+            active ? "bg-paper/20" : "bg-muted text-ink-soft",
+          )}
+        >
+          {count}
+        </span>
+      ) : null}
+    </Button>
+  );
+}
+
+export function ViewToggle<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T;
+  options: { value: T; label: string; icon: React.ReactNode }[];
+  onChange: (value: T) => void;
+}) {
+  return (
+    <div className="inline-flex items-center rounded-lg border border-line bg-card p-0.5">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          onClick={() => onChange(option.value)}
+          aria-label={option.label}
+          aria-pressed={value === option.value}
+          className={cn(
+            "grid size-7 place-items-center rounded-md text-ink-faint transition-colors [&_svg]:size-3.5",
+            value === option.value
+              ? "bg-ink text-paper"
+              : "hover:bg-muted hover:text-ink",
+          )}
+        >
+          {option.icon}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}: {
+  icon?: React.ReactNode;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line px-6 py-14 text-center",
+        className,
+      )}
+    >
+      {icon ? (
+        <span className="grid size-11 place-items-center rounded-full bg-muted text-ink-faint [&_svg]:size-5">
+          {icon}
+        </span>
+      ) : null}
+      <div className="space-y-1">
+        <p className="font-display text-sm font-semibold">{title}</p>
+        {description ? (
+          <p className="mx-auto max-w-sm text-xs leading-relaxed text-ink-soft">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+export function FieldRow({
+  label,
+  children,
+  className,
+}: {
+  label: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex items-start justify-between gap-4 py-2.5", className)}>
+      <span className="text-xs text-ink-faint">{label}</span>
+      <span className="text-right text-xs font-medium text-ink">{children}</span>
+    </div>
+  );
+}
+
+export function DataList({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <div className={cn("divide-y divide-line/70", className)}>{children}</div>;
+}
