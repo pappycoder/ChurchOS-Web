@@ -43,3 +43,22 @@ it('includes giving and financial reports in Essentials alongside member and att
    expect(planAllowsPath(community, '/events/check-in?eventId=event')).toBe(true);
    expect(planAllowsPath(['giving', 'reports'], '/events/check-in')).toBe(false);
  });
+
+it('maps Paper (Abide IA) routes to the same feature boundaries as legacy paths', () => {
+  expect(featureForPath('/insights')).toBe('analytics');
+  expect(featureForPath('/insights/reports')).toBe('reports');
+  expect(featureForPath('/operations/assets')).toBe('assets');
+  expect(featureForPath('/gatherings/events/tiers')).toBe('tickets');
+  expect(featureForPath('/gatherings/events/tickets')).toBe('tickets');
+  expect(featureForPath('/gatherings/events/registrations')).toBe('events');
+  expect(featureForPath('/gatherings/events')).toBe('events');
+  expect(featureForPath('/gatherings/groups')).toBe('groups');
+  expect(featureForPath('/connect/broadcasts')).toBe('email');
+  expect(featureForPath('/connect/appointments')).toBe('pastoral');
+  expect(featureForPath('/library/forms')).toBe('forms');
+  expect(featureForPath('/library/sermons')).toBe('media');
+  expect(featureForPath('/people/pastoral')).toBe('pastoral');
+  expect(featureForPath('/admin/channels')).toBe('giving');
+  expect(planAllowsPath(['giving', 'reports'], '/insights/reports')).toBe(true);
+  expect(planAllowsPath(['giving'], '/operations/assets')).toBe(false);
+});

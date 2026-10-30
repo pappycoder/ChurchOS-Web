@@ -149,7 +149,7 @@ export default function SettingsBillingPage() {
         <div className="space-y-4">
           <div className="paper-card rounded-2xl p-5">
             <p className="rule-label mb-3">Change plan — grow when it&apos;s time, not before</p>
-            <div className="grid gap-2 md:grid-cols-3">
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
               {d.catalog.map((entry) => {
                 const current = sub?.plan === entry.id;
                 return (
@@ -181,6 +181,19 @@ export default function SettingsBillingPage() {
                   </div>
                 );
               })}
+              <div className="rounded-xl border border-line p-4">
+                <p className="flex items-center justify-between text-xs font-semibold">
+                  Enterprise
+                  <Tag tone="gold">By agreement</Tag>
+                </p>
+                <p className="num mt-2 font-display text-2xl font-semibold">Negotiated</p>
+                <p className="mt-1 text-[10px] text-ink-faint">
+                  Everything in Network, plus custom terms, onboarding and support agreements.
+                </p>
+                <Button asChild size="sm" variant="outline" className="mt-3 h-8 w-full rounded-full border-line text-[11px]">
+                  <Link href="/help/contact-support">Talk to sales</Link>
+                </Button>
+              </div>
             </div>
             <p className="mt-3 text-[10px] leading-relaxed text-ink-faint">
               Switching runs through the secure checkout — quotes are priced in your display currency and verified

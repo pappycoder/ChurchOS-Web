@@ -9,6 +9,20 @@ export const FEATURE_MINIMUM_PLAN = {
 export type PlanFeature = keyof typeof FEATURE_MINIMUM_PLAN;
 
 export function featureForPath(path: string): PlanFeature | undefined {
+  // Paper (Abide IA) routes — same feature boundaries as the legacy prefixes below.
+  if (/^\/insights\/reports(?:\/|$)/.test(path)) return 'reports';
+  if (/^\/insights(?:\/|$)/.test(path)) return 'analytics';
+  if (/^\/operations(?:\/|$)/.test(path)) return 'assets';
+  if (/^\/gatherings\/events\/registrations(?:\/|$)/.test(path)) return 'events';
+  if (/^\/gatherings\/events\/(?:tiers|tickets)(?:\/|$)/.test(path)) return 'tickets';
+  if (/^\/gatherings\/groups(?:\/|$)/.test(path)) return 'groups';
+  if (/^\/gatherings\/events(?:\/|$)/.test(path)) return 'events';
+  if (/^\/connect\/appointments(?:\/|$)/.test(path)) return 'pastoral';
+  if (/^\/connect(?:\/|$)/.test(path)) return 'email';
+  if (/^\/library\/forms(?:\/|$)/.test(path)) return 'forms';
+  if (/^\/library(?:\/|$)/.test(path)) return 'media';
+  if (/^\/people\/pastoral(?:\/|$)/.test(path)) return 'pastoral';
+  if (/^\/admin\/channels(?:\/|$)/.test(path)) return 'giving';
   if (/^\/analytics(?:\/|$)/.test(path)) return 'analytics';
   if (/^\/assets(?:\/|$)/.test(path)) return 'assets';
   if (/^\/(?:pastoral|appointments)(?:\/|$)/.test(path)) return 'pastoral';
