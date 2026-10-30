@@ -18,8 +18,10 @@ import {
 import {
   ArrowLeft,
   Check,
+  Columns3,
   GripVertical,
   Phone,
+  Rows3,
   UserRoundPlus,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
@@ -29,6 +31,7 @@ import {
   EmptyState,
   PersonAvatar,
   SearchField,
+  ViewToggle,
 } from "@/components/paper/primitives";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,9 +41,11 @@ import {
   useVisitorsList,
   useVisitorsStats,
   useUpdateVisitorById,
+  FOLLOW_UP_STATUSES,
   type FollowUpStatus,
   type Visitor,
 } from "@/hooks/use-visitors";
+import { formatDate } from "@/hooks/use-media";
 
 /** Board columns. The terminal column merges converted + dropped, mirroring the legacy board. */
 const COLUMNS: { key: string; label: string; statuses: FollowUpStatus[]; hint: string }[] = [
@@ -130,6 +135,7 @@ export default function VisitorFollowUpBoardPage() {
   };
 
   const unassigned = rows.filter((v) => !v.assignedToId).length;
+  const [view, setView] = React.useState<"board" | "list">("board");
 
   return (
     <div className="space-y-6">
@@ -159,12 +165,60 @@ export default function VisitorFollowUpBoardPage() {
 
       <div className="flex flex-wrap items-center gap-2">
         <SearchField value={query} onChange={setQuery} placeholder="Find a guest…" className="w-full max-w-xs" />
+        <ViewToggle
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "board", label: "Kanban board", icon: <Columns3 className="size-3.5" /> },
+            { value: "list", label: "List view", icon: <Rows3 className="size-3.5" /> },
+          ]}
+        />
         <span className="text-[10px] text-ink-faint">
           {stats.data?.converted ?? 0} joined this year · follow-up beats spreadsheets
         </span>
       </div>
 
-      {list.isLoading ? (
+      {view === "list" ? (
+        <div className="paper-card divide-y divide-line/70 overflow-hidden rounded-2xl">
+          <div className="rule-label grid grid-cols-[minmax(0,2.2fr)_1.2fr_1fr_150px] items-center gap-3 border-b border-line px-5 py-2.5">
+            <span>Guest</span>
+            <span>Assigned</span>
+            <span>First visit</span>
+            <span className="text-right">Follow-up</span>
+          </div>
+          {rows.map((visitor) => (
+            <div key={visitor.id} className="flex items-center gap-3 px-5 py-3">
+              <Link href={`/people/visitors/${visitor.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+                <PersonAvatar name={fullName(visitor)} size="xs" />
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-medium">{fullName(visitor)}</span>
+                  <span className="block truncate text-[10px] text-ink-faint">{visitor.phone ?? visitor.email ?? "No contact on file"}</span>
+                </span>
+              </Link>
+              <span className="hidden w-36 truncate text-[11px] text-ink-soft md:block">
+                {visitor.assignedToName ?? <span className="text-terracotta">Unassigned</span>}
+              </span>
+              <span className="num hidden w-24 text-right text-[10px] text-ink-faint sm:block">{formatDate(visitor.firstVisitDate)}</span>
+              <select
+                value={visitor.followUpStatus}
+                aria-label={`Follow-up stage for ${fullName(visitor)}`}
+                onChange={(event) =>
+                  updateVisitor.mutate(
+                    { visitorId: visitor.id, input: { followUpStatus: event.target.value as FollowUpStatus } },
+                    { onSuccess: () => toast("Follow-up updated."), onError: () => toast.error("Couldn't update the stage.") },
+                  )
+                }
+                className="ml-auto h-8 shrink-0 rounded-full border border-line bg-card px-2.5 text-[11px] outline-none hover:border-ink/20"
+              >
+                {FOLLOW_UP_STATUSES.map((stage) => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
+              </select>
+            </div>
+          ))}
+          <div className="bg-muted/20 px-5 py-2.5 text-[10px] text-ink-faint">
+            Same live mutations as the board — switch back whenever the picture helps more than the list.
+          </div>
+        </div>
+      ) : list.isLoading ? (
         <div className="grid min-w-0 gap-3 md:grid-cols-5">
           {COLUMNS.map((c) => <Skeleton key={c.key} className="h-64 rounded-2xl" />)}
         </div>

@@ -9,6 +9,7 @@ import {
   Download,
   Eye,
   Headphones,
+  LayoutGrid,
   Plus,
   Rows3,
   Search,
@@ -23,6 +24,7 @@ import {
   EmptyState,
   FilterChip,
   SearchField,
+  ViewToggle,
 } from "@/components/paper/primitives";
 import { StaggerGroup, StaggerItem } from "@/components/paper/motion/primitives";
 import { Button } from "@/components/ui/button";
@@ -77,6 +79,7 @@ function SermonsInner() {
   const [page, setPage] = React.useState(1);
   const [sortBy, setSortBy] = React.useState<"sermonDate" | "title" | "createdAt">("sermonDate");
   const [archivedView, setArchivedView] = React.useState(false);
+  const [view, setView] = React.useState<"rows" | "grid">("rows");
   const series = searchParams.get("series") ?? undefined;
   const speaker = searchParams.get("speaker") ?? undefined;
 
@@ -152,6 +155,14 @@ function SermonsInner() {
         <FilterChip active={sortBy === "title"} onClick={() => setSortBy("title")}>A–Z</FilterChip>
         <FilterChip active={sortBy === "createdAt"} onClick={() => setSortBy("createdAt")}>Recently added</FilterChip>
         <FilterChip active={archivedView} onClick={() => { setArchivedView((v) => !v); setPage(1); }}>Archived</FilterChip>
+        <ViewToggle
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "rows", label: "List view", icon: <Rows3 className="size-3.5" /> },
+            { value: "grid", label: "Card view", icon: <LayoutGrid className="size-3.5" /> },
+          ]}
+        />
         <Button asChild variant="ghost" size="sm" className="ml-auto gap-1.5 rounded-full text-[11px] text-terracotta">
           <Link href="/library/sermons/series"><Rows3 className="size-3" /> Series</Link>
         </Button>
@@ -180,6 +191,33 @@ function SermonsInner() {
           description="Try another name, or clear the filters."
           action={canCreate ? <Button size="sm" variant="outline" className="rounded-full border-line text-xs" onClick={() => router.push("/library/sermons/new")}>Add the first</Button> : undefined}
         />
+      ) : view === "grid" ? (
+        <StaggerGroup className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {rows.map((sermon) => (
+            <StaggerItem key={sermon.sermonId}>
+              <button
+                type="button"
+                onClick={() => router.push(`/library/sermons/${sermon.sermonId}`)}
+                className="paper-card lift flex h-full w-full flex-col rounded-2xl p-4 text-left"
+              >
+                <span className="flex items-start justify-between gap-2">
+                  <span className="grid size-10 place-items-center rounded-xl bg-terracotta-soft text-terracotta">
+                    {sermon.videoUrl ? <Video className="size-4" /> : <Headphones className="size-4" />}
+                  </span>
+                  {sermon.seriesName ? <Tag tone="gold">{sermon.seriesName}</Tag> : null}
+                  {sermon.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
+                </span>
+                <span className="mt-3 line-clamp-2 font-display text-sm font-semibold leading-snug">{sermon.title}</span>
+                <span className="mt-1 text-[11px] text-ink-soft">{sermon.speaker ?? "Unknown speaker"}</span>
+                {sermon.scriptureReference ? <span className="mt-1 font-mono text-[10px] text-terracotta">{sermon.scriptureReference}</span> : null}
+                <span className="num mt-auto pt-3 text-[10px] text-ink-faint">
+                  {formatDate(sermon.sermonDate)} · {duration(sermon.durationSeconds) ?? "—"}
+                  {sermon.audioUrl ? " · audio" : ""}{sermon.videoUrl ? " · video" : ""}
+                </span>
+              </button>
+            </StaggerItem>
+          ))}
+        </StaggerGroup>
       ) : (
         <StaggerGroup className="paper-card divide-y divide-line/70 overflow-hidden rounded-2xl">
           <div className="rule-label grid grid-cols-[minmax(0,2.4fr)_1fr_0.8fr_0.9fr_0.8fr_1fr_auto] items-center gap-3 border-b border-line px-5 py-2.5">

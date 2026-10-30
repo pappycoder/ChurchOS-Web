@@ -6,14 +6,16 @@ import {
   Archive,
   CalendarPlus,
   Layers,
+  LayoutGrid,
   PencilLine,
   Plus,
+  Rows3,
   Trash2,
 } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { PageHeader } from "@/components/paper/section";
-import { StatCard } from "@/components/paper/stat";
-import { EmptyState, PersonAvatar, SearchField } from "@/components/paper/primitives";
+import { StatCard, Tag } from "@/components/paper/stat";
+import { EmptyState, PersonAvatar, SearchField, ViewToggle } from "@/components/paper/primitives";
 import { AvatarStack } from "@/components/paper/primitives";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +44,7 @@ export default function DepartmentsPage() {
   const [formOpen, setFormOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Department | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Department | null>(null);
+  const [view, setView] = React.useState<"cards" | "table">("cards");
 
   const departments = useDepartmentsList({});
   const archive = useArchiveDepartment();
@@ -78,7 +81,17 @@ export default function DepartmentsPage() {
         <StatCard label="Branch-tied" value={(departments.data ?? []).filter((d) => d.branchId).length} tone="gold" />
       </div>
 
-      <SearchField value={query} onChange={setQuery} placeholder="Search departments…" className="w-full max-w-xs" />
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchField value={query} onChange={setQuery} placeholder="Search departments…" className="w-full max-w-xs" />
+        <ViewToggle
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "cards", label: "Card view", icon: <LayoutGrid className="size-3.5" /> },
+            { value: "table", label: "List view", icon: <Rows3 className="size-3.5" /> },
+          ]}
+        />
+      </div>
 
       {departments.isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -91,6 +104,62 @@ export default function DepartmentsPage() {
           description="Departments turn Sunday&apos;s many jobs into owned teams."
           action={canCreate ? <Button size="sm" variant="outline" className="rounded-full border-line text-xs" onClick={() => { setEditing(null); setFormOpen(true); }}>Create the first</Button> : undefined}
         />
+      ) : view === "table" ? (
+        <div className="paper-card divide-y divide-line/70 overflow-hidden rounded-2xl">
+          <div className="rule-label grid grid-cols-[minmax(0,2fr)_1fr_1fr_0.7fr_auto] items-center gap-3 border-b border-line px-5 py-2.5">
+            <span>Department</span>
+            <span>Branch</span>
+            <span>Head</span>
+            <span className="text-right">Serving</span>
+            <span className="text-right">Manage</span>
+          </div>
+          {rows.map((dept) => {
+            const head = dept.headMemberId
+              ? `${dept.headFirstName ?? ""} ${dept.headLastName ?? ""}`.trim()
+              : "";
+            const isOwn = isDepartmentHead && !!profile?.memberId && dept.headMemberId === profile.memberId;
+            const canEditDept = canUpdate && (!isDepartmentHead || isOwn);
+            return (
+              <div key={dept.id} className="group grid grid-cols-[minmax(0,2fr)_1fr_1fr_0.7fr_auto] items-center gap-3 px-5 py-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-ink-faint"><Layers className="size-3.5" /></span>
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold">{dept.name}</p>
+                    {dept.description ? <p className="truncate text-[10px] text-ink-faint">{dept.description}</p> : null}
+                  </div>
+                  {dept.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
+                </div>
+                <span className="truncate text-[11px] text-ink-soft">{dept.branchName ?? "Church-wide"}</span>
+                <span className="flex min-w-0 items-center gap-1.5 text-[11px] text-ink-soft">
+                  {head ? <><PersonAvatar name={head} size="xs" /> <span className="truncate">{head}</span></> : <span className="text-ink-faint">Unheaded</span>}
+                </span>
+                <span className="num text-right text-[11px]">{number(dept.members?.length ?? dept.memberCount ?? 0)}</span>
+                <span className="flex justify-end gap-0.5">
+                  {canEditDept ? (
+                    <button type="button" aria-label={`Edit ${dept.name}`} onClick={() => { setEditing(dept); setFormOpen(true); }} className="grid size-7 place-items-center rounded-full text-ink-faint opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-ink">
+                      <PencilLine className="size-3.5" />
+                    </button>
+                  ) : null}
+                  {canUpdate && !dept.archivedAt ? (
+                    <button type="button" aria-label={`Archive ${dept.name}`} onClick={() => archive.mutate(dept.id, { onSuccess: () => toast(`${dept.name} archived.`), onError: () => toast.error("Couldn't archive.") })} className="grid size-7 place-items-center rounded-full text-ink-faint opacity-0 transition-opacity group-hover:opacity-100 hover:bg-muted hover:text-ink">
+                      <Archive className="size-3.5" />
+                    </button>
+                  ) : null}
+                  {dept.archivedAt && canUpdate ? (
+                    <button type="button" onClick={() => restore.mutate(dept.id, { onSuccess: () => toast(`${dept.name} restored.`), onError: () => toast.error("Couldn't restore.") })} className="rounded-full px-2 py-1 text-[10px] text-moss hover:bg-moss-soft">
+                      Restore
+                    </button>
+                  ) : null}
+                  {canDelete && !isDepartmentHead && !dept.archivedAt ? (
+                    <button type="button" aria-label={`Delete ${dept.name}`} onClick={() => setDeleteTarget(dept)} className="grid size-7 place-items-center rounded-full text-ink-faint opacity-0 transition-opacity group-hover:opacity-100 hover:bg-rose-soft hover:text-rose">
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  ) : null}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((dept) => {
