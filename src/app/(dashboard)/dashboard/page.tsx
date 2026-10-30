@@ -1,11 +1,5 @@
-import { PageHeader } from "@/components/shared/page-header";
-import { MyDashboard } from "@/components/dashboard/my-dashboard";
+import { redirect } from "next/navigation";
 
 export default function DashboardPage() {
-  return (
-    <div className="space-y-4">
-      <PageHeader title="Dashboard" breadcrumbs={[{ label: "Dashboard" }]}  />
-      <MyDashboard />
-    </div>
-  );
+  redirect("/home");
 }

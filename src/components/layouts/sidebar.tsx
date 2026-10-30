@@ -82,221 +82,221 @@ const navItems: { section: string; items: NavItem[] }[] = [
     items: [
       {
         title: "Dashboard",
-        href: "/dashboard",
+        href: "/home",
         icon: LayoutDashboard,
       },
       {
         title: "Members",
-        href: "/members",
+        href: "/people/members",
         icon: Users,
         permission: "members:all:read",
         children: [
           {
             title: "All Members",
-            href: "/members",
+            href: "/people/members",
             permission: "members:all:read",
           },
           {
             title: "Add Member",
-            href: "/members/new",
+            href: "/people/members/new",
             permission: "members:new:create",
           },
           {
             title: "Import Members",
-            href: "/members/import",
+            href: "/people/members/import",
             permission: "members:import:create",
           },
           {
             title: "Families",
-            href: "/members/families",
+            href: "/people/families",
             permission: "families:read",
           },
         ],
       },
       {
         title: "Attendance",
-        href: "/attendance",
+        href: "/gatherings/attendance",
         icon: CalendarCheck,
         children: [
           {
             title: "Dashboard",
-            href: "/attendance",
+            href: "/gatherings/attendance",
             permission: "attendance:dashboard:read",
           },
           {
             title: "Services",
-            href: "/attendance/services",
+            href: "/gatherings/attendance/services",
             permission: "attendance:services:read",
           },
           {
             title: "Check-In",
-            href: "/attendance/check-in",
+            href: "/gatherings/attendance/check-in",
             permission: "attendance:checkin:create",
           },
           {
             title: "Records",
-            href: "/attendance/records",
+            href: "/gatherings/attendance/records",
             permission: "attendance:records:read",
           },
           {
             title: "Reports",
-            href: "/attendance/reports",
+            href: "/gatherings/attendance/reports",
             permission: "attendance:reports:read",
           },
         ],
       },
       {
         title: "Giving",
-        href: "/giving",
+        href: "/giving/overview",
         icon: HandCoins,
         children: [
-          { title: "Dashboard", href: "/giving", permission: "giving:dashboard:read" },
+          { title: "Dashboard", href: "/giving/overview", permission: "giving:dashboard:read" },
           {
             title: "Categories",
-            href: "/giving/categories",
+            href: "/giving/funds",
             permission: "giving:categories:read",
           },
           {
             title: "Records",
-            href: "/giving/records",
+            href: "/giving/donations",
             permission: "giving:records:read",
           },
           {
             title: "Reports",
-            href: "/giving/reports",
+            href: "/giving/statements",
             permission: "giving:reports:read",
           },
           {
             title: "Recurring Giving",
-            href: "/giving/recurring",
+            href: "/giving/schedules",
             permission: "giving:recurring:read",
           },
         ],
       },
       {
         title: "Events",
-        href: "/events",
+        href: "/gatherings/events",
         icon: Calendar,
         permission: "events:calendar:read",
         children: [
-          { title: "Calendar", href: "/events", permission: "events:calendar:read" },
+          { title: "Calendar", href: "/gatherings/events", permission: "events:calendar:read" },
           {
             title: "All Events",
-            href: "/events/list",
-            permission: "events:all:read",
+            href: "/gatherings/events",
+            permission: "events:calendar:read",
           },
           {
             title: "Check-In",
-            href: "/events/check-in",
+            href: "/gatherings/events/check-in",
             permission: "events:checkin:create",
           },
           {
             title: "Registrations",
-            href: "/events/registrations",
+            href: "/gatherings/events/registrations",
             permission: "events:registrations:read",
           },
           {
             title: "Tickets",
-            href: "/events/management",
+            href: "/gatherings/events/tickets",
             permission: "events:tickets:read",
           },
         ],
       },
       {
         title: "Sermons",
-        href: "/sermons",
+        href: "/library/sermons",
         icon: BookOpen,
         permission: "sermons:read",
         children: [
           {
             title: "All Sermons",
-            href: "/sermons",
+            href: "/library/sermons",
             permission: "sermons:list:read",
           },
           {
             title: "Add Sermon",
-            href: "/sermons/new",
+            href: "/library/sermons/new",
             permission: "sermons:new:create",
           },
           {
             title: "Series",
-            href: "/sermons/series",
+            href: "/library/sermons/series",
             permission: "sermons:series:read",
           },
           {
             title: "Speakers",
-            href: "/sermons/speakers",
+            href: "/library/sermons/speakers",
             permission: "sermons:speakers:read",
           },
         ],
       },
       {
         title: "Media",
-        href: "/media",
+        href: "/library/media",
         icon: Film,
         permission: "media:read",
         children: [
-          { title: "Library", href: "/media", permission: "media:library:read" },
+          { title: "Library", href: "/library/media", permission: "media:library:read" },
           {
             title: "Upload",
-            href: "/media/upload",
-            permission: "media:upload:create",
+            href: "/library/media",
+            permission: "media:library:read",
           },
           {
             title: "Folders",
-            href: "/media/folders",
+            href: "/library/media/folders",
             permission: "media:folders:read",
           },
         ],
       },
       {
         title: "Pastoral Care",
-        href: "/pastoral",
+        href: "/people/pastoral",
         icon: HeartHandshake,
         permission: "pastoral:read",
         children: [
-          { title: "Notes", href: "/pastoral", permission: "pastoral:notes:read" },
+          { title: "Notes", href: "/people/pastoral", permission: "pastoral:notes:read" },
           {
             title: "Life Events",
-            href: "/pastoral/life-events",
+            href: "/people/pastoral/life-events",
             permission: "pastoral:life-events:read",
           },
           {
             title: "Risk Scores",
-            href: "/pastoral/risk-scores",
+            href: "/people/pastoral/risk",
             permission: "pastoral:risk-scores:read",
           },
           {
             title: "Engagement",
-            href: "/pastoral/engagement",
+            href: "/people/pastoral/engagement",
             permission: "pastoral:engagement:read",
           },
         ],
       },
       {
         title: "Visitors",
-        href: "/visitors",
+        href: "/people/visitors",
         icon: UserPlus,
-        permission: "visitors:read",
+        permission: "visitors:list:read",
         children: [
           {
             title: "All Visitors",
-            href: "/visitors",
+            href: "/people/visitors",
             permission: "visitors:list:read",
           },
           {
             title: "Add Visitor",
-            href: "/visitors/new",
-            permission: "visitors:new:create",
+            href: "/people/visitors",
+            permission: "visitors:list:read",
           },
           {
             title: "Import Visitors",
-            href: "/visitors/import",
+            href: "/people/visitors/import",
             permission: "visitors:new:create",
           },
           {
             title: "Follow-Up",
-            href: "/visitors/follow-up",
+            href: "/people/visitors/follow-up",
             permission: "visitors:list:read",
           },
         ],
@@ -308,31 +308,31 @@ const navItems: { section: string; items: NavItem[] }[] = [
     items: [
       {
         title: "Templates",
-        href: "/communication/templates",
+        href: "/connect/templates",
         icon: FileText,
         permission: "templates:read",
       },
       {
         title: "Broadcasts",
-        href: "/communication/broadcasts",
+        href: "/connect/broadcasts",
         icon: Megaphone,
         permission: "broadcasts:read",
       },
       {
         title: "Messages",
-        href: "/communication/messages",
+        href: "/connect/messages",
         icon: MessageSquare,
         permission: "whatsapp:read",
       },
       {
         title: "Inbox",
-        href: "/communication/inbox",
+        href: "/connect/inbox",
         icon: Mail,
         permission: "emails:read",
       },
       {
         title: "Appointments",
-        href: "/appointments",
+        href: "/connect/appointments",
         icon: CalendarClock,
         permission: "appointments:read",
       },
@@ -343,65 +343,65 @@ const navItems: { section: string; items: NavItem[] }[] = [
     items: [
       {
         title: "Departments",
-        href: "/departments",
+        href: "/gatherings/groups",
         icon: Building2,
         children: [
           {
             title: "All Departments",
-            href: "/departments",
+            href: "/gatherings/groups",
             permission: "departments:read",
           },
           {
             title: "Cell Groups",
-            href: "/departments/cell-groups",
+            href: "/gatherings/groups/cell",
             permission: "cell_groups:read",
           },
         ],
       },
       {
         title: "Assets",
-        href: "/assets",
+        href: "/operations/assets",
         icon: Package,
         permission: "assets:read",
         children: [
-          { title: "All Assets", href: "/assets", permission: "assets:list:read" },
+          { title: "All Assets", href: "/operations/assets", permission: "assets:list:read" },
           {
             title: "Categories",
-            href: "/assets/categories",
+            href: "/operations/assets/categories",
             permission: "assets:categories:read",
           },
           {
             title: "Maintenance",
-            href: "/assets/maintenance",
+            href: "/operations/assets/maintenance",
             permission: "assets:maintenance:read",
           },
-          { title: "Loans", href: "/assets/loans", permission: "assets:loans:read" },
+          { title: "Loans", href: "/operations/assets/loans", permission: "assets:loans:read" },
         ],
       },
       {
         title: "Forms",
-        href: "/forms",
+        href: "/library/forms",
         icon: ClipboardList,
         permission: "forms:read",
         children: [
-          { title: "All Forms", href: "/forms", permission: "forms:list:read" },
+          { title: "All Forms", href: "/library/forms", permission: "forms:list:read" },
           {
             title: "Submissions",
-            href: "/forms/submissions",
+            href: "/library/forms/submissions",
             permission: "forms:submissions:read",
           },
         ],
       },
       {
         title: "Reports",
-        href: "/reports",
+        href: "/insights/reports",
         icon: FileBarChart,
         permission: "reports:view",
         anyOf: ["reports:financial:read", "reports:attendance:read", "reports:members:read"],
         children: [
           {
             title: "Generate Report",
-            href: "/reports",
+            href: "/insights/reports",
             permission: "reports:view",
             anyOf: ["reports:financial:read", "reports:attendance:read", "reports:members:read"],
           },
@@ -414,59 +414,59 @@ const navItems: { section: string; items: NavItem[] }[] = [
     items: [
       {
         title: "User Management",
-        href: "/admin/users",
+        href: "/admin/team",
         icon: UserCog,
         permission: "users:read", allOf: ["profiles:read"],
         children: [
-          { title: "Users", href: "/admin/users", permission: "users:read", allOf: ["profiles:read"] },
+          { title: "Users", href: "/admin/team", permission: "users:read", allOf: ["profiles:read"] },
           {
             title: "Roles & Permissions",
-            href: "/admin/roles",
+            href: "/admin/permissions",
             permission: "roles:read",
           },
         ],
       },
       {
         title: "Church Settings",
-        href: "/admin/settings",
+        href: "/admin/church",
         icon: Settings,
         permission: "church_settings:update",
       },
       {
         title: "Integrations",
-        href: "/admin/integrations",
+        href: "/admin/channels",
         icon: Plug,
         permission: "integrations:read",
       },
       {
         title: "Branches",
-        href: "/admin/branches",
+        href: "/admin/locations",
         icon: Building2,
         permission: "branches:directory:read",
       },
       {
         title: "Analytics",
-        href: "/analytics",
+        href: "/insights/analytics",
         icon: BarChart3,
         children: [
           {
             title: "Overview",
-            href: "/analytics",
+            href: "/insights/analytics",
             permission: "analytics:dashboard:read",
           },
           {
             title: "Giving",
-            href: "/analytics/giving",
+            href: "/insights/analytics/giving",
             permission: "analytics:giving:read",
           },
           {
             title: "Attendance",
-            href: "/analytics/attendance",
+            href: "/insights/analytics/attendance",
             permission: "analytics:attendance:read",
           },
           {
             title: "Members",
-            href: "/analytics/members",
+            href: "/insights/analytics/members",
             permission: "analytics:members:read",
           },
         ],
@@ -481,7 +481,7 @@ const navItems: { section: string; items: NavItem[] }[] = [
         href: "/help",
         icon: BookOpen,
       },
-      { title: "Contact support", href: "/support", icon: Mail },
+      { title: "Contact support", href: "/home", icon: Mail },
     ],
   },
 ];
@@ -609,12 +609,12 @@ export function Sidebar() {
   return <SidebarPrimitive collapsible="icon" variant="sidebar" aria-label="Main navigation" className="workspace-sidebar">
     <div className="flex min-h-0 flex-1">
       <nav aria-label="Workspace areas" className="workspace-area-rail hidden md:flex">
-        <Link href="/dashboard" aria-label="ChurchOS home" className="workspace-brand-mark" onClick={close}>
+        <Link href="/home" aria-label="ChurchOS home" className="workspace-brand-mark" onClick={close}>
           <BrandLogo variant="mark" emblemClassName="!size-8 brightness-0 invert" />
         </Link>
         <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto py-3">{areas.map(entry => areaLink(entry, true))}</div>
         <div className="flex flex-col items-center gap-2 border-t border-white/10 py-3">
-          <Tooltip><TooltipTrigger asChild><Link href="/support" aria-label="Contact support" className="workspace-rail-utility"><CircleHelp className="size-5" /></Link></TooltipTrigger><TooltipContent side="right">Contact support</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Link href="/home" aria-label="Contact support" className="workspace-rail-utility"><CircleHelp className="size-5" /></Link></TooltipTrigger><TooltipContent side="right">Contact support</TooltipContent></Tooltip>
           <ColorModeToggle className="workspace-rail-utility" />
           <AccountMenu />
         </div>
@@ -628,7 +628,7 @@ export function Sidebar() {
         <SidebarContent>
           <nav aria-label="Workspace areas" className="grid grid-cols-2 gap-1 border-b p-3 md:hidden">{areas.map(entry => areaLink(entry, false))}</nav>
           <div className="px-5 pb-3 pt-6">
-            <p className="text-lg font-semibold tracking-tight">{area?.title ?? (pathname === "/profile" ? "Your account" : "Workspace")}</p>
+            <p className="text-lg font-semibold tracking-tight">{area?.title ?? (pathname === "/settings/profile" ? "Your account" : "Workspace")}</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{area?.description ?? "Your personal workspace"}</p>
           </div>
           <nav id="sidebar-menu" aria-label="Workspace" className="space-y-5 px-3 pb-5">
@@ -654,7 +654,7 @@ export function Sidebar() {
         </SidebarContent>
         <SidebarFooter className="workspace-context-footer">
           <Link href="/help" aria-label="Help Centre" className="flex items-center justify-between gap-2 rounded-xl border bg-background px-3 py-3 text-xs text-muted-foreground hover:text-foreground" onClick={close}>A little help, whenever you need it<ArrowUpRight className="size-4 shrink-0" /></Link>
-          <div className="flex items-center justify-between md:hidden"><Link href="/support" className="workspace-destination" onClick={close}>Contact support</Link><ColorModeToggle /><AccountMenu /></div>
+          <div className="flex items-center justify-between md:hidden"><Link href="/home" className="workspace-destination" onClick={close}>Contact support</Link><ColorModeToggle /><AccountMenu /></div>
         </SidebarFooter>
       </div>
     </div>

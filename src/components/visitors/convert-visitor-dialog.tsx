@@ -118,7 +118,7 @@ export function ConvertVisitorDialog({
       });
       onOpenChange(false);
       onConverted?.(result.memberId);
-      router.push(`/members/${result.memberId}`);
+      router.push(`/people/members/${result.memberId}`);
     } catch (error) {
       toast.error("Failed to convert visitor", {
         description: getToastErrorMessage(error, "Please try again."),

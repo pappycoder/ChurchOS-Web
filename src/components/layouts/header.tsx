@@ -39,13 +39,13 @@ export function Header() {
   }, []);
   return <header className="workspace-topbar sticky top-0 z-30 flex shrink-0 items-center gap-2 sm:gap-3">
     <SidebarTrigger variant="ghost" /><Separator orientation="vertical" className="!h-5" />
-    <span className="hidden text-sm font-medium text-muted-foreground sm:inline">{area?.title ?? (pathname === "/profile" ? "Your account" : "Workspace")}</span>
+    <span className="hidden text-sm font-medium text-muted-foreground sm:inline">{area?.title ?? (pathname === "/settings/profile" ? "Your account" : "Workspace")}</span>
     <Button variant="ghost" className="workspace-search h-9 justify-start text-muted-foreground lg:ms-5 lg:w-60" onClick={() => setSearchOpen(true)} aria-label="Search navigation">
       <Search className="size-4" /><span className="hidden lg:inline">Jump to a page...</span><kbd className="ms-auto hidden rounded border px-1.5 font-mono text-[10px] lg:inline-flex">Ctrl K</kbd>
     </Button>
     <div className="ms-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1 sm:gap-2">
       <AskChurchOS /><ContextHelpMenu />{/* <OfflineHeaderButton /> */}
-      {canViewInbox && <Button variant="ghost" size="icon" asChild tooltip="Inbox"><Link href="/communication/inbox" className="relative"><Mail className="size-4" />{(unread?.count ?? 0) > 0 && <span className="absolute end-0 top-0 rounded-full bg-destructive px-1 text-[10px] text-white">{unread!.count > 99 ? "99+" : unread!.count}</span>}</Link></Button>}
+      {canViewInbox && <Button variant="ghost" size="icon" asChild tooltip="Inbox"><Link href="/connect/inbox" className="relative"><Mail className="size-4" />{(unread?.count ?? 0) > 0 && <span className="absolute end-0 top-0 rounded-full bg-destructive px-1 text-[10px] text-white">{unread!.count > 99 ? "99+" : unread!.count}</span>}</Link></Button>}
       <NotificationBell compact /><ColorModeToggle className="md:hidden" /><AccountMenu />
     </div>
     <CommandDialog open={searchOpen} onOpenChange={setSearchOpen} title="Search navigation" description="Find pages in your ChurchOS workspace.">

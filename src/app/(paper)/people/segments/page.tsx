@@ -203,7 +203,7 @@ export default function SegmentsPage() {
               <Link href="/people/members" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Members status &amp; branch filters</Link>
               <Link href="/people/visitors" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Visitor follow-up chips</Link>
               <Link href="/people/pastoral/risk" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Care level filters</Link>
-              <Link href="/communication/broadcasts/new" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Broadcast audience builder</Link>
+              <Link href="/connect/broadcasts" className="rounded-full border border-line bg-card px-3 py-1.5 hover:border-terracotta/40">Broadcast audience builder</Link>
             </div>
             <p className="mt-3 text-[10px] leading-relaxed text-ink-faint">
               The audience builder on a broadcast already does rule-based targeting ad hoc — saved segments make

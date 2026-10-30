@@ -157,7 +157,7 @@ export function EventDetailModal({
                         icon: Pencil,
                         onSelect: () => {
                           onOpenChange(false);
-                          router.push(`/events/${event.eventId}/edit`);
+                          router.push(`/gatherings/events/${event.eventId}/edit`);
                         },
                       },
                     ]
@@ -176,7 +176,7 @@ export function EventDetailModal({
             />
             {can("events:all", "read") && (
               <Button asChild>
-                <Link href={`/events/${event.eventId}`}>View Details</Link>
+                <Link href={`/gatherings/events/${event.eventId}`}>View Details</Link>
               </Button>
             )}
           </div>

@@ -95,7 +95,7 @@ export function CalendarSidebar({
               <PermissionLink
                 key={entry.id}
                 className={classes}
-                href={`/attendance/services/${entry.item.serviceId}`}
+                href={`/gatherings/attendance/services/${entry.item.serviceId}`}
               >
                 {content}
               </PermissionLink>

@@ -128,7 +128,7 @@ export function AssetWorklist({ kind }: { kind: "loans" | "maintenance" }) {
         count={query.data?.meta.total ?? 0}
         title={isLoan ? "Asset loans" : "Asset maintenance"}
         breadcrumbs={[
-          { label: "Assets", href: "/assets" },
+          { label: "Assets", href: "/operations/assets" },
           { label: isLoan ? "Loans" : "Maintenance" },
         ]}
         action={
@@ -247,7 +247,7 @@ export function AssetWorklist({ kind }: { kind: "loans" | "maintenance" }) {
                       {canReadAsset ? (
                         <Link
                           className="font-medium underline underline-offset-4"
-                          href={`/assets/${record.assetId}`}
+                          href={`/operations/assets/${record.assetId}`}
                         >
                           {record.assetName}
                         </Link>

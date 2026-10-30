@@ -100,7 +100,7 @@ export function AccountMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile">
+          <Link href="/settings/profile">
             <User className="size-4" />
             Profile
           </Link>
@@ -111,7 +111,7 @@ export function AccountMenu({
         </DropdownMenuItem>
         {ready && can("church_settings", "update") && (
           <DropdownMenuItem asChild>
-            <Link href="/admin/settings">
+            <Link href="/admin/church">
               <Settings className="size-4" />
               Church settings
             </Link>
