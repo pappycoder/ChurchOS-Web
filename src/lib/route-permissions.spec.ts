@@ -143,8 +143,8 @@ describe("dynamic route authorization", () => {
 
 describe("dashboard route coverage", () => {
   it("requires a permission rule for every operational page", () => {
-    const root = path.join(repoRoot, "src/app/(dashboard)");
-    const openPages = new Set(["/dashboard", "/profile", "/docs"]);
+    const root = path.join(repoRoot, "src/app/(paper)");
+    const openPages = new Set(["/home", "/search", "/support", "/notifications", "/docs"]);
     const walk = (directory: string): string[] => fs.readdirSync(directory, { withFileTypes: true })
       .flatMap((entry) => entry.isDirectory() ? walk(path.join(directory, entry.name))
         : entry.name === "page.tsx" ? [path.dirname(path.join(directory, entry.name))] : []);
@@ -197,7 +197,7 @@ describe("authorized login return destinations", () => {
   });
   it("falls back from missing, unauthorized, external and backslash destinations", () => {
     for (const destination of [null, "/missing", "/admin/settings", "https://example.com", "//example.com", "/\\example.com", "/api/session"]) {
-      expect(permissionReturnTo(destination, () => false)).toBe("/dashboard");
+      expect(permissionReturnTo(destination, () => false)).toBe("/home");
     }
   });
 });

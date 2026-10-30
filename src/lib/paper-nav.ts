@@ -329,6 +329,7 @@ export const PAPER_AREAS: PaperArea[] = [
           { title: "Notifications", href: "/settings/notifications", description: "What reaches you", live: true, planPath: "/notifications" },
           { title: "Appearance", href: "/settings/appearance", description: "Light, dark, rhythm", live: true, planPath: "/profile" },
           { title: "Billing", href: "/settings/billing", description: "Plan & payments", permission: "billing:read", live: true, planPath: "/subscription" },
+          { title: "Support", href: "/support", description: "The human desk", live: true, planPath: "/support" },
         ],
       },
     ],

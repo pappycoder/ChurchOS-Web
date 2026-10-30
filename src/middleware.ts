@@ -12,8 +12,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const protectedPaths = [
-    "/dashboard",
-    // Paper (Abide IA) routes — protected like the legacy workspace pages.
+    // Paper (Abide IA) routes — the workspace.
     "/home",
     "/people",
     "/gatherings",
@@ -23,25 +22,9 @@ export function middleware(request: NextRequest) {
     "/operations",
     "/settings",
     "/search",
-    "/docs",
-    "/members",
-    "/attendance",
     "/giving",
-    "/events",
-    "/forms",
-    "/media",
-    "/pastoral",
     "/admin",
-    "/profile",
     "/support",
-    "/communication",
-    "/appointments",
-    "/debug",
-    "/assets",
-    "/sermons",
-    "/reports",
-    "/analytics",
-    "/inbox",
     "/notifications",
     "/departments",
     "/visitors",

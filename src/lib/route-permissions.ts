@@ -21,6 +21,7 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/dashboard" },
   // Paper (Abide IA) workspace shell — Home and Notifications are shared.
   { prefix: "/home" },
+  { prefix: "/support" },
   { prefix: "/search" },
   { prefix: "/people/segments" },
   { prefix: "/notifications" },
@@ -31,7 +32,6 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/help/contact-support" },
   { prefix: "/profile" },
   // Contact support shares the workspace; live chat is restricted to administrators.
-  { prefix: "/support" },
 
   // Members
   { prefix: "/people/members/new", permission: "members:new:create" },
@@ -92,6 +92,10 @@ export const ROUTE_PERMISSIONS: RoutePermissionRule[] = [
   { prefix: "/admin/locations", permission: "branches:directory:read" },
   { prefix: "/admin/channels", permission: "integrations:read" },
   { prefix: "/settings/billing", permission: "billing:read" },
+  { prefix: "/settings/profile" },
+  { prefix: "/settings/security" },
+  { prefix: "/settings/notifications" },
+  { prefix: "/settings/appearance" },
   { prefix: "/settings" },
   { prefix: "/people/members", permission: "members:all:read" },
   { prefix: "/members/import", permission: "members:import:create" },
@@ -242,9 +246,9 @@ export function checkRule(
 
 /** Login returns only to a known, authorized application page. */
 export function permissionReturnTo(destination: string | null, can: (permission: string) => boolean): string {
-  if (!destination?.startsWith("/") || destination.startsWith("//") || /[\\\u0000-\u001f]/.test(destination)) return "/dashboard";
+  if (!destination?.startsWith("/") || destination.startsWith("//") || /[\\\u0000-\u001f]/.test(destination)) return "/home";
   const url = new URL(destination, "https://churchos.invalid");
   return checkRule(matchRoutePermission(url.pathname), can)
     ? `${url.pathname}${url.search}${url.hash}`
-    : "/dashboard";
+    : "/home";
 }

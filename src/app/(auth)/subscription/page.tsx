@@ -198,7 +198,7 @@ export default function SubscriptionPage() {
     // only after its own authenticated server verification returns applied.
     void client.invalidateQueries({ queryKey: ["current-profile"] });
     void client.invalidateQueries({ queryKey: ["notifications"] });
-    router.replace("/dashboard");
+    router.replace("/home");
   }, [
     verification.data,
     client,
@@ -396,7 +396,7 @@ export default function SubscriptionPage() {
           <div>
             {data?.active && (!trackedReference || outcome === "applied") && (
               <Link
-                href="/dashboard"
+                href="/home"
                 className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground"
               >
                 <ArrowLeft className="size-4" />
