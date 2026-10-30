@@ -126,9 +126,9 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/gatherings/events",
         planPath: "/events",
         children: [
-          { title: "Calendar", href: "/gatherings/events", description: "Month, week, agenda", permission: "events:calendar:read", live: false, planPath: "/events" },
-          { title: "Create event", href: "/gatherings/events/new", description: "Plan something new", permission: "events:create", live: false, planPath: "/events/new" },
-          { title: "Check-in", href: "/gatherings/events/check-in", description: "Kiosk mode", permission: "events:checkin:create", live: false, planPath: "/events/check-in" },
+          { title: "Calendar", href: "/gatherings/events", description: "Month, week, agenda", permission: "events:calendar:read", live: true, planPath: "/events" },
+          { title: "Create event", href: "/gatherings/events/new", description: "Plan something new", permission: "events:create", live: true, planPath: "/events/new" },
+          { title: "Check-in", href: "/gatherings/events/check-in", description: "Kiosk mode", permission: "events:checkin:create", live: true, planPath: "/events/check-in" },
           { title: "Registrations", href: "/gatherings/events/registrations", description: "Who's coming", permission: "events:registrations:read", live: false, planPath: "/events/registrations" },
           { title: "Ticket tiers", href: "/gatherings/events/tiers", description: "Pricing and capacity", permission: "events:tickets:read", live: false, planPath: "/events/management" },
         ],
@@ -138,10 +138,10 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/gatherings/attendance",
         planPath: "/attendance",
         children: [
-          { title: "Overview", href: "/gatherings/attendance", description: "Headcount trends", permission: "attendance:dashboard:read", live: false, planPath: "/attendance" },
-          { title: "Live check-in", href: "/gatherings/attendance/check-in", description: "Sunday morning", permission: "attendance:checkin:create", live: false, planPath: "/attendance/check-in" },
-          { title: "Services", href: "/gatherings/attendance/services", description: "Every gathering", permission: "attendance:services:read", live: false, planPath: "/attendance/services" },
-          { title: "Records", href: "/gatherings/attendance/records", description: "History and exports", permission: "attendance:records:read", live: false, planPath: "/attendance/records" },
+          { title: "Overview", href: "/gatherings/attendance", description: "Headcount trends", permission: "attendance:dashboard:read", live: true, planPath: "/attendance" },
+          { title: "Live check-in", href: "/gatherings/attendance/check-in", description: "Sunday morning", permission: "attendance:checkin:create", live: true, planPath: "/attendance/check-in" },
+          { title: "Services", href: "/gatherings/attendance/services", description: "Every gathering", permission: "attendance:services:read", live: true, planPath: "/attendance/services" },
+          { title: "Records", href: "/gatherings/attendance/records", description: "History and exports", permission: "attendance:records:read", live: true, planPath: "/attendance/records" },
         ],
       },
       {
@@ -149,8 +149,8 @@ export const PAPER_AREAS: PaperArea[] = [
         href: "/gatherings/groups",
         planPath: "/departments",
         children: [
-          { title: "All groups", href: "/gatherings/groups", description: "Teams and ministries", permission: "departments:read", live: false, planPath: "/departments" },
-          { title: "Cell groups", href: "/gatherings/groups/cell", description: "Small circles", permission: "cell_groups:read", live: false, planPath: "/departments/cell-groups" },
+          { title: "All groups", href: "/gatherings/groups", description: "Teams and ministries", permission: "departments:read", live: true, planPath: "/departments" },
+          { title: "Cell groups", href: "/gatherings/groups/cell", description: "Small circles", permission: "cell_groups:read", live: true, planPath: "/departments/cell-groups" },
         ],
       },
     ],
