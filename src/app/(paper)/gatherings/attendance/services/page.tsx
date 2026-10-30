@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   CalendarClock,
   Pause,
@@ -329,16 +330,18 @@ function ServiceRow({
   return (
     <div className="group flex items-center gap-4 px-5 py-3.5">
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-2 truncate text-xs font-semibold">
-          {service.name}
-          {service.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
-        </p>
-        <p className="num mt-0.5 text-[10px] text-ink-faint">
-          {service.dayOfWeek !== undefined && service.dayOfWeek !== null ? DAYS[service.dayOfWeek] : "Any day"}
-          {service.startTime ? ` · ${String(service.startTime).slice(0, 5)}` : ""}
-          {service.endTime ? `–${String(service.endTime).slice(0, 5)}` : ""}
-          {branchLabel ? ` · ${branchLabel}` : ""}
-        </p>
+        <Link href={`/gatherings/attendance/services/${service.serviceId}`} className="block">
+          <p className="flex items-center gap-2 truncate text-xs font-semibold hover:text-terracotta">
+            {service.name}
+            {service.archivedAt ? <Tag tone="neutral">Archived</Tag> : null}
+          </p>
+          <p className="num mt-0.5 text-[10px] text-ink-faint">
+            {service.dayOfWeek !== undefined && service.dayOfWeek !== null ? DAYS[service.dayOfWeek] : "Any day"}
+            {service.startTime ? ` · ${String(service.startTime).slice(0, 5)}` : ""}
+            {service.endTime ? `–${String(service.endTime).slice(0, 5)}` : ""}
+            {branchLabel ? ` · ${branchLabel}` : ""}
+          </p>
+        </Link>
       </div>
       <span className="num hidden w-20 shrink-0 text-right text-[11px] text-ink-soft sm:block">
         {service.attendanceCount ?? 0} <span className="text-[9px] text-ink-faint">counted</span>

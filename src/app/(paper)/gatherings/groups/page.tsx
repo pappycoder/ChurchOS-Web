@@ -216,7 +216,7 @@ export default function DepartmentsPage() {
                   />
                 </div>
                 <Button asChild variant="ghost" size="sm" className="mt-2 h-8 justify-between rounded-lg text-[11px] text-terracotta">
-                  <Link href={`/departments/${dept.id}`}>
+                  <Link href={`/gatherings/groups/${dept.id}`}>
                     Roster &amp; meeting attendance <CalendarPlus className="size-3" />
                   </Link>
                 </Button>

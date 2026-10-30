@@ -156,7 +156,7 @@ export default function CellGroupsPage() {
                   {group.branchName ? <span className="shrink-0 text-[10px] text-ink-faint">{group.branchName}</span> : null}
                 </div>
                 <Button asChild variant="ghost" size="sm" className="mt-2 h-8 justify-between rounded-lg text-[11px] text-terracotta">
-                  <Link href={`/departments/cell-groups/${group.id}`}>
+                  <Link href={`/gatherings/groups/cell/${group.id}`}>
                     Roster &amp; attendance <AvatarStack people={[{ name: leader || group.name }]} size="xs" max={1} />
                   </Link>
                 </Button>
