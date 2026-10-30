@@ -6,6 +6,7 @@ import { NavRail } from "./nav-rail";
 import { ContextBar } from "./context-bar";
 import { Inspector } from "./inspector";
 import { MobileNav } from "./mobile-nav";
+import { SupportChatTrigger } from "@/components/support/support-chat-trigger";
 import { CommandPalette } from "./command-palette";
 import { InspectorProvider } from "./inspector-provider";
 import { usePaperNav } from "./use-paper-nav";
@@ -59,6 +60,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <Inspector />
+        <SupportChatTrigger />
         <MobileNav areas={areas} />
         <CommandPalette
           open={searchOpen}

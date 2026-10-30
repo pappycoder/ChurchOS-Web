@@ -11,6 +11,7 @@ import {
   closeSupportChat,
   initializeSupportWidget,
   openSupportChat,
+  setSupportWidgetBubble,
   setSupportWidgetSuppressed,
   TAWK_CHAT_URL,
 } from "@/lib/tawk";
@@ -27,7 +28,8 @@ export function useSupportChat() {
 export function SupportChatProvider({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   const pathname = usePathname();
-  const workspace = !!matchRoutePermission(pathname) || isPublicHelpPath(pathname);
+  const workspaceChrome = !!matchRoutePermission(pathname);
+  const workspace = workspaceChrome || isPublicHelpPath(pathname);
   const { data: profile } = useQuery({
     queryKey: ["current-profile"],
     queryFn: fetchCurrentProfile,
@@ -77,6 +79,13 @@ export function SupportChatProvider({ children }: { children: React.ReactNode })
       stop();
     };
   }, [scope]);
+
+  // Inside the workspace chrome the floating bubble covers content on small
+  // screens, so hide it and let the chip trigger the chat instead. Public
+  // help pages (no workspace chrome) keep Tawk's native launcher.
+  useEffect(() => {
+    setSupportWidgetBubble(!(available && workspaceChrome));
+  }, [available, workspaceChrome]);
 
   async function openChat() {
     if (!available || active.current !== scope) return;

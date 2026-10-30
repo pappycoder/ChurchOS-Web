@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LayoutGrid } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ArrowUpRight, LayoutGrid } from "lucide-react";
 import type { PaperArea } from "@/lib/paper-nav";
 import { cn } from "@/lib/utils";
 import {
@@ -15,17 +15,98 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+/**
+ * @file Mobile workspace navigation. The bottom bar shows the first three
+ * areas; tapping one opens a bottom sheet with that area's full submenu
+ * (modules → pages) — the mobile twin of the desktop dock's hover peek.
+ * A second tap on the open area navigates straight to its landing page.
+ * The "More" sheet carries every remaining area, also expanded to leaves.
+ */
+
+function isAreaActive(area: PaperArea, pathname: string) {
+  return area.children.some((module) =>
+    module.children.some(
+      (leaf) => pathname === leaf.href || pathname.startsWith(leaf.href + "/"),
+    ),
+  );
+}
+
+function landingOf(area: PaperArea) {
+  return area.children[0]?.children[0]?.href ?? area.href;
+}
+
+function leafActive(leaf: { href: string }, pathname: string) {
+  return pathname === leaf.href || pathname.startsWith(leaf.href + "/");
+}
+
+function AreaSubmenu({
+  area,
+  pathname,
+  onNavigate,
+}: {
+  area: PaperArea;
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="space-y-5">
+      {area.children.map((module) => (
+        <div key={module.title} className="space-y-1.5">
+          <p className="rule-label px-1">{module.title}</p>
+          {module.children.map((leaf) => {
+            const active = leafActive(leaf, pathname);
+            return (
+              <Link
+                key={leaf.href}
+                href={leaf.href}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex items-start justify-between gap-3 rounded-xl border p-3 transition-colors",
+                  active
+                    ? "border-brand/40 bg-brand-soft/50"
+                    : "border-line bg-card hover:bg-muted",
+                )}
+              >
+                <span className="min-w-0">
+                  <span className="block text-xs font-semibold">{leaf.title}</span>
+                  {leaf.description ? (
+                    <span className="mt-0.5 block text-[10px] leading-relaxed text-ink-faint">
+                      {leaf.description}
+                    </span>
+                  ) : null}
+                </span>
+                {active ? (
+                  <span className="mt-0.5 size-1.5 shrink-0 rounded-full bg-brand" />
+                ) : null}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function MobileNav({ areas }: { areas: PaperArea[] }) {
   const pathname = usePathname();
+  const router = useRouter();
   const primary = areas.slice(0, 3);
   const rest = areas.slice(3);
+  const [openAreaId, setOpenAreaId] = React.useState<string | null>(null);
+  const openArea = openAreaId
+    ? primary.find((area) => area.id === openAreaId) ?? null
+    : null;
 
-  const isActive = (area: PaperArea) =>
-    area.children.some((module) =>
-      module.children.some(
-        (leaf) => pathname === leaf.href || pathname.startsWith(leaf.href + "/"),
-      ),
-    );
+  function handleArea(area: PaperArea) {
+    if (openAreaId === area.id) {
+      // Second tap on the open area — go straight to its landing page.
+      setOpenAreaId(null);
+      router.push(landingOf(area));
+    } else {
+      setOpenAreaId(area.id);
+    }
+  }
 
   return (
     <nav
@@ -34,15 +115,18 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
     >
       <div className="flex items-stretch">
         {primary.map((area) => {
-          const active = isActive(area);
-          const landing = area.children[0]?.children[0]?.href ?? area.href;
+          const active = isAreaActive(area, pathname);
+          const expanded = openAreaId === area.id;
           return (
-            <Link
+            <button
               key={area.id}
-              href={landing}
+              type="button"
+              onClick={() => handleArea(area)}
+              aria-label={`${area.label} — show sections`}
+              aria-expanded={expanded}
               className={cn(
                 "relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] transition-colors",
-                active ? "text-brand" : "text-ink-faint",
+                active || expanded ? "text-brand" : "text-ink-faint",
               )}
             >
               {active ? (
@@ -50,7 +134,7 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
               ) : null}
               <area.icon className="size-[18px]" strokeWidth={1.8} />
               {area.label}
-            </Link>
+            </button>
           );
         })}
 
@@ -66,44 +150,84 @@ export function MobileNav({ areas }: { areas: PaperArea[] }) {
                 More
               </button>
             </SheetTrigger>
-            <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+            <SheetContent
+              side="bottom"
+              className="max-h-[78svh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)]"
+            >
               <SheetHeader>
                 <SheetTitle className="text-left font-display">All areas</SheetTitle>
                 <SheetDescription className="text-left">
                   Everything in your workspace.
                 </SheetDescription>
               </SheetHeader>
-              <div className="grid grid-cols-2 gap-2 px-4">
-                {rest.map((area) => {
-                  const landing = area.children[0]?.children[0]?.href ?? area.href;
-                  return (
+              <div className="space-y-6 px-4 pt-4">
+                {rest.map((area) => (
+                  <section key={area.id} className="space-y-2.5">
                     <Link
-                      key={area.id}
-                      href={landing}
+                      href={landingOf(area)}
+                      onClick={() => setOpenAreaId(null)}
                       className={cn(
-                        "flex items-start gap-3 rounded-xl border border-line p-3 transition-colors",
-                        isActive(area)
+                        "flex items-center gap-2.5 rounded-xl border p-3 transition-colors",
+                        isAreaActive(area, pathname)
                           ? "border-brand/40 bg-brand-soft/50"
-                          : "bg-card hover:bg-muted",
+                          : "border-line bg-card hover:bg-muted",
                       )}
                     >
                       <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-muted text-ink-soft">
                         <area.icon className="size-4" />
                       </span>
-                      <span className="min-w-0">
+                      <span className="min-w-0 flex-1">
                         <span className="block text-xs font-semibold">{area.label}</span>
                         <span className="block truncate text-[10px] text-ink-faint">
                           {area.blurb}
                         </span>
                       </span>
+                      <ArrowUpRight className="size-3.5 shrink-0 text-ink-faint" />
                     </Link>
-                  );
-                })}
+                    <div className="pl-1">
+                      <AreaSubmenu area={area} pathname={pathname} onNavigate={() => setOpenAreaId(null)} />
+                    </div>
+                  </section>
+                ))}
               </div>
             </SheetContent>
           </Sheet>
         ) : null}
       </div>
+
+      {/* Per-area submenu sheet — the mobile twin of the dock's hover peek. */}
+      <Sheet open={!!openArea} onOpenChange={(value) => !value && setOpenAreaId(null)}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[78svh] overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+1.5rem)]"
+          aria-label={openArea ? `${openArea.label} sections` : undefined}
+        >
+          {openArea ? (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2.5 text-left font-display">
+                  <span className="grid size-8 place-items-center rounded-lg bg-brand-soft text-brand">
+                    <openArea.icon className="size-4" />
+                  </span>
+                  {openArea.label}
+                </SheetTitle>
+                <SheetDescription className="text-left">{openArea.blurb}</SheetDescription>
+              </SheetHeader>
+              <div className="space-y-5 px-4 pt-4">
+                <Link
+                  href={landingOf(openArea)}
+                  onClick={() => setOpenAreaId(null)}
+                  className="flex items-center justify-between rounded-xl border border-brand/30 bg-brand-soft/30 p-3 text-xs font-semibold text-brand transition-colors hover:bg-brand-soft/50"
+                >
+                  Open {openArea.label}
+                  <ArrowUpRight className="size-4" />
+                </Link>
+                <AreaSubmenu area={openArea} pathname={pathname} onNavigate={() => setOpenAreaId(null)} />
+              </div>
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </nav>
   );
 }

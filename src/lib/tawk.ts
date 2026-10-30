@@ -26,7 +26,23 @@ let generation = 0;
 let connected = false;
 let wanted = false;
 let suppressed = false;
+/**
+ * Whether Tawk's native floating launcher is allowed to show. Inside the
+ * workspace the SupportChatTrigger chip replaces it (the bubble sat over
+ * content on small screens), while public help pages keep the native one.
+ */
+let bubble = true;
 let resume: (() => void) | undefined;
+
+/** Show/hide the native floating launcher (chat can still be opened via maximize). */
+export function setSupportWidgetBubble(show: boolean): void {
+  if (bubble === show) return;
+  bubble = show;
+  const api = window.Tawk_API;
+  if (!wanted || !connected || !api) return;
+  if (show && !suppressed) api.showWidget?.();
+  else api.hideWidget?.();
+}
 
 /** Temporarily hide the widget without ending the support conversation or disconnecting. */
 export function setSupportWidgetSuppressed(value: boolean): void {
@@ -34,7 +50,7 @@ export function setSupportWidgetSuppressed(value: boolean): void {
   suppressed = value;
   const api = window.Tawk_API;
   if (value) api?.hideWidget?.();
-  else if (wanted && connected) api?.showWidget?.();
+  else if (wanted && connected && bubble) api?.showWidget?.();
 }
 
 function stopWidget(api: TawkApi) {
@@ -66,7 +82,7 @@ function loadTawk(): Promise<TawkApi> {
         api.autoStart = false;
         stopWidget(api);
       }
-      if (suppressed) api.hideWidget?.();
+      if (suppressed || !bubble) api.hideWidget?.();
     };
     api.onStatusChange = () => {
       if (!wanted) {
@@ -77,7 +93,7 @@ function loadTawk(): Promise<TawkApi> {
       // Offline is also ready: the provider's leave-a-message form can open.
       connected = true;
       resume?.();
-      if (suppressed) api.hideWidget?.();
+      if (suppressed || !bubble) api.hideWidget?.();
     };
     api.onLoad = () => {
       clearTimeout(timer);
@@ -89,7 +105,7 @@ function loadTawk(): Promise<TawkApi> {
         connected = true;
         resume?.();
       }
-      if (suppressed) readyApi.hideWidget?.();
+      if (suppressed || !bubble) readyApi.hideWidget?.();
       resolve(readyApi);
     };
     script.async = true;
@@ -130,12 +146,14 @@ async function showSupportWidget(expand: boolean): Promise<void> {
         reject(new Error("Chat could not connect. Please try the support link."));
       }, 15000);
       resume = ready;
-      api.start!({ showWidget: !suppressed });
+      api.start!({ showWidget: bubble && !suppressed });
     });
   }
   if (request !== generation) return;
   if (suppressed) { api.hideWidget?.(); return; }
-  api.showWidget();
+  if (bubble) api.showWidget();
+  else api.hideWidget?.();
+  // The workspace chip opens the conversation directly; the launcher stays hidden.
   if (expand) api.maximize?.();
 }
 
